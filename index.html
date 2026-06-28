@@ -167,6 +167,21 @@
             <input type="email" id="email" placeholder="seu@email.com" required>
         </div>
 
+        <div class="form-group">
+            <label>Instrumento <span class="obrigatorio">*</span></label>
+            <select id="instrumento" required>
+                <option value="">Selecione seu instrumento</option>
+                <option>Surdo de Primeira</option>
+                <option>Surdo de Segunda</option>
+                <option>Surdo de Terceira</option>
+                <option>Caixa</option>
+                <option>Repique</option>
+                <option>Tamborim</option>
+                <option>Chocalho</option>
+                <option>Cuíca</option>
+            </select>
+        </div>
+
         <div class="secao">Endereço</div>
 
         <div class="form-group">
@@ -271,6 +286,7 @@
             nascimento: document.getElementById('nascimento').value,
             celular: document.getElementById('celular').value,
             email: document.getElementById('email').value,
+	    instrumento: document.getElementById('instrumento').value,
             endereco: document.getElementById('endereco').value,
             numero: document.getElementById('numero').value,
             complemento: document.getElementById('complemento').value,
