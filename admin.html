@@ -206,6 +206,7 @@
                     ${r.apelido ? `<div class="card-apelido">"${r.apelido}"</div>` : ''}
                     <div class="card-dados">
                         <div class="card-dado"><strong>CPF:</strong> ${r.cpf || '-'}</div>
+                        <div class="card-dado"><strong>Instrumento:</strong> ${r.instrumento || '-'}</div>
                         <div class="card-dado"><strong>Celular:</strong> ${r.celular || '-'}</div>
                         <div class="card-dado"><strong>Cidade:</strong> ${r.cidade || '-'} / ${r.estado || '-'}</div>
                         <div class="card-dado"><strong>Cadastro:</strong> ${new Date(r.created_at).toLocaleDateString('pt-BR')}</div>
