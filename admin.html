@@ -33,9 +33,19 @@
         .header-texto { display: flex; flex-direction: column; gap: 2px; }
         .header-bateria { font-size: 16px; font-weight: bold; line-height: 1.2; }
         .header-escola { font-size: 11px; opacity: 0.55; }
-        .header-acoes { display: flex; gap: 10px; align-items: center; }
-        .btn-sair { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
-        .btn-cadastrar-novo { background: #C9A227; border: none; color: #1a1a2e; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .header-acoes { display: flex; gap: 12px; align-items: center; }
+        .header-usuario { display: flex; align-items: center; gap: 8px; }
+        .header-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: #C9A227; color: #1a1a2e;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: bold; flex-shrink: 0;
+        }
+        .header-user-info { display: flex; flex-direction: column; line-height: 1.2; }
+        .header-user-nome { font-size: 13px; font-weight: bold; }
+        .header-user-cargo { font-size: 10px; opacity: 0.55; }
+        .btn-sair { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+        .btn-cadastrar-novo { background: #C9A227; border: none; color: #1a1a2e; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; }
 
         /* CONTAINER */
         .container { padding: 24px; max-width: 1100px; margin: 0 auto; }
@@ -173,6 +183,8 @@
             .header-bateria { font-size: 14px; }
             .header-escola { font-size: 10px; }
             .header-logo { width: 34px; height: 34px; font-size: 12px; }
+            .header-user-info { display: none; }
+            .header-avatar { width: 30px; height: 30px; font-size: 11px; }
             .btn-cadastrar-novo { font-size: 12px; padding: 7px 10px; }
             .btn-sair { font-size: 12px; padding: 6px 10px; }
 
@@ -202,7 +214,14 @@
         </div>
     </div>
     <div class="header-acoes">
-        <button class="btn-cadastrar-novo" onclick="window.location.href='index.html'">+ Cadastrar Ritmista</button>
+        <div class="header-usuario">
+            <div class="header-avatar" id="headerAvatar">D</div>
+            <div class="header-user-info">
+                <div class="header-user-nome" id="headerNome">Diretor</div>
+                <div class="header-user-cargo">Diretor Geral</div>
+            </div>
+        </div>
+        <button class="btn-cadastrar-novo" onclick="window.location.href='index.html'">+ Cadastrar</button>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
@@ -501,6 +520,15 @@
 
     function sair() { window.location.href = 'login.html'; }
 
+    function iniciarUsuario() {
+        const diretor = JSON.parse(localStorage.getItem('diretor') || 'null');
+        const nome = diretor?.nome || 'Diretor';
+        const iniciais = nome.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+        document.getElementById('headerNome').textContent = nome;
+        document.getElementById('headerAvatar').textContent = iniciais;
+    }
+
+    iniciarUsuario();
     carregarRitmistas();
 </script>
 </body>
