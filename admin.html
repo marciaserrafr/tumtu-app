@@ -44,8 +44,14 @@
         .header-user-info { display: flex; flex-direction: column; line-height: 1.2; }
         .header-user-nome { font-size: 13px; font-weight: bold; }
         .header-user-cargo { font-size: 10px; opacity: 0.55; }
+        .header-logo-escola { opacity: 0.6; }
         .btn-sair { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; }
-        .btn-cadastrar-novo { background: #C9A227; border: none; color: #1a1a2e; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-cadastrar-ritmista {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #C9A227; border: none; color: #1a1a2e;
+            padding: 10px 18px; border-radius: 8px; cursor: pointer;
+            font-size: 14px; font-weight: bold; margin-bottom: 20px;
+        }
 
         /* CONTAINER */
         .container { padding: 24px; max-width: 1100px; margin: 0 auto; }
@@ -212,6 +218,9 @@
             <div class="header-bateria">Swing da Leopoldina</div>
             <div class="header-escola">Imperatriz Leopoldinense</div>
         </div>
+        <div class="header-logo header-logo-escola" title="Imperatriz Leopoldinense">
+            <img src="logo-imperatriz.png" onerror="this.parentNode.textContent='IL'"/>
+        </div>
     </div>
     <div class="header-acoes">
         <div class="header-usuario">
@@ -221,12 +230,13 @@
                 <div class="header-user-cargo">Diretor Geral</div>
             </div>
         </div>
-        <button class="btn-cadastrar-novo" onclick="window.location.href='index.html'">+ Cadastrar</button>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
 
 <div class="container">
+
+    <button class="btn-cadastrar-ritmista" onclick="window.location.href='index.html'">+ Cadastrar Ritmista</button>
 
     <div class="filtros-grupo">
         <div class="filtros-label">Filtrar por status</div>
