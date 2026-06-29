@@ -51,8 +51,8 @@
         .btn-cadastrar-ritmista {
             display: inline-flex; align-items: center; gap: 6px;
             background: #F5C518; border: none; color: #1a1a2e;
-            padding: 10px 18px; border-radius: 8px; cursor: pointer;
-            font-size: 14px; font-weight: bold; margin-bottom: 20px;
+            padding: 9px 16px; border-radius: 8px; cursor: pointer;
+            font-size: 13px; font-weight: bold;
         }
         /* RODAPÉ */
         .rodape {
@@ -75,19 +75,28 @@
         /* CONTAINER */
         .container { padding: 24px; max-width: 1100px; margin: 0 auto; }
 
-        /* FILTROS */
-        .filtros-grupo { margin-bottom: 16px; }
+        /* BARRA DE FILTROS COMPACTA */
+        .filtro-bar {
+            background: white; border-radius: 10px;
+            padding: 12px 16px; margin-bottom: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .filtro-bar-linha {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+        }
+        .filtros { display: flex; gap: 6px; flex-wrap: wrap; }
         .filtros-label { font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .filtros { display: flex; gap: 8px; flex-wrap: wrap; }
         .btn-filtro {
-            padding: 8px 16px; border-radius: 6px;
-            border: 1px solid #ccc; background: white;
-            color: #444; cursor: pointer; font-size: 14px;
+            padding: 6px 13px; border-radius: 6px;
+            border: 1px solid #e0e0e0; background: #fafafa;
+            color: #555; cursor: pointer; font-size: 13px;
             display: inline-flex; align-items: center; gap: 5px;
         }
         .btn-filtro.ativo { background: #1a1a2e; color: white; border-color: #1a1a2e; }
-        .btn-filtro.laranja, .btn-filtro.azul, .btn-filtro.verde, .btn-filtro.vermelho { border-color: #ccc; color: #444; }
+        .btn-filtro.laranja, .btn-filtro.azul, .btn-filtro.verde, .btn-filtro.vermelho { border-color: #e0e0e0; color: #555; }
         .btn-filtro.laranja.ativo, .btn-filtro.azul.ativo, .btn-filtro.verde.ativo, .btn-filtro.vermelho.ativo { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+        .contador-inline { font-size: 12px; color: #999; white-space: nowrap; }
 
         /* Multi-select instrumento */
         .multi-select { position: relative; display: inline-block; }
@@ -110,22 +119,30 @@
         .multi-select-option:hover { background: #f5f5f5; }
         .multi-select-option input[type=checkbox] { accent-color: #1a1a2e; width: 15px; height: 15px; cursor: pointer; }
 
-        /* VAGAS */
-        .vagas-section { margin-bottom: 20px; }
-        .vagas-lista { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
-        .vaga-linha {
-            display: flex; align-items: center; gap: 10px;
-            padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px;
+        /* VAGAS COMPACTO */
+        .vagas-section { margin-bottom: 16px; }
+        .vagas-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; user-select: none; }
+        .vagas-header-label { font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .vagas-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .vaga-chip-c {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: white; border: 1px solid #e8e8e8; border-radius: 20px;
+            padding: 4px 12px; font-size: 12px; cursor: pointer;
+            transition: border-color 0.15s;
         }
-        .vaga-linha:last-child { border-bottom: none; }
-        .vaga-nome { color: #444; width: 160px; flex-shrink: 0; }
-        .vaga-num { font-weight: bold; color: #1a1a2e; min-width: 20px; }
-        .vaga-sep { color: #ccc; }
-        .vaga-input {
-            width: 44px; border: 1px solid #ddd; border-radius: 4px;
-            padding: 2px 6px; font-size: 12px; text-align: center; color: #666;
+        .vaga-chip-c:hover { border-color: #bbb; }
+        .vaga-chip-c.alerta { border-color: #f5c0c0; background: #fff8f8; }
+        .vaga-chip-nome { color: #555; }
+        .vaga-chip-count { font-weight: bold; color: #1a1a2e; }
+        .vaga-chip-count.over { color: #c0392b; }
+        .vaga-chip-limit { color: #bbb; font-size: 11px; }
+        .vaga-chip-input {
+            width: 36px; border: none; border-bottom: 1px solid #ccc;
+            font-size: 12px; text-align: center; outline: none;
+            background: transparent; color: #555; display: none;
         }
-        .vaga-alerta { color: #c0392b; font-size: 11px; font-weight: bold; }
+        .vaga-chip-c.editando .vaga-chip-input { display: inline-block; }
+        .vaga-chip-c.editando .vaga-chip-limit { display: none; }
 
         /* CONTADOR */
         .contador { font-size: 13px; color: #666; margin-bottom: 16px; }
@@ -293,6 +310,7 @@
         </div>
     </div>
     <div class="header-acoes">
+        <button class="btn-cadastrar-ritmista" onclick="window.location.href='index.html'">+ Cadastrar Ritmista</button>
         <div class="header-usuario">
             <div class="header-avatar" id="headerAvatar">D</div>
             <div class="header-user-info">
@@ -306,48 +324,43 @@
 
 <div class="container">
 
-    <button class="btn-cadastrar-ritmista" onclick="window.location.href='index.html'">+ Cadastrar Ritmista</button>
-
-    <div class="filtros-grupo">
-        <div class="filtros-label">Filtrar por status</div>
-        <div class="filtros">
-            <button class="btn-filtro ativo" onclick="filtrarStatus('todos', this)">Todos</button>
-            <button class="btn-filtro" onclick="filtrarStatus('pendente', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e0a800" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendentes</button>
-            <button class="btn-filtro verde" onclick="filtrarStatus('aprovado', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg> Aprovados</button>
-            <button class="btn-filtro vermelho" onclick="filtrarStatus('rejeitado', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Rejeitados</button>
-            <button class="btn-filtro laranja" onclick="filtrarStatus('suspenso', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="#d4720a" style="flex-shrink:0"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg> Suspensos</button>
-            <button class="btn-filtro vermelho" onclick="filtrarStatus('desligado', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9a1f1f" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Desligados</button>
-            <button class="btn-filtro azul" onclick="filtrarStatus('menor', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3a5bbf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Menores</button>
+    <!-- BARRA UNIFICADA: filtros + vagas -->
+    <div class="filtro-bar">
+        <div class="filtro-bar-linha">
+            <div class="filtros">
+                <button class="btn-filtro ativo" onclick="filtrarStatus('todos', this)">Todos</button>
+                <button class="btn-filtro" onclick="filtrarStatus('pendente', this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e0a800" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendentes</button>
+                <button class="btn-filtro verde" onclick="filtrarStatus('aprovado', this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg> Aprovados</button>
+                <button class="btn-filtro vermelho" onclick="filtrarStatus('rejeitado', this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Rejeitados</button>
+                <button class="btn-filtro laranja" onclick="filtrarStatus('suspenso', this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="#d4720a" style="flex-shrink:0"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg> Suspensos</button>
+                <button class="btn-filtro vermelho" onclick="filtrarStatus('desligado', this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9a1f1f" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Desligados</button>
+                <button class="btn-filtro azul" onclick="filtrarStatus('menor', this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3a5bbf" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Menores</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+                <div class="multi-select" id="multiSelectWrap">
+                    <div class="multi-select-trigger" id="multiSelectTrigger" onclick="toggleMultiSelect()">
+                        <span id="multiSelectLabel">Todos os instrumentos</span>
+                        <span id="multiSelectArrow">▼</span>
+                    </div>
+                    <div class="multi-select-dropdown" id="multiSelectDropdown" style="display:none"></div>
+                </div>
+                <span class="contador-inline" id="contador"></span>
+            </div>
         </div>
-    </div>
 
-    <div class="filtros-grupo">
-        <div class="filtros-label">Filtrar por instrumento</div>
-        <div class="filtros">
-            <div class="multi-select" id="multiSelectWrap">
-                <div class="multi-select-trigger" id="multiSelectTrigger" onclick="toggleMultiSelect()">
-                    <span id="multiSelectLabel">Todos os instrumentos</span>
-                    <span id="multiSelectArrow">▼</span>
-                </div>
-                <div class="multi-select-dropdown" id="multiSelectDropdown" style="display:none">
-                    <!-- preenchido por JS -->
-                </div>
+        <!-- VAGAS: colapsado por padrão, chips ao expandir -->
+        <div class="vagas-section" style="margin-bottom:0;">
+            <div class="vagas-header" onclick="toggleVagas()">
+                <span class="vagas-header-label">Vagas por instrumento</span>
+                <span id="vagasToggleIcon" style="font-size:10px;color:#aaa;">▼</span>
+            </div>
+            <div id="vagasContainer" style="display:none;">
+                <div class="vagas-chips" id="vagasGrid"></div>
+                <div style="font-size:10px;color:#bbb;margin-top:6px;">Clique no chip para editar o limite de vagas.</div>
             </div>
         </div>
     </div>
 
-    <!-- VAGAS POR INSTRUMENTO -->
-    <div class="vagas-section">
-        <div class="filtros-label" style="cursor:pointer;user-select:none;" onclick="toggleVagas()">
-            Vagas por instrumento <span id="vagasToggleIcon">▲</span>
-        </div>
-        <div id="vagasContainer">
-            <div class="vagas-lista" id="vagasGrid"></div>
-            <div style="font-size:11px;color:#aaa;margin-top:8px;">Clique no número de vagas para editar. 🔴 = acima do limite.</div>
-        </div>
-    </div>
-
-    <div class="contador" id="contador"></div>
     <div class="cards" id="listaRitmistas" style="min-height:500px;">
         <div class="vazio">Carregando...</div>
     </div>
@@ -771,7 +784,7 @@
         const icon = document.getElementById('vagasToggleIcon');
         const aberto = c.style.display !== 'none';
         c.style.display = aberto ? 'none' : 'block';
-        icon.textContent = aberto ? '▲' : '▼';
+        icon.textContent = aberto ? '▼' : '▲';
     }
 
     function renderizarVagas() {
@@ -782,19 +795,61 @@
             if (r.instrumento && contagem[r.instrumento] !== undefined) contagem[r.instrumento]++;
         });
 
-        document.getElementById('vagasGrid').innerHTML = instrumentosDiretor.map(inst => {
+        const grid = document.getElementById('vagasGrid');
+        grid.innerHTML = '';
+        instrumentosDiretor.forEach(inst => {
             const limite = vagas[inst] || 0;
             const atual = contagem[inst] || 0;
             const alerta = atual > 0 && (limite === 0 || atual > limite);
-            return `
-            <div class="vaga-linha">
-                <span class="vaga-nome">${inst}</span>
-                <span class="vaga-num ${alerta ? 'vaga-alerta' : ''}">${atual}</span>
-                <span class="vaga-sep">/</span>
-                <input class="vaga-input" type="number" min="0" value="${limite}" onchange="salvarVaga('${inst}', this.value)" title="Limite de vagas"/>
-                ${alerta ? '<span class="vaga-alerta">acima do limite</span>' : ''}
-            </div>`;
-        }).join('');
+
+            const chip = document.createElement('div');
+            chip.className = 'vaga-chip-c' + (alerta ? ' alerta' : '');
+            chip.title = 'Clique para editar o limite';
+
+            const nome = document.createElement('span');
+            nome.className = 'vaga-chip-nome';
+            nome.textContent = inst;
+
+            const count = document.createElement('span');
+            count.className = 'vaga-chip-count' + (alerta ? ' over' : '');
+            count.textContent = atual;
+
+            const sep = document.createElement('span');
+            sep.className = 'vaga-chip-limit';
+            sep.textContent = '/ ' + (limite > 0 ? limite : '∞');
+
+            const input = document.createElement('input');
+            input.className = 'vaga-chip-input';
+            input.type = 'number';
+            input.min = '0';
+            input.value = limite;
+
+            chip.appendChild(nome);
+            chip.appendChild(count);
+            chip.appendChild(sep);
+            chip.appendChild(input);
+
+            chip.addEventListener('click', function(e) {
+                if (e.target === input) return;
+                if (!chip.classList.contains('editando')) {
+                    chip.classList.add('editando');
+                    input.focus();
+                    input.select();
+                }
+            });
+
+            input.addEventListener('blur', function() {
+                salvarVaga(inst, input.value);
+                chip.classList.remove('editando');
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') input.blur();
+                if (e.key === 'Escape') { input.value = limite; chip.classList.remove('editando'); }
+            });
+
+            grid.appendChild(chip);
+        });
     }
 
     function salvarVaga(instrumento, valor) {
