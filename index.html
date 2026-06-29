@@ -358,37 +358,56 @@
         el.style.display = 'block';
     }
 
+    function mostrarErroCampo(campo, mensagem) {
+        campo.classList.add('campo-invalido');
+        let span = campo.parentNode.querySelector('.erro-inline');
+        if (!span) {
+            span = document.createElement('span');
+            span.className = 'erro-inline';
+            span.style.cssText = 'font-size:12px;color:#dc3545;margin-top:4px;display:block;';
+            campo.parentNode.appendChild(span);
+        }
+        span.textContent = mensagem;
+        campo.addEventListener('input', () => {
+            campo.classList.remove('campo-invalido');
+            if (span) span.textContent = '';
+        }, { once: true });
+    }
+
+    function limparErros() {
+        document.querySelectorAll('.erro-inline').forEach(el => el.textContent = '');
+        document.querySelectorAll('.campo-invalido').forEach(el => el.classList.remove('campo-invalido'));
+    }
+
     function validarCampos() {
         const obrigatorios = document.querySelectorAll('input[required], select[required]');
         let valido = true;
+        let primeiroCampo = null;
         obrigatorios.forEach(campo => {
             if (!campo.value.trim()) {
-                campo.classList.add('campo-invalido');
+                mostrarErroCampo(campo, 'Campo obrigatório');
                 valido = false;
-                campo.addEventListener('input', () => campo.classList.remove('campo-invalido'), { once: true });
-            } else {
-                campo.classList.remove('campo-invalido');
+                if (!primeiroCampo) primeiroCampo = campo;
             }
         });
+        if (primeiroCampo) primeiroCampo.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return valido;
     }
 
     document.getElementById('formCadastro').addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!validarCampos()) {
-            mostrarMensagem('Preencha todos os campos obrigatórios destacados em vermelho.', 'erro');
-            return;
-        }
+        limparErros();
+        if (!validarCampos()) return;
         const senha = document.getElementById('senha').value;
         const confirmar = document.getElementById('confirmar_senha').value;
         if (senha.length < 6) {
-            document.getElementById('senha').classList.add('campo-invalido');
-            mostrarMensagem('A senha deve ter no mínimo 6 caracteres.', 'erro');
+            mostrarErroCampo(document.getElementById('senha'), 'A senha deve ter no mínimo 6 caracteres.');
+            document.getElementById('senha').scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
         if (senha !== confirmar) {
-            document.getElementById('confirmar_senha').classList.add('campo-invalido');
-            mostrarMensagem('As senhas não coincidem. Verifique e tente novamente.', 'erro');
+            mostrarErroCampo(document.getElementById('confirmar_senha'), 'As senhas não coincidem.');
+            document.getElementById('confirmar_senha').scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
 
