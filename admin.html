@@ -341,7 +341,7 @@
         <div class="filtros">
             <button class="btn-filtro ativo" onclick="filtrarStatus('todos', this)">Todos</button>
             <button class="btn-filtro" onclick="filtrarStatus('pendente', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e0a800" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendentes</button>
-            <button class="btn-filtro verde" onclick="filtrarStatus('aprovado', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg> Aprovados</button>
+            <button class="btn-filtro verde" onclick="filtrarStatus('aprovado', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg> Ativos</button>
             <button class="btn-filtro vermelho" onclick="filtrarStatus('rejeitado', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Rejeitados</button>
             <button class="btn-filtro laranja" onclick="filtrarStatus('suspenso', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="#d4720a" style="flex-shrink:0"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg> Suspensos</button>
             <button class="btn-filtro vermelho" onclick="filtrarStatus('desligado', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9a1f1f" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Desligados</button>
@@ -561,7 +561,7 @@
             let botoesAcao = '';
             if (status === 'pendente') {
                 botoesAcao = `
-                    <button class="btn-acao btn-aprovar" onclick="atualizarStatus(${r.id}, 'aprovado')">${svgCheckBranco} Aprovar</button>
+                    <button class="btn-acao btn-aprovar" onclick="atualizarStatus(${r.id}, 'aprovado')">${svgCheckBranco} Ativar</button>
                     <button class="btn-acao btn-rejeitar" onclick="atualizarStatus(${r.id}, 'rejeitado')">${svgX} Rejeitar</button>`;
             } else if (status === 'aprovado') {
                 botoesAcao = `
