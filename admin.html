@@ -112,20 +112,20 @@
 
         /* VAGAS */
         .vagas-section { margin-bottom: 20px; }
-        .vagas-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .vaga-chip {
-            background: white; border: 1px solid #e0e0e0; border-radius: 8px;
-            padding: 8px 12px; font-size: 12px; min-width: 120px;
-            display: flex; flex-direction: column; gap: 4px;
+        .vagas-lista { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
+        .vaga-linha {
+            display: flex; align-items: center; gap: 10px;
+            padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px;
         }
-        .vaga-chip.alerta { border-color: #f5c0c0; background: #fff5f5; }
-        .vaga-instrumento { font-weight: bold; color: #1a1a2e; font-size: 11px; }
-        .vaga-contagem { font-size: 13px; color: #333; }
-        .vaga-contagem span { color: #888; font-size: 11px; }
+        .vaga-linha:last-child { border-bottom: none; }
+        .vaga-nome { color: #444; width: 160px; flex-shrink: 0; }
+        .vaga-num { font-weight: bold; color: #1a1a2e; min-width: 20px; }
+        .vaga-sep { color: #ccc; }
         .vaga-input {
-            width: 48px; border: 1px solid #ccc; border-radius: 4px;
-            padding: 2px 4px; font-size: 12px; text-align: center;
+            width: 44px; border: 1px solid #ddd; border-radius: 4px;
+            padding: 2px 6px; font-size: 12px; text-align: center; color: #666;
         }
+        .vaga-alerta { color: #c0392b; font-size: 11px; font-weight: bold; }
 
         /* CONTADOR */
         .contador { font-size: 13px; color: #666; margin-bottom: 16px; }
@@ -342,7 +342,7 @@
             Vagas por instrumento <span id="vagasToggleIcon">▲</span>
         </div>
         <div id="vagasContainer">
-            <div class="vagas-grid" id="vagasGrid"></div>
+            <div class="vagas-lista" id="vagasGrid"></div>
             <div style="font-size:11px;color:#aaa;margin-top:8px;">Clique no número de vagas para editar. 🔴 = acima do limite.</div>
         </div>
     </div>
@@ -598,10 +598,8 @@
                     </div>` : ''}
                 </div>
                 <div class="card-acoes">
-                    <div class="acoes-linha">
-                        ${botoesAcao}
-                        <button class="btn-cadastro-full" onclick="abrirCadastro(${r.id})">📋 Cadastro</button>
-                    </div>
+                    <div class="acoes-linha">${botoesAcao}</div>
+                    <button class="btn-cadastro-full" style="width:100%;justify-content:center;margin-top:4px;" onclick="abrirCadastro(${r.id})">📋 Cadastro</button>
                 </div>
             </div>`;
         }).join('');
@@ -789,13 +787,12 @@
             const atual = contagem[inst] || 0;
             const alerta = atual > 0 && (limite === 0 || atual > limite);
             return `
-            <div class="vaga-chip ${alerta ? 'alerta' : ''}">
-                <div class="vaga-instrumento">${inst}</div>
-                <div class="vaga-contagem">
-                    ${alerta ? '🔴' : '🟢'} <strong>${atual}</strong> <span>/ vagas:</span>
-                    <input class="vaga-input" type="number" min="0" value="${limite}"
-                        onchange="salvarVaga('${inst}', this.value)"/>
-                </div>
+            <div class="vaga-linha">
+                <span class="vaga-nome">${inst}</span>
+                <span class="vaga-num ${alerta ? 'vaga-alerta' : ''}">${atual}</span>
+                <span class="vaga-sep">/</span>
+                <input class="vaga-input" type="number" min="0" value="${limite}" onchange="salvarVaga('${inst}', this.value)" title="Limite de vagas"/>
+                ${alerta ? '<span class="vaga-alerta">acima do limite</span>' : ''}
             </div>`;
         }).join('');
     }
