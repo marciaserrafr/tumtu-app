@@ -589,8 +589,10 @@
                     </div>` : ''}
                 </div>
                 <div class="card-acoes">
-                    <div class="acoes-linha">${botoesAcao}</div>
-                    <button class="btn-cadastro-full" style="width:100%;justify-content:center;margin-top:8px;" onclick="abrirCadastro(${r.id})">📋 Cadastro</button>
+                    <div class="acoes-linha">
+                        ${botoesAcao}
+                        <button class="btn-acao btn-cadastro-full" onclick="abrirCadastro(${r.id})">📋 Cadastro</button>
+                    </div>
                 </div>
             </div>`;
         }).join('');
