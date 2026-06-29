@@ -407,13 +407,12 @@
             <div class="ficha-grid">
                 <div class="ficha-campo"><span>Tamanho de camisa</span><strong id="fc-camisa"></strong></div>
                 <div class="ficha-campo"><span>Tamanho de fantasia</span><strong id="fc-fantasia"></strong></div>
-                <div class="ficha-campo"><span>Número do sapato</span><strong id="fc-sapato"></strong></div>
+                <div class="ficha-campo"><span>Tamanho do sapato</span><strong id="fc-sapato"></strong></div>
             </div>
         </div>
 
         <div class="modal-acoes">
             <button class="btn-modal-cancelar" onclick="fecharModal('modalCadastroOverlay')">Fechar</button>
-            <button class="btn-imprimir" onclick="window.print()">🖨 Imprimir</button>
         </div>
     </div>
 </div>
@@ -714,7 +713,7 @@
         document.getElementById('fc-tempo').textContent = r.tempo_casa || '—';
         document.getElementById('fc-camisa').textContent = r.tamanho_camisa || '—';
         document.getElementById('fc-fantasia').textContent = r.tamanho_fantasia || '—';
-        document.getElementById('fc-sapato').textContent = r.numero_sapato || '—';
+        document.getElementById('fc-sapato').textContent = r.tamanho_sapato || '—';
         document.getElementById('modalCadastroOverlay').classList.add('aberto');
     }
 
