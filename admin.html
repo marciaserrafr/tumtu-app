@@ -336,18 +336,7 @@
         </div>
     </div>
 
-    <!-- VAGAS POR INSTRUMENTO -->
-    <div class="vagas-section">
-        <div class="filtros-label" style="cursor:pointer;user-select:none;" onclick="toggleVagas()">
-            Vagas por instrumento <span id="vagasToggleIcon">▲</span>
-        </div>
-        <div id="vagasContainer">
-            <div class="vagas-lista" id="vagasGrid"></div>
-            <div style="font-size:11px;color:#aaa;margin-top:8px;">Clique no número de vagas para editar. 🔴 = acima do limite.</div>
-        </div>
-    </div>
-
-    <div class="contador" id="contador"></div>
+<div class="contador" id="contador"></div>
     <div class="cards" id="listaRitmistas" style="min-height:500px;">
         <div class="vazio">Carregando...</div>
     </div>
@@ -494,7 +483,6 @@
         });
         todosRitmistas = await res.json();
         aplicarFiltros();
-        renderizarVagas();
     }
 
     function filtrarStatus(status, btn) {
@@ -765,44 +753,6 @@
             if (dd) { dd.style.display = 'none'; document.getElementById('multiSelectArrow').textContent = '▼'; }
         }
     });
-
-    function toggleVagas() {
-        const c = document.getElementById('vagasContainer');
-        const icon = document.getElementById('vagasToggleIcon');
-        const aberto = c.style.display !== 'none';
-        c.style.display = aberto ? 'none' : 'block';
-        icon.textContent = aberto ? '▲' : '▼';
-    }
-
-    function renderizarVagas() {
-        const vagas = JSON.parse(localStorage.getItem('vagasPorInstrumento') || '{}');
-        const contagem = {};
-        instrumentosDiretor.forEach(i => contagem[i] = 0);
-        todosRitmistas.filter(r => r.status === 'aprovado').forEach(r => {
-            if (r.instrumento && contagem[r.instrumento] !== undefined) contagem[r.instrumento]++;
-        });
-
-        document.getElementById('vagasGrid').innerHTML = instrumentosDiretor.map(inst => {
-            const limite = vagas[inst] || 0;
-            const atual = contagem[inst] || 0;
-            const alerta = atual > 0 && (limite === 0 || atual > limite);
-            return `
-            <div class="vaga-linha">
-                <span class="vaga-nome">${inst}</span>
-                <span class="vaga-num ${alerta ? 'vaga-alerta' : ''}">${atual}</span>
-                <span class="vaga-sep">/</span>
-                <input class="vaga-input" type="number" min="0" value="${limite}" onchange="salvarVaga('${inst}', this.value)" title="Limite de vagas"/>
-                ${alerta ? '<span class="vaga-alerta">acima do limite</span>' : ''}
-            </div>`;
-        }).join('');
-    }
-
-    function salvarVaga(instrumento, valor) {
-        const vagas = JSON.parse(localStorage.getItem('vagasPorInstrumento') || '{}');
-        vagas[instrumento] = parseInt(valor) || 0;
-        localStorage.setItem('vagasPorInstrumento', JSON.stringify(vagas));
-        renderizarVagas();
-    }
 
     iniciarUsuario();
     carregarRitmistas();
