@@ -685,7 +685,7 @@
         document.getElementById('vagasGrid').innerHTML = instrumentosDiretor.map(inst => {
             const limite = vagas[inst] || 0;
             const atual = contagem[inst] || 0;
-            const alerta = limite > 0 && atual > limite;
+            const alerta = atual > 0 && (limite === 0 || atual > limite);
             return `
             <div class="vaga-chip ${alerta ? 'alerta' : ''}">
                 <div class="vaga-instrumento">${inst}</div>
