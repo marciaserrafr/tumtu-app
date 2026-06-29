@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, .badge { display: inline-flex; align-items: center; gap: 5px; }
-        body { font-family: Arial, sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; font-size: 15px; }
         .container { flex: 1; }
 
         /* HEADER */
@@ -80,9 +80,9 @@
         .filtros-label { font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
         .filtros { display: flex; gap: 8px; flex-wrap: wrap; }
         .btn-filtro {
-            padding: 7px 14px; border-radius: 6px;
+            padding: 8px 16px; border-radius: 6px;
             border: 1px solid #ccc; background: white;
-            color: #444; cursor: pointer; font-size: 12px;
+            color: #444; cursor: pointer; font-size: 14px;
             display: inline-flex; align-items: center; gap: 5px;
         }
         .btn-filtro.ativo { background: #1a1a2e; color: white; border-color: #1a1a2e; }
@@ -133,7 +133,7 @@
 
         .card-info { flex: 1; min-width: 0; }
         .card-topo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
-        .card-nome { font-size: 16px; font-weight: bold; color: #1a1a2e; }
+        .card-nome { font-size: 18px; font-weight: bold; color: #1a1a2e; }
         .card-apelido { font-size: 12px; color: #999; font-style: italic; margin-bottom: 10px; }
 
         .card-instrumento {
@@ -145,10 +145,10 @@
         }
 
         .card-dados { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
-        .card-dado { font-size: 12px; color: #666; }
+        .card-dado { font-size: 14px; color: #666; }
         .card-dado strong { color: #333; }
 
-        .badge { padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid; display: inline-flex; align-items: center; gap: 4px; line-height: 1; vertical-align: middle; }
+        .badge { padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; border: 1px solid; display: inline-flex; align-items: center; gap: 4px; line-height: 1; vertical-align: middle; }
         .badge-aprovado { background: #f0faf4; color: #2d7a4f; border-color: #b8ddc8; }
         .badge-rejeitado { background: #f5f5f5; color: #666; border-color: #ddd; }
         .badge-pendente { background: #fffbf0; color: #8a6800; border-color: #ffe69c; }
@@ -178,8 +178,8 @@
         .card-acoes { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; flex-shrink: 0; }
         .acoes-linha { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
         .btn-acao {
-            border: 1.5px solid; padding: 7px 13px; border-radius: 8px;
-            cursor: pointer; font-size: 12px; font-weight: bold;
+            border: 1.5px solid; padding: 9px 16px; border-radius: 8px;
+            cursor: pointer; font-size: 13px; font-weight: bold;
             background: transparent;
         }
         .btn-aprovar { border-color: #2d7a4f; color: #2d7a4f; }
