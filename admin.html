@@ -1,29 +1,20 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-tema="swing-da-leopoldina">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel do Diretor — Swing da Leopoldina</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/tokens.css">
     <style>
-        :root {
-            --cor-fundo-escuro:     #0f172a;
-            --cor-fundo-claro:      #f8fafc;
-            --cor-destaque:         var(--cor-destaque);
-            --cor-destaque-hover:   var(--cor-destaque-hover);
-            --cor-texto-principal:  #0f172a;
-            --cor-texto-secundario: #64748b;
-            --cor-texto-claro:      #ffffff;
-            --cor-borda:            #e2e8f0;
-            --cor-superficie:       #ffffff;
-        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, .badge { display: inline-flex; align-items: center; gap: 5px; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; font-size: 15px; }
+        body { background: var(--cor-fundo-claro); min-height: 100vh; display: flex; flex-direction: column; font-size: 15px; }
         .container { flex: 1; }
 
         /* HEADER */
         .header {
-            background: #0f172a;
+            background: var(--cor-fundo-escuro);
             color: white;
             padding: 16px 24px;
             display: flex;

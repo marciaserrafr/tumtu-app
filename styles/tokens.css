@@ -1,0 +1,37 @@
+:root {
+  --cor-fundo-escuro:      #12101a;
+  --cor-fundo-medio:       #1e1b2e;
+  --cor-fundo-claro:       #f7f6fb;
+  --cor-superficie:        #ffffff;
+
+  --cor-destaque:          #F0A500;
+  --cor-destaque-hover:    #C98A00;
+  --cor-destaque-suave:    #fff8e6;
+
+  --cor-texto-principal:   #12101a;
+  --cor-texto-secundario:  #5a5770;
+  --cor-texto-muted:       #8b88a0;
+  --cor-texto-claro:       #ffffff;
+
+  --cor-borda:             #e8e6f0;
+  --cor-borda-forte:       #d0cde8;
+
+  --fonte-principal: 'Plus Jakarta Sans', sans-serif;
+}
+
+[data-tema="swing-da-leopoldina"] {
+  --cor-fundo-escuro:      #1a2e1a;
+  --cor-fundo-medio:       #243824;
+  --cor-fundo-claro:       #f0f7f0;
+  --cor-destaque:          #D4AF37;
+  --cor-destaque-hover:    #B8922A;
+  --cor-destaque-suave:    #fff8e1;
+  --cor-borda:             #c8e6c8;
+  --cor-borda-forte:       #a5d1a5;
+}
+
+body {
+  font-family: var(--fonte-principal);
+  background: var(--cor-fundo-claro);
+  color: var(--cor-texto-principal);
+}
