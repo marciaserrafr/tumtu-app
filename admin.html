@@ -197,7 +197,7 @@
         .btn-acao {
             border: 1.5px solid; padding: 9px 16px; border-radius: 8px;
             cursor: pointer; font-size: 13px; font-weight: bold;
-            background: transparent;
+            background: transparent; min-width: 120px; justify-content: center;
         }
         .btn-aprovar { border-color: #2d7a4f; color: #2d7a4f; }
         .btn-rejeitar { border-color: #999; color: #666; }
@@ -599,7 +599,7 @@
                 </div>
                 <div class="card-acoes">
                     <div class="acoes-linha">${botoesAcao}</div>
-                    <button class="btn-cadastro-full" style="width:100%;justify-content:center;margin-top:4px;" onclick="abrirCadastro(${r.id})">📋 Cadastro</button>
+                    <button class="btn-cadastro-full" style="width:100%;justify-content:center;margin-top:8px;" onclick="abrirCadastro(${r.id})">📋 Ver cadastro completo</button>
                 </div>
             </div>`;
         }).join('');
