@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="carteirinha-tutti.css">
+    <script src="config-escola.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
@@ -74,8 +75,8 @@
 
                     <div class="c-header">
                         <div>
-                            <div class="c-escola">Nome da Escola de Samba</div>
-                            <div class="c-bateria">Nome da Bateria</div>
+                            <div class="c-escola" id="c-escola-nome"></div>
+                            <div class="c-bateria" id="c-bateria-nome"></div>
                         </div>
                         <div class="c-status">
                             <div class="c-status-dot"></div>
@@ -116,7 +117,7 @@
                     <!-- Logo da escola — canto inferior direito -->
                     <div class="c-logo">
                         <div class="c-logo-circulo">
-                            <span class="c-logo-texto">Tu<span style="color:#D4AF37;font-weight:900">TT</span>i</span>
+                            <img id="logoEscolaFrente" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
                         </div>
                     </div>
                 </div>
@@ -130,11 +131,11 @@
 
                     <div class="c-verso-header">
                         <div>
-                            <div class="c-verso-titulo">Tutti</div>
-                            <div class="c-verso-sub">Gestão de Baterias</div>
+                            <div class="c-verso-titulo" id="c-verso-titulo">Tutti</div>
+                            <div class="c-verso-sub" id="c-verso-sub">Gestão de Baterias</div>
                         </div>
                         <div class="c-logo-verso">
-                            <span class="c-logo-verso-texto">Tu<span class="destaque">TT</span>i</span>
+                            <img id="logoEscolaVerso" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
                         </div>
                     </div>
 
@@ -175,7 +176,7 @@
 
                     <div class="c-mestre">
                         <div class="c-mestre-label">Mestre de Bateria</div>
-                        <div class="c-mestre-nome">—</div>
+                        <div class="c-mestre-nome" id="c-mestre-nome">—</div>
                     </div>
 
                     <!-- Válida até + Temporada — lado a lado com divisória vertical -->
@@ -187,12 +188,13 @@
                         <div class="c-divisor-vertical"></div>
                         <div class="c-temporada">
                             <div class="c-label">Temporada</div>
-                            <div class="c-temporada-valor">Carnaval 2027</div>
+                            <div class="c-temporada-valor" id="c-temporada-valor">Carnaval 2027</div>
                         </div>
                     </div>
 
                     <div class="c-verso-rodape">
-                        <div class="c-rodape-instagram">@tutti</div>
+                        <div class="c-rodape-instagram" id="c-rodape-instagram"></div>
+                        <div class="c-rodape-tutti">Tu<span class="destaque" style="font-weight:900">TT</span>i</div>
                     </div>
                 </div>
             </div>
@@ -254,6 +256,28 @@
             }
             document.getElementById('membroDesde').textContent = texto;
             document.getElementById('membroDesdeBox').style.display = 'block';
+        }
+
+        // Config da escola
+        const cfg = (typeof configEscola !== 'undefined') ? configEscola : {};
+
+        document.getElementById('c-escola-nome').textContent = cfg.nomeEscola || '';
+        document.getElementById('c-bateria-nome').textContent = cfg.nomeBateria || '';
+        document.getElementById('c-verso-titulo').textContent = cfg.nomeBateria || 'Tutti';
+        document.getElementById('c-verso-sub').textContent = cfg.nomeEscola || 'Gestão de Baterias';
+        if (cfg.mestreDeBateria) document.getElementById('c-mestre-nome').textContent = cfg.mestreDeBateria;
+        if (cfg.temporadaAtual) document.getElementById('c-temporada-valor').textContent = cfg.temporadaAtual;
+
+        const igEl = document.getElementById('c-rodape-instagram');
+        if (igEl && cfg.instagramBateria) {
+            igEl.textContent = cfg.instagramBateria.startsWith('@') ? cfg.instagramBateria : '@' + cfg.instagramBateria;
+        }
+
+        if (cfg.logoEscola) {
+            ['logoEscolaFrente', 'logoEscolaVerso'].forEach(id => {
+                const img = document.getElementById(id);
+                if (img) { img.src = cfg.logoEscola; img.style.display = 'block'; }
+            });
         }
     }
 

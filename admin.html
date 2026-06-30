@@ -233,7 +233,7 @@
             cursor: pointer; font-size: 13px; font-weight: bold;
             background: transparent; width: 100%; justify-content: center;
         }
-        .btn-aprovar { background: #2d6b2d; border-color: #2d6b2d; color: white; }
+        .btn-aprovar { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
         .btn-rejeitar { border-color: #999; color: #666; }
         .btn-suspender { border-color: #d4720a; color: #d4720a; }
         .btn-desligar { border-color: #9a1f1f; color: #9a1f1f; }
@@ -267,7 +267,7 @@
         .modal-acoes { display: flex; gap: 10px; justify-content: flex-end; }
         .btn-modal-cancelar { background: #f0f0f0; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; }
         .btn-modal-confirmar { border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; color: white; }
-        .btn-modal-confirmar.verde { background: #2d6b2d; }
+        .btn-modal-confirmar.verde { background: #D4AF37; color: #12101a; }
         .btn-modal-confirmar.laranja { background: #fd7e14; }
         .btn-modal-confirmar.vermelho { background: #dc3545; }
         .btn-modal-confirmar.azul { background: #0f172a; }
@@ -532,6 +532,7 @@
     </div>
 </div>
 
+<script src="config-escola.js"></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
@@ -834,6 +835,31 @@
     let instrumentosDiretor = INSTRUMENTOS; // padrão: todos (mestre/admin)
     let filtroInstrumentosSelecionados = [];
 
+    function aplicarConfigEscola() {
+        const cfg = (typeof configEscola !== 'undefined') ? configEscola : {};
+
+        // Header: nome da bateria abaixo da marca Tutti
+        const batEl = document.getElementById('headerBateria');
+        if (batEl) batEl.textContent = cfg.nomeBateria || '';
+
+        // Rodapé: nome da escola (esconde o elemento se vazio)
+        const rodapeTexto = document.querySelector('.rodape-texto');
+        if (rodapeTexto) rodapeTexto.textContent = cfg.nomeEscola || '';
+
+        // Cor do botão Ativar (usa corDestaque da escola ou dourado Tutti)
+        const cor = cfg.corDestaque || '#D4AF37';
+        const textoCor = cfg.corDestaque ? '#ffffff' : '#12101a';
+        document.querySelectorAll('.btn-aprovar').forEach(btn => {
+            btn.style.background = cor;
+            btn.style.borderColor = cor;
+            btn.style.color = textoCor;
+        });
+        document.querySelectorAll('.btn-modal-confirmar.verde').forEach(btn => {
+            btn.style.background = cor;
+            btn.style.color = textoCor;
+        });
+    }
+
     function iniciarUsuario() {
         const diretor = JSON.parse(localStorage.getItem('diretor') || 'null');
         const nome = diretor?.nome || 'Diretor';
@@ -845,6 +871,7 @@
             instrumentosDiretor = diretor.instrumentos;
         }
         construirMultiSelect();
+        aplicarConfigEscola();
     }
 
     function construirMultiSelect() {
