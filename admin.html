@@ -324,7 +324,7 @@
     <div style="display:flex; align-items:center; gap:12px; min-width:0;">
         <div class="header-texto">
             <div class="header-marca">Tu<span class="destaque-dourado">TT</span>i</div>
-            <div class="header-escola" id="headerBateria">Swing da Leopoldina</div>
+            <div class="header-escola" id="headerBateria"></div>
         </div>
     </div>
     <div class="header-acoes">
@@ -406,9 +406,9 @@
         <div class="rodape-logo">
             <img src="logo-imperatriz.png" onerror="this.style.display='none'"/>
         </div>
-        <span class="rodape-texto">G.R.E.S. Imperatriz Leopoldinense</span>
+        <span class="rodape-texto" id="rodapeEscola"></span>
     </div>
-    <span class="rodape-dev">Desenvolvido por Tu<span style="color:#D4AF37;font-weight:900">TT</span>i · 2026</span>
+    <span class="rodape-dev">Desenvolvido por Tu<span style="color:#D4AF37;font-weight:900">TT</span>i · <span id="anoRodape"></span></span>
 </div>
 
 <!-- MODAL CADASTRO COMPLETO -->
@@ -839,9 +839,13 @@
         const batEl = document.getElementById('headerBateria');
         if (batEl) batEl.textContent = cfg.nomeBateria || '';
 
-        // Rodapé: nome da escola (esconde o elemento se vazio)
-        const rodapeTexto = document.querySelector('.rodape-texto');
-        if (rodapeTexto) rodapeTexto.textContent = cfg.nomeEscola || '';
+        // Rodapé: nome da escola (vazio se não configurado)
+        const rodapeEscola = document.getElementById('rodapeEscola');
+        if (rodapeEscola) rodapeEscola.textContent = cfg.nomeEscola || '';
+
+        // Ano dinâmico
+        const anoEl = document.getElementById('anoRodape');
+        if (anoEl) anoEl.textContent = new Date().getFullYear();
 
         // Cor do botão Ativar (usa corDestaque da escola ou dourado Tutti)
         const cor = cfg.corDestaque || '#D4AF37';

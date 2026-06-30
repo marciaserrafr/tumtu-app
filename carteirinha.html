@@ -174,9 +174,9 @@
                         <div class="c-qr-label">Validação Digital</div>
                     </div>
 
-                    <div class="c-mestre">
+                    <div class="c-mestre" id="c-mestre-bloco" style="display:none">
                         <div class="c-mestre-label">Mestre de Bateria</div>
-                        <div class="c-mestre-nome" id="c-mestre-nome">—</div>
+                        <div class="c-mestre-nome" id="c-mestre-nome"></div>
                     </div>
 
                     <!-- Válida até + Temporada — lado a lado com divisória vertical -->
@@ -265,7 +265,10 @@
         document.getElementById('c-bateria-nome').textContent = cfg.nomeBateria || '';
         document.getElementById('c-verso-titulo').textContent = cfg.nomeBateria || 'Tutti';
         document.getElementById('c-verso-sub').textContent = cfg.nomeEscola || 'Gestão de Baterias';
-        if (cfg.mestreDeBateria) document.getElementById('c-mestre-nome').textContent = cfg.mestreDeBateria;
+        if (cfg.mestreDeBateria) {
+            document.getElementById('c-mestre-nome').textContent = cfg.mestreDeBateria;
+            document.getElementById('c-mestre-bloco').style.display = 'flex';
+        }
         if (cfg.temporadaAtual) document.getElementById('c-temporada-valor').textContent = cfg.temporadaAtual;
 
         const igEl = document.getElementById('c-rodape-instagram');

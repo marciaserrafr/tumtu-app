@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="styles/components.css">
+    <script src="config-escola.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
@@ -20,11 +21,16 @@
         }
         .container {
             background: white;
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 32px;
             width: 100%;
-            max-width: 520px;
+            max-width: 560px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        }
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+            .container { padding: 24px 20px; }
+            .form-row { grid-template-columns: 1fr; }
         }
         .logo {
             text-align: center;
@@ -276,6 +282,23 @@
             <div class="form-group"></div>
         </div>
 
+        <div class="secao">Contato de Emergência</div>
+
+        <div class="form-group">
+            <label>Nome do contato <span class="obrigatorio">*</span></label>
+            <input type="text" id="emergencia_nome" placeholder="Nome completo" required>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Parentesco <span class="obrigatorio">*</span></label>
+                <input type="text" id="emergencia_parentesco" placeholder="Ex: mãe, pai, cônjuge" required>
+            </div>
+            <div class="form-group">
+                <label>Celular do contato <span class="obrigatorio">*</span></label>
+                <input type="text" id="emergencia_celular" placeholder="(21) 99999-9999" maxlength="15" oninput="mascaraCelular(this)" required>
+            </div>
+        </div>
+
         <div class="secao">Acesso</div>
 
         <div class="form-group">
@@ -425,6 +448,9 @@
             tamanho_sapato: valorTamanho('tamanho_sapato'),
             senha: document.getElementById('senha').value,
             membro_desde: document.getElementById('membro_desde').value || null,
+            emergencia_nome: document.getElementById('emergencia_nome').value,
+            emergencia_parentesco: document.getElementById('emergencia_parentesco').value,
+            emergencia_celular: document.getElementById('emergencia_celular').value,
             status: 'pendente'
         };
 
