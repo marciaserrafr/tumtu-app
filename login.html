@@ -6,6 +6,7 @@
     <title>Ritmistas - Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
+    <link rel="stylesheet" href="styles/components.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
@@ -48,19 +49,7 @@
             transition: border-color 0.2s;
         }
         input:focus { outline: none; border-color: var(--cor-destaque); }
-        .btn-entrar {
-            width: 100%;
-            padding: 14px;
-            background: var(--cor-destaque);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-        .btn-entrar:hover { background: var(--cor-destaque-hover); }
+        .btn-entrar { width: 100%; margin-top: 8px; font-size: 16px; }
         .link-cadastro {
             text-align: center;
             margin-top: 20px;
@@ -97,7 +86,7 @@
             <label>Senha</label>
             <input type="password" id="senha" placeholder="Sua senha" required>
         </div>
-        <button type="submit" class="btn-entrar">Entrar</button>
+        <button type="submit" class="btn-entrar btn-primario">Entrar</button>
     </form>
 
     <div class="link-cadastro">

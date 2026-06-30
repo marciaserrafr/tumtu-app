@@ -1,0 +1,84 @@
+/* ================================================
+   COMPONENTES REUTILIZÁVEIS — Ritmistas App
+   Importar em todas as telas após tokens.css
+   ================================================ */
+
+/* ── Botão primário (ação principal) ── */
+.btn-primario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--cor-destaque);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.btn-primario:hover { background: var(--cor-destaque-hover); }
+
+/* ── Botão secundário (contorno) ── */
+.btn-secundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--cor-destaque);
+  border: 1.5px solid var(--cor-destaque);
+  border-radius: 12px;
+  padding: 13px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.btn-secundario:hover { background: var(--cor-destaque-suave); }
+
+/* ── Badge de instrumento — neutro (só informação) ── */
+.badge-instrumento {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e8e6f0;
+  color: #5a5770;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* ── Campo de formulário (input / select) ── */
+.campo {
+  width: 100%;
+  padding: 11px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: white;
+  transition: border-color 0.2s;
+}
+.campo:focus {
+  outline: none;
+  border-color: var(--cor-destaque);
+}
+
+/* ── Seção de formulário ── */
+.secao-form {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 20px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--cor-destaque);
+}

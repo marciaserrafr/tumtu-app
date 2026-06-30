@@ -6,6 +6,7 @@
     <title>Ritmistas - Cadastro</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
+    <link rel="stylesheet" href="styles/components.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
@@ -98,19 +99,7 @@
         input.campo-invalido, select.campo-invalido { border-color: #dc3545; background: #fff5f5; }
         .erro-campo { font-size: 12px; color: #dc3545; margin-top: 4px; display: none; }
         .erro-campo.visivel { display: block; }
-        .btn-cadastrar {
-            width: 100%;
-            padding: 14px;
-            background: var(--cor-destaque);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-        .btn-cadastrar:hover { background: var(--cor-destaque-hover); }
+        .btn-cadastrar { width: 100%; margin-top: 8px; font-size: 16px; }
         .link-login { text-align: center; margin-top: 16px; font-size: 14px; color: #666; }
         .link-login a { color: var(--cor-destaque); font-weight: bold; text-decoration: none; }
         .mensagem {
@@ -187,31 +176,9 @@
             </select>
         </div>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label>Membro desde — Mês</label>
-                <select id="membro_mes">
-                    <option value="">Mês</option>
-                    <option value="01">Janeiro</option>
-                    <option value="02">Fevereiro</option>
-                    <option value="03">Março</option>
-                    <option value="04">Abril</option>
-                    <option value="05">Maio</option>
-                    <option value="06">Junho</option>
-                    <option value="07">Julho</option>
-                    <option value="08">Agosto</option>
-                    <option value="09">Setembro</option>
-                    <option value="10">Outubro</option>
-                    <option value="11">Novembro</option>
-                    <option value="12">Dezembro</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Membro desde — Ano</label>
-                <select id="membro_ano">
-                    <option value="">Ano</option>
-                </select>
-            </div>
+        <div class="form-group">
+            <label>Membro desde</label>
+            <input type="month" id="membro_desde">
         </div>
 
         <div class="secao">Endereço</div>
@@ -321,7 +288,7 @@
             <input type="password" id="confirmar_senha" placeholder="Digite a senha novamente" required>
         </div>
 
-        <button type="submit" class="btn-cadastrar">Enviar cadastro</button>
+        <button type="submit" class="btn-cadastrar btn-primario">Enviar cadastro</button>
     </form>
 
     <div class="link-login">
@@ -332,18 +299,6 @@
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
-
-    // Popula select de anos (ano atual até 1950)
-    (function() {
-        const select = document.getElementById('membro_ano');
-        const anoAtual = new Date().getFullYear();
-        for (let a = anoAtual; a >= 1950; a--) {
-            const opt = document.createElement('option');
-            opt.value = a;
-            opt.textContent = a;
-            select.appendChild(opt);
-        }
-    })();
 
     function previewFoto(input) {
         if (input.files && input.files[0]) {
@@ -470,13 +425,7 @@
             tamanho_fantasia: valorTamanho('tamanho_fantasia'),
             tamanho_sapato: valorTamanho('tamanho_sapato'),
             senha: document.getElementById('senha').value,
-            membro_desde: (() => {
-                const mes = document.getElementById('membro_mes').value;
-                const ano = document.getElementById('membro_ano').value;
-                if (mes && ano) return `${ano}-${mes}`;
-                if (ano) return `${ano}`;
-                return null;
-            })(),
+            membro_desde: document.getElementById('membro_desde').value || null,
             status: 'pendente'
         };
 
