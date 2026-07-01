@@ -941,7 +941,7 @@
 
     async function carregarAcessos() {
         const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&order=nome&select=id,nome,cpf,perfil,bateria_id,status`,
+            `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&order=nome&select=id,nome,apelido,cpf,perfil,bateria_id,status`,
             { headers }
         );
         if (!res.ok) { renderizarListaAcessos([]); return; }
@@ -969,7 +969,7 @@
         div.innerHTML = lista.map(u => `
             <div class="item-card">
                 <div class="item-info">
-                    <div class="item-nome">${u.nome}</div>
+                    <div class="item-nome">${u.nome}${u.apelido ? ' <span style="color:var(--cor-texto-muted);font-weight:500">"' + u.apelido + '"</span>' : ''}</div>
                     <div class="item-detalhe">${labelPerfil(u.perfil)} · CPF ${u.cpf || '—'}${u.bateria_id ? ' · ' + nomeBateria(u.bateria_id) : ''}</div>
                 </div>
                 <div class="item-acoes">
