@@ -364,9 +364,9 @@
             style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
     </div>
 
-    <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Filtrar por instrumento</div>
-    <div style="margin-bottom:20px;">
-        <div class="multi-select" id="multiSelectWrap">
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <!-- FILTRO INSTRUMENTO -->
+        <div class="multi-select" id="multiSelectWrap" style="flex:1;min-width:160px;">
             <div class="multi-select-trigger" id="multiSelectTrigger" onclick="toggleMultiSelect()">
                 <span id="multiSelectLabel">Todos os instrumentos</span>
                 <span id="multiSelectArrow">▼</span>
@@ -375,18 +375,21 @@
                 <!-- preenchido por JS -->
             </div>
         </div>
-    </div>
-
-    <div class="filtros-grupo">
-        <div class="filtros-label">Filtrar por status</div>
-        <div class="filtros">
-            <button class="btn-filtro ativo" onclick="filtrarStatus('todos', this)">Todos</button>
-            <button class="btn-filtro" onclick="filtrarStatus('pendente', this)">Pendentes</button>
-            <button class="btn-filtro" onclick="filtrarStatus('aprovado', this)">Ativos</button>
-            <button class="btn-filtro" onclick="filtrarStatus('rejeitado', this)">Rejeitados</button>
-            <button class="btn-filtro" onclick="filtrarStatus('suspenso', this)">Suspensos</button>
-            <button class="btn-filtro" onclick="filtrarStatus('desligado', this)">Desligados</button>
-            <button class="btn-filtro" onclick="filtrarStatus('menor', this)">Menores</button>
+        <!-- FILTRO STATUS -->
+        <div class="multi-select" id="statusSelectWrap" style="flex:1;min-width:140px;">
+            <div class="multi-select-trigger" id="statusSelectTrigger" onclick="toggleStatusSelect()">
+                <span id="statusSelectLabel">Todos os status</span>
+                <span id="statusSelectArrow">▼</span>
+            </div>
+            <div class="multi-select-dropdown" id="statusSelectDropdown" style="display:none;">
+                <label class="multi-select-option"><input type="radio" name="statusFiltro" value="todos" checked onchange="onChangeStatus(this)"> Todos</label>
+                <label class="multi-select-option"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin-right:4px;"></span><input type="radio" name="statusFiltro" value="pendente" onchange="onChangeStatus(this)"> Pendentes</label>
+                <label class="multi-select-option"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin-right:4px;"></span><input type="radio" name="statusFiltro" value="aprovado" onchange="onChangeStatus(this)"> Ativos</label>
+                <label class="multi-select-option"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin-right:4px;"></span><input type="radio" name="statusFiltro" value="suspenso" onchange="onChangeStatus(this)"> Suspensos</label>
+                <label class="multi-select-option"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin-right:4px;"></span><input type="radio" name="statusFiltro" value="desligado" onchange="onChangeStatus(this)"> Desligados</label>
+                <label class="multi-select-option"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin-right:4px;"></span><input type="radio" name="statusFiltro" value="rejeitado" onchange="onChangeStatus(this)"> Rejeitados</label>
+                <label class="multi-select-option"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3a5bbf;margin-right:4px;"></span><input type="radio" name="statusFiltro" value="menor" onchange="onChangeStatus(this)"> Menores</label>
+            </div>
         </div>
     </div>
 
@@ -612,10 +615,21 @@
         renderizarVisaoGeral();
     }
 
-    function filtrarStatus(status, btn) {
-        filtroStatusAtual = status;
-        document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo'));
-        btn.classList.add('ativo');
+    function toggleStatusSelect() {
+        const dd = document.getElementById('statusSelectDropdown');
+        const arrow = document.getElementById('statusSelectArrow');
+        const aberto = dd.style.display !== 'none';
+        dd.style.display = aberto ? 'none' : 'block';
+        arrow.textContent = aberto ? '▼' : '▲';
+    }
+
+    function onChangeStatus(radio) {
+        filtroStatusAtual = radio.value;
+        const labels = { todos: 'Todos os status', pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', desligado: 'Desligados', rejeitado: 'Rejeitados', menor: 'Menores' };
+        document.getElementById('statusSelectLabel').textContent = labels[radio.value] || 'Todos os status';
+        document.getElementById('statusSelectTrigger').classList.toggle('ativo', radio.value !== 'todos');
+        document.getElementById('statusSelectDropdown').style.display = 'none';
+        document.getElementById('statusSelectArrow').textContent = '▼';
         aplicarFiltros();
     }
 
@@ -975,11 +989,15 @@
         aplicarFiltros();
     }
 
-    // Fecha dropdown ao clicar fora
+    // Fecha dropdowns ao clicar fora
     document.addEventListener('click', function(e) {
         if (!document.getElementById('multiSelectWrap')?.contains(e.target)) {
             const dd = document.getElementById('multiSelectDropdown');
             if (dd) { dd.style.display = 'none'; document.getElementById('multiSelectArrow').textContent = '▼'; }
+        }
+        if (!document.getElementById('statusSelectWrap')?.contains(e.target)) {
+            const dd = document.getElementById('statusSelectDropdown');
+            if (dd) { dd.style.display = 'none'; document.getElementById('statusSelectArrow').textContent = '▼'; }
         }
     });
 
