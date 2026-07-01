@@ -143,14 +143,21 @@
             <label>Nome completo <span class="obrigatorio">*</span></label>
             <input type="text" id="nome" placeholder="Seu nome completo" required>
         </div>
-        <div class="form-group">
-            <label>Apelido</label>
-            <input type="text" id="apelido" placeholder="Como você é conhecido na bateria">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Apelido</label>
+                <input type="text" id="apelido" placeholder="Como você é conhecido na bateria">
+            </div>
+            <div class="form-group">
+                <label>Nacionalidade</label>
+                <input type="text" id="nacionalidade" placeholder="Ex: Brasileira, Italiana...">
+            </div>
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label>CPF <span class="obrigatorio">*</span></label>
-                <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" required>
+                <label>CPF <span id="cpf-asterisco" class="obrigatorio">*</span></label>
+                <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this); atualizarObrigatoriedadeCpfEmail();">
+                <span class="erro-campo" id="erro-cpf-email"></span>
             </div>
             <div class="form-group">
                 <label>Data de nascimento <span class="obrigatorio">*</span></label>
@@ -162,8 +169,11 @@
             <input type="text" id="celular" placeholder="(21) 99999-9999" maxlength="15" oninput="mascaraCelular(this)" required>
         </div>
         <div class="form-group">
-            <label>E-mail <span class="obrigatorio">*</span></label>
-            <input type="email" id="email" placeholder="seu@email.com" required>
+            <label>E-mail <span id="email-asterisco" class="obrigatorio">*</span></label>
+            <input type="email" id="email" placeholder="seu@email.com" oninput="atualizarObrigatoriedadeCpfEmail()">
+        </div>
+        <div id="aviso-cpf-email" style="font-size:12px;color:#856404;background:#fff3cd;border-radius:8px;padding:10px 12px;margin-bottom:14px;display:none;">
+            Informe pelo menos o CPF ou o e-mail para poder acessar o sistema.
         </div>
 
         <div class="form-group">
@@ -205,8 +215,8 @@
             </div>
         </div>
         <div class="form-group">
-            <label>Bairro <span class="obrigatorio">*</span></label>
-            <input type="text" id="bairro" placeholder="Bairro" required>
+            <label>Bairro</label>
+            <input type="text" id="bairro" placeholder="Bairro">
         </div>
         <div class="form-row">
             <div class="form-group">
@@ -215,7 +225,7 @@
             </div>
             <div class="form-group">
                 <label>Estado <span class="obrigatorio">*</span></label>
-                <select id="estado" required>
+                <select id="estado" required onchange="mostrarOutro('estado')">
                     <option value="">Selecione</option>
                     <option>AC</option><option>AL</option><option>AP</option>
                     <option>AM</option><option>BA</option><option>CE</option>
@@ -226,8 +236,14 @@
                     <option>RJ</option><option>RN</option><option>RS</option>
                     <option>RO</option><option>RR</option><option>SC</option>
                     <option>SP</option><option>SE</option><option>TO</option>
+                    <option value="Outro">Outro</option>
                 </select>
+                <input type="text" id="estado_outro" placeholder="Digite o estado/província" style="display:none; margin-top:8px;">
             </div>
+        </div>
+        <div class="form-group">
+            <label>País <span class="obrigatorio">*</span></label>
+            <input type="text" id="pais" placeholder="Ex: Brasil, Portugal, Argentina..." value="Brasil" required>
         </div>
 
         <div class="secao">Medidas</div>
@@ -392,12 +408,21 @@
         }
     }
 
-    function valorTamanho(campo) {
+    function valorCampo(campo) {
         const select = document.getElementById(campo);
         if (select.value === 'Outro') {
-            return document.getElementById(campo + '_outro').value;
+            return document.getElementById(campo + '_outro').value.trim();
         }
         return select.value;
+    }
+
+    function valorTamanho(campo) { return valorCampo(campo); }
+
+    function atualizarObrigatoriedadeCpfEmail() {
+        const cpf = document.getElementById('cpf').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const temAlgum = cpf || email;
+        document.getElementById('aviso-cpf-email').style.display = temAlgum ? 'none' : 'block';
     }
 
     function mostrarMensagem(texto, tipo) {
@@ -446,6 +471,16 @@
     document.getElementById('formCadastro').addEventListener('submit', async (e) => {
         e.preventDefault();
         limparErros();
+
+        const cpf = document.getElementById('cpf').value.trim();
+        const email = document.getElementById('email').value.trim();
+        if (!cpf && !email) {
+            document.getElementById('aviso-cpf-email').style.display = 'block';
+            document.getElementById('cpf').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            mostrarErroCampo(document.getElementById('cpf'), 'Informe o CPF ou o e-mail.');
+            return;
+        }
+
         if (!validarCampos()) return;
         const senha = document.getElementById('senha').value;
         const confirmar = document.getElementById('confirmar_senha').value;
@@ -461,19 +496,21 @@
         }
 
         const dados = {
-            nome: document.getElementById('nome').value,
-            apelido: document.getElementById('apelido').value,
-            cpf: document.getElementById('cpf').value,
+            nome: document.getElementById('nome').value.trim(),
+            apelido: document.getElementById('apelido').value.trim() || null,
+            nacionalidade: document.getElementById('nacionalidade').value.trim() || null,
+            cpf: cpf || null,
             nascimento: document.getElementById('nascimento').value,
             celular: document.getElementById('celular').value,
-            email: document.getElementById('email').value,
-	    instrumento: document.getElementById('instrumento').value,
+            email: email || null,
+            instrumento: document.getElementById('instrumento').value,
             endereco: document.getElementById('endereco').value,
             numero: document.getElementById('numero').value,
-            complemento: document.getElementById('complemento').value,
-            bairro: document.getElementById('bairro').value,
+            complemento: document.getElementById('complemento').value || null,
+            bairro: document.getElementById('bairro').value || null,
             cidade: document.getElementById('cidade').value,
-            estado: document.getElementById('estado').value,
+            estado: valorCampo('estado'),
+            pais: document.getElementById('pais').value.trim() || 'Brasil',
             tamanho_camisa: valorTamanho('tamanho_camisa'),
             tamanho_fantasia: valorTamanho('tamanho_fantasia'),
             tamanho_sapato: valorTamanho('tamanho_sapato'),

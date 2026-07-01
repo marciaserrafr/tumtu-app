@@ -41,12 +41,19 @@
             color: #333;
             margin-bottom: 5px;
         }
+        .label-dica {
+            font-size: 12px;
+            font-weight: 400;
+            color: #888;
+            margin-left: 4px;
+        }
         input {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 15px;
+            font-family: inherit;
             transition: border-color 0.2s;
         }
         input:focus { outline: none; border-color: #D4AF37; }
@@ -79,12 +86,12 @@
 
     <form id="formLogin">
         <div class="form-group">
-            <label>CPF</label>
-            <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" required>
+            <label>CPF ou e-mail <span class="label-dica">— use o que você cadastrou</span></label>
+            <input type="text" id="identificador" placeholder="000.000.000-00 ou seu@email.com" autocomplete="username" required>
         </div>
         <div class="form-group">
             <label>Senha</label>
-            <input type="password" id="senha" placeholder="Sua senha" required>
+            <input type="password" id="senha" placeholder="Sua senha" autocomplete="current-password" required>
         </div>
         <button type="submit" class="btn-entrar btn-primario">Entrar</button>
     </form>
@@ -98,14 +105,6 @@
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
 
-    function mascaraCPF(input) {
-        let v = input.value.replace(/\D/g, '');
-        v = v.replace(/(\d{3})(\d)/, '$1.$2');
-        v = v.replace(/(\d{3})(\d)/, '$1.$2');
-        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-        input.value = v;
-    }
-
     function mostrarMensagem(texto, tipo) {
         const el = document.getElementById('mensagem');
         el.textContent = texto;
@@ -116,20 +115,20 @@
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const cpf = document.getElementById('cpf').value;
+        const identificador = document.getElementById('identificador').value.trim();
         const senha = document.getElementById('senha').value;
+        const isEmail = identificador.includes('@');
+        const campo = isEmail ? 'email' : 'cpf';
 
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?cpf=eq.${encodeURIComponent(cpf)}&senha=eq.${encodeURIComponent(senha)}&select=*`, {
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`
-            }
-        });
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/ritmistas?${campo}=eq.${encodeURIComponent(identificador)}&senha=eq.${encodeURIComponent(senha)}&select=*`,
+            { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
 
         const dados = await res.json();
 
         if (dados.length === 0) {
-            mostrarMensagem('CPF ou senha incorretos.', 'erro');
+            mostrarMensagem('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
             return;
         }
 

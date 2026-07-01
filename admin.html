@@ -468,7 +468,8 @@
             <div class="ficha-secao-titulo">Dados pessoais</div>
             <div class="ficha-grid">
                 <div class="ficha-campo full"><span>Nome</span><strong id="fc-nome"></strong></div>
-                <div class="ficha-campo full"><span>Apelido</span><strong id="fc-apelido"></strong></div>
+                <div class="ficha-campo"><span>Apelido</span><strong id="fc-apelido"></strong></div>
+                <div class="ficha-campo"><span>Nacionalidade</span><strong id="fc-nacionalidade"></strong></div>
                 <div class="ficha-campo"><span>CPF</span><strong id="fc-cpf"></strong></div>
                 <div class="ficha-campo"><span>Data de nascimento</span><strong id="fc-nascimento"></strong></div>
                 <div class="ficha-campo"><span>Celular</span><strong id="fc-celular"></strong></div>
@@ -484,7 +485,8 @@
                 <div class="ficha-campo"><span>Complemento</span><strong id="fc-complemento"></strong><input id="fc-complemento-edit" class="fc-input" type="text" style="display:none"></div>
                 <div class="ficha-campo"><span>Bairro</span><strong id="fc-bairro"></strong><input id="fc-bairro-edit" class="fc-input" type="text" style="display:none"></div>
                 <div class="ficha-campo"><span>Cidade</span><strong id="fc-cidade"></strong><input id="fc-cidade-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>Estado</span><strong id="fc-estado"></strong><input id="fc-estado-edit" class="fc-input" type="text" maxlength="2" style="display:none"></div>
+                <div class="ficha-campo"><span>Estado</span><strong id="fc-estado"></strong><input id="fc-estado-edit" class="fc-input" type="text" style="display:none"></div>
+                <div class="ficha-campo"><span>País</span><strong id="fc-pais"></strong><input id="fc-pais-edit" class="fc-input" type="text" style="display:none"></div>
             </div>
         </div>
 
@@ -810,6 +812,7 @@
 
         document.getElementById('fc-nome').textContent = r.nome || '—';
         document.getElementById('fc-apelido').textContent = r.apelido || '—';
+        document.getElementById('fc-nacionalidade').textContent = r.nacionalidade || '—';
         document.getElementById('fc-cpf').textContent = r.cpf || '—';
         document.getElementById('fc-nascimento').textContent = r.nascimento ? new Date(r.nascimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
         document.getElementById('fc-celular').textContent = r.celular || '—';
@@ -820,6 +823,7 @@
         document.getElementById('fc-bairro').textContent = r.bairro || '—';
         document.getElementById('fc-cidade').textContent = r.cidade || '—';
         document.getElementById('fc-estado').textContent = r.estado || '—';
+        document.getElementById('fc-pais').textContent = r.pais || 'Brasil';
         document.getElementById('fc-instrumento').textContent = r.instrumento || '—';
         document.getElementById('fc-status').textContent = statusLabels[status] || '—';
         document.getElementById('fc-tempo').textContent = r.membro_desde || '—';
@@ -887,6 +891,7 @@
         { id: 'fc-emergencia-nome',    editId: 'fc-emergencia-nome-edit',    col: 'emergencia_nome' },
         { id: 'fc-emergencia-parentesco', editId: 'fc-emergencia-parentesco-edit', col: 'emergencia_parentesco' },
         { id: 'fc-emergencia-celular', editId: 'fc-emergencia-celular-edit', col: 'emergencia_celular' },
+        { id: 'fc-pais',               editId: 'fc-pais-edit',               col: 'pais' },
     ];
 
     function ativarEdicaoFicha() {
