@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutti — Contato de Emergência</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #12101a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .marca {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 800;
+            color: #12101a;
+            margin-bottom: 24px;
+        }
+        .marca span { color: #D4AF37; }
+        .secao {
+            font-size: 11px;
+            font-weight: 700;
+            color: #8b88a0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .nome-ritmista {
+            font-size: 22px;
+            font-weight: 800;
+            color: #12101a;
+            margin-bottom: 24px;
+        }
+        .divisor {
+            height: 1px;
+            background: #e8e6f0;
+            margin-bottom: 24px;
+        }
+        .alerta {
+            background: #fff8e6;
+            border: 1px solid #D4AF37;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #8a6200;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .alerta-icone { font-size: 18px; flex-shrink: 0; }
+        .campo { margin-bottom: 16px; }
+        .campo-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #8b88a0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .campo-valor {
+            font-size: 17px;
+            font-weight: 700;
+            color: #12101a;
+        }
+        .btn-ligar {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: #D4AF37;
+            color: #12101a;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 8px;
+        }
+        .btn-ligar:hover { background: #B8922A; }
+        .carregando { text-align: center; color: #8b88a0; font-size: 15px; padding: 40px 0; }
+        .erro { text-align: center; color: #b3261e; font-size: 15px; padding: 40px 0; }
+        .sem-emergencia {
+            text-align: center;
+            color: #8b88a0;
+            font-size: 14px;
+            padding: 16px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="marca">Tu<span>TT</span>i</div>
+    <div id="conteudo"><div class="carregando">Carregando...</div></div>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+
+    async function carregar() {
+        const div = document.getElementById('conteudo');
+
+        if (!id) {
+            div.innerHTML = '<div class="erro">QR code inválido.</div>';
+            return;
+        }
+
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}&select=nome,emergencia_nome,emergencia_parentesco,emergencia_celular`,
+            { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
+        const dados = await res.json();
+
+        if (!dados.length) {
+            div.innerHTML = '<div class="erro">Ritmista não encontrado.</div>';
+            return;
+        }
+
+        const r = dados[0];
+        const temEmergencia = r.emergencia_nome || r.emergencia_celular;
+
+        div.innerHTML = `
+            <div class="secao">Ritmista</div>
+            <div class="nome-ritmista">${r.nome}</div>
+            <div class="divisor"></div>
+            <div class="secao">Contato de emergência</div>
+            ${temEmergencia ? `
+                <div class="alerta">
+                    <span class="alerta-icone">⚠️</span>
+                    <span>Em caso de emergência durante ensaio ou desfile, entre em contato com:</span>
+                </div>
+                ${r.emergencia_nome ? `<div class="campo"><div class="campo-label">Nome</div><div class="campo-valor">${r.emergencia_nome}</div></div>` : ''}
+                ${r.emergencia_parentesco ? `<div class="campo"><div class="campo-label">Parentesco</div><div class="campo-valor">${r.emergencia_parentesco}</div></div>` : ''}
+                ${r.emergencia_celular ? `
+                    <div class="campo"><div class="campo-label">Celular</div><div class="campo-valor">${r.emergencia_celular}</div></div>
+                    <a class="btn-ligar" href="tel:${r.emergencia_celular.replace(/\D/g,'')}">📞 Ligar agora</a>
+                ` : ''}
+            ` : '<div class="sem-emergencia">Contato de emergência não cadastrado.</div>'}
+        `;
+    }
+
+    carregar();
+</script>
+</body>
+</html>

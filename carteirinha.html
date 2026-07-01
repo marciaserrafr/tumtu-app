@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="carteirinha-tutti.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="config-escola.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -141,35 +142,7 @@
 
                     <div class="c-qr-area">
                         <div class="c-qr">
-                            <svg viewBox="0 0 110 110" width="110" height="110" xmlns="http://www.w3.org/2000/svg">
-                                <rect width="110" height="110" fill="white"/>
-                                <rect x="5" y="5" width="35" height="35" rx="3" fill="none" stroke="#111" stroke-width="3"/>
-                                <rect x="11" y="11" width="23" height="23" rx="1" fill="#111"/>
-                                <rect x="70" y="5" width="35" height="35" rx="3" fill="none" stroke="#111" stroke-width="3"/>
-                                <rect x="76" y="11" width="23" height="23" rx="1" fill="#111"/>
-                                <rect x="5" y="70" width="35" height="35" rx="3" fill="none" stroke="#111" stroke-width="3"/>
-                                <rect x="11" y="76" width="23" height="23" rx="1" fill="#111"/>
-                                <rect x="45" y="5" width="6" height="6" fill="#111"/>
-                                <rect x="55" y="5" width="6" height="6" fill="#111"/>
-                                <rect x="45" y="15" width="6" height="6" fill="#111"/>
-                                <rect x="57" y="18" width="6" height="6" fill="#111"/>
-                                <rect x="48" y="28" width="6" height="6" fill="#111"/>
-                                <rect x="45" y="45" width="6" height="6" fill="#111"/>
-                                <rect x="55" y="45" width="6" height="6" fill="#111"/>
-                                <rect x="65" y="45" width="6" height="6" fill="#111"/>
-                                <rect x="48" y="55" width="6" height="6" fill="#111"/>
-                                <rect x="58" y="55" width="6" height="6" fill="#111"/>
-                                <rect x="45" y="65" width="6" height="6" fill="#111"/>
-                                <rect x="68" y="48" width="6" height="6" fill="#111"/>
-                                <rect x="75" y="58" width="6" height="6" fill="#111"/>
-                                <rect x="68" y="65" width="6" height="6" fill="#111"/>
-                                <rect x="80" y="70" width="6" height="6" fill="#111"/>
-                                <rect x="72" y="76" width="6" height="6" fill="#111"/>
-                                <rect x="85" y="80" width="6" height="6" fill="#111"/>
-                                <rect x="55" y="75" width="6" height="6" fill="#111"/>
-                                <rect x="48" y="88" width="6" height="6" fill="#111"/>
-                                <rect x="58" y="95" width="6" height="6" fill="#111"/>
-                            </svg>
+                            <div id="qrcode"></div>
                         </div>
                         <div class="c-qr-label">Validação Digital</div>
                     </div>
@@ -267,6 +240,17 @@
         if (igEl && cfg.instagramBateria) {
             igEl.textContent = cfg.instagramBateria.startsWith('@') ? cfg.instagramBateria : '@' + cfg.instagramBateria;
         }
+
+        // QR code real apontando para a página de emergência
+        const qrUrl = `${window.location.origin}/qr.html?id=${ritmista.id}`;
+        new QRCode(document.getElementById('qrcode'), {
+            text: qrUrl,
+            width: 110,
+            height: 110,
+            colorDark: '#111111',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+        });
 
         if (cfg.logoEscola) {
             ['logoEscolaFrente', 'logoEscolaVerso'].forEach(id => {
