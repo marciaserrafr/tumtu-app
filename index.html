@@ -184,9 +184,9 @@
                 <option>Chocalho</option>
                 <option>Cuíca</option>
                 <option>Repique</option>
-                <option>Surdo de Primeira</option>
-                <option>Surdo de Segunda</option>
-                <option>Surdo de Terceira</option>
+                <option>Surdo 1</option>
+                <option>Surdo 2</option>
+                <option>Surdo 3</option>
                 <option>Tamborim</option>
             </select>
         </div>
@@ -250,41 +250,39 @@
 
         <div class="form-row">
             <div class="form-group">
-                <label>Tamanho da Camisa <span class="obrigatorio">*</span></label>
+                <label>Tamanho da camisa <span class="obrigatorio">*</span></label>
                 <select id="tamanho_camisa" required onchange="mostrarOutro('tamanho_camisa')">
                     <option value="">Selecione</option>
-                    <option>PP</option>
-                    <option>P</option>
-                    <option>M</option>
-                    <option>G</option>
-                    <option>GG</option>
-                    <option>XG</option>
-                    <option>XXG</option>
-                    <option>XXXG</option>
-                    <option value="Outro">Outro</option>
+                    <option>P</option><option>M</option><option>G</option>
+                    <option>GG</option><option>XG</option><option>XGG</option>
+                    <option>Momo</option><option value="Outro">Outro</option>
                 </select>
                 <input type="text" id="tamanho_camisa_outro" placeholder="Informe o tamanho" style="display:none; margin-top:8px;">
             </div>
             <div class="form-group">
-                <label>Tamanho da Fantasia <span class="obrigatorio">*</span></label>
+                <label>Tamanho da fantasia <span class="obrigatorio">*</span></label>
                 <select id="tamanho_fantasia" required onchange="mostrarOutro('tamanho_fantasia')">
                     <option value="">Selecione</option>
-                    <option>PP</option>
-                    <option>P</option>
-                    <option>M</option>
-                    <option>G</option>
-                    <option>GG</option>
-                    <option>XG</option>
-                    <option>XXG</option>
-                    <option>XXXG</option>
-                    <option value="Outro">Outro</option>
+                    <option>P</option><option>M</option><option>G</option>
+                    <option>GG</option><option>XG</option><option>XGG</option>
+                    <option>Momo</option><option value="Outro">Outro</option>
                 </select>
                 <input type="text" id="tamanho_fantasia_outro" placeholder="Informe o tamanho" style="display:none; margin-top:8px;">
             </div>
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label>Tamanho do Sapato <span class="obrigatorio">*</span></label>
+                <label>Tamanho da calça <span class="obrigatorio">*</span></label>
+                <select id="tamanho_calca" required onchange="mostrarOutro('tamanho_calca')">
+                    <option value="">Selecione</option>
+                    <option>P</option><option>M</option><option>G</option>
+                    <option>GG</option><option>XG</option><option>XGG</option>
+                    <option>Momo</option><option value="Outro">Outro</option>
+                </select>
+                <input type="text" id="tamanho_calca_outro" placeholder="Informe o tamanho" style="display:none; margin-top:8px;">
+            </div>
+            <div class="form-group">
+                <label>Tamanho do sapato <span class="obrigatorio">*</span></label>
                 <select id="tamanho_sapato" required onchange="mostrarOutro('tamanho_sapato')">
                     <option value="">Selecione</option>
                     <option>33</option><option>34</option><option>35</option>
@@ -292,12 +290,10 @@
                     <option>39</option><option>40</option><option>41</option>
                     <option>42</option><option>43</option><option>44</option>
                     <option>45</option><option>46</option><option>47</option>
-                    <option>48</option>
-                    <option value="Outro">Outro</option>
+                    <option>48</option><option value="Outro">Outro</option>
                 </select>
                 <input type="text" id="tamanho_sapato_outro" placeholder="Informe o tamanho" style="display:none; margin-top:8px;">
             </div>
-            <div class="form-group"></div>
         </div>
 
         <div class="secao">Saúde</div>
@@ -513,6 +509,7 @@
             pais: document.getElementById('pais').value.trim() || 'Brasil',
             tamanho_camisa: valorTamanho('tamanho_camisa'),
             tamanho_fantasia: valorTamanho('tamanho_fantasia'),
+            tamanho_calca: valorTamanho('tamanho_calca'),
             tamanho_sapato: valorTamanho('tamanho_sapato'),
             senha: document.getElementById('senha').value,
             membro_desde: document.getElementById('membro_desde').value || null,

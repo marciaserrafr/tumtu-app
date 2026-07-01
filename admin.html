@@ -497,8 +497,8 @@
                     <select id="fc-instrumento-edit" class="fc-input" style="display:none">
                         <option value="">Selecione</option>
                         <option>Caixa</option><option>Chocalho</option><option>Cuíca</option>
-                        <option>Repique</option><option>Surdo de Primeira</option>
-                        <option>Surdo de Segunda</option><option>Surdo de Terceira</option>
+                        <option>Repique</option><option>Surdo 1</option>
+                        <option>Surdo 2</option><option>Surdo 3</option>
                         <option>Tamborim</option>
                     </select>
                 </div>
@@ -519,6 +519,7 @@
             <div class="ficha-grid">
                 <div class="ficha-campo"><span>Camisa</span><strong id="fc-camisa"></strong><input id="fc-camisa-edit" class="fc-input" type="text" style="display:none"></div>
                 <div class="ficha-campo"><span>Fantasia</span><strong id="fc-fantasia"></strong><input id="fc-fantasia-edit" class="fc-input" type="text" style="display:none"></div>
+                <div class="ficha-campo"><span>Calça</span><strong id="fc-calca"></strong><input id="fc-calca-edit" class="fc-input" type="text" style="display:none"></div>
                 <div class="ficha-campo"><span>Sapato</span><strong id="fc-sapato"></strong><input id="fc-sapato-edit" class="fc-input" type="text" style="display:none"></div>
             </div>
         </div>
@@ -830,6 +831,7 @@
         document.getElementById('fc-tipo-sanguineo').textContent = r.tipo_sanguineo || '—';
         document.getElementById('fc-camisa').textContent = r.tamanho_camisa || '—';
         document.getElementById('fc-fantasia').textContent = r.tamanho_fantasia || '—';
+        document.getElementById('fc-calca').textContent = r.tamanho_calca || '—';
         document.getElementById('fc-sapato').textContent = r.tamanho_sapato || '—';
         document.getElementById('fc-emergencia-nome').textContent = r.emergencia_nome || '—';
         document.getElementById('fc-emergencia-parentesco').textContent = r.emergencia_parentesco || '—';
@@ -887,6 +889,7 @@
         { id: 'fc-tipo-sanguineo',     editId: 'fc-tipo-sanguineo-edit',     col: 'tipo_sanguineo' },
         { id: 'fc-camisa',             editId: 'fc-camisa-edit',             col: 'tamanho_camisa' },
         { id: 'fc-fantasia',           editId: 'fc-fantasia-edit',           col: 'tamanho_fantasia' },
+        { id: 'fc-calca',              editId: 'fc-calca-edit',              col: 'tamanho_calca' },
         { id: 'fc-sapato',             editId: 'fc-sapato-edit',             col: 'tamanho_sapato' },
         { id: 'fc-emergencia-nome',    editId: 'fc-emergencia-nome-edit',    col: 'emergencia_nome' },
         { id: 'fc-emergencia-parentesco', editId: 'fc-emergencia-parentesco-edit', col: 'emergencia_parentesco' },
