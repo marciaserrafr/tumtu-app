@@ -516,6 +516,7 @@
         <!-- Formulário de acesso (oculto inicialmente) -->
         <div class="card-form" id="form-acesso" style="display:none">
             <div class="card-form-titulo">Novo Acesso</div>
+            <input type="hidden" id="acesso-id">
 
             <div class="form-grid">
                 <div class="campo campo-full">
@@ -974,12 +975,35 @@
                 </div>
                 <div class="item-acoes">
                     <span class="badge-ativo">${labelPerfil(u.perfil)}</span>
+                    <button class="btn-acao" onclick="editarAcesso('${u.id}')">Editar</button>
                 </div>
             </div>
         `).join('');
     }
 
+    async function editarAcesso(id) {
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}&select=id,nome,apelido,cpf,perfil,bateria_id`,
+            { headers }
+        );
+        const dados = await res.json();
+        if (!dados.length) return;
+        const u = dados[0];
+        document.getElementById('acesso-id').value = u.id;
+        document.getElementById('acesso-nome').value = u.nome || '';
+        document.getElementById('acesso-apelido').value = u.apelido || '';
+        document.getElementById('acesso-cpf').value = u.cpf || '';
+        document.getElementById('acesso-senha').value = '';
+        document.getElementById('acesso-perfil').value = u.perfil || '';
+        document.getElementById('acesso-bateria-id').value = u.bateria_id || '';
+        document.getElementById('form-acesso').querySelector('.card-form-titulo').textContent = 'Editar Acesso';
+        document.getElementById('btn-salvar-acesso').textContent = 'Atualizar Acesso';
+        document.getElementById('form-acesso').style.display = 'block';
+        document.getElementById('form-acesso').scrollIntoView({ behavior: 'smooth' });
+    }
+
     function abrirFormAcesso() {
+        document.getElementById('acesso-id').value = '';
         document.getElementById('acesso-nome').value = '';
         document.getElementById('acesso-apelido').value = '';
         document.getElementById('acesso-cpf').value = '';
@@ -1005,7 +1029,9 @@
         if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
         if (!apelido) { mostrarToast('Informe o apelido.', 'erro'); return; }
         if (!cpf) { mostrarToast('Informe o CPF.', 'erro'); return; }
-        if (!senha || senha.length < 6) { mostrarToast('Senha deve ter no mínimo 6 caracteres.', 'erro'); return; }
+        const id = document.getElementById('acesso-id').value;
+        if (!id && (!senha || senha.length < 6)) { mostrarToast('Senha deve ter no mínimo 6 caracteres.', 'erro'); return; }
+        if (id && senha && senha.length < 6) { mostrarToast('Senha deve ter no mínimo 6 caracteres.', 'erro'); return; }
         if (!perfil) { mostrarToast('Selecione o perfil.', 'erro'); return; }
         if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
 
@@ -1020,23 +1046,24 @@
         const btn = document.getElementById('btn-salvar-acesso');
         btn.disabled = true;
 
-        const payload = {
-            nome,
-            apelido,
-            cpf,
-            senha,
-            perfil,
-            bateria_id: bateriaId,
-            status: 'aprovado'
-        };
+        const payload = { nome, apelido, cpf, perfil, bateria_id: bateriaId };
+        if (senha) payload.senha = senha;
+        if (!id) payload.status = 'aprovado';
 
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas`, {
-            method: 'POST', headers, body: JSON.stringify(payload)
-        });
+        let res;
+        if (id) {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+                method: 'PATCH', headers, body: JSON.stringify(payload)
+            });
+        } else {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas`, {
+                method: 'POST', headers, body: JSON.stringify(payload)
+            });
+        }
 
         btn.disabled = false;
         if (res.ok) {
-            mostrarToast('Acesso criado com sucesso!');
+            mostrarToast(id ? 'Acesso atualizado!' : 'Acesso criado com sucesso!');
             fecharFormAcesso();
             carregarAcessos();
         } else {
