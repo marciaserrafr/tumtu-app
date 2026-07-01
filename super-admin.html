@@ -742,7 +742,7 @@
             <div class="item-card" style="cursor:pointer" onclick="verEscola('${e.id}')">
                 <div class="item-info">
                     <div class="item-nome">${e.sigla || e.nome}</div>
-                    <div class="item-detalhe">${e.nome}${e.cor_destaque ? ' · <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + e.cor_destaque + ';vertical-align:middle;border:1px solid rgba(0,0,0,0.1)"></span>' : ''}</div>
+                    <div class="item-detalhe">${e.nome}</div>
                 </div>
                 <div class="item-acoes">
                     <span class="${e.ativa !== false ? 'badge-ativo' : 'badge-inativo'}">${e.ativa !== false ? 'Ativa' : 'Inativa'}</span>
