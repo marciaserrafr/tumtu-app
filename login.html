@@ -150,7 +150,6 @@
 
         localStorage.setItem('ritmista', JSON.stringify(ritmista));
 
-        const perfil = ritmista.perfil || 'ritmista';
         if (perfil === 'mestre' || perfil === 'diretor') {
             window.location.href = 'admin.html';
         } else if (perfil === 'super_admin') {
