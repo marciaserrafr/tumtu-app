@@ -320,6 +320,40 @@
         .btn-editar { background: #D4AF37; border-color: #D4AF37; color: #12101a; font-weight: 700; }
         .btn-editar:hover { background: #B8922A; border-color: #B8922A; }
 
+        /* ── MODAL OVERLAY ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .modal-overlay.aberto { display: flex; }
+        .modal-sa {
+            background: white; border-radius: 16px;
+            width: 100%; max-width: 500px;
+            max-height: 90vh; display: flex; flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-sa-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px 16px; border-bottom: 1px solid var(--cor-borda);
+            flex-shrink: 0;
+        }
+        .modal-sa-titulo { font-size: 16px; font-weight: 800; color: var(--cor-texto-principal); }
+        .modal-sa-fechar {
+            background: none; border: none; font-size: 20px; cursor: pointer;
+            color: #aaa; line-height: 1; padding: 0 4px;
+        }
+        .modal-sa-fechar:hover { color: #333; }
+        .modal-sa-body {
+            padding: 20px 24px; overflow-y: auto; flex: 1;
+        }
+        .modal-sa-rodape {
+            padding: 16px 24px; border-top: 1px solid var(--cor-borda);
+            display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
         /* ── ALERTA / TOAST ── */
         .toast {
             position: fixed;
@@ -428,12 +462,49 @@
                 Carregando...
             </div>
         </div>
+    </div>
 
-        <!-- Formulário de escola (oculto inicialmente) -->
-        <div class="card-form" id="form-escola" style="display:none">
-            <div class="card-form-titulo" id="form-escola-titulo">Nova Escola</div>
+    <!-- ════ PAINEL: BATERIAS ════ -->
+    <div class="painel" id="painel-baterias">
+        <div class="painel-titulo">Baterias</div>
+        <div class="painel-sub">Cadastre a bateria, vincule a uma escola e configure a identidade.</div>
+
+        <button class="btn-novo" onclick="abrirFormBateria()">+ Nova Bateria</button>
+
+        <div id="lista-baterias" class="lista-cards">
+            <div class="estado-vazio">
+                <div class="estado-vazio-icone">🥁</div>
+                Carregando...
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ PAINEL: ACESSOS ════ -->
+    <div class="painel" id="painel-acessos">
+        <div class="painel-titulo">Acessos</div>
+        <div class="painel-sub">Crie logins para Mestres e Diretores, vinculados a uma bateria.</div>
+
+        <button class="btn-novo" onclick="abrirFormAcesso()">+ Novo Acesso</button>
+
+        <div id="lista-acessos" class="lista-cards">
+            <div class="estado-vazio">
+                <div class="estado-vazio-icone">👤</div>
+                Carregando...
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL ESCOLA -->
+<div class="modal-overlay" id="modal-escola-overlay" onclick="fecharSeForaModal(event,'modal-escola-overlay','fecharFormEscola')">
+    <div class="modal-sa" id="form-escola">
+        <div class="modal-sa-header">
+            <div class="modal-sa-titulo" id="form-escola-titulo">Nova Escola</div>
+            <button class="modal-sa-fechar" onclick="fecharFormEscola()">✕</button>
+        </div>
+        <div class="modal-sa-body">
             <input type="hidden" id="escola-id">
-
             <div class="form-grid">
                 <div class="campo campo-full">
                     <label>Nome Completo *</label>
@@ -474,34 +545,25 @@
                     </div>
                 </div>
             </div>
-
-            <div class="form-acoes">
-                <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>
-                <button class="btn-cancelar btn-editar" id="btn-editar-escola" onclick="habilitarEdicaoEscola()" style="display:none">Editar</button>
-                <button class="btn-salvar" id="btn-salvar-escola" onclick="salvarEscola()">Salvar Escola</button>
-            </div>
+        </div>
+        <div class="modal-sa-rodape">
+            <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>
+            <button class="btn-acao danger" id="btn-toggle-escola" style="display:none"></button>
+            <button class="btn-acao btn-editar" id="btn-editar-escola" onclick="habilitarEdicaoEscola()" style="display:none">Editar</button>
+            <button class="btn-salvar" id="btn-salvar-escola" onclick="salvarEscola()" style="display:none">Salvar Escola</button>
         </div>
     </div>
+</div>
 
-    <!-- ════ PAINEL: BATERIAS ════ -->
-    <div class="painel" id="painel-baterias">
-        <div class="painel-titulo">Baterias</div>
-        <div class="painel-sub">Cadastre a bateria, vincule a uma escola e configure a identidade.</div>
-
-        <button class="btn-novo" onclick="abrirFormBateria()">+ Nova Bateria</button>
-
-        <div id="lista-baterias" class="lista-cards">
-            <div class="estado-vazio">
-                <div class="estado-vazio-icone">🥁</div>
-                Carregando...
-            </div>
+<!-- MODAL BATERIA -->
+<div class="modal-overlay" id="modal-bateria-overlay" onclick="fecharSeForaModal(event,'modal-bateria-overlay','fecharFormBateria')">
+    <div class="modal-sa" id="form-bateria">
+        <div class="modal-sa-header">
+            <div class="modal-sa-titulo" id="form-bateria-titulo">Nova Bateria</div>
+            <button class="modal-sa-fechar" onclick="fecharFormBateria()">✕</button>
         </div>
-
-        <!-- Formulário de bateria (oculto inicialmente) -->
-        <div class="card-form" id="form-bateria" style="display:none">
-            <div class="card-form-titulo" id="form-bateria-titulo">Nova Bateria</div>
+        <div class="modal-sa-body">
             <input type="hidden" id="bateria-id">
-
             <div class="form-grid">
                 <div class="campo campo-full">
                     <label>Nome da Bateria *</label>
@@ -526,34 +588,25 @@
                     <input type="text" id="bateria-mestre" placeholder="Nome do mestre">
                 </div>
             </div>
-
-            <div class="form-acoes">
-                <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>
-                <button class="btn-cancelar btn-editar" id="btn-editar-bateria" onclick="habilitarEdicaoBateria()" style="display:none">Editar</button>
-                <button class="btn-salvar" id="btn-salvar-bateria" onclick="salvarBateria()">Salvar Bateria</button>
-            </div>
+        </div>
+        <div class="modal-sa-rodape">
+            <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>
+            <button class="btn-acao danger" id="btn-toggle-bateria" style="display:none"></button>
+            <button class="btn-acao btn-editar" id="btn-editar-bateria" onclick="habilitarEdicaoBateria()" style="display:none">Editar</button>
+            <button class="btn-salvar" id="btn-salvar-bateria" onclick="salvarBateria()" style="display:none">Salvar Bateria</button>
         </div>
     </div>
+</div>
 
-    <!-- ════ PAINEL: ACESSOS ════ -->
-    <div class="painel" id="painel-acessos">
-        <div class="painel-titulo">Acessos</div>
-        <div class="painel-sub">Crie logins para Mestres e Diretores, vinculados a uma bateria.</div>
-
-        <button class="btn-novo" onclick="abrirFormAcesso()">+ Novo Acesso</button>
-
-        <div id="lista-acessos" class="lista-cards">
-            <div class="estado-vazio">
-                <div class="estado-vazio-icone">👤</div>
-                Carregando...
-            </div>
+<!-- MODAL ACESSO -->
+<div class="modal-overlay" id="modal-acesso-overlay" onclick="fecharSeForaModal(event,'modal-acesso-overlay','fecharFormAcesso')">
+    <div class="modal-sa" id="form-acesso">
+        <div class="modal-sa-header">
+            <div class="modal-sa-titulo" id="form-acesso-titulo">Novo Acesso</div>
+            <button class="modal-sa-fechar" onclick="fecharFormAcesso()">✕</button>
         </div>
-
-        <!-- Formulário de acesso (oculto inicialmente) -->
-        <div class="card-form" id="form-acesso" style="display:none">
-            <div class="card-form-titulo">Novo Acesso</div>
+        <div class="modal-sa-body">
             <input type="hidden" id="acesso-id">
-
             <div class="form-grid">
                 <div class="campo campo-full">
                     <label>Nome Completo *</label>
@@ -586,15 +639,14 @@
                     </select>
                 </div>
             </div>
-
-            <div class="form-acoes">
-                <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>
-                <button class="btn-cancelar btn-editar" id="btn-editar-acesso" onclick="habilitarEdicaoAcesso()" style="display:none">Editar</button>
-                <button class="btn-salvar" id="btn-salvar-acesso" onclick="salvarAcesso()">Criar Acesso</button>
-            </div>
+        </div>
+        <div class="modal-sa-rodape">
+            <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>
+            <button class="btn-acao danger" id="btn-toggle-acesso" style="display:none"></button>
+            <button class="btn-acao btn-editar" id="btn-editar-acesso" onclick="habilitarEdicaoAcesso()" style="display:none">Editar</button>
+            <button class="btn-salvar" id="btn-salvar-acesso" onclick="salvarAcesso()" style="display:none">Criar Acesso</button>
         </div>
     </div>
-
 </div>
 
 <!-- TOAST -->
@@ -694,8 +746,6 @@
                 </div>
                 <div class="item-acoes">
                     <span class="${e.ativa !== false ? 'badge-ativo' : 'badge-inativo'}">${e.ativa !== false ? 'Ativa' : 'Inativa'}</span>
-                    <button class="btn-acao btn-editar" onclick="event.stopPropagation();editarEscola('${e.id}')">Editar</button>
-                    <button class="btn-acao danger" onclick="event.stopPropagation();toggleEscolaAtiva('${e.id}', ${e.ativa !== false})">${e.ativa !== false ? 'Desativar' : 'Ativar'}</button>
                 </div>
             </div>
         `).join('');
@@ -712,9 +762,21 @@
         document.getElementById(btnSalvarId).style.display = leitura ? 'none' : 'inline-flex';
     }
 
-    function habilitarEdicaoEscola() { setModoLeitura('form-escola', 'btn-editar-escola', 'btn-salvar-escola', false); }
-    function habilitarEdicaoBateria() { setModoLeitura('form-bateria', 'btn-editar-bateria', 'btn-salvar-bateria', false); }
-    function habilitarEdicaoAcesso() { setModoLeitura('form-acesso', 'btn-editar-acesso', 'btn-salvar-acesso', false); }
+    function habilitarEdicaoEscola() {
+        setModoLeitura('form-escola', 'btn-editar-escola', 'btn-salvar-escola', false);
+        document.getElementById('btn-salvar-escola').style.display = 'inline-flex';
+        document.getElementById('btn-toggle-escola').style.display = 'none';
+    }
+    function habilitarEdicaoBateria() {
+        setModoLeitura('form-bateria', 'btn-editar-bateria', 'btn-salvar-bateria', false);
+        document.getElementById('btn-salvar-bateria').style.display = 'inline-flex';
+        document.getElementById('btn-toggle-bateria').style.display = 'none';
+    }
+    function habilitarEdicaoAcesso() {
+        setModoLeitura('form-acesso', 'btn-editar-acesso', 'btn-salvar-acesso', false);
+        document.getElementById('btn-salvar-acesso').style.display = 'inline-flex';
+        document.getElementById('btn-toggle-acesso').style.display = 'none';
+    }
 
     function abrirFormEscola() {
         document.getElementById('escola-id').value = '';
@@ -728,14 +790,15 @@
         document.getElementById('escola-cor-destaque-picker').value = '#D4AF37';
         document.getElementById('form-escola-titulo').textContent = 'Nova Escola';
         document.getElementById('btn-salvar-escola').textContent = 'Salvar Escola';
+        document.getElementById('btn-salvar-escola').style.display = 'inline-flex';
+        document.getElementById('btn-toggle-escola').style.display = 'none';
         atualizarPreviewEscola();
         setModoLeitura('form-escola', 'btn-editar-escola', 'btn-salvar-escola', false);
-        document.getElementById('form-escola').style.display = 'block';
-        document.getElementById('form-escola').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('modal-escola-overlay').classList.add('aberto');
     }
 
     function fecharFormEscola() {
-        document.getElementById('form-escola').style.display = 'none';
+        document.getElementById('modal-escola-overlay').classList.remove('aberto');
     }
 
     async function verEscola(id) { await editarEscola(id, true); }
@@ -744,6 +807,7 @@
         const dados = await res.json();
         if (!dados.length) return;
         const e = dados[0];
+        const ativa = e.ativa !== false;
         document.getElementById('escola-id').value = e.id;
         document.getElementById('escola-nome').value = e.nome || '';
         document.getElementById('escola-sigla').value = e.sigla || '';
@@ -753,12 +817,17 @@
         document.getElementById('escola-cor-primaria-picker').value = e.cor_primaria || '#12101a';
         document.getElementById('escola-cor-destaque').value = e.cor_destaque || '#D4AF37';
         document.getElementById('escola-cor-destaque-picker').value = e.cor_destaque || '#D4AF37';
-        document.getElementById('form-escola-titulo').textContent = 'Editar Escola';
+        document.getElementById('form-escola-titulo').textContent = leitura ? (e.sigla || e.nome) : 'Editar Escola';
         document.getElementById('btn-salvar-escola').textContent = 'Atualizar Escola';
         atualizarPreviewEscola();
         setModoLeitura('form-escola', 'btn-editar-escola', 'btn-salvar-escola', leitura);
-        document.getElementById('form-escola').style.display = 'block';
-        document.getElementById('form-escola').scrollIntoView({ behavior: 'smooth' });
+        const btnToggle = document.getElementById('btn-toggle-escola');
+        btnToggle.textContent = ativa ? 'Desativar' : 'Ativar';
+        btnToggle.className = ativa ? 'btn-acao danger' : 'btn-acao';
+        btnToggle.onclick = () => { fecharFormEscola(); toggleEscolaAtiva(e.id, ativa); };
+        btnToggle.style.display = leitura ? 'inline-flex' : 'none';
+        document.getElementById('btn-salvar-escola').style.display = leitura ? 'none' : 'inline-flex';
+        document.getElementById('modal-escola-overlay').classList.add('aberto');
     }
 
     async function salvarEscola() {
@@ -878,8 +947,6 @@
                 </div>
                 <div class="item-acoes">
                     <span class="${b.ativa !== false ? 'badge-ativo' : 'badge-inativo'}">${b.ativa !== false ? 'Ativa' : 'Inativa'}</span>
-                    <button class="btn-acao btn-editar" onclick="event.stopPropagation();editarBateria('${b.id}')">Editar</button>
-                    <button class="btn-acao danger" onclick="event.stopPropagation();toggleBateriaAtiva('${b.id}', ${b.ativa !== false})">${b.ativa !== false ? 'Desativar' : 'Ativar'}</button>
                 </div>
             </div>
         `).join('');
@@ -894,12 +961,14 @@
         document.getElementById('bateria-mestre').value = '';
         document.getElementById('form-bateria-titulo').textContent = 'Nova Bateria';
         document.getElementById('btn-salvar-bateria').textContent = 'Salvar Bateria';
-        document.getElementById('form-bateria').style.display = 'block';
-        document.getElementById('form-bateria').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('btn-salvar-bateria').style.display = 'inline-flex';
+        document.getElementById('btn-toggle-bateria').style.display = 'none';
+        setModoLeitura('form-bateria', 'btn-editar-bateria', 'btn-salvar-bateria', false);
+        document.getElementById('modal-bateria-overlay').classList.add('aberto');
     }
 
     function fecharFormBateria() {
-        document.getElementById('form-bateria').style.display = 'none';
+        document.getElementById('modal-bateria-overlay').classList.remove('aberto');
     }
 
     async function verBateria(id) { await editarBateria(id, true); }
@@ -908,17 +977,23 @@
         const dados = await res.json();
         if (!dados.length) return;
         const b = dados[0];
+        const ativa = b.ativa !== false;
         document.getElementById('bateria-id').value = b.id;
         document.getElementById('bateria-nome').value = b.nome || '';
         document.getElementById('bateria-escola-id').value = b.escola_id || '';
         document.getElementById('bateria-logo').value = b.logo_url || '';
         document.getElementById('bateria-instagram').value = b.instagram || '';
         document.getElementById('bateria-mestre').value = b.mestre_de_bateria || '';
-        document.getElementById('form-bateria-titulo').textContent = leitura ? 'Detalhes da Bateria' : 'Editar Bateria';
+        document.getElementById('form-bateria-titulo').textContent = leitura ? b.nome : 'Editar Bateria';
         document.getElementById('btn-salvar-bateria').textContent = 'Atualizar Bateria';
         setModoLeitura('form-bateria', 'btn-editar-bateria', 'btn-salvar-bateria', leitura);
-        document.getElementById('form-bateria').style.display = 'block';
-        document.getElementById('form-bateria').scrollIntoView({ behavior: 'smooth' });
+        const btnToggle = document.getElementById('btn-toggle-bateria');
+        btnToggle.textContent = ativa ? 'Desativar' : 'Ativar';
+        btnToggle.className = ativa ? 'btn-acao danger' : 'btn-acao';
+        btnToggle.onclick = () => { fecharFormBateria(); toggleBateriaAtiva(b.id, ativa); };
+        btnToggle.style.display = leitura ? 'inline-flex' : 'none';
+        document.getElementById('btn-salvar-bateria').style.display = leitura ? 'none' : 'inline-flex';
+        document.getElementById('modal-bateria-overlay').classList.add('aberto');
     }
 
     async function salvarBateria() {
@@ -1036,7 +1111,6 @@
             <div class="item-card" style="cursor:pointer" onclick="verAcesso('${u.id}')">
                 <div class="item-info">
                     <div class="item-nome">${u.nome}${u.apelido ? ` <span style="font-size:15px;font-weight:700;color:#D4AF37">"${u.apelido}"</span>` : ''}</div>
-
                     <div class="item-detalhe" style="margin-top:5px">
                         <span style="background:#e8e6f0;color:#5a5770;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px">${labelPerfil(u.perfil)}</span>
                         <span style="font-size:12px;color:var(--cor-texto-muted)"> · CPF ${u.cpf || '—'}${u.bateria_id ? ' · ' + nomeBateria(u.bateria_id) : ''}</span>
@@ -1044,8 +1118,6 @@
                 </div>
                 <div class="item-acoes">
                     <span class="${u.status === 'inativo' ? 'badge-inativo' : 'badge-ativo'}">${u.status === 'inativo' ? 'Inativo' : 'Ativo'}</span>
-                    <button class="btn-acao btn-editar" onclick="event.stopPropagation();editarAcesso('${u.id}')">Editar</button>
-                    <button class="btn-acao danger" onclick="event.stopPropagation();toggleAcessoAtivo('${u.id}', '${u.status}')">${u.status === 'inativo' ? 'Ativar' : 'Desativar'}</button>
                 </div>
             </div>
         `).join('');
@@ -1054,12 +1126,13 @@
     async function verAcesso(id) { await editarAcesso(id, true); }
     async function editarAcesso(id, leitura = false) {
         const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}&select=id,nome,apelido,cpf,perfil,bateria_id`,
+            `${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}&select=id,nome,apelido,cpf,perfil,bateria_id,status`,
             { headers }
         );
         const dados = await res.json();
         if (!dados.length) return;
         const u = dados[0];
+        const ativo = u.status !== 'inativo';
         document.getElementById('acesso-id').value = u.id;
         document.getElementById('acesso-nome').value = u.nome || '';
         document.getElementById('acesso-apelido').value = u.apelido || '';
@@ -1067,11 +1140,16 @@
         document.getElementById('acesso-senha').value = '';
         document.getElementById('acesso-perfil').value = u.perfil || '';
         document.getElementById('acesso-bateria-id').value = u.bateria_id || '';
-        document.getElementById('form-acesso').querySelector('.card-form-titulo').textContent = leitura ? 'Detalhes do Acesso' : 'Editar Acesso';
+        document.getElementById('form-acesso-titulo').textContent = leitura ? (u.apelido || u.nome) : 'Editar Acesso';
         document.getElementById('btn-salvar-acesso').textContent = 'Atualizar Acesso';
         setModoLeitura('form-acesso', 'btn-editar-acesso', 'btn-salvar-acesso', leitura);
-        document.getElementById('form-acesso').style.display = 'block';
-        document.getElementById('form-acesso').scrollIntoView({ behavior: 'smooth' });
+        const btnToggle = document.getElementById('btn-toggle-acesso');
+        btnToggle.textContent = ativo ? 'Desativar' : 'Ativar';
+        btnToggle.className = ativo ? 'btn-acao danger' : 'btn-acao';
+        btnToggle.onclick = () => { fecharFormAcesso(); toggleAcessoAtivo(u.id, u.status); };
+        btnToggle.style.display = leitura ? 'inline-flex' : 'none';
+        document.getElementById('btn-salvar-acesso').style.display = leitura ? 'none' : 'inline-flex';
+        document.getElementById('modal-acesso-overlay').classList.add('aberto');
     }
 
     async function toggleAcessoAtivo(id, statusAtual) {
@@ -1102,12 +1180,20 @@
         document.getElementById('acesso-senha').value = '';
         document.getElementById('acesso-perfil').value = '';
         document.getElementById('acesso-bateria-id').value = '';
-        document.getElementById('form-acesso').style.display = 'block';
-        document.getElementById('form-acesso').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('form-acesso-titulo').textContent = 'Novo Acesso';
+        document.getElementById('btn-salvar-acesso').textContent = 'Criar Acesso';
+        document.getElementById('btn-salvar-acesso').style.display = 'inline-flex';
+        document.getElementById('btn-toggle-acesso').style.display = 'none';
+        setModoLeitura('form-acesso', 'btn-editar-acesso', 'btn-salvar-acesso', false);
+        document.getElementById('modal-acesso-overlay').classList.add('aberto');
     }
 
     function fecharFormAcesso() {
-        document.getElementById('form-acesso').style.display = 'none';
+        document.getElementById('modal-acesso-overlay').classList.remove('aberto');
+    }
+
+    function fecharSeForaModal(event, overlayId, fecharFn) {
+        if (event.target.id === overlayId) window[fecharFn]();
     }
 
     async function salvarAcesso() {
