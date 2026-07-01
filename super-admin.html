@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-tema="tutti">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutti — Super Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/tokens.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, input, select, textarea { font-family: inherit; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--cor-fundo-claro);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--cor-texto-principal);
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background: var(--cor-fundo-escuro);
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .header-marca {
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+        .header-marca span { color: #D4AF37; }
+        .header-badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(212,175,55,0.7);
+            margin-top: 2px;
+        }
+        .header-acoes { display: flex; align-items: center; gap: 12px; }
+        .header-user {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+        }
+        .btn-sair {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.25);
+            color: rgba(255,255,255,0.8);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .btn-sair:hover { background: rgba(255,255,255,0.08); }
+
+        /* ── NAV ABAS ── */
+        .nav-abas {
+            background: var(--cor-fundo-escuro);
+            padding: 0 24px;
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .aba {
+            padding: 12px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.45);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+            white-space: nowrap;
+        }
+        .aba:hover { color: rgba(255,255,255,0.75); }
+        .aba.ativa {
+            color: #D4AF37;
+            border-bottom-color: #D4AF37;
+        }
+
+        /* ── CONTAINER PRINCIPAL ── */
+        .main {
+            flex: 1;
+            padding: 32px 24px;
+            max-width: 720px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ── PAINÉIS ── */
+        .painel { display: none; }
+        .painel.ativo { display: block; }
+
+        .painel-titulo {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--cor-texto-principal);
+            margin-bottom: 6px;
+        }
+        .painel-sub {
+            font-size: 14px;
+            color: var(--cor-texto-muted);
+            margin-bottom: 28px;
+        }
+
+        /* ── CARDS DE LISTAGEM ── */
+        .lista-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+        .item-card {
+            background: white;
+            border: 1px solid var(--cor-borda);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .item-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+        .item-nome {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--cor-texto-principal);
+        }
+        .item-detalhe {
+            font-size: 12px;
+            color: var(--cor-texto-muted);
+        }
+        .item-acoes { display: flex; gap: 8px; align-items: center; }
+        .badge-ativo {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .badge-inativo {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #fce4ec;
+            color: #c62828;
+        }
+
+        /* ── FORMULÁRIOS ── */
+        .card-form {
+            background: white;
+            border: 1px solid var(--cor-borda);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+        .card-form-titulo {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--cor-texto-principal);
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--cor-borda);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .form-grid .campo-full { grid-column: 1 / -1; }
+        .campo { display: flex; flex-direction: column; gap: 6px; }
+        .campo label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--cor-texto-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .campo input,
+        .campo select,
+        .campo textarea {
+            padding: 11px 14px;
+            border: 1px solid var(--cor-borda);
+            border-radius: 10px;
+            font-size: 14px;
+            color: var(--cor-texto-principal);
+            background: var(--cor-fundo-claro);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+        .campo input:focus,
+        .campo select:focus,
+        .campo textarea:focus {
+            border-color: #D4AF37;
+            background: white;
+        }
+        .campo textarea { resize: vertical; min-height: 80px; }
+        .campo-cor { display: flex; align-items: center; gap: 10px; }
+        .campo-cor input[type="color"] {
+            width: 42px;
+            height: 42px;
+            padding: 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .campo-cor input[type="text"] { flex: 1; }
+
+        /* preview de cor */
+        .preview-cores {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 14px;
+            border-radius: 10px;
+            background: var(--cor-fundo-claro);
+            border: 1px solid var(--cor-borda);
+            align-items: center;
+        }
+        .preview-circulo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        .preview-texto {
+            font-size: 12px;
+            color: var(--cor-texto-muted);
+            flex: 1;
+        }
+        .preview-botao {
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: default;
+        }
+
+        /* botões do form */
+        .form-acoes {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--cor-borda);
+        }
+        .btn-cancelar {
+            padding: 10px 22px;
+            border: 1px solid var(--cor-borda);
+            background: white;
+            color: var(--cor-texto-principal);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .btn-cancelar:hover { background: var(--cor-fundo-claro); }
+        .btn-salvar {
+            padding: 10px 26px;
+            background: #D4AF37;
+            color: #12101a;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .btn-salvar:hover { background: #B8922A; }
+        .btn-salvar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* botão novo */
+        .btn-novo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #D4AF37;
+            color: #12101a;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .btn-novo:hover { background: #B8922A; }
+
+        /* botões de ação no card */
+        .btn-acao {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--cor-borda);
+            background: white;
+            color: var(--cor-texto-principal);
+        }
+        .btn-acao:hover { background: var(--cor-fundo-claro); }
+        .btn-acao.danger { border-color: #f8d7da; color: #c62828; }
+        .btn-acao.danger:hover { background: #fce4ec; }
+
+        /* ── ALERTA / TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #12101a;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast.ok { border-left: 4px solid #D4AF37; }
+        .toast.erro { border-left: 4px solid #ef4444; }
+        .toast.visivel { display: flex; }
+
+        /* ── ESTADO VAZIO ── */
+        .estado-vazio {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--cor-texto-muted);
+            font-size: 14px;
+        }
+        .estado-vazio-icone { font-size: 36px; margin-bottom: 10px; }
+
+        /* ── SEPARADOR DE SEÇÃO ── */
+        .secao-sep {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--cor-texto-muted);
+            margin: 24px 0 12px;
+        }
+
+        @media (max-width: 560px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-grid .campo-full { grid-column: 1; }
+            .main { padding: 20px 16px; }
+            .nav-abas { padding: 0 16px; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div>
+        <div class="header-marca">Tu<span>TT</span>i</div>
+        <div class="header-badge">Super Admin</div>
+    </div>
+    <div class="header-acoes">
+        <span class="header-user" id="headerUser"></span>
+        <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
+</div>
+
+<!-- ABAS -->
+<div class="nav-abas">
+    <div class="aba ativa" onclick="trocarAba('escolas')">Escolas</div>
+    <div class="aba" onclick="trocarAba('baterias')">Baterias</div>
+    <div class="aba" onclick="trocarAba('acessos')">Acessos</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+    <!-- ════ PAINEL: ESCOLAS ════ -->
+    <div class="painel ativo" id="painel-escolas">
+        <div class="painel-titulo">Escolas</div>
+        <div class="painel-sub">Cadastre a escola de samba e configure sua identidade visual.</div>
+
+        <button class="btn-novo" onclick="abrirFormEscola()">+ Nova Escola</button>
+
+        <div id="lista-escolas" class="lista-cards">
+            <div class="estado-vazio">
+                <div class="estado-vazio-icone">🏫</div>
+                Carregando...
+            </div>
+        </div>
+
+        <!-- Formulário de escola (oculto inicialmente) -->
+        <div class="card-form" id="form-escola" style="display:none">
+            <div class="card-form-titulo" id="form-escola-titulo">Nova Escola</div>
+            <input type="hidden" id="escola-id">
+
+            <div class="form-grid">
+                <div class="campo campo-full">
+                    <label>Nome da Escola *</label>
+                    <input type="text" id="escola-nome" placeholder="Ex: Imperatriz Leopoldinense">
+                </div>
+                <div class="campo campo-full">
+                    <label>URL do Logo</label>
+                    <input type="url" id="escola-logo" placeholder="https://..." oninput="atualizarPreviewEscola()">
+                </div>
+                <div class="campo campo-full">
+                    <label>Temporada Atual</label>
+                    <input type="text" id="escola-temporada" placeholder="Ex: Carnaval 2027">
+                </div>
+                <div class="campo">
+                    <label>Cor Primária</label>
+                    <div class="campo-cor">
+                        <input type="color" id="escola-cor-primaria-picker" value="#12101a" oninput="sincronizarCor('escola-cor-primaria', this.value); atualizarPreviewEscola()">
+                        <input type="text" id="escola-cor-primaria" placeholder="#12101a" value="#12101a" oninput="sincronizarCorText('escola-cor-primaria-picker', this.value); atualizarPreviewEscola()">
+                    </div>
+                </div>
+                <div class="campo">
+                    <label>Cor Destaque</label>
+                    <div class="campo-cor">
+                        <input type="color" id="escola-cor-destaque-picker" value="#D4AF37" oninput="sincronizarCor('escola-cor-destaque', this.value); atualizarPreviewEscola()">
+                        <input type="text" id="escola-cor-destaque" placeholder="#D4AF37" value="#D4AF37" oninput="sincronizarCorText('escola-cor-destaque-picker', this.value); atualizarPreviewEscola()">
+                    </div>
+                </div>
+                <div class="campo campo-full">
+                    <label>Preview da Paleta</label>
+                    <div class="preview-cores" id="preview-escola">
+                        <div class="preview-circulo" id="preview-escola-circulo" style="background:#12101a"></div>
+                        <span class="preview-texto">Cores da escola</span>
+                        <button class="preview-botao" id="preview-escola-botao" style="background:#D4AF37;color:#12101a">Destaque</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-acoes">
+                <button class="btn-cancelar" onclick="fecharFormEscola()">Cancelar</button>
+                <button class="btn-salvar" id="btn-salvar-escola" onclick="salvarEscola()">Salvar Escola</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ PAINEL: BATERIAS ════ -->
+    <div class="painel" id="painel-baterias">
+        <div class="painel-titulo">Baterias</div>
+        <div class="painel-sub">Cadastre a bateria, vincule a uma escola e configure a identidade.</div>
+
+        <button class="btn-novo" onclick="abrirFormBateria()">+ Nova Bateria</button>
+
+        <div id="lista-baterias" class="lista-cards">
+            <div class="estado-vazio">
+                <div class="estado-vazio-icone">🥁</div>
+                Carregando...
+            </div>
+        </div>
+
+        <!-- Formulário de bateria (oculto inicialmente) -->
+        <div class="card-form" id="form-bateria" style="display:none">
+            <div class="card-form-titulo" id="form-bateria-titulo">Nova Bateria</div>
+            <input type="hidden" id="bateria-id">
+
+            <div class="form-grid">
+                <div class="campo campo-full">
+                    <label>Nome da Bateria *</label>
+                    <input type="text" id="bateria-nome" placeholder="Ex: Furiosa">
+                </div>
+                <div class="campo campo-full">
+                    <label>Escola Vinculada *</label>
+                    <select id="bateria-escola-id">
+                        <option value="">Selecione uma escola...</option>
+                    </select>
+                </div>
+                <div class="campo campo-full">
+                    <label>URL do Logo da Bateria</label>
+                    <input type="url" id="bateria-logo" placeholder="https://...">
+                </div>
+                <div class="campo campo-full">
+                    <label>Instagram</label>
+                    <input type="text" id="bateria-instagram" placeholder="@furiosa">
+                </div>
+                <div class="campo campo-full">
+                    <label>Mestre de Bateria</label>
+                    <input type="text" id="bateria-mestre" placeholder="Nome do mestre">
+                </div>
+            </div>
+
+            <div class="form-acoes">
+                <button class="btn-cancelar" onclick="fecharFormBateria()">Cancelar</button>
+                <button class="btn-salvar" id="btn-salvar-bateria" onclick="salvarBateria()">Salvar Bateria</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ PAINEL: ACESSOS ════ -->
+    <div class="painel" id="painel-acessos">
+        <div class="painel-titulo">Acessos</div>
+        <div class="painel-sub">Crie logins para Mestres e Diretores, vinculados a uma bateria.</div>
+
+        <button class="btn-novo" onclick="abrirFormAcesso()">+ Novo Acesso</button>
+
+        <div id="lista-acessos" class="lista-cards">
+            <div class="estado-vazio">
+                <div class="estado-vazio-icone">👤</div>
+                Carregando...
+            </div>
+        </div>
+
+        <!-- Formulário de acesso (oculto inicialmente) -->
+        <div class="card-form" id="form-acesso" style="display:none">
+            <div class="card-form-titulo">Novo Acesso</div>
+
+            <div class="form-grid">
+                <div class="campo campo-full">
+                    <label>Nome Completo *</label>
+                    <input type="text" id="acesso-nome" placeholder="Nome do Mestre ou Diretor">
+                </div>
+                <div class="campo">
+                    <label>CPF *</label>
+                    <input type="text" id="acesso-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)">
+                </div>
+                <div class="campo">
+                    <label>Senha *</label>
+                    <input type="password" id="acesso-senha" placeholder="Mínimo 6 caracteres">
+                </div>
+                <div class="campo">
+                    <label>Perfil *</label>
+                    <select id="acesso-perfil">
+                        <option value="">Selecione...</option>
+                        <option value="mestre">Mestre de Bateria</option>
+                        <option value="diretor">Diretor</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label>Bateria Vinculada *</label>
+                    <select id="acesso-bateria-id">
+                        <option value="">Selecione uma bateria...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-acoes">
+                <button class="btn-cancelar" onclick="fecharFormAcesso()">Cancelar</button>
+                <button class="btn-salvar" id="btn-salvar-acesso" onclick="salvarAcesso()">Criar Acesso</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+    const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
+
+    const headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+    };
+
+    // ── VERIFICAR LOGIN ──────────────────────────────────────────────
+    const usuarioLogado = JSON.parse(localStorage.getItem('ritmista'));
+    if (!usuarioLogado || usuarioLogado.perfil !== 'super_admin') {
+        window.location.href = 'login.html';
+    } else {
+        document.getElementById('headerUser').textContent = usuarioLogado.nome;
+    }
+
+    // ── ABAS ──────────────────────────────────────────────────────────
+    function trocarAba(aba) {
+        document.querySelectorAll('.aba').forEach(el => el.classList.remove('ativa'));
+        document.querySelectorAll('.painel').forEach(el => el.classList.remove('ativo'));
+        event.target.classList.add('ativa');
+        document.getElementById('painel-' + aba).classList.add('ativo');
+    }
+
+    // ── TOAST ─────────────────────────────────────────────────────────
+    function mostrarToast(msg, tipo = 'ok') {
+        const t = document.getElementById('toast');
+        t.textContent = tipo === 'ok' ? '✓  ' + msg : '✕  ' + msg;
+        t.className = 'toast visivel ' + tipo;
+        setTimeout(() => { t.className = 'toast'; }, 3500);
+    }
+
+    // ── HELPERS DE COR ───────────────────────────────────────────────
+    function sincronizarCor(idText, valor) {
+        document.getElementById(idText).value = valor;
+    }
+    function sincronizarCorText(idPicker, valor) {
+        if (/^#[0-9a-fA-F]{6}$/.test(valor)) {
+            document.getElementById(idPicker).value = valor;
+        }
+    }
+    function atualizarPreviewEscola() {
+        const primaria = document.getElementById('escola-cor-primaria').value || '#12101a';
+        const destaque = document.getElementById('escola-cor-destaque').value || '#D4AF37;';
+        document.getElementById('preview-escola-circulo').style.background = primaria;
+        const btn = document.getElementById('preview-escola-botao');
+        btn.style.background = destaque;
+        btn.style.color = isCorEscura(destaque) ? '#ffffff' : '#12101a';
+    }
+    function isCorEscura(hex) {
+        const r = parseInt(hex.slice(1,3),16);
+        const g = parseInt(hex.slice(3,5),16);
+        const b = parseInt(hex.slice(5,7),16);
+        return (r*299 + g*587 + b*114) / 1000 < 128;
+    }
+
+    // ── MÁSCARA CPF ──────────────────────────────────────────────────
+    function mascaraCPF(input) {
+        let v = input.value.replace(/\D/g,'').slice(0,11);
+        if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/,'$1.$2.$3-$4');
+        else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/,'$1.$2.$3');
+        else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/,'$1.$2');
+        input.value = v;
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // ESCOLAS
+    // ══════════════════════════════════════════════════════════════════
+
+    async function carregarEscolas() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?order=nome`, { headers });
+        if (!res.ok) { renderizarListaEscolas([]); return; }
+        const dados = await res.json();
+        renderizarListaEscolas(dados);
+        return dados;
+    }
+
+    function renderizarListaEscolas(lista) {
+        const div = document.getElementById('lista-escolas');
+        if (!lista.length) {
+            div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Nenhuma escola cadastrada ainda.</div>';
+            return;
+        }
+        div.innerHTML = lista.map(e => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${e.nome}</div>
+                    <div class="item-detalhe">
+                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${e.cor_destaque||'#D4AF37'};margin-right:5px;vertical-align:middle;border:1px solid rgba(0,0,0,0.1)"></span>
+                        ${e.cor_destaque || '#D4AF37'}
+                    </div>
+                </div>
+                <div class="item-acoes">
+                    <span class="${e.ativa !== false ? 'badge-ativo' : 'badge-inativo'}">${e.ativa !== false ? 'Ativa' : 'Inativa'}</span>
+                    <button class="btn-acao" onclick="editarEscola('${e.id}')">Editar</button>
+                    <button class="btn-acao danger" onclick="toggleEscolaAtiva('${e.id}', ${e.ativa !== false})">${e.ativa !== false ? 'Desativar' : 'Ativar'}</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function abrirFormEscola() {
+        document.getElementById('escola-id').value = '';
+        document.getElementById('escola-nome').value = '';
+        document.getElementById('escola-logo').value = '';
+        document.getElementById('escola-temporada').value = '';
+        document.getElementById('escola-cor-primaria').value = '#12101a';
+        document.getElementById('escola-cor-primaria-picker').value = '#12101a';
+        document.getElementById('escola-cor-destaque').value = '#D4AF37';
+        document.getElementById('escola-cor-destaque-picker').value = '#D4AF37';
+        document.getElementById('form-escola-titulo').textContent = 'Nova Escola';
+        document.getElementById('btn-salvar-escola').textContent = 'Salvar Escola';
+        atualizarPreviewEscola();
+        document.getElementById('form-escola').style.display = 'block';
+        document.getElementById('form-escola').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function fecharFormEscola() {
+        document.getElementById('form-escola').style.display = 'none';
+    }
+
+    async function editarEscola(id) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, { headers });
+        const dados = await res.json();
+        if (!dados.length) return;
+        const e = dados[0];
+        document.getElementById('escola-id').value = e.id;
+        document.getElementById('escola-nome').value = e.nome || '';
+        document.getElementById('escola-logo').value = e.logo_url || '';
+        document.getElementById('escola-temporada').value = e.temporada_atual || '';
+        document.getElementById('escola-cor-primaria').value = e.cor_primaria || '#12101a';
+        document.getElementById('escola-cor-primaria-picker').value = e.cor_primaria || '#12101a';
+        document.getElementById('escola-cor-destaque').value = e.cor_destaque || '#D4AF37';
+        document.getElementById('escola-cor-destaque-picker').value = e.cor_destaque || '#D4AF37';
+        document.getElementById('form-escola-titulo').textContent = 'Editar Escola';
+        document.getElementById('btn-salvar-escola').textContent = 'Atualizar Escola';
+        atualizarPreviewEscola();
+        document.getElementById('form-escola').style.display = 'block';
+        document.getElementById('form-escola').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function salvarEscola() {
+        const nome = document.getElementById('escola-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome da escola.', 'erro'); return; }
+
+        const btn = document.getElementById('btn-salvar-escola');
+        btn.disabled = true;
+
+        const id = document.getElementById('escola-id').value;
+        const payload = {
+            nome,
+            logo_url: document.getElementById('escola-logo').value.trim() || null,
+            cor_primaria: document.getElementById('escola-cor-primaria').value || '#12101a',
+            cor_destaque: document.getElementById('escola-cor-destaque').value || '#D4AF37',
+            temporada_atual: document.getElementById('escola-temporada').value.trim() || null,
+            ativa: true
+        };
+
+        let res;
+        if (id) {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, {
+                method: 'PATCH', headers, body: JSON.stringify(payload)
+            });
+        } else {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/escolas`, {
+                method: 'POST', headers, body: JSON.stringify(payload)
+            });
+        }
+
+        btn.disabled = false;
+        if (res.ok) {
+            mostrarToast(id ? 'Escola atualizada!' : 'Escola cadastrada!');
+            fecharFormEscola();
+            carregarEscolas();
+            carregarSelectEscolas();
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
+    }
+
+    async function toggleEscolaAtiva(id, ativaAtual) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, {
+            method: 'PATCH', headers,
+            body: JSON.stringify({ ativa: !ativaAtual })
+        });
+        if (res.ok) {
+            mostrarToast(ativaAtual ? 'Escola desativada.' : 'Escola ativada!');
+            carregarEscolas();
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // BATERIAS
+    // ══════════════════════════════════════════════════════════════════
+
+    let escolasCache = [];
+
+    async function carregarSelectEscolas() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?ativa=eq.true&order=nome`, { headers });
+        if (!res.ok) return;
+        escolasCache = await res.json();
+        ['bateria-escola-id'].forEach(id => {
+            const sel = document.getElementById(id);
+            if (!sel) return;
+            const valAtual = sel.value;
+            sel.innerHTML = '<option value="">Selecione uma escola...</option>';
+            escolasCache.forEach(e => {
+                const opt = document.createElement('option');
+                opt.value = e.id;
+                opt.textContent = e.nome;
+                sel.appendChild(opt);
+            });
+            if (valAtual) sel.value = valAtual;
+        });
+    }
+
+    async function carregarBaterias() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?order=nome`, { headers });
+        if (!res.ok) { renderizarListaBaterias([]); return; }
+        const dados = await res.json();
+        renderizarListaBaterias(dados);
+    }
+
+    function nomeEscola(id) {
+        const e = escolasCache.find(x => x.id === id);
+        return e ? e.nome : '—';
+    }
+
+    function renderizarListaBaterias(lista) {
+        const div = document.getElementById('lista-baterias');
+        if (!lista.length) {
+            div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Nenhuma bateria cadastrada ainda.</div>';
+            return;
+        }
+        div.innerHTML = lista.map(b => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${b.nome}</div>
+                    <div class="item-detalhe">${nomeEscola(b.escola_id)}${b.mestre_de_bateria ? ' · Mestre: ' + b.mestre_de_bateria : ''}${b.temporada_atual ? ' · ' + b.temporada_atual : ''}</div>
+                </div>
+                <div class="item-acoes">
+                    <span class="${b.ativa !== false ? 'badge-ativo' : 'badge-inativo'}">${b.ativa !== false ? 'Ativa' : 'Inativa'}</span>
+                    <button class="btn-acao" onclick="editarBateria('${b.id}')">Editar</button>
+                    <button class="btn-acao danger" onclick="toggleBateriaAtiva('${b.id}', ${b.ativa !== false})">${b.ativa !== false ? 'Desativar' : 'Ativar'}</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function abrirFormBateria() {
+        document.getElementById('bateria-id').value = '';
+        document.getElementById('bateria-nome').value = '';
+        document.getElementById('bateria-escola-id').value = '';
+        document.getElementById('bateria-logo').value = '';
+        document.getElementById('bateria-instagram').value = '';
+        document.getElementById('bateria-mestre').value = '';
+        document.getElementById('form-bateria-titulo').textContent = 'Nova Bateria';
+        document.getElementById('btn-salvar-bateria').textContent = 'Salvar Bateria';
+        document.getElementById('form-bateria').style.display = 'block';
+        document.getElementById('form-bateria').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function fecharFormBateria() {
+        document.getElementById('form-bateria').style.display = 'none';
+    }
+
+    async function editarBateria(id) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { headers });
+        const dados = await res.json();
+        if (!dados.length) return;
+        const b = dados[0];
+        document.getElementById('bateria-id').value = b.id;
+        document.getElementById('bateria-nome').value = b.nome || '';
+        document.getElementById('bateria-escola-id').value = b.escola_id || '';
+        document.getElementById('bateria-logo').value = b.logo_url || '';
+        document.getElementById('bateria-instagram').value = b.instagram || '';
+        document.getElementById('bateria-mestre').value = b.mestre_de_bateria || '';
+        document.getElementById('form-bateria-titulo').textContent = 'Editar Bateria';
+        document.getElementById('btn-salvar-bateria').textContent = 'Atualizar Bateria';
+        document.getElementById('form-bateria').style.display = 'block';
+        document.getElementById('form-bateria').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function salvarBateria() {
+        const nome = document.getElementById('bateria-nome').value.trim();
+        const escolaId = document.getElementById('bateria-escola-id').value;
+        if (!nome) { mostrarToast('Informe o nome da bateria.', 'erro'); return; }
+        if (!escolaId) { mostrarToast('Selecione a escola vinculada.', 'erro'); return; }
+
+        const btn = document.getElementById('btn-salvar-bateria');
+        btn.disabled = true;
+
+        const id = document.getElementById('bateria-id').value;
+        const payload = {
+            nome,
+            escola_id: escolaId,
+            logo_url: document.getElementById('bateria-logo').value.trim() || null,
+            instagram: document.getElementById('bateria-instagram').value.trim() || null,
+            mestre_de_bateria: document.getElementById('bateria-mestre').value.trim() || null,
+            ativa: true
+        };
+
+        let res;
+        if (id) {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, {
+                method: 'PATCH', headers, body: JSON.stringify(payload)
+            });
+        } else {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/baterias`, {
+                method: 'POST', headers, body: JSON.stringify(payload)
+            });
+        }
+
+        btn.disabled = false;
+        if (res.ok) {
+            mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
+            fecharFormBateria();
+            carregarBaterias();
+            carregarSelectBaterias();
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
+    }
+
+    async function toggleBateriaAtiva(id, ativaAtual) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, {
+            method: 'PATCH', headers,
+            body: JSON.stringify({ ativa: !ativaAtual })
+        });
+        if (res.ok) {
+            mostrarToast(ativaAtual ? 'Bateria desativada.' : 'Bateria ativada!');
+            carregarBaterias();
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // ACESSOS (Mestre / Diretor)
+    // ══════════════════════════════════════════════════════════════════
+
+    let bateriasCache = [];
+
+    async function carregarSelectBaterias() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?ativa=eq.true&order=nome`, { headers });
+        if (!res.ok) return;
+        bateriasCache = await res.json();
+        const sel = document.getElementById('acesso-bateria-id');
+        if (!sel) return;
+        const valAtual = sel.value;
+        sel.innerHTML = '<option value="">Selecione uma bateria...</option>';
+        bateriasCache.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.id;
+            opt.textContent = b.nome;
+            sel.appendChild(opt);
+        });
+        if (valAtual) sel.value = valAtual;
+    }
+
+    async function carregarAcessos() {
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&order=nome&select=id,nome,cpf,perfil,bateria_id,status`,
+            { headers }
+        );
+        if (!res.ok) { renderizarListaAcessos([]); return; }
+        const dados = await res.json();
+        renderizarListaAcessos(dados);
+    }
+
+    function nomeBateria(id) {
+        const b = bateriasCache.find(x => x.id === id);
+        return b ? b.nome : '—';
+    }
+
+    function labelPerfil(p) {
+        if (p === 'mestre') return 'Mestre de Bateria';
+        if (p === 'diretor') return 'Diretor';
+        return p;
+    }
+
+    function renderizarListaAcessos(lista) {
+        const div = document.getElementById('lista-acessos');
+        if (!lista.length) {
+            div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Nenhum acesso criado ainda.</div>';
+            return;
+        }
+        div.innerHTML = lista.map(u => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${u.nome}</div>
+                    <div class="item-detalhe">${labelPerfil(u.perfil)} · CPF ${u.cpf || '—'}${u.bateria_id ? ' · ' + nomeBateria(u.bateria_id) : ''}</div>
+                </div>
+                <div class="item-acoes">
+                    <span class="badge-ativo">${labelPerfil(u.perfil)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function abrirFormAcesso() {
+        document.getElementById('acesso-nome').value = '';
+        document.getElementById('acesso-cpf').value = '';
+        document.getElementById('acesso-senha').value = '';
+        document.getElementById('acesso-perfil').value = '';
+        document.getElementById('acesso-bateria-id').value = '';
+        document.getElementById('form-acesso').style.display = 'block';
+        document.getElementById('form-acesso').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function fecharFormAcesso() {
+        document.getElementById('form-acesso').style.display = 'none';
+    }
+
+    async function salvarAcesso() {
+        const nome = document.getElementById('acesso-nome').value.trim();
+        const cpf = document.getElementById('acesso-cpf').value.trim();
+        const senha = document.getElementById('acesso-senha').value;
+        const perfil = document.getElementById('acesso-perfil').value;
+        const bateriaId = document.getElementById('acesso-bateria-id').value;
+
+        if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
+        if (!cpf) { mostrarToast('Informe o CPF.', 'erro'); return; }
+        if (!senha || senha.length < 6) { mostrarToast('Senha deve ter no mínimo 6 caracteres.', 'erro'); return; }
+        if (!perfil) { mostrarToast('Selecione o perfil.', 'erro'); return; }
+        if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
+
+        // Verificar se CPF já existe
+        const check = await fetch(
+            `${SUPABASE_URL}/rest/v1/ritmistas?cpf=eq.${encodeURIComponent(cpf)}&select=id`,
+            { headers }
+        );
+        const existente = await check.json();
+        if (existente.length) { mostrarToast('Já existe um cadastro com este CPF.', 'erro'); return; }
+
+        const btn = document.getElementById('btn-salvar-acesso');
+        btn.disabled = true;
+
+        const payload = {
+            nome,
+            cpf,
+            senha,
+            perfil,
+            bateria_id: bateriaId,
+            status: 'aprovado'
+        };
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas`, {
+            method: 'POST', headers, body: JSON.stringify(payload)
+        });
+
+        btn.disabled = false;
+        if (res.ok) {
+            mostrarToast('Acesso criado com sucesso!');
+            fecharFormAcesso();
+            carregarAcessos();
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
+    }
+
+    // ── SAIR ──────────────────────────────────────────────────────────
+    function sair() {
+        localStorage.removeItem('ritmista');
+        window.location.href = 'login.html';
+    }
+
+    // ── INICIALIZAR ───────────────────────────────────────────────────
+    async function init() {
+        await carregarSelectEscolas();
+        await carregarSelectBaterias();
+        carregarEscolas();
+        carregarBaterias();
+        carregarAcessos();
+    }
+
+    init();
+</script>
+</body>
+</html>
