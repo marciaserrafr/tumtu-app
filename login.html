@@ -134,15 +134,18 @@
         }
 
         const ritmista = dados[0];
+        const perfil = ritmista.perfil || 'ritmista';
+        const isStaff = perfil === 'mestre' || perfil === 'diretor' || perfil === 'super_admin';
 
-        if (ritmista.status === 'pendente') {
-            mostrarMensagem('Seu cadastro ainda está aguardando aprovação da diretoria.', 'aviso');
-            return;
-        }
-
-        if (ritmista.status === 'rejeitado') {
-            mostrarMensagem('Seu cadastro foi recusado. Entre em contato com a diretoria.', 'erro');
-            return;
+        if (!isStaff) {
+            if (ritmista.status === 'pendente') {
+                mostrarMensagem('Seu cadastro ainda está aguardando aprovação da diretoria.', 'aviso');
+                return;
+            }
+            if (ritmista.status === 'rejeitado') {
+                mostrarMensagem('Seu cadastro foi recusado. Entre em contato com a diretoria.', 'erro');
+                return;
+            }
         }
 
         localStorage.setItem('ritmista', JSON.stringify(ritmista));
