@@ -174,23 +174,21 @@
             gap: 16px;
         }
         .form-grid .campo-full { grid-column: 1 / -1; }
-        .campo { display: flex; flex-direction: column; gap: 6px; }
+        .campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
         .campo label {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
-            color: var(--cor-texto-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: #333;
         }
         .campo input,
         .campo select,
         .campo textarea {
-            padding: 11px 14px;
-            border: 1px solid var(--cor-borda);
-            border-radius: 10px;
+            padding: 11px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             font-size: 14px;
             color: var(--cor-texto-principal);
-            background: var(--cor-fundo-claro);
+            background: white;
             transition: border-color 0.2s;
             outline: none;
         }
@@ -198,7 +196,6 @@
         .campo select:focus,
         .campo textarea:focus {
             border-color: #D4AF37;
-            background: white;
         }
         .modo-leitura .campo input,
         .modo-leitura .campo select,
