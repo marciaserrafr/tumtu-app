@@ -362,9 +362,22 @@
         }
         .modal-sa-rodape {
             padding: 16px 24px; border-top: 1px solid var(--cor-borda);
-            display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0;
-            flex-wrap: wrap;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0; flex-wrap: wrap; gap: 8px;
         }
+        .modal-sa-rodape-esq { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .btn-ficha {
+            padding: 8px 16px; border-radius: 8px; cursor: pointer;
+            font-size: 13px; font-weight: 600; border: 1px solid #e0e0e0;
+            background: white; color: #0f172a; font-family: inherit;
+        }
+        .btn-ficha:hover { background: #f8f8f8; }
+        .btn-ficha-editar { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
+        .btn-ficha-editar:hover { background: #B8922A; border-color: #B8922A; }
+        .btn-ficha-salvar { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
+        .btn-ficha-salvar:hover { background: #B8922A; border-color: #B8922A; }
+        .btn-ficha-danger { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+        .btn-ficha-danger:hover { background: #fef0eb; }
 
         /* ── ALERTA / TOAST ── */
         .toast {
@@ -668,8 +681,10 @@
             </div>
             <input type="hidden" id="escola-id" value="">`;
         document.getElementById('modal-escola-rodape').innerHTML = `
-            <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>
-            <button class="btn-salvar" onclick="salvarEscola()">Salvar Escola</button>`;
+            <div class="modal-sa-rodape-esq">
+                <button class="btn-ficha btn-ficha-salvar" onclick="salvarEscola()">Salvar Escola</button>
+            </div>
+            <button class="btn-ficha" onclick="fecharFormEscola()">Fechar</button>`;
         atualizarPreviewEscola();
         document.getElementById('modal-escola-overlay').classList.add('aberto');
     }
@@ -698,9 +713,11 @@
             </div>
             <input type="hidden" id="escola-id" value="${e.id}">`;
         document.getElementById('modal-escola-rodape').innerHTML = `
-            <button class="btn-acao btn-editar" onclick="habilitarEdicaoEscola('${e.id}',${ativa})">Editar</button>
-            <button class="btn-acao danger" onclick="fecharFormEscola();toggleEscolaAtiva('${e.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
-            <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>`;
+            <div class="modal-sa-rodape-esq">
+                <button class="btn-ficha btn-ficha-editar" onclick="habilitarEdicaoEscola('${e.id}',${ativa})">Editar</button>
+                <button class="btn-ficha btn-ficha-danger" onclick="fecharFormEscola();toggleEscolaAtiva('${e.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
+            </div>
+            <button class="btn-ficha" onclick="fecharFormEscola()">Fechar</button>`;
         atualizarPreviewEscola();
         document.getElementById('modal-escola-overlay').classList.add('aberto');
     }
@@ -713,8 +730,10 @@
         document.getElementById('escola-cor-primaria').oninput = () => atualizarPreviewEscola();
         document.getElementById('escola-cor-destaque').oninput = () => atualizarPreviewEscola();
         document.getElementById('modal-escola-rodape').innerHTML = `
-            <button class="btn-salvar" onclick="salvarEscola()">Salvar</button>
-            <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>`;
+            <div class="modal-sa-rodape-esq">
+                <button class="btn-ficha btn-ficha-salvar" onclick="salvarEscola()">Salvar</button>
+            </div>
+            <button class="btn-ficha" onclick="fecharFormEscola()">Fechar</button>`;
     }
 
     async function salvarEscola() {
@@ -857,8 +876,10 @@
             </div>
             <input type="hidden" id="bateria-id" value="">`;
         document.getElementById('modal-bateria-rodape').innerHTML = `
-            <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>
-            <button class="btn-salvar" onclick="salvarBateria()">Salvar Bateria</button>`;
+            <div class="modal-sa-rodape-esq">
+                <button class="btn-ficha btn-ficha-salvar" onclick="salvarBateria()">Salvar Bateria</button>
+            </div>
+            <button class="btn-ficha" onclick="fecharFormBateria()">Fechar</button>`;
         document.getElementById('modal-bateria-overlay').classList.add('aberto');
     }
 
@@ -884,9 +905,11 @@
             </div>
             <input type="hidden" id="bateria-id" value="${b.id}">`;
         document.getElementById('modal-bateria-rodape').innerHTML = `
-            <button class="btn-acao btn-editar" onclick="habilitarEdicaoBateria()">Editar</button>
-            <button class="btn-acao danger" onclick="fecharFormBateria();toggleBateriaAtiva('${b.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
-            <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>`;
+            <div class="modal-sa-rodape-esq">
+                <button class="btn-ficha btn-ficha-editar" onclick="habilitarEdicaoBateria()">Editar</button>
+                <button class="btn-ficha btn-ficha-danger" onclick="fecharFormBateria();toggleBateriaAtiva('${b.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
+            </div>
+            <button class="btn-ficha" onclick="fecharFormBateria()">Fechar</button>`;
         document.getElementById('modal-bateria-overlay').classList.add('aberto');
     }
 
@@ -896,8 +919,10 @@
             if (el) el.disabled = false;
         });
         document.getElementById('modal-bateria-rodape').innerHTML = `
-            <button class="btn-salvar" onclick="salvarBateria()">Salvar</button>
-            <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>`;
+            <div class="modal-sa-rodape-esq">
+                <button class="btn-ficha btn-ficha-salvar" onclick="salvarBateria()">Salvar</button>
+            </div>
+            <button class="btn-ficha" onclick="fecharFormBateria()">Fechar</button>`;
     }
 
     async function salvarBateria() {
@@ -1056,8 +1081,10 @@
             </div>
             <input type="hidden" id="acesso-id" value="">`;
         document.getElementById('modal-acesso-rodape').innerHTML = `
-            <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>
-            <button class="btn-salvar" onclick="salvarAcesso()">Criar Acesso</button>`;
+            <div class="modal-sa-rodape-esq">
+                <button class="btn-ficha btn-ficha-salvar" onclick="salvarAcesso()">Criar Acesso</button>
+            </div>
+            <button class="btn-ficha" onclick="fecharFormAcesso()">Fechar</button>`;
         document.getElementById('modal-acesso-overlay').classList.add('aberto');
     }
 
@@ -1087,9 +1114,11 @@
             </div>
             <input type="hidden" id="acesso-id" value="${u.id}">`;
         document.getElementById('modal-acesso-rodape').innerHTML = `
-            <button class="btn-acao btn-editar" onclick="habilitarEdicaoAcesso()">Editar</button>
-            <button class="btn-acao danger" onclick="fecharFormAcesso();toggleAcessoAtivo('${u.id}','${u.status}')">${ativo ? 'Desativar' : 'Ativar'}</button>
-            <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>`;
+            <div class="modal-sa-rodape-esq">
+                <button class="btn-ficha btn-ficha-editar" onclick="habilitarEdicaoAcesso()">Editar</button>
+                <button class="btn-ficha btn-ficha-danger" onclick="fecharFormAcesso();toggleAcessoAtivo('${u.id}','${u.status}')">${ativo ? 'Desativar' : 'Ativar'}</button>
+            </div>
+            <button class="btn-ficha" onclick="fecharFormAcesso()">Fechar</button>`;
         document.getElementById('modal-acesso-overlay').classList.add('aberto');
     }
 
@@ -1102,8 +1131,10 @@
             }
         });
         document.getElementById('modal-acesso-rodape').innerHTML = `
-            <button class="btn-salvar" onclick="salvarAcesso()">Salvar</button>
-            <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>`;
+            <div class="modal-sa-rodape-esq">
+                <button class="btn-ficha btn-ficha-salvar" onclick="salvarAcesso()">Salvar</button>
+            </div>
+            <button class="btn-ficha" onclick="fecharFormAcesso()">Fechar</button>`;
     }
 
     function fecharSeForaModal(event, overlayId, fecharFn) {
