@@ -675,8 +675,8 @@
                 <div class="campo campo-full"><label>Sigla *</label><input type="text" id="escola-sigla" placeholder="Ex: Imperatriz"></div>
                 <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="escola-logo" placeholder="https://..." oninput="atualizarPreviewEscola()"></div>
                 <div class="campo campo-full"><label>Temporada Atual</label><input type="text" id="escola-temporada" placeholder="Ex: Carnaval 2027"></div>
-                <div class="campo"><label>Cor Primária</label><input type="text" id="escola-cor-primaria" value="#12101a" placeholder="#000000" oninput="atualizarPreviewEscola()"></div>
-                <div class="campo"><label>Cor Destaque</label><input type="text" id="escola-cor-destaque" value="#D4AF37" placeholder="#D4AF37" oninput="atualizarPreviewEscola()"></div>
+                <div class="campo"><label>Cor Primária</label><input type="text" id="escola-cor-primaria" value="" placeholder="#000000" oninput="atualizarPreviewEscola()"></div>
+                <div class="campo"><label>Cor Destaque</label><input type="text" id="escola-cor-destaque" value="" placeholder="#D4AF37" oninput="atualizarPreviewEscola()"></div>
                 <div class="campo campo-full"><label>Preview</label><div class="preview-cores" id="preview-escola"><div class="preview-circulo" id="preview-escola-circulo" style="background:#12101a"></div><span class="preview-texto">Cores da escola</span><button class="preview-botao" id="preview-escola-botao" style="background:#D4AF37;color:#12101a">Destaque</button></div></div>
             </div>
             <input type="hidden" id="escola-id" value="">`;
@@ -707,9 +707,9 @@
                 <div class="campo campo-full"><label>Sigla *</label><input type="text" id="escola-sigla" value="${e.sigla || ''}" disabled></div>
                 <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="escola-logo" value="${e.logo_url || ''}" disabled></div>
                 <div class="campo campo-full"><label>Temporada Atual</label><input type="text" id="escola-temporada" value="${e.temporada_atual || ''}" disabled></div>
-                <div class="campo"><label>Cor Primária</label><input type="text" id="escola-cor-primaria" value="${e.cor_primaria || '#12101a'}" disabled></div>
-                <div class="campo"><label>Cor Destaque</label><input type="text" id="escola-cor-destaque" value="${e.cor_destaque || '#D4AF37'}" disabled></div>
-                <div class="campo campo-full"><label>Preview</label><div class="preview-cores" id="preview-escola"><div class="preview-circulo" id="preview-escola-circulo" style="background:${e.cor_primaria||'#12101a'}"></div><span class="preview-texto">Cores da escola</span><button class="preview-botao" id="preview-escola-botao" style="background:${e.cor_destaque||'#D4AF37'};color:#12101a">Destaque</button></div></div>
+                <div class="campo"><label>Cor Primária</label><input type="text" id="escola-cor-primaria" value="${e.cor_primaria || ''}" disabled></div>
+                <div class="campo"><label>Cor Destaque</label><input type="text" id="escola-cor-destaque" value="${e.cor_destaque || ''}" disabled></div>
+                <div class="campo campo-full"><label>Preview</label><div class="preview-cores" id="preview-escola"><div class="preview-circulo" id="preview-escola-circulo" style="background:${e.cor_primaria||'#ccc'}"></div><span class="preview-texto">Cores da escola</span><button class="preview-botao" id="preview-escola-botao" style="background:${e.cor_destaque||'#ccc'};color:#12101a">Destaque</button></div></div>
             </div>
             <input type="hidden" id="escola-id" value="${e.id}">`;
         document.getElementById('modal-escola-rodape').innerHTML = `
