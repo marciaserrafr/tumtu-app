@@ -334,10 +334,19 @@
             <span class="escola-ctx-sigla" id="escola-ctx-sigla"></span>
         </div>
 
-        <div class="nav-sub-abas">
-            <div class="sub-aba ativa" onclick="trocarSubAba('cadastro',this)">Cadastro</div>
-            <div class="sub-aba" onclick="trocarSubAba('bateria',this)">Bateria</div>
-            <div class="sub-aba" onclick="trocarSubAba('acessos',this)">Acessos</div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div class="nav-sub-abas" style="margin-bottom:0;flex:1">
+                <div class="sub-aba ativa" onclick="trocarSubAba('cadastro',this)">Cadastro</div>
+                <div class="sub-aba" onclick="trocarSubAba('bateria',this)">Bateria</div>
+                <div class="sub-aba" onclick="trocarSubAba('acessos',this)">Acessos</div>
+            </div>
+            <button onclick="acessarComoAdmin()" style="
+                display:inline-flex;align-items:center;gap:6px;
+                padding:7px 14px;background:#D4AF37;color:#12101a;
+                border:none;border-radius:8px;cursor:pointer;
+                font-size:12px;font-weight:700;font-family:inherit;
+                white-space:nowrap;margin-bottom:2px;flex-shrink:0;
+            ">Acessar como Admin ↗</button>
         </div>
 
         <!-- Cadastro (escola) -->
@@ -1063,6 +1072,14 @@
     function esc(val) {
         if (!val) return '';
         return String(val).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ── ACESSAR COMO ADMIN ───────────────────────────────────────────
+    function acessarComoAdmin() {
+        if (!escolaSelecionadaId || !escolaAtualData) return;
+        const nome = encodeURIComponent(escolaAtualData.nome || '');
+        const url = `admin.html?superadmin=true&escola_nome=${nome}`;
+        window.open(url, '_blank');
     }
 
     // ── SAIR ──────────────────────────────────────────────────────────

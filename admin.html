@@ -356,6 +356,12 @@
 </head>
 <body>
 
+<!-- Banner Super Admin (só aparece quando acessado via super-admin.html) -->
+<div id="banner-superadmin" style="display:none; background:#1e1b2e; color:#8b88a0; font-size:12px; padding:8px 20px; align-items:center; justify-content:space-between; font-family:'Plus Jakarta Sans',sans-serif;">
+    <span>⚡ Acessando como Super Admin — <strong id="banner-escola-nome" style="color:#D4AF37"></strong></span>
+    <button onclick="window.close()" style="background:transparent; border:1px solid #5a5770; color:#8b88a0; font-size:11px; padding:3px 10px; border-radius:6px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Fechar aba</button>
+</div>
+
 <div class="header">
     <div class="header-esquerda">
         <div class="header-marca">Tu<span>TT</span>i</div>
@@ -1208,6 +1214,17 @@
         fecharModal('modalConfigurarVagas');
         renderizarOcupacao();
     }
+
+    // ── MODO SUPER ADMIN ─────────────────────────────────────────────
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('superadmin') === 'true') {
+            const banner = document.getElementById('banner-superadmin');
+            banner.style.display = 'flex';
+            const nome = decodeURIComponent(params.get('escola_nome') || '');
+            document.getElementById('banner-escola-nome').textContent = nome;
+        }
+    })();
 
     iniciarUsuario();
     carregarRitmistas();
