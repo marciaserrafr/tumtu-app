@@ -31,35 +31,15 @@
             z-index: 100;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
-        .header-marca {
-            font-size: 22px;
-            font-weight: 800;
-            color: white;
-            letter-spacing: -0.5px;
-        }
+        .header-marca { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
         .header-marca span { color: #D4AF37; }
-        .header-badge {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: rgba(212,175,55,0.7);
-            margin-top: 2px;
-        }
+        .header-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(212,175,55,0.7); margin-top: 2px; }
         .header-acoes { display: flex; align-items: center; gap: 12px; }
-        .header-user {
-            font-size: 13px;
-            color: rgba(255,255,255,0.6);
-        }
+        .header-user { font-size: 13px; color: rgba(255,255,255,0.6); }
         .btn-sair {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.25);
-            color: rgba(255,255,255,0.8);
-            padding: 6px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
+            background: transparent; border: 1px solid rgba(255,255,255,0.25);
+            color: rgba(255,255,255,0.8); padding: 6px 14px; border-radius: 8px;
+            cursor: pointer; font-size: 12px; font-weight: 600;
         }
         .btn-sair:hover { background: rgba(255,255,255,0.08); }
 
@@ -72,300 +52,88 @@
             border-bottom: 1px solid rgba(255,255,255,0.08);
         }
         .aba {
-            padding: 12px 18px;
-            font-size: 13px;
-            font-weight: 600;
-            color: rgba(255,255,255,0.45);
-            cursor: pointer;
+            padding: 12px 18px; font-size: 13px; font-weight: 600;
+            color: rgba(255,255,255,0.45); cursor: pointer;
             border-bottom: 2px solid transparent;
-            transition: color 0.2s, border-color 0.2s;
-            white-space: nowrap;
+            transition: color 0.2s, border-color 0.2s; white-space: nowrap;
         }
         .aba:hover { color: rgba(255,255,255,0.75); }
-        .aba.ativa {
-            color: #D4AF37;
-            border-bottom-color: #D4AF37;
-        }
+        .aba.ativa { color: #D4AF37; border-bottom-color: #D4AF37; }
 
         /* ── CONTAINER PRINCIPAL ── */
-        .main {
-            flex: 1;
-            padding: 32px 24px;
-            max-width: 720px;
-            width: 100%;
-            margin: 0 auto;
-        }
+        .main { flex: 1; padding: 32px 24px; max-width: 720px; width: 100%; margin: 0 auto; }
 
         /* ── PAINÉIS ── */
         .painel { display: none; }
         .painel.ativo { display: block; }
-
-        .painel-titulo {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--cor-texto-principal);
-            margin-bottom: 6px;
-        }
-        .painel-sub {
-            font-size: 14px;
-            color: var(--cor-texto-muted);
-            margin-bottom: 28px;
-        }
+        .painel-titulo { font-size: 20px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 6px; }
+        .painel-sub { font-size: 14px; color: var(--cor-texto-muted); margin-bottom: 28px; }
 
         /* ── CARDS DE LISTAGEM ── */
         .lista-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
         .item-card {
-            background: white;
-            border: 1px solid var(--cor-borda);
-            border-radius: 14px;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
+            background: white; border: 1px solid var(--cor-borda); border-radius: 14px;
+            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
         }
         .item-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
-        .item-nome {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--cor-texto-principal);
-        }
-        .item-detalhe {
-            font-size: 12px;
-            color: var(--cor-texto-muted);
-        }
+        .item-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
+        .item-detalhe { font-size: 12px; color: var(--cor-texto-muted); }
         .item-acoes { display: flex; gap: 8px; align-items: center; }
-        .badge-ativo {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 20px;
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        .badge-inativo {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 20px;
-            background: #fce4ec;
-            color: #c62828;
-        }
+        .badge-ativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #e8f5e9; color: #2e7d32; }
+        .badge-inativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fce4ec; color: #c62828; }
 
-        /* ── FORMULÁRIOS ── */
+        /* ── FORMULÁRIOS INLINE ── */
         .card-form {
-            background: white;
-            border: 1px solid var(--cor-borda);
-            border-radius: 16px;
-            padding: 28px;
-            margin-bottom: 24px;
+            background: white; border: 1px solid var(--cor-borda); border-radius: 16px;
+            padding: 28px; margin-bottom: 24px;
         }
         .card-form-titulo {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--cor-texto-principal);
-            margin-bottom: 20px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid var(--cor-borda);
+            font-size: 15px; font-weight: 700; color: var(--cor-texto-principal);
+            margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--cor-borda);
         }
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-grid .campo-full { grid-column: 1 / -1; }
         .campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-        .campo label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #333;
-        }
+        .campo label { font-size: 13px; font-weight: 700; color: #333; }
         .campo input,
         .campo select,
         .campo textarea {
-            padding: 11px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            color: var(--cor-texto-principal);
-            background: white;
-            transition: border-color 0.2s;
-            outline: none;
+            padding: 11px; border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 14px; color: var(--cor-texto-principal);
+            background: white; transition: border-color 0.2s; outline: none;
         }
         .campo input:focus,
         .campo select:focus,
-        .campo textarea:focus {
-            border-color: #D4AF37;
+        .campo textarea:focus { border-color: #D4AF37; }
+        .campo input:disabled,
+        .campo select:disabled,
+        .campo textarea:disabled {
+            background: #f5f5f5 !important;
+            color: #555;
+            cursor: default;
+            border-color: #e0e0e0;
         }
-        .modo-leitura .campo input,
-        .modo-leitura .campo select,
-        .modo-leitura .campo textarea,
-        .modo-leitura .campo input[type="color"] {
-            pointer-events: none;
-            opacity: 0.7;
-            background: var(--cor-fundo-claro) !important;
-        }
-        .modo-leitura .campo-cor input[type="color"] { opacity: 0.5; }
         .campo textarea { resize: vertical; min-height: 80px; }
-        .campo-cor { display: flex; align-items: center; gap: 10px; }
-        .campo-cor input[type="color"] {
-            width: 42px;
-            height: 42px;
-            padding: 2px;
-            border-radius: 8px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .campo-cor input[type="text"] { flex: 1; }
 
         /* preview de cor */
         .preview-cores {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            padding: 14px;
-            border-radius: 10px;
-            background: var(--cor-fundo-claro);
-            border: 1px solid var(--cor-borda);
-            align-items: center;
+            display: flex; gap: 10px; margin-top: 10px; padding: 14px;
+            border-radius: 10px; background: var(--cor-fundo-claro);
+            border: 1px solid var(--cor-borda); align-items: center;
         }
-        .preview-circulo {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 2px solid rgba(0,0,0,0.1);
-            flex-shrink: 0;
-        }
-        .preview-texto {
-            font-size: 12px;
-            color: var(--cor-texto-muted);
-            flex: 1;
-        }
-        .preview-botao {
-            padding: 7px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            border: none;
-            cursor: default;
-        }
+        .preview-circulo { width: 36px; height: 36px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); flex-shrink: 0; }
+        .preview-texto { font-size: 12px; color: var(--cor-texto-muted); flex: 1; }
+        .preview-botao { padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: default; }
 
-        /* botões do form */
-        .form-acoes {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--cor-borda);
-        }
-        .btn-cancelar {
-            padding: 10px 22px;
-            border: 1px solid var(--cor-borda);
-            background: white;
-            color: var(--cor-texto-principal);
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .btn-cancelar:hover { background: var(--cor-fundo-claro); }
-        .btn-salvar {
-            padding: 10px 26px;
-            background: #D4AF37;
-            color: #12101a;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 700;
-        }
-        .btn-salvar:hover { background: #B8922A; }
-        .btn-salvar:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        /* botão novo */
-        .btn-novo {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: #D4AF37;
-            color: #12101a;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-        .btn-novo:hover { background: #B8922A; }
-
-        /* botões de ação no card */
-        .btn-acao {
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            border: 1px solid var(--cor-borda);
-            background: white;
-            color: var(--cor-texto-principal);
-        }
-        .btn-acao:hover { background: var(--cor-fundo-claro); }
-        .btn-acao.danger { border: 1.5px solid #7c2d12; color: #7c2d12; }
-        .btn-acao.danger:hover { background: #fef0eb; }
-        .btn-editar { background: #D4AF37; border-color: #D4AF37; color: #12101a; font-weight: 700; }
-        .btn-editar:hover { background: #B8922A; border-color: #B8922A; }
-        .modal-sa-rodape .btn-acao { padding: 10px 22px; font-size: 14px; border-radius: 10px; }
-
-        /* ── FICHA VISUALIZAÇÃO NO MODAL ── */
-        .ficha-sa-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px;
-        }
-        .ficha-sa-full { grid-column: 1 / -1; }
-        .ficha-sa-campo span {
-            display: block; font-size: 10px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            color: #999; margin-bottom: 3px;
-        }
-        .ficha-sa-campo strong {
-            font-size: 14px; font-weight: 600; color: #0f172a;
-        }
-
-        /* ── MODAL OVERLAY ── */
-        .modal-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.5); z-index: 1000;
-            align-items: center; justify-content: center;
-            padding: 16px;
-        }
-        .modal-overlay.aberto { display: flex; }
-        .modal-sa {
-            background: white; border-radius: 16px;
-            width: 100%; max-width: 500px;
-            max-height: 90vh; display: flex; flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        .modal-sa-header {
+        /* rodapé dos forms inline */
+        .form-rodape {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 20px 24px 16px; border-bottom: 1px solid var(--cor-borda);
-            flex-shrink: 0;
+            margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--cor-borda);
+            flex-wrap: wrap; gap: 8px;
         }
-        .modal-sa-titulo { font-size: 16px; font-weight: 800; color: var(--cor-texto-principal); }
-        .modal-sa-fechar {
-            background: none; border: none; font-size: 20px; cursor: pointer;
-            color: #aaa; line-height: 1; padding: 0 4px;
-        }
-        .modal-sa-fechar:hover { color: #333; }
-        .modal-sa-body {
-            padding: 20px 24px; overflow-y: auto; overflow-x: hidden; flex: 1;
-        }
-        .modal-sa-rodape {
-            padding: 16px 24px; border-top: 1px solid var(--cor-borda);
-            display: flex; align-items: center; justify-content: space-between;
-            flex-shrink: 0; flex-wrap: wrap; gap: 8px;
-        }
-        .modal-sa-rodape-esq { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .form-rodape-esq { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+        /* ── BTN-FICHA (padrão) ── */
         .btn-ficha {
             padding: 8px 16px; border-radius: 8px; cursor: pointer;
             font-size: 13px; font-weight: 600; border: 1px solid #e0e0e0;
@@ -379,16 +147,48 @@
         .btn-ficha-danger { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
         .btn-ficha-danger:hover { background: #fef0eb; }
 
+        /* botão novo */
+        .btn-novo {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 20px; background: #D4AF37; color: #12101a;
+            border: none; border-radius: 10px; cursor: pointer;
+            font-size: 14px; font-weight: 700; margin-bottom: 20px;
+        }
+        .btn-novo:hover { background: #B8922A; }
+
+        /* ── MODAL OVERLAY ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            align-items: center; justify-content: center; padding: 16px;
+        }
+        .modal-overlay.aberto { display: flex; }
+        .modal-sa {
+            background: white; border-radius: 16px; width: 100%; max-width: 500px;
+            max-height: 90vh; display: flex; flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-sa-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px 16px; border-bottom: 1px solid var(--cor-borda); flex-shrink: 0;
+        }
+        .modal-sa-titulo { font-size: 16px; font-weight: 800; color: var(--cor-texto-principal); }
+        .modal-sa-fechar { background: none; border: none; font-size: 20px; cursor: pointer; color: #aaa; line-height: 1; padding: 0 4px; }
+        .modal-sa-fechar:hover { color: #333; }
+        .modal-sa-body { padding: 20px 24px; overflow-y: auto; overflow-x: hidden; flex: 1; }
+        .modal-sa-rodape {
+            padding: 16px 24px; border-top: 1px solid var(--cor-borda);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0; flex-wrap: wrap; gap: 8px;
+        }
+        .modal-sa-rodape-esq { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
         /* ── CONTEXTO DA ESCOLA ── */
         .escola-ctx-header {
             display: flex; align-items: center; gap: 12px;
             margin-bottom: 20px; flex-wrap: wrap;
         }
-        .btn-voltar {
-            background: none; border: none; cursor: pointer;
-            font-size: 13px; font-weight: 600; color: #D4AF37;
-            padding: 0; font-family: inherit;
-        }
+        .btn-voltar { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: #D4AF37; padding: 0; font-family: inherit; }
         .btn-voltar:hover { text-decoration: underline; }
         .escola-ctx-info { flex: 1; }
         .escola-ctx-nome { font-size: 18px; font-weight: 800; color: #0f172a; }
@@ -406,53 +206,26 @@
         }
         .sub-aba:hover { color: #0f172a; background: #f8f8f8; }
         .sub-aba.ativa { color: #D4AF37; border-bottom-color: #D4AF37; }
+        .sub-painel { display: none; }
         .sub-painel.ativo { display: block; }
 
         /* ── DASHBOARD PLACEHOLDER ── */
-        .dashboard-placeholder {
-            text-align: center; padding: 60px 20px;
-            color: #64748b;
-        }
+        .dashboard-placeholder { text-align: center; padding: 60px 20px; color: #64748b; }
 
         /* ── ALERTA / TOAST ── */
         .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: #12101a;
-            color: white;
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            z-index: 999;
-            display: none;
-            align-items: center;
-            gap: 10px;
+            position: fixed; bottom: 24px; right: 24px; background: #12101a;
+            color: white; padding: 14px 20px; border-radius: 12px; font-size: 14px;
+            font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 9999;
+            display: none; align-items: center; gap: 10px;
         }
         .toast.ok { border-left: 4px solid #D4AF37; }
         .toast.erro { border-left: 4px solid #ef4444; }
         .toast.visivel { display: flex; }
 
         /* ── ESTADO VAZIO ── */
-        .estado-vazio {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--cor-texto-muted);
-            font-size: 14px;
-        }
+        .estado-vazio { text-align: center; padding: 40px 20px; color: var(--cor-texto-muted); font-size: 14px; }
         .estado-vazio-icone { font-size: 36px; margin-bottom: 10px; }
-
-        /* ── SEPARADOR DE SEÇÃO ── */
-        .secao-sep {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--cor-texto-muted);
-            margin: 24px 0 12px;
-        }
 
         /* TABLET */
         @media (max-width: 768px) {
@@ -468,18 +241,13 @@
             .header-badge { font-size: 9px; }
             .header-user { display: none; }
             .btn-sair { font-size: 11px; padding: 5px 10px; }
-
             .nav-abas { padding: 0 16px; overflow-x: auto; }
             .aba { font-size: 12px; padding: 10px 14px; }
-
             .main { padding: 16px 12px; }
-
             .form-grid { grid-template-columns: 1fr; }
             .form-grid .campo-full { grid-column: 1; }
-
             .item-card { flex-direction: column; align-items: flex-start; gap: 12px; }
             .item-acoes { width: 100%; justify-content: flex-end; }
-
             .painel-titulo { font-size: 17px; }
             .card-form { padding: 20px 16px; }
         }
@@ -522,10 +290,37 @@
     <!-- ════ PAINEL: ESCOLAS ════ -->
     <div class="painel ativo" id="painel-escolas">
         <div class="painel-titulo">Escolas</div>
-        <div class="painel-sub">Selecione uma escola para gerenciar suas baterias e acessos.</div>
-        <button class="btn-novo" onclick="abrirFormEscola()">+ Nova Escola</button>
+        <div class="painel-sub">Selecione uma escola para gerenciar seu cadastro, bateria e acessos.</div>
+        <button class="btn-novo" onclick="abrirNovaEscola()">+ Nova Escola</button>
         <div id="lista-escolas" class="lista-cards">
             <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
+        </div>
+    </div>
+
+    <!-- ════ PAINEL: NOVA ESCOLA ════ -->
+    <div class="painel" id="painel-nova-escola" style="display:none">
+        <div class="escola-ctx-header">
+            <button class="btn-voltar" onclick="trocarAbaPrincipal('escolas', document.querySelector('#nav-principal .aba:nth-child(2)'))">← Escolas</button>
+            <div class="escola-ctx-info">
+                <div class="escola-ctx-nome">Nova Escola</div>
+            </div>
+        </div>
+        <div class="card-form">
+            <div class="card-form-titulo">Dados da Escola</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="nova-escola-nome" placeholder="Ex: Grêmio Recreativo..."></div>
+                <div class="campo campo-full"><label>Sigla *</label><input type="text" id="nova-escola-sigla" placeholder="Ex: Imperatriz"></div>
+                <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="nova-escola-logo" placeholder="https://..."></div>
+                <div class="campo campo-full"><label>Temporada Atual</label><input type="text" id="nova-escola-temporada" placeholder="Ex: Carnaval 2027"></div>
+                <div class="campo"><label>Cor Primária</label><input type="text" id="nova-escola-cor-primaria" value="" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
+                <div class="campo"><label>Cor Destaque</label><input type="text" id="nova-escola-cor-destaque" value="" placeholder="#D4AF37" oninput="atualizarPreviewNovaEscola()"></div>
+                <div class="campo campo-full"><label>Preview</label><div class="preview-cores" id="preview-nova-escola"><span style="font-size:13px;color:#999">Sem cores definidas</span></div></div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarNovaEscola()">Salvar Escola</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -538,35 +333,27 @@
                 <div class="escola-ctx-nome" id="escola-ctx-nome"></div>
                 <div class="escola-ctx-sigla" id="escola-ctx-sigla"></div>
             </div>
-            <button class="btn-ficha btn-ficha-editar" onclick="editarEscolaAtual()">Editar Escola</button>
         </div>
 
         <div class="nav-sub-abas">
-            <div class="sub-aba ativa" onclick="trocarSubAba('dashboard',this)">Dashboard</div>
-            <div class="sub-aba" onclick="trocarSubAba('baterias',this)">Baterias</div>
+            <div class="sub-aba ativa" onclick="trocarSubAba('cadastro',this)">Cadastro</div>
+            <div class="sub-aba" onclick="trocarSubAba('bateria',this)">Bateria</div>
             <div class="sub-aba" onclick="trocarSubAba('acessos',this)">Acessos</div>
         </div>
 
-        <!-- Dashboard -->
-        <div class="sub-painel ativo" id="sub-painel-dashboard">
-            <div class="dashboard-placeholder">
-                <div style="font-size:36px;margin-bottom:12px">📊</div>
-                <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px">Dashboard</div>
-                <div style="font-size:14px;color:#64748b">Métricas e resumo da escola — em breve.</div>
-            </div>
+        <!-- Cadastro (escola) -->
+        <div class="sub-painel ativo" id="sub-painel-cadastro">
+            <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
         </div>
 
-        <!-- Baterias -->
-        <div class="sub-painel" id="sub-painel-baterias" style="display:none">
-            <button class="btn-novo" onclick="abrirFormBateria()">+ Nova Bateria</button>
-            <div id="lista-baterias" class="lista-cards">
-                <div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Carregando...</div>
-            </div>
+        <!-- Bateria -->
+        <div class="sub-painel" id="sub-painel-bateria" style="display:none">
+            <div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Carregando...</div>
         </div>
 
         <!-- Acessos -->
         <div class="sub-painel" id="sub-painel-acessos" style="display:none">
-            <button class="btn-novo" onclick="abrirFormAcesso()">+ Novo Acesso</button>
+            <button class="btn-novo" onclick="abrirFormAcesso()">+ Adicionar Acesso</button>
             <div id="lista-acessos" class="lista-cards">
                 <div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Carregando...</div>
             </div>
@@ -574,30 +361,6 @@
 
     </div>
 
-</div>
-
-<!-- MODAL ESCOLA -->
-<div class="modal-overlay" id="modal-escola-overlay" onclick="fecharSeForaModal(event,'modal-escola-overlay','fecharFormEscola')">
-    <div class="modal-sa">
-        <div class="modal-sa-header">
-            <div class="modal-sa-titulo" id="form-escola-titulo">Nova Escola</div>
-            <button class="modal-sa-fechar" onclick="fecharFormEscola()">✕</button>
-        </div>
-        <div class="modal-sa-body" id="modal-escola-body"></div>
-        <div class="modal-sa-rodape" id="modal-escola-rodape"></div>
-    </div>
-</div>
-
-<!-- MODAL BATERIA -->
-<div class="modal-overlay" id="modal-bateria-overlay" onclick="fecharSeForaModal(event,'modal-bateria-overlay','fecharFormBateria')">
-    <div class="modal-sa">
-        <div class="modal-sa-header">
-            <div class="modal-sa-titulo" id="form-bateria-titulo">Nova Bateria</div>
-            <button class="modal-sa-fechar" onclick="fecharFormBateria()">✕</button>
-        </div>
-        <div class="modal-sa-body" id="modal-bateria-body"></div>
-        <div class="modal-sa-rodape" id="modal-bateria-rodape"></div>
-    </div>
 </div>
 
 <!-- MODAL ACESSO -->
@@ -634,15 +397,20 @@
         document.getElementById('headerUser').textContent = usuarioLogado.nome;
     }
 
-    // ── ABAS ──────────────────────────────────────────────────────────
+    // ── GLOBALS ──────────────────────────────────────────────────────
     let escolaSelecionadaId = null;
+    let escolaAtualData = null;
+    let bateriaAtualData = null;
+    let escolasCache = [];
+    let bateriasCache = [];
 
+    // ── NAVEGAÇÃO PRINCIPAL ──────────────────────────────────────────
     function trocarAbaPrincipal(aba, el) {
         document.querySelectorAll('#nav-principal .aba').forEach(x => x.classList.remove('ativa'));
         if (el) el.classList.add('ativa');
-        ['dashboard','escolas','escola-contexto'].forEach(p => {
-            const el = document.getElementById('painel-' + p);
-            if (el) { el.classList.remove('ativo'); el.style.display = 'none'; }
+        ['dashboard','escolas','escola-contexto','nova-escola'].forEach(p => {
+            const painel = document.getElementById('painel-' + p);
+            if (painel) { painel.classList.remove('ativo'); painel.style.display = 'none'; }
         });
         const alvo = document.getElementById('painel-' + aba);
         if (alvo) { alvo.classList.add('ativo'); alvo.style.display = 'block'; }
@@ -650,20 +418,44 @@
 
     async function selecionarEscola(id) {
         escolaSelecionadaId = id;
-        const e = escolasCache.find(x => x.id === id);
+        const e = escolasCache.find(x => x.id === id) || null;
+        escolaAtualData = e;
+
         document.getElementById('escola-ctx-nome').textContent = e ? (e.sigla || e.nome) : '';
         document.getElementById('escola-ctx-sigla').textContent = e ? e.nome : '';
-        document.getElementById('painel-escolas').style.display = 'none';
-        document.getElementById('painel-escola-contexto').style.display = 'block';
-        trocarSubAba('dashboard', document.querySelector('.sub-aba'));
+
+        ['painel-escolas','painel-dashboard','painel-nova-escola'].forEach(p => {
+            const el = document.getElementById(p);
+            if (el) { el.classList.remove('ativo'); el.style.display = 'none'; }
+        });
+        const ctx = document.getElementById('painel-escola-contexto');
+        ctx.style.display = 'block'; ctx.classList.add('ativo');
+
+        // Mostrar sub-aba Cadastro primeiro
+        trocarSubAba('cadastro', document.querySelector('.sub-aba'));
+
+        // Carregar baterias antes de acessos (acessos filtra por bateria_id)
         await carregarBaterias(id);
-        await carregarAcessos(id);
+
+        // Renderizar Cadastro
+        renderizarCadastroEscola(escolaAtualData);
+
+        // Renderizar Bateria
+        bateriaAtualData = bateriasCache.find(b => b.escola_id === id) || null;
+        renderizarBateriaInline(bateriaAtualData);
+
+        // Carregar acessos
+        carregarAcessos(id);
     }
 
     function voltarParaEscolas() {
         escolaSelecionadaId = null;
-        document.getElementById('painel-escola-contexto').style.display = 'none';
-        document.getElementById('painel-escolas').style.display = 'block';
+        escolaAtualData = null;
+        bateriaAtualData = null;
+        const ctx = document.getElementById('painel-escola-contexto');
+        ctx.style.display = 'none'; ctx.classList.remove('ativo');
+        const esc = document.getElementById('painel-escolas');
+        esc.style.display = 'block'; esc.classList.add('ativo');
     }
 
     function trocarSubAba(aba, el) {
@@ -674,10 +466,6 @@
         if (painel) { painel.style.display = 'block'; painel.classList.add('ativo'); }
     }
 
-    function editarEscolaAtual() {
-        if (escolaSelecionadaId) editarEscola(escolaSelecionadaId);
-    }
-
     // ── TOAST ─────────────────────────────────────────────────────────
     function mostrarToast(msg, tipo = 'ok') {
         const t = document.getElementById('toast');
@@ -686,28 +474,7 @@
         setTimeout(() => { t.className = 'toast'; }, 3500);
     }
 
-    // ── HELPERS DE COR ───────────────────────────────────────────────
-    function sincronizarCor(idText, valor) {
-        document.getElementById(idText).value = valor;
-    }
-    function sincronizarCorText(idPicker, valor) {
-        if (/^#[0-9a-fA-F]{6}$/.test(valor)) {
-            document.getElementById(idPicker).value = valor;
-        }
-    }
-    function atualizarPreviewEscola() {
-        const primaria = document.getElementById('escola-cor-primaria')?.value || '';
-        const destaque = document.getElementById('escola-cor-destaque')?.value || '';
-        const preview = document.getElementById('preview-escola');
-        if (!primaria && !destaque) {
-            preview.innerHTML = `<span style="font-size:13px;color:#999">Sem cores definidas</span>`;
-            return;
-        }
-        preview.innerHTML = `
-            <div class="preview-circulo" id="preview-escola-circulo" style="background:${primaria||'#ccc'}"></div>
-            <span class="preview-texto">Cores da escola</span>
-            <button class="preview-botao" id="preview-escola-botao" style="background:${destaque||'#ccc'};color:${destaque && isCorEscura(destaque)?'#fff':'#12101a'}">Destaque</button>`;
-    }
+    // ── HELPERS ──────────────────────────────────────────────────────
     function isCorEscura(hex) {
         const r = parseInt(hex.slice(1,3),16);
         const g = parseInt(hex.slice(3,5),16);
@@ -715,7 +482,6 @@
         return (r*299 + g*587 + b*114) / 1000 < 128;
     }
 
-    // ── MÁSCARA CPF ──────────────────────────────────────────────────
     function mascaraCPF(input) {
         let v = input.value.replace(/\D/g,'').slice(0,11);
         if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/,'$1.$2.$3-$4');
@@ -724,16 +490,51 @@
         input.value = v;
     }
 
+    function fecharSeForaModal(event, overlayId, fecharFn) {
+        if (event.target.id === overlayId) window[fecharFn]();
+    }
+
+    // ── PREVIEW COR (inline cadastro) ────────────────────────────────
+    function atualizarPreviewEscola() {
+        const primaria = document.getElementById('escola-cor-primaria')?.value || '';
+        const destaque = document.getElementById('escola-cor-destaque')?.value || '';
+        const preview = document.getElementById('preview-escola');
+        if (!preview) return;
+        if (!primaria && !destaque) {
+            preview.innerHTML = `<span style="font-size:13px;color:#999">Sem cores definidas</span>`;
+            return;
+        }
+        preview.innerHTML = `
+            <div class="preview-circulo" style="background:${primaria||'#ccc'}"></div>
+            <span class="preview-texto">Cores da escola</span>
+            <button class="preview-botao" style="background:${destaque||'#ccc'};color:${destaque && isCorEscura(destaque)?'#fff':'#12101a'}">Destaque</button>`;
+    }
+
+    function atualizarPreviewNovaEscola() {
+        const primaria = document.getElementById('nova-escola-cor-primaria')?.value || '';
+        const destaque = document.getElementById('nova-escola-cor-destaque')?.value || '';
+        const preview = document.getElementById('preview-nova-escola');
+        if (!preview) return;
+        if (!primaria && !destaque) {
+            preview.innerHTML = `<span style="font-size:13px;color:#999">Sem cores definidas</span>`;
+            return;
+        }
+        preview.innerHTML = `
+            <div class="preview-circulo" style="background:${primaria||'#ccc'}"></div>
+            <span class="preview-texto">Cores da escola</span>
+            <button class="preview-botao" style="background:${destaque||'#ccc'};color:${destaque && isCorEscura(destaque)?'#fff':'#12101a'}">Destaque</button>`;
+    }
+
     // ══════════════════════════════════════════════════════════════════
-    // ESCOLAS
+    // ESCOLAS — LISTAGEM
     // ══════════════════════════════════════════════════════════════════
 
     async function carregarEscolas() {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?order=nome`, { headers });
         if (!res.ok) { renderizarListaEscolas([]); return; }
         const dados = await res.json();
+        escolasCache = dados;
         renderizarListaEscolas(dados);
-        return dados;
     }
 
     function renderizarListaEscolas(lista) {
@@ -755,287 +556,257 @@
         `).join('');
     }
 
-    function corCirculo(hex) {
-        return hex ? `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${hex};vertical-align:middle;margin-right:5px;border:1px solid rgba(0,0,0,0.15)"></span>${hex}` : '—';
-    }
-
-    function fichaItem(label, valor, full = false) {
-        return `<div class="ficha-sa-campo${full ? ' ficha-sa-full' : ''}"><span>${label}</span><strong>${valor || '—'}</strong></div>`;
-    }
-
-    function abrirFormEscola() {
-        document.getElementById('form-escola-titulo').textContent = 'Nova Escola';
-        document.getElementById('modal-escola-body').innerHTML = `
-            <div class="form-grid">
-                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="escola-nome" placeholder="Ex: Grêmio Recreativo..."></div>
-                <div class="campo campo-full"><label>Sigla *</label><input type="text" id="escola-sigla" placeholder="Ex: Imperatriz"></div>
-                <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="escola-logo" placeholder="https://..." oninput="atualizarPreviewEscola()"></div>
-                <div class="campo campo-full"><label>Temporada Atual</label><input type="text" id="escola-temporada" placeholder="Ex: Carnaval 2027"></div>
-                <div class="campo"><label>Cor Primária</label><input type="text" id="escola-cor-primaria" value="" placeholder="#000000" oninput="atualizarPreviewEscola()"></div>
-                <div class="campo"><label>Cor Destaque</label><input type="text" id="escola-cor-destaque" value="" placeholder="#D4AF37" oninput="atualizarPreviewEscola()"></div>
-                <div class="campo campo-full"><label>Preview</label><div class="preview-cores" id="preview-escola"><div class="preview-circulo" id="preview-escola-circulo" style="background:#12101a"></div><span class="preview-texto">Cores da escola</span><button class="preview-botao" id="preview-escola-botao" style="background:#D4AF37;color:#12101a">Destaque</button></div></div>
-            </div>
-            <input type="hidden" id="escola-id" value="">`;
-        document.getElementById('modal-escola-rodape').innerHTML = `
-            <div class="modal-sa-rodape-esq">
-                <button class="btn-ficha btn-ficha-salvar" onclick="salvarEscola()">Salvar Escola</button>
-            </div>
-            <button class="btn-ficha" onclick="fecharFormEscola()">Fechar</button>`;
-        atualizarPreviewEscola();
-        document.getElementById('modal-escola-overlay').classList.add('aberto');
-    }
-
-    function fecharFormEscola() {
-        document.getElementById('modal-escola-overlay').classList.remove('aberto');
-    }
-
-    async function verEscola(id) { await editarEscola(id); }
-    async function editarEscola(id) {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, { headers });
-        const dados = await res.json();
-        if (!dados.length) return;
-        const e = dados[0];
-        const ativa = e.ativa !== false;
-        document.getElementById('form-escola-titulo').textContent = e.sigla || e.nome;
-        document.getElementById('modal-escola-body').innerHTML = `
-            <div class="form-grid">
-                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="escola-nome" value="${e.nome || ''}" disabled></div>
-                <div class="campo campo-full"><label>Sigla *</label><input type="text" id="escola-sigla" value="${e.sigla || ''}" disabled></div>
-                <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="escola-logo" value="${e.logo_url || ''}" disabled></div>
-                <div class="campo campo-full"><label>Temporada Atual</label><input type="text" id="escola-temporada" value="${e.temporada_atual || ''}" disabled></div>
-                <div class="campo"><label>Cor Primária</label><input type="text" id="escola-cor-primaria" value="${e.cor_primaria || ''}" disabled></div>
-                <div class="campo"><label>Cor Destaque</label><input type="text" id="escola-cor-destaque" value="${e.cor_destaque || ''}" disabled></div>
-                <div class="campo campo-full"><label>Preview</label><div class="preview-cores" id="preview-escola"><div class="preview-circulo" id="preview-escola-circulo" style="background:${e.cor_primaria||'#ccc'}"></div><span class="preview-texto">Cores da escola</span><button class="preview-botao" id="preview-escola-botao" style="background:${e.cor_destaque||'#ccc'};color:#12101a">Destaque</button></div></div>
-            </div>
-            <input type="hidden" id="escola-id" value="${e.id}">`;
-        document.getElementById('modal-escola-rodape').innerHTML = `
-            <div class="modal-sa-rodape-esq">
-                <button class="btn-ficha btn-ficha-editar" onclick="habilitarEdicaoEscola('${e.id}',${ativa})">Editar</button>
-                <button class="btn-ficha btn-ficha-danger" onclick="fecharFormEscola();toggleEscolaAtiva('${e.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
-            </div>
-            <button class="btn-ficha" onclick="fecharFormEscola()">Fechar</button>`;
-        atualizarPreviewEscola();
-        document.getElementById('modal-escola-overlay').classList.add('aberto');
-    }
-
-    function habilitarEdicaoEscola(id, ativa) {
-        ['escola-nome','escola-sigla','escola-logo','escola-temporada','escola-cor-primaria','escola-cor-destaque'].forEach(campo => {
-            const el = document.getElementById(campo);
-            if (el) { el.disabled = false; }
+    // ── NOVA ESCOLA ──────────────────────────────────────────────────
+    function abrirNovaEscola() {
+        ['painel-escolas','painel-dashboard','painel-escola-contexto'].forEach(p => {
+            const el = document.getElementById(p);
+            if (el) { el.classList.remove('ativo'); el.style.display = 'none'; }
         });
-        document.getElementById('escola-cor-primaria').oninput = () => atualizarPreviewEscola();
-        document.getElementById('escola-cor-destaque').oninput = () => atualizarPreviewEscola();
-        document.getElementById('modal-escola-rodape').innerHTML = `
-            <div class="modal-sa-rodape-esq">
-                <button class="btn-ficha btn-ficha-salvar" onclick="salvarEscola()">Salvar</button>
-            </div>
-            <button class="btn-ficha" onclick="fecharFormEscola()">Fechar</button>`;
+        const painel = document.getElementById('painel-nova-escola');
+        painel.style.display = 'block'; painel.classList.add('ativo');
+        // Limpar campos
+        ['nova-escola-nome','nova-escola-sigla','nova-escola-logo','nova-escola-temporada',
+         'nova-escola-cor-primaria','nova-escola-cor-destaque'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        atualizarPreviewNovaEscola();
+        // Sem aba ativa no nav principal
+        document.querySelectorAll('#nav-principal .aba').forEach(x => x.classList.remove('ativa'));
     }
 
-    async function salvarEscola() {
-        const nome = document.getElementById('escola-nome').value.trim();
+    async function salvarNovaEscola() {
+        const nome = document.getElementById('nova-escola-nome').value.trim();
+        const sigla = document.getElementById('nova-escola-sigla').value.trim();
         if (!nome) { mostrarToast('Informe o nome da escola.', 'erro'); return; }
-
-        const id = document.getElementById('escola-id').value;
-        const sigla = document.getElementById('escola-sigla').value.trim();
         if (!sigla) { mostrarToast('Informe a sigla da escola.', 'erro'); return; }
 
         const payload = {
-            nome,
-            sigla,
-            logo_url: document.getElementById('escola-logo').value.trim() || null,
-            cor_primaria: document.getElementById('escola-cor-primaria').value || '#12101a',
-            cor_destaque: document.getElementById('escola-cor-destaque').value || '#D4AF37',
-            temporada_atual: document.getElementById('escola-temporada').value.trim() || null,
+            nome, sigla,
+            logo_url: document.getElementById('nova-escola-logo').value.trim() || null,
+            temporada_atual: document.getElementById('nova-escola-temporada').value.trim() || null,
+            cor_primaria: document.getElementById('nova-escola-cor-primaria').value.trim() || null,
+            cor_destaque: document.getElementById('nova-escola-cor-destaque').value.trim() || null,
             ativa: true
         };
 
-        let res;
-        if (id) {
-            res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, {
-                method: 'PATCH', headers, body: JSON.stringify(payload)
-            });
-        } else {
-            res = await fetch(`${SUPABASE_URL}/rest/v1/escolas`, {
-                method: 'POST', headers, body: JSON.stringify(payload)
-            });
-        }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas`, {
+            method: 'POST', headers, body: JSON.stringify(payload)
+        });
 
         if (res.ok) {
-            mostrarToast(id ? 'Escola atualizada!' : 'Escola cadastrada!');
-            fecharFormEscola();
-            carregarEscolas();
-            carregarSelectEscolas();
+            mostrarToast('Escola cadastrada!');
+            await carregarEscolas();
+            trocarAbaPrincipal('escolas', document.querySelector('#nav-principal .aba:nth-child(2)'));
         } else {
             const err = await res.json();
             mostrarToast('Erro: ' + (err.message || res.status), 'erro');
         }
     }
 
-    async function toggleEscolaAtiva(id, ativaAtual) {
-        let payload = { ativa: !ativaAtual };
+    // ══════════════════════════════════════════════════════════════════
+    // CADASTRO ESCOLA — INLINE
+    // ══════════════════════════════════════════════════════════════════
 
+    function renderizarCadastroEscola(e, modoEdicao = false) {
+        escolaAtualData = e;
+        const d = modoEdicao ? '' : 'disabled';
+        const ativa = e && e.ativa !== false;
+
+        const rodape = modoEdicao ? `
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarCadastroEscola()">Salvar</button>
+                </div>
+                <button class="btn-ficha" onclick="renderizarCadastroEscola(escolaAtualData)">Cancelar</button>
+            </div>` : `
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-editar" onclick="renderizarCadastroEscola(escolaAtualData,true)">Editar</button>
+                    <button class="btn-ficha btn-ficha-danger" onclick="confirmarToggleEscola('${e ? e.id : ''}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
+                </div>
+            </div>`;
+
+        document.getElementById('sub-painel-cadastro').innerHTML = `
+            <div class="card-form">
+                <div class="card-form-titulo">Dados da Escola</div>
+                <div class="form-grid">
+                    <div class="campo campo-full"><label>Nome Completo *</label>
+                        <input type="text" id="escola-cor-nome" value="${e ? esc(e.nome) : ''}" ${d}></div>
+                    <div class="campo campo-full"><label>Sigla *</label>
+                        <input type="text" id="escola-cor-sigla" value="${e ? esc(e.sigla) : ''}" ${d}></div>
+                    <div class="campo campo-full"><label>URL do Logo</label>
+                        <input type="url" id="escola-cor-logo" value="${e ? esc(e.logo_url) : ''}" ${d}></div>
+                    <div class="campo campo-full"><label>Temporada Atual</label>
+                        <input type="text" id="escola-cor-temporada" value="${e ? esc(e.temporada_atual) : ''}" ${d}></div>
+                    <div class="campo"><label>Cor Primária</label>
+                        <input type="text" id="escola-cor-primaria" value="${e ? esc(e.cor_primaria) : ''}" placeholder="#000000" ${d} oninput="atualizarPreviewEscola()"></div>
+                    <div class="campo"><label>Cor Destaque</label>
+                        <input type="text" id="escola-cor-destaque" value="${e ? esc(e.cor_destaque) : ''}" placeholder="#D4AF37" ${d} oninput="atualizarPreviewEscola()"></div>
+                    <div class="campo campo-full"><label>Preview</label>
+                        <div class="preview-cores" id="preview-escola"></div></div>
+                </div>
+                <input type="hidden" id="escola-cor-id" value="${e ? e.id : ''}">
+                ${rodape}
+            </div>`;
+        atualizarPreviewEscola();
+    }
+
+    async function salvarCadastroEscola() {
+        const id = document.getElementById('escola-cor-id').value;
+        const nome = document.getElementById('escola-cor-nome').value.trim();
+        const sigla = document.getElementById('escola-cor-sigla').value.trim();
+        if (!nome) { mostrarToast('Informe o nome da escola.', 'erro'); return; }
+        if (!sigla) { mostrarToast('Informe a sigla.', 'erro'); return; }
+
+        const payload = {
+            nome, sigla,
+            logo_url: document.getElementById('escola-cor-logo').value.trim() || null,
+            temporada_atual: document.getElementById('escola-cor-temporada').value.trim() || null,
+            cor_primaria: document.getElementById('escola-cor-primaria').value.trim() || null,
+            cor_destaque: document.getElementById('escola-cor-destaque').value.trim() || null,
+        };
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, {
+            method: 'PATCH', headers, body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            const fresh = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, { headers });
+            const dados = await fresh.json();
+            escolaAtualData = dados[0];
+            const idx = escolasCache.findIndex(x => x.id === id);
+            if (idx >= 0) escolasCache[idx] = escolaAtualData;
+            document.getElementById('escola-ctx-nome').textContent = escolaAtualData.sigla || escolaAtualData.nome;
+            document.getElementById('escola-ctx-sigla').textContent = escolaAtualData.nome;
+            renderizarCadastroEscola(escolaAtualData);
+            mostrarToast('Escola atualizada!');
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
+    }
+
+    async function confirmarToggleEscola(id, ativaAtual) {
+        let payload = { ativa: !ativaAtual };
         if (ativaAtual) {
             const motivo = prompt('Informe o motivo da desativação:');
-            if (motivo === null) return; // cancelou
+            if (motivo === null) return;
             if (!motivo.trim()) { mostrarToast('Informe um motivo para desativar.', 'erro'); return; }
             payload.motivo_inativacao = motivo.trim();
         } else {
             payload.motivo_inativacao = null;
         }
-
         const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, {
-            method: 'PATCH', headers,
-            body: JSON.stringify(payload)
+            method: 'PATCH', headers, body: JSON.stringify(payload)
         });
         if (res.ok) {
             mostrarToast(ativaAtual ? 'Escola desativada.' : 'Escola ativada!');
+            const fresh = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, { headers });
+            const dados = await fresh.json();
+            escolaAtualData = dados[0];
+            const idx = escolasCache.findIndex(x => x.id === id);
+            if (idx >= 0) escolasCache[idx] = escolaAtualData;
+            renderizarCadastroEscola(escolaAtualData);
             carregarEscolas();
         }
     }
 
     // ══════════════════════════════════════════════════════════════════
-    // BATERIAS
+    // BATERIA — INLINE
     // ══════════════════════════════════════════════════════════════════
-
-    let escolasCache = [];
-
-    async function carregarSelectEscolas() {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?ativa=eq.true&order=nome`, { headers });
-        if (!res.ok) return;
-        escolasCache = await res.json();
-        ['bateria-escola-id'].forEach(id => {
-            const sel = document.getElementById(id);
-            if (!sel) return;
-            const valAtual = sel.value;
-            sel.innerHTML = '<option value="">Selecione uma escola...</option>';
-            escolasCache.forEach(e => {
-                const opt = document.createElement('option');
-                opt.value = e.id;
-                opt.textContent = e.nome;
-                sel.appendChild(opt);
-            });
-            if (valAtual) sel.value = valAtual;
-        });
-    }
 
     async function carregarBaterias(escolaId) {
         const filtro = escolaId ? `&escola_id=eq.${escolaId}` : '';
         const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?order=nome${filtro}`, { headers });
-        if (!res.ok) { renderizarListaBaterias([]); return; }
-        const dados = await res.json();
-        bateriasCache = dados;
-        renderizarListaBaterias(dados);
+        if (!res.ok) { bateriasCache = []; return; }
+        bateriasCache = await res.json();
     }
 
-    function nomeEscola(id) {
-        const e = escolasCache.find(x => x.id === id);
-        return e ? e.nome : '—';
-    }
+    function renderizarBateriaInline(b, modoEdicao = false) {
+        bateriaAtualData = b;
+        const div = document.getElementById('sub-painel-bateria');
 
-    function renderizarListaBaterias(lista) {
-        const div = document.getElementById('lista-baterias');
-        if (!lista.length) {
-            div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Nenhuma bateria cadastrada ainda.</div>';
+        if (!b) {
+            div.innerHTML = `
+                <div class="estado-vazio">
+                    <div class="estado-vazio-icone">🥁</div>
+                    <div style="margin-bottom:16px">Nenhuma bateria cadastrada.</div>
+                    <button class="btn-novo" style="display:inline-flex;margin:0 auto" onclick="renderizarNovaBateriaInline()">+ Criar Bateria</button>
+                </div>`;
             return;
         }
-        div.innerHTML = lista.map(b => `
-            <div class="item-card" style="cursor:pointer" onclick="verBateria('${b.id}')">
-                <div class="item-info">
-                    <div class="item-nome">${b.nome}</div>
-                    <div class="item-detalhe">${nomeEscola(b.escola_id)}${b.mestre_de_bateria ? ' · Mestre: ' + b.mestre_de_bateria : ''}${b.temporada_atual ? ' · ' + b.temporada_atual : ''}</div>
-                </div>
-                <div class="item-acoes">
-                    <span class="${b.ativa !== false ? 'badge-ativo' : 'badge-inativo'}">${b.ativa !== false ? 'Ativa' : 'Inativa'}</span>
-                </div>
-            </div>
-        `).join('');
-    }
 
-    function escolasOpcoesHTML(selecionado = '') {
-        return '<option value="">Selecione uma escola...</option>' +
-            escolasCache.map(e => `<option value="${e.id}"${e.id === selecionado ? ' selected' : ''}>${e.nome}</option>`).join('');
-    }
-
-    function bateriasOpcoesHTML(selecionado = '') {
-        return '<option value="">Selecione uma bateria...</option>' +
-            bateriasCache.map(b => `<option value="${b.id}"${b.id === selecionado ? ' selected' : ''}>${b.nome}</option>`).join('');
-    }
-
-    function abrirFormBateria() {
-        document.getElementById('form-bateria-titulo').textContent = 'Nova Bateria';
-        document.getElementById('modal-bateria-body').innerHTML = `
-            <div class="form-grid">
-                <div class="campo campo-full"><label>Nome da Bateria *</label><input type="text" id="bateria-nome" placeholder="Ex: Swing da Leopoldina"></div>
-                <div class="campo campo-full"><label>Escola Vinculada *</label><select id="bateria-escola-id">${escolasOpcoesHTML(escolaSelecionadaId)}</select></div>
-                <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="bateria-logo" placeholder="https://..."></div>
-                <div class="campo campo-full"><label>Instagram</label><input type="text" id="bateria-instagram" placeholder="@swingdaleopoldina"></div>
-                <div class="campo campo-full"><label>Mestre de Bateria</label><input type="text" id="bateria-mestre" placeholder="Nome do mestre"></div>
-            </div>
-            <input type="hidden" id="bateria-id" value="">`;
-        document.getElementById('modal-bateria-rodape').innerHTML = `
-            <div class="modal-sa-rodape-esq">
-                <button class="btn-ficha btn-ficha-salvar" onclick="salvarBateria()">Salvar Bateria</button>
-            </div>
-            <button class="btn-ficha" onclick="fecharFormBateria()">Fechar</button>`;
-        document.getElementById('modal-bateria-overlay').classList.add('aberto');
-    }
-
-    function fecharFormBateria() {
-        document.getElementById('modal-bateria-overlay').classList.remove('aberto');
-    }
-
-    async function verBateria(id) { await editarBateria(id); }
-    async function editarBateria(id) {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { headers });
-        const dados = await res.json();
-        if (!dados.length) return;
-        const b = dados[0];
+        const d = modoEdicao ? '' : 'disabled';
         const ativa = b.ativa !== false;
-        document.getElementById('form-bateria-titulo').textContent = b.nome;
-        document.getElementById('modal-bateria-body').innerHTML = `
-            <div class="form-grid">
-                <div class="campo campo-full"><label>Nome da Bateria *</label><input type="text" id="bateria-nome" value="${b.nome || ''}" disabled></div>
-                <div class="campo campo-full"><label>Escola Vinculada *</label><select id="bateria-escola-id" disabled>${escolasOpcoesHTML(b.escola_id)}</select></div>
-                <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="bateria-logo" value="${b.logo_url || ''}" disabled></div>
-                <div class="campo campo-full"><label>Instagram</label><input type="text" id="bateria-instagram" value="${b.instagram || ''}" disabled></div>
-                <div class="campo campo-full"><label>Mestre de Bateria</label><input type="text" id="bateria-mestre" value="${b.mestre_de_bateria || ''}" disabled></div>
-            </div>
-            <input type="hidden" id="bateria-id" value="${b.id}">`;
-        document.getElementById('modal-bateria-rodape').innerHTML = `
-            <div class="modal-sa-rodape-esq">
-                <button class="btn-ficha btn-ficha-editar" onclick="habilitarEdicaoBateria()">Editar</button>
-                <button class="btn-ficha btn-ficha-danger" onclick="fecharFormBateria();toggleBateriaAtiva('${b.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
-            </div>
-            <button class="btn-ficha" onclick="fecharFormBateria()">Fechar</button>`;
-        document.getElementById('modal-bateria-overlay').classList.add('aberto');
+
+        const rodape = modoEdicao ? `
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarBateriaInline()">Salvar</button>
+                </div>
+                <button class="btn-ficha" onclick="renderizarBateriaInline(bateriaAtualData)">Cancelar</button>
+            </div>` : `
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-editar" onclick="renderizarBateriaInline(bateriaAtualData,true)">Editar</button>
+                    <button class="btn-ficha btn-ficha-danger" onclick="toggleBateriaAtiva('${b.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
+                </div>
+            </div>`;
+
+        div.innerHTML = `
+            <div class="card-form">
+                <div class="card-form-titulo">Dados da Bateria</div>
+                <div class="form-grid">
+                    <div class="campo campo-full"><label>Nome da Bateria *</label>
+                        <input type="text" id="bat-nome" value="${esc(b.nome)}" ${d}></div>
+                    <div class="campo campo-full"><label>Mestre de Bateria</label>
+                        <input type="text" id="bat-mestre" value="${esc(b.mestre_de_bateria)}" ${d}></div>
+                    <div class="campo campo-full"><label>Instagram</label>
+                        <input type="text" id="bat-instagram" value="${esc(b.instagram)}" ${d}></div>
+                    <div class="campo campo-full"><label>URL do Logo</label>
+                        <input type="url" id="bat-logo" value="${esc(b.logo_url)}" ${d}></div>
+                </div>
+                <input type="hidden" id="bat-id" value="${b.id}">
+                ${rodape}
+            </div>`;
     }
 
-    function habilitarEdicaoBateria() {
-        ['bateria-nome','bateria-escola-id','bateria-logo','bateria-instagram','bateria-mestre'].forEach(campo => {
-            const el = document.getElementById(campo);
-            if (el) el.disabled = false;
-        });
-        document.getElementById('modal-bateria-rodape').innerHTML = `
-            <div class="modal-sa-rodape-esq">
-                <button class="btn-ficha btn-ficha-salvar" onclick="salvarBateria()">Salvar</button>
-            </div>
-            <button class="btn-ficha" onclick="fecharFormBateria()">Fechar</button>`;
+    function renderizarNovaBateriaInline() {
+        bateriaAtualData = null;
+        document.getElementById('sub-painel-bateria').innerHTML = `
+            <div class="card-form">
+                <div class="card-form-titulo">Nova Bateria</div>
+                <div class="form-grid">
+                    <div class="campo campo-full"><label>Nome da Bateria *</label>
+                        <input type="text" id="bat-nome" placeholder="Ex: Swing da Leopoldina"></div>
+                    <div class="campo campo-full"><label>Mestre de Bateria</label>
+                        <input type="text" id="bat-mestre" placeholder="Nome do mestre"></div>
+                    <div class="campo campo-full"><label>Instagram</label>
+                        <input type="text" id="bat-instagram" placeholder="@nomeDaBateria"></div>
+                    <div class="campo campo-full"><label>URL do Logo</label>
+                        <input type="url" id="bat-logo" placeholder="https://..."></div>
+                </div>
+                <input type="hidden" id="bat-id" value="">
+                <div class="form-rodape">
+                    <div class="form-rodape-esq">
+                        <button class="btn-ficha btn-ficha-salvar" onclick="salvarBateriaInline()">Salvar Bateria</button>
+                    </div>
+                </div>
+            </div>`;
     }
 
-    async function salvarBateria() {
-        const nome = document.getElementById('bateria-nome').value.trim();
-        const escolaId = document.getElementById('bateria-escola-id').value;
+    async function salvarBateriaInline() {
+        const nome = document.getElementById('bat-nome').value.trim();
         if (!nome) { mostrarToast('Informe o nome da bateria.', 'erro'); return; }
-        if (!escolaId) { mostrarToast('Selecione a escola vinculada.', 'erro'); return; }
 
-        const id = document.getElementById('bateria-id').value;
+        const id = document.getElementById('bat-id').value;
         const payload = {
             nome,
-            escola_id: escolaId,
-            logo_url: document.getElementById('bateria-logo').value.trim() || null,
-            instagram: document.getElementById('bateria-instagram').value.trim() || null,
-            mestre_de_bateria: document.getElementById('bateria-mestre').value.trim() || null,
+            escola_id: escolaSelecionadaId,
+            mestre_de_bateria: document.getElementById('bat-mestre').value.trim() || null,
+            instagram: document.getElementById('bat-instagram').value.trim() || null,
+            logo_url: document.getElementById('bat-logo').value.trim() || null,
             ativa: true
         };
 
@@ -1052,9 +823,9 @@
 
         if (res.ok) {
             mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
-            fecharFormBateria();
-            carregarBaterias(escolaSelecionadaId);
-            carregarSelectBaterias();
+            await carregarBaterias(escolaSelecionadaId);
+            bateriaAtualData = bateriasCache.find(b => b.escola_id === escolaSelecionadaId) || null;
+            renderizarBateriaInline(bateriaAtualData);
         } else {
             const err = await res.json();
             mostrarToast('Erro: ' + (err.message || res.status), 'erro');
@@ -1068,32 +839,15 @@
         });
         if (res.ok) {
             mostrarToast(ativaAtual ? 'Bateria desativada.' : 'Bateria ativada!');
-            carregarBaterias(escolaSelecionadaId);
+            await carregarBaterias(escolaSelecionadaId);
+            bateriaAtualData = bateriasCache.find(b => b.escola_id === escolaSelecionadaId) || null;
+            renderizarBateriaInline(bateriaAtualData);
         }
     }
 
     // ══════════════════════════════════════════════════════════════════
     // ACESSOS (Mestre / Diretor)
     // ══════════════════════════════════════════════════════════════════
-
-    let bateriasCache = [];
-
-    async function carregarSelectBaterias() {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?ativa=eq.true&order=nome`, { headers });
-        if (!res.ok) return;
-        bateriasCache = await res.json();
-        const sel = document.getElementById('acesso-bateria-id');
-        if (!sel) return;
-        const valAtual = sel.value;
-        sel.innerHTML = '<option value="">Selecione uma bateria...</option>';
-        bateriasCache.forEach(b => {
-            const opt = document.createElement('option');
-            opt.value = b.id;
-            opt.textContent = b.nome;
-            sel.appendChild(opt);
-        });
-        if (valAtual) sel.value = valAtual;
-    }
 
     async function carregarAcessos(escolaId) {
         let url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&order=nome&select=id,nome,apelido,cpf,perfil,bateria_id,status`;
@@ -1132,7 +886,6 @@
             if (pa !== pb) return pa - pb;
             return a.nome.localeCompare(b.nome);
         });
-
         div.innerHTML = ordenada.map(u => `
             <div class="item-card" style="cursor:pointer" onclick="verAcesso('${u.id}')">
                 <div class="item-info">
@@ -1149,27 +902,13 @@
         `).join('');
     }
 
-    async function toggleAcessoAtivo(id, statusAtual) {
-        const ativoAgora = statusAtual !== 'inativo';
-        if (ativoAgora) {
-            const motivo = prompt('Informe o motivo da desativação:');
-            if (motivo === null) return;
-            if (!motivo.trim()) { mostrarToast('Informe um motivo para desativar.', 'erro'); return; }
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
-                method: 'PATCH', headers,
-                body: JSON.stringify({ status: 'inativo', motivo_status: motivo.trim() })
-            });
-            if (res.ok) { mostrarToast('Acesso desativado.'); carregarAcessos(); }
-        } else {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
-                method: 'PATCH', headers,
-                body: JSON.stringify({ status: 'aprovado', motivo_status: null })
-            });
-            if (res.ok) { mostrarToast('Acesso ativado!'); carregarAcessos(); }
-        }
+    function bateriasOpcoesHTML(selecionado = '') {
+        const opts = bateriasCache.map(b => `<option value="${b.id}"${b.id === selecionado ? ' selected' : ''}>${b.nome}</option>`).join('');
+        return `<option value="">Selecione uma bateria...</option>${opts}`;
     }
 
     function abrirFormAcesso() {
+        const bateriaId = bateriasCache.length > 0 ? bateriasCache[0].id : '';
         document.getElementById('form-acesso-titulo').textContent = 'Novo Acesso';
         document.getElementById('modal-acesso-body').innerHTML = `
             <div class="form-grid">
@@ -1178,7 +917,7 @@
                 <div class="campo"><label>CPF *</label><input type="text" id="acesso-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)"></div>
                 <div class="campo"><label>Senha *</label><input type="password" id="acesso-senha" placeholder="Mínimo 6 caracteres"></div>
                 <div class="campo"><label>Perfil *</label><select id="acesso-perfil"><option value="">Selecione...</option><option value="mestre">Mestre de Bateria</option><option value="diretor">Diretor</option></select></div>
-                <div class="campo"><label>Bateria Vinculada *</label><select id="acesso-bateria-id">${bateriasOpcoesHTML()}</select></div>
+                <div class="campo"><label>Bateria Vinculada *</label><select id="acesso-bateria-id">${bateriasOpcoesHTML(bateriaId)}</select></div>
             </div>
             <input type="hidden" id="acesso-id" value="">`;
         document.getElementById('modal-acesso-rodape').innerHTML = `
@@ -1206,11 +945,15 @@
         document.getElementById('form-acesso-titulo').textContent = u.apelido || u.nome;
         document.getElementById('modal-acesso-body').innerHTML = `
             <div class="form-grid">
-                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="acesso-nome" value="${u.nome || ''}" disabled></div>
-                <div class="campo campo-full"><label>Apelido *</label><input type="text" id="acesso-apelido" value="${u.apelido || ''}" disabled></div>
-                <div class="campo"><label>CPF *</label><input type="text" id="acesso-cpf" value="${u.cpf || ''}" maxlength="14" disabled></div>
+                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="acesso-nome" value="${esc(u.nome)}" disabled></div>
+                <div class="campo campo-full"><label>Apelido *</label><input type="text" id="acesso-apelido" value="${esc(u.apelido)}" disabled></div>
+                <div class="campo"><label>CPF *</label><input type="text" id="acesso-cpf" value="${esc(u.cpf)}" maxlength="14" disabled></div>
                 <div class="campo"><label>Senha</label><input type="password" id="acesso-senha" placeholder="Nova senha (opcional)" disabled></div>
-                <div class="campo"><label>Perfil *</label><select id="acesso-perfil" disabled><option value="">Selecione...</option><option value="mestre"${u.perfil==='mestre'?' selected':''}>Mestre de Bateria</option><option value="diretor"${u.perfil==='diretor'?' selected':''}>Diretor</option></select></div>
+                <div class="campo"><label>Perfil *</label><select id="acesso-perfil" disabled>
+                    <option value="">Selecione...</option>
+                    <option value="mestre"${u.perfil==='mestre'?' selected':''}>Mestre de Bateria</option>
+                    <option value="diretor"${u.perfil==='diretor'?' selected':''}>Diretor</option>
+                </select></div>
                 <div class="campo"><label>Bateria Vinculada *</label><select id="acesso-bateria-id" disabled>${bateriasOpcoesHTML(u.bateria_id)}</select></div>
             </div>
             <input type="hidden" id="acesso-id" value="${u.id}">`;
@@ -1238,8 +981,24 @@
             <button class="btn-ficha" onclick="fecharFormAcesso()">Fechar</button>`;
     }
 
-    function fecharSeForaModal(event, overlayId, fecharFn) {
-        if (event.target.id === overlayId) window[fecharFn]();
+    async function toggleAcessoAtivo(id, statusAtual) {
+        const ativoAgora = statusAtual !== 'inativo';
+        if (ativoAgora) {
+            const motivo = prompt('Informe o motivo da desativação:');
+            if (motivo === null) return;
+            if (!motivo.trim()) { mostrarToast('Informe um motivo para desativar.', 'erro'); return; }
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+                method: 'PATCH', headers,
+                body: JSON.stringify({ status: 'inativo', motivo_status: motivo.trim() })
+            });
+            if (res.ok) { mostrarToast('Acesso desativado.'); carregarAcessos(escolaSelecionadaId); }
+        } else {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+                method: 'PATCH', headers,
+                body: JSON.stringify({ status: 'aprovado', motivo_status: null })
+            });
+            if (res.ok) { mostrarToast('Acesso ativado!'); carregarAcessos(escolaSelecionadaId); }
+        }
     }
 
     async function salvarAcesso() {
@@ -1248,18 +1007,17 @@
         const senha = document.getElementById('acesso-senha').value;
         const perfil = document.getElementById('acesso-perfil').value;
         const bateriaId = document.getElementById('acesso-bateria-id').value;
-
         const apelido = document.getElementById('acesso-apelido').value.trim();
+        const id = document.getElementById('acesso-id').value;
+
         if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
         if (!apelido) { mostrarToast('Informe o apelido.', 'erro'); return; }
         if (!cpf) { mostrarToast('Informe o CPF.', 'erro'); return; }
-        const id = document.getElementById('acesso-id').value;
         if (!id && (!senha || senha.length < 6)) { mostrarToast('Senha deve ter no mínimo 6 caracteres.', 'erro'); return; }
         if (id && senha && senha.length < 6) { mostrarToast('Senha deve ter no mínimo 6 caracteres.', 'erro'); return; }
         if (!perfil) { mostrarToast('Selecione o perfil.', 'erro'); return; }
         if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
 
-        // Verificar CPF duplicado apenas em cadastros novos
         if (!id) {
             const check = await fetch(
                 `${SUPABASE_URL}/rest/v1/ritmistas?cpf=eq.${encodeURIComponent(cpf)}&select=id`,
@@ -1294,6 +1052,12 @@
         }
     }
 
+    // ── UTILITÁRIO ───────────────────────────────────────────────────
+    function esc(val) {
+        if (!val) return '';
+        return String(val).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
     // ── SAIR ──────────────────────────────────────────────────────────
     function sair() {
         localStorage.removeItem('ritmista');
@@ -1302,9 +1066,7 @@
 
     // ── INICIALIZAR ───────────────────────────────────────────────────
     async function init() {
-        await carregarSelectEscolas();
-        await carregarSelectBaterias();
-        carregarEscolas();
+        await carregarEscolas();
     }
 
     init();
