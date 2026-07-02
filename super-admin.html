@@ -185,14 +185,14 @@
 
         /* ── CONTEXTO DA ESCOLA ── */
         .escola-ctx-header {
-            display: flex; align-items: center; gap: 12px;
+            display: flex; align-items: center; gap: 8px;
             margin-bottom: 20px; flex-wrap: wrap;
         }
         .btn-voltar { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: #D4AF37; padding: 0; font-family: inherit; }
         .btn-voltar:hover { text-decoration: underline; }
-        .escola-ctx-info { flex: 1; }
-        .escola-ctx-nome { font-size: 18px; font-weight: 800; color: #0f172a; }
-        .escola-ctx-sigla { font-size: 13px; color: #64748b; margin-top: 2px; }
+        .escola-ctx-sep { font-size: 13px; color: #cbd5e1; }
+        .escola-ctx-nome { font-size: 13px; font-weight: 700; color: #0f172a; }
+        .escola-ctx-sigla { display: none; }
 
         /* ── SUB-ABAS ── */
         .nav-sub-abas {
@@ -329,10 +329,9 @@
 
         <div class="escola-ctx-header">
             <button class="btn-voltar" onclick="voltarParaEscolas()">← Escolas</button>
-            <div class="escola-ctx-info">
-                <div class="escola-ctx-nome" id="escola-ctx-nome"></div>
-                <div class="escola-ctx-sigla" id="escola-ctx-sigla"></div>
-            </div>
+            <span class="escola-ctx-sep">/</span>
+            <span class="escola-ctx-nome" id="escola-ctx-nome"></span>
+            <span class="escola-ctx-sigla" id="escola-ctx-sigla"></span>
         </div>
 
         <div class="nav-sub-abas">
@@ -631,22 +630,23 @@
                 </div>
             </div>`;
 
+        const ph = modoEdicao ? 'placeholder' : 'data-ph';
         document.getElementById('sub-painel-cadastro').innerHTML = `
             <div class="card-form">
                 <div class="card-form-titulo">Dados da Escola</div>
                 <div class="form-grid">
                     <div class="campo campo-full"><label>Nome Completo *</label>
-                        <input type="text" id="escola-cor-nome" value="${e ? esc(e.nome) : ''}" ${d}></div>
+                        <input type="text" id="escola-cor-nome" value="${e ? esc(e.nome) : ''}" ${modoEdicao ? 'placeholder="Ex: Grêmio Recreativo..."' : ''} ${d}></div>
                     <div class="campo campo-full"><label>Sigla *</label>
-                        <input type="text" id="escola-cor-sigla" value="${e ? esc(e.sigla) : ''}" ${d}></div>
+                        <input type="text" id="escola-cor-sigla" value="${e ? esc(e.sigla) : ''}" ${modoEdicao ? 'placeholder="Ex: Imperatriz"' : ''} ${d}></div>
                     <div class="campo campo-full"><label>URL do Logo</label>
-                        <input type="url" id="escola-cor-logo" value="${e ? esc(e.logo_url) : ''}" ${d}></div>
+                        <input type="url" id="escola-cor-logo" value="${e ? esc(e.logo_url) : ''}" ${modoEdicao ? 'placeholder="https://..."' : ''} ${d}></div>
                     <div class="campo campo-full"><label>Temporada Atual</label>
-                        <input type="text" id="escola-cor-temporada" value="${e ? esc(e.temporada_atual) : ''}" ${d}></div>
+                        <input type="text" id="escola-cor-temporada" value="${e ? esc(e.temporada_atual) : ''}" ${modoEdicao ? 'placeholder="Ex: Carnaval 2027"' : ''} ${d}></div>
                     <div class="campo"><label>Cor Primária</label>
-                        <input type="text" id="escola-cor-primaria" value="${e ? esc(e.cor_primaria) : ''}" placeholder="#000000" ${d} oninput="atualizarPreviewEscola()"></div>
+                        <input type="text" id="escola-cor-primaria" value="${e ? esc(e.cor_primaria) : ''}" ${modoEdicao ? 'placeholder="#000000"' : ''} ${d} oninput="atualizarPreviewEscola()"></div>
                     <div class="campo"><label>Cor Destaque</label>
-                        <input type="text" id="escola-cor-destaque" value="${e ? esc(e.cor_destaque) : ''}" placeholder="#D4AF37" ${d} oninput="atualizarPreviewEscola()"></div>
+                        <input type="text" id="escola-cor-destaque" value="${e ? esc(e.cor_destaque) : ''}" ${modoEdicao ? 'placeholder="#D4AF37"' : ''} ${d} oninput="atualizarPreviewEscola()"></div>
                     <div class="campo campo-full"><label>Preview</label>
                         <div class="preview-cores" id="preview-escola"></div></div>
                 </div>
