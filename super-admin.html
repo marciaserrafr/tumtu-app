@@ -379,6 +379,41 @@
         .btn-ficha-danger { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
         .btn-ficha-danger:hover { background: #fef0eb; }
 
+        /* ── CONTEXTO DA ESCOLA ── */
+        .escola-ctx-header {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .btn-voltar {
+            background: none; border: none; cursor: pointer;
+            font-size: 13px; font-weight: 600; color: #D4AF37;
+            padding: 0; font-family: inherit;
+        }
+        .btn-voltar:hover { text-decoration: underline; }
+        .escola-ctx-info { flex: 1; }
+        .escola-ctx-nome { font-size: 18px; font-weight: 800; color: #0f172a; }
+        .escola-ctx-sigla { font-size: 13px; color: #64748b; margin-top: 2px; }
+
+        /* ── SUB-ABAS ── */
+        .nav-sub-abas {
+            display: flex; gap: 4px; margin-bottom: 20px;
+            border-bottom: 2px solid #f1f1f1; padding-bottom: 0;
+        }
+        .sub-aba {
+            padding: 8px 16px; font-size: 13px; font-weight: 600;
+            color: #64748b; cursor: pointer; border-radius: 8px 8px 0 0;
+            border-bottom: 2px solid transparent; margin-bottom: -2px;
+        }
+        .sub-aba:hover { color: #0f172a; background: #f8f8f8; }
+        .sub-aba.ativa { color: #D4AF37; border-bottom-color: #D4AF37; }
+        .sub-painel.ativo { display: block; }
+
+        /* ── DASHBOARD PLACEHOLDER ── */
+        .dashboard-placeholder {
+            text-align: center; padding: 60px 20px;
+            color: #64748b;
+        }
+
         /* ── ALERTA / TOAST ── */
         .toast {
             position: fixed;
@@ -465,10 +500,8 @@
 </div>
 
 <!-- ABAS -->
-<div class="nav-abas">
-    <div class="aba ativa" onclick="trocarAba('escolas')">Escolas</div>
-    <div class="aba" onclick="trocarAba('baterias')">Baterias</div>
-    <div class="aba" onclick="trocarAba('acessos')">Acessos</div>
+<div class="nav-abas" id="nav-principal">
+    <div class="aba ativa">Escolas</div>
 </div>
 
 <!-- MAIN -->
@@ -477,46 +510,56 @@
     <!-- ════ PAINEL: ESCOLAS ════ -->
     <div class="painel ativo" id="painel-escolas">
         <div class="painel-titulo">Escolas</div>
-        <div class="painel-sub">Cadastre a escola de samba e configure sua identidade visual.</div>
-
+        <div class="painel-sub">Selecione uma escola para gerenciar suas baterias e acessos.</div>
         <button class="btn-novo" onclick="abrirFormEscola()">+ Nova Escola</button>
-
         <div id="lista-escolas" class="lista-cards">
-            <div class="estado-vazio">
-                <div class="estado-vazio-icone">🏫</div>
-                Carregando...
-            </div>
+            <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
         </div>
     </div>
 
-    <!-- ════ PAINEL: BATERIAS ════ -->
-    <div class="painel" id="painel-baterias">
-        <div class="painel-titulo">Baterias</div>
-        <div class="painel-sub">Cadastre a bateria, vincule a uma escola e configure a identidade.</div>
+    <!-- ════ PAINEL: CONTEXTO DA ESCOLA ════ -->
+    <div class="painel" id="painel-escola-contexto" style="display:none">
 
-        <button class="btn-novo" onclick="abrirFormBateria()">+ Nova Bateria</button>
+        <div class="escola-ctx-header">
+            <button class="btn-voltar" onclick="voltarParaEscolas()">← Escolas</button>
+            <div class="escola-ctx-info">
+                <div class="escola-ctx-nome" id="escola-ctx-nome"></div>
+                <div class="escola-ctx-sigla" id="escola-ctx-sigla"></div>
+            </div>
+            <button class="btn-ficha btn-ficha-editar" onclick="editarEscolaAtual()">Editar Escola</button>
+        </div>
 
-        <div id="lista-baterias" class="lista-cards">
-            <div class="estado-vazio">
-                <div class="estado-vazio-icone">🥁</div>
-                Carregando...
+        <div class="nav-sub-abas">
+            <div class="sub-aba ativa" onclick="trocarSubAba('dashboard',this)">Dashboard</div>
+            <div class="sub-aba" onclick="trocarSubAba('baterias',this)">Baterias</div>
+            <div class="sub-aba" onclick="trocarSubAba('acessos',this)">Acessos</div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="sub-painel ativo" id="sub-painel-dashboard">
+            <div class="dashboard-placeholder">
+                <div style="font-size:36px;margin-bottom:12px">📊</div>
+                <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px">Dashboard</div>
+                <div style="font-size:14px;color:#64748b">Métricas e resumo da escola — em breve.</div>
             </div>
         </div>
-    </div>
 
-    <!-- ════ PAINEL: ACESSOS ════ -->
-    <div class="painel" id="painel-acessos">
-        <div class="painel-titulo">Acessos</div>
-        <div class="painel-sub">Crie logins para Mestres e Diretores, vinculados a uma bateria.</div>
-
-        <button class="btn-novo" onclick="abrirFormAcesso()">+ Novo Acesso</button>
-
-        <div id="lista-acessos" class="lista-cards">
-            <div class="estado-vazio">
-                <div class="estado-vazio-icone">👤</div>
-                Carregando...
+        <!-- Baterias -->
+        <div class="sub-painel" id="sub-painel-baterias" style="display:none">
+            <button class="btn-novo" onclick="abrirFormBateria()">+ Nova Bateria</button>
+            <div id="lista-baterias" class="lista-cards">
+                <div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Carregando...</div>
             </div>
         </div>
+
+        <!-- Acessos -->
+        <div class="sub-painel" id="sub-painel-acessos" style="display:none">
+            <button class="btn-novo" onclick="abrirFormAcesso()">+ Novo Acesso</button>
+            <div id="lista-acessos" class="lista-cards">
+                <div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Carregando...</div>
+            </div>
+        </div>
+
     </div>
 
 </div>
@@ -580,11 +623,36 @@
     }
 
     // ── ABAS ──────────────────────────────────────────────────────────
-    function trocarAba(aba) {
-        document.querySelectorAll('.aba').forEach(el => el.classList.remove('ativa'));
-        document.querySelectorAll('.painel').forEach(el => el.classList.remove('ativo'));
-        event.target.classList.add('ativa');
-        document.getElementById('painel-' + aba).classList.add('ativo');
+    let escolaSelecionadaId = null;
+
+    function selecionarEscola(id) {
+        escolaSelecionadaId = id;
+        const e = escolasCache.find(x => x.id === id);
+        document.getElementById('escola-ctx-nome').textContent = e ? (e.sigla || e.nome) : '';
+        document.getElementById('escola-ctx-sigla').textContent = e ? e.nome : '';
+        document.getElementById('painel-escolas').style.display = 'none';
+        document.getElementById('painel-escola-contexto').style.display = 'block';
+        trocarSubAba('dashboard', document.querySelector('.sub-aba'));
+        carregarBaterias(id);
+        carregarAcessos(id);
+    }
+
+    function voltarParaEscolas() {
+        escolaSelecionadaId = null;
+        document.getElementById('painel-escola-contexto').style.display = 'none';
+        document.getElementById('painel-escolas').style.display = 'block';
+    }
+
+    function trocarSubAba(aba, el) {
+        document.querySelectorAll('.sub-aba').forEach(x => x.classList.remove('ativa'));
+        document.querySelectorAll('.sub-painel').forEach(x => { x.style.display = 'none'; x.classList.remove('ativo'); });
+        if (el) el.classList.add('ativa');
+        const painel = document.getElementById('sub-painel-' + aba);
+        if (painel) { painel.style.display = 'block'; painel.classList.add('ativo'); }
+    }
+
+    function editarEscolaAtual() {
+        if (escolaSelecionadaId) editarEscola(escolaSelecionadaId);
     }
 
     // ── TOAST ─────────────────────────────────────────────────────────
@@ -652,7 +720,7 @@
             return;
         }
         div.innerHTML = lista.map(e => `
-            <div class="item-card" style="cursor:pointer" onclick="verEscola('${e.id}')">
+            <div class="item-card" style="cursor:pointer" onclick="selecionarEscola('${e.id}')">
                 <div class="item-info">
                     <div class="item-nome">${e.sigla || e.nome}</div>
                     <div class="item-detalhe">${e.nome}</div>
@@ -828,10 +896,12 @@
         });
     }
 
-    async function carregarBaterias() {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?order=nome`, { headers });
+    async function carregarBaterias(escolaId) {
+        const filtro = escolaId ? `&escola_id=eq.${escolaId}` : '';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?order=nome${filtro}`, { headers });
         if (!res.ok) { renderizarListaBaterias([]); return; }
         const dados = await res.json();
+        bateriasCache = dados;
         renderizarListaBaterias(dados);
     }
 
@@ -874,7 +944,7 @@
         document.getElementById('modal-bateria-body').innerHTML = `
             <div class="form-grid">
                 <div class="campo campo-full"><label>Nome da Bateria *</label><input type="text" id="bateria-nome" placeholder="Ex: Swing da Leopoldina"></div>
-                <div class="campo campo-full"><label>Escola Vinculada *</label><select id="bateria-escola-id">${escolasOpcoesHTML()}</select></div>
+                <div class="campo campo-full"><label>Escola Vinculada *</label><select id="bateria-escola-id">${escolasOpcoesHTML(escolaSelecionadaId)}</select></div>
                 <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="bateria-logo" placeholder="https://..."></div>
                 <div class="campo campo-full"><label>Instagram</label><input type="text" id="bateria-instagram" placeholder="@swingdaleopoldina"></div>
                 <div class="campo campo-full"><label>Mestre de Bateria</label><input type="text" id="bateria-mestre" placeholder="Nome do mestre"></div>
@@ -960,7 +1030,7 @@
         if (res.ok) {
             mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
             fecharFormBateria();
-            carregarBaterias();
+            carregarBaterias(escolaSelecionadaId);
             carregarSelectBaterias();
         } else {
             const err = await res.json();
@@ -975,7 +1045,7 @@
         });
         if (res.ok) {
             mostrarToast(ativaAtual ? 'Bateria desativada.' : 'Bateria ativada!');
-            carregarBaterias();
+            carregarBaterias(escolaSelecionadaId);
         }
     }
 
@@ -1002,11 +1072,14 @@
         if (valAtual) sel.value = valAtual;
     }
 
-    async function carregarAcessos() {
-        const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&order=nome&select=id,nome,apelido,cpf,perfil,bateria_id,status`,
-            { headers }
-        );
+    async function carregarAcessos(escolaId) {
+        let url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&order=nome&select=id,nome,apelido,cpf,perfil,bateria_id,status`;
+        if (escolaId) {
+            const ids = bateriasCache.filter(b => b.escola_id === escolaId).map(b => b.id);
+            if (!ids.length) { renderizarListaAcessos([]); return; }
+            url += `&bateria_id=in.(${ids.join(',')})`;
+        }
+        const res = await fetch(url, { headers });
         if (!res.ok) { renderizarListaAcessos([]); return; }
         const dados = await res.json();
         renderizarListaAcessos(dados);
@@ -1191,7 +1264,7 @@
         if (res.ok) {
             mostrarToast(id ? 'Acesso atualizado!' : 'Acesso criado com sucesso!');
             fecharFormAcesso();
-            carregarAcessos();
+            carregarAcessos(escolaSelecionadaId);
         } else {
             const err = await res.json();
             mostrarToast('Erro: ' + (err.message || res.status), 'erro');
@@ -1209,8 +1282,6 @@
         await carregarSelectEscolas();
         await carregarSelectBaterias();
         carregarEscolas();
-        carregarBaterias();
-        carregarAcessos();
     }
 
     init();
