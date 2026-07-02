@@ -352,6 +352,72 @@
             .ficha-grid { grid-template-columns: 1fr; }
             .modal-acoes-ficha { gap: 6px; }
         }
+
+        /* MODAL MEU PERFIL */
+        #modalMeuPerfil .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 2000;
+            display: flex; align-items: flex-start; justify-content: center;
+            padding: 24px 16px 40px; overflow-y: auto;
+        }
+        #modalMeuPerfil .modal-box {
+            background: #fff; border-radius: 20px; padding: 28px 28px;
+            width: 100%; max-width: 520px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+        }
+        #modalMeuPerfil .modal-titulo {
+            font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 20px;
+        }
+        #modalMeuPerfil .mp-secao-header {
+            display: flex; align-items: center; gap: 10px; margin: 20px 0 12px;
+        }
+        #modalMeuPerfil .mp-secao-titulo {
+            font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; color: #5a5770; white-space: nowrap;
+        }
+        #modalMeuPerfil .mp-linha { flex: 1; height: 1px; background: #D4AF37; opacity: 0.35; }
+        #modalMeuPerfil .mp-campo { margin-bottom: 12px; }
+        #modalMeuPerfil .mp-campo label {
+            display: block; font-size: 11px; font-weight: 600; color: #5a5770;
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+        }
+        #modalMeuPerfil .mp-campo input,
+        #modalMeuPerfil .mp-campo select {
+            width: 100%; border: 1.5px solid #e8e6f0; border-radius: 10px;
+            padding: 9px 12px; font-size: 13px; color: #12101a;
+            font-family: inherit; background: #fff;
+            transition: border-color 0.15s; -webkit-appearance: none;
+        }
+        #modalMeuPerfil .mp-campo input:focus,
+        #modalMeuPerfil .mp-campo select:focus { outline: none; border-color: #D4AF37; }
+        #modalMeuPerfil .mp-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        #modalMeuPerfil .mp-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        #modalMeuPerfil .mp-foto-area { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
+        #modalMeuPerfil .mp-foto-circle {
+            width: 80px; height: 80px; border-radius: 50%; border: 2px dashed #D4AF37;
+            overflow: hidden; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; background: #f7f6fb; flex-shrink: 0;
+        }
+        #modalMeuPerfil .mp-foto-circle img { width: 100%; height: 100%; object-fit: cover; }
+        #modalMeuPerfil .mp-foto-hint { font-size: 11px; color: #8b88a0; }
+        #modalMeuPerfil .mp-acoes { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+        #modalMeuPerfil .mp-btn-cancelar {
+            background: transparent; border: 1.5px solid #e8e6f0; color: #5a5770;
+            padding: 10px 20px; border-radius: 10px; cursor: pointer;
+            font-size: 13px; font-weight: 600; font-family: inherit;
+        }
+        #modalMeuPerfil .mp-btn-salvar {
+            background: #D4AF37; border: none; color: #12101a;
+            padding: 10px 24px; border-radius: 10px; cursor: pointer;
+            font-size: 13px; font-weight: 700; font-family: inherit;
+        }
+        #modalMeuPerfil .mp-btn-salvar:hover { background: #B8922A; }
+        #modalMeuPerfil .mp-btn-salvar:disabled { background: #e8e6f0; color: #8b88a0; cursor: not-allowed; }
+        #modalMeuPerfil .mp-mensagem {
+            border-radius: 8px; padding: 10px 14px; font-size: 12px;
+            font-weight: 600; margin-bottom: 12px; display: none;
+        }
+        #modalMeuPerfil .mp-mensagem.erro { background: #fde8e8; color: #b3261e; display: block; }
+        #modalMeuPerfil .mp-mensagem.sucesso { background: #e8f5e8; color: #1f4d1f; display: block; }
     </style>
 </head>
 <body>
@@ -368,7 +434,11 @@
         <div class="header-badge" id="headerBateria"></div>
     </div>
     <div class="header-acoes">
-        <span class="header-user" id="headerNome"></span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;">
+            <span class="header-user" id="headerNome"></span>
+            <span id="headerCargo" style="font-size:10px;color:rgba(212,175,55,0.6);letter-spacing:0.5px;text-transform:uppercase;"></span>
+        </div>
+        <button onclick="abrirMeuPerfil()" style="background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);padding:5px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">Meu perfil</button>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
@@ -1072,13 +1142,13 @@
     }
 
     function iniciarUsuario() {
-        const diretor = JSON.parse(localStorage.getItem('diretor') || 'null');
-        const nome = diretor?.nome || 'Diretor';
-        document.getElementById('headerNome').textContent = nome;
-        // Se diretor tiver instrumentos definidos, restringe; caso contrário mostra todos
-        if (diretor?.instrumentos && diretor.instrumentos.length > 0) {
-            instrumentosDiretor = diretor.instrumentos;
-        }
+        const usuario = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        if (!usuario) { window.location.href = 'login.html'; return; }
+        document.getElementById('headerNome').textContent = usuario.nome || 'Admin';
+        const perfil = usuario.perfil || '';
+        const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria'
+            : perfil === 'diretor' ? 'Diretor' : '';
+        document.getElementById('headerCargo').textContent = cargoLabel;
         construirMultiSelect();
         aplicarConfigEscola();
     }
@@ -1228,6 +1298,214 @@
 
     iniciarUsuario();
     carregarRitmistas();
+</script>
+
+<!-- MODAL MEU PERFIL -->
+<div id="modalMeuPerfil" style="display:none;">
+<div class="modal-overlay" onclick="if(event.target===this)fecharMeuPerfil()">
+<div class="modal-box">
+    <div class="modal-titulo">Meu perfil</div>
+    <div class="mp-mensagem" id="mpMensagem"></div>
+
+    <!-- Foto -->
+    <div class="mp-secao-header"><div class="mp-secao-titulo">Foto</div><div class="mp-linha"></div></div>
+    <div class="mp-foto-area">
+        <div class="mp-foto-circle" id="mpFotoCircle" onclick="document.getElementById('mpInputFoto').click()">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+        <input type="file" id="mpInputFoto" accept="image/*" style="display:none" onchange="mpPreviewFoto(this)">
+        <div>
+            <button type="button" onclick="document.getElementById('mpInputFoto').click()" style="background:#f7f6fb;border:1.5px solid #e8e6f0;color:#5a5770;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;">📷 Trocar foto</button>
+            <div class="mp-foto-hint" style="margin-top:6px;">Clique no círculo ou no botão</div>
+        </div>
+    </div>
+
+    <!-- Contato -->
+    <div class="mp-secao-header"><div class="mp-secao-titulo">Dados de contato</div><div class="mp-linha"></div></div>
+    <div class="mp-campo"><label>E-mail</label><input type="email" id="mpEmail" placeholder="seuemail@exemplo.com"></div>
+    <div class="mp-row-2">
+        <div class="mp-campo"><label>Celular</label><input type="tel" id="mpCelular" placeholder="(21) 99999-9999"></div>
+        <div class="mp-campo"><label>Data de nascimento</label><input type="date" id="mpNascimento"></div>
+    </div>
+
+    <!-- Endereço -->
+    <div class="mp-secao-header"><div class="mp-secao-titulo">Endereço</div><div class="mp-linha"></div></div>
+    <div class="mp-campo"><label>Endereço</label><input type="text" id="mpEndereco" placeholder="Rua das Flores"></div>
+    <div class="mp-row-2">
+        <div class="mp-campo"><label>Número</label><input type="text" id="mpNumero" placeholder="123"></div>
+        <div class="mp-campo"><label>Complemento</label><input type="text" id="mpComplemento" placeholder="Apto 4B"></div>
+    </div>
+    <div class="mp-campo"><label>Bairro</label><input type="text" id="mpBairro" placeholder="Centro"></div>
+    <div class="mp-row-2">
+        <div class="mp-campo"><label>Cidade</label><input type="text" id="mpCidade" placeholder="Rio de Janeiro"></div>
+        <div class="mp-campo"><label>Estado</label>
+            <select id="mpEstado">
+                <option value="">UF</option>
+                <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                <option>SP</option><option>SE</option><option>TO</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Medidas -->
+    <div class="mp-secao-header"><div class="mp-secao-titulo">Medidas</div><div class="mp-linha"></div></div>
+    <div class="mp-row-3">
+        <div class="mp-campo"><label>Camisa</label>
+            <select id="mpCamisa"><option value="">—</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option><option>XGG</option><option>Momo</option><option>Outro</option></select>
+        </div>
+        <div class="mp-campo"><label>Fantasia</label>
+            <select id="mpFantasia"><option value="">—</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option><option>XGG</option><option>Momo</option><option>Outro</option></select>
+        </div>
+        <div class="mp-campo"><label>Sapato</label>
+            <select id="mpSapato"><option value="">—</option><option>33</option><option>34</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option><option>46</option><option>47</option><option>48</option><option>Outro</option></select>
+        </div>
+    </div>
+
+    <!-- Emergência -->
+    <div class="mp-secao-header"><div class="mp-secao-titulo">Contato de emergência</div><div class="mp-linha"></div></div>
+    <div class="mp-campo"><label>Nome do contato</label><input type="text" id="mpEmergenciaNome" placeholder="Maria da Silva"></div>
+    <div class="mp-row-2">
+        <div class="mp-campo"><label>Parentesco</label><input type="text" id="mpEmergenciaParentesco" placeholder="Mãe, Irmão..."></div>
+        <div class="mp-campo"><label>Celular</label><input type="tel" id="mpEmergenciaCelular" placeholder="(21) 99999-9999"></div>
+    </div>
+
+    <div class="mp-acoes">
+        <button class="mp-btn-cancelar" onclick="fecharMeuPerfil()">Cancelar</button>
+        <button class="mp-btn-salvar" id="mpBtnSalvar" onclick="salvarMeuPerfil()">Salvar alterações</button>
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+    let mpFotoBase64 = null;
+
+    function abrirMeuPerfil() {
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        if (!u) return;
+        mpFotoBase64 = null;
+
+        // Preenche foto
+        const circle = document.getElementById('mpFotoCircle');
+        if (u.foto_url) {
+            circle.innerHTML = `<img src="${u.foto_url}">`;
+        } else {
+            circle.innerHTML = `<svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
+        }
+
+        // Preenche campos
+        document.getElementById('mpEmail').value = u.email || '';
+        document.getElementById('mpCelular').value = u.celular || '';
+        document.getElementById('mpNascimento').value = u.nascimento || '';
+        document.getElementById('mpEndereco').value = u.endereco || '';
+        document.getElementById('mpNumero').value = u.numero || '';
+        document.getElementById('mpComplemento').value = u.complemento || '';
+        document.getElementById('mpBairro').value = u.bairro || '';
+        document.getElementById('mpCidade').value = u.cidade || '';
+        document.getElementById('mpEstado').value = u.estado || '';
+        document.getElementById('mpCamisa').value = u.tamanho_camisa || '';
+        document.getElementById('mpFantasia').value = u.tamanho_fantasia || '';
+        document.getElementById('mpSapato').value = u.tamanho_sapato || '';
+        document.getElementById('mpEmergenciaNome').value = u.emergencia_nome || '';
+        document.getElementById('mpEmergenciaParentesco').value = u.emergencia_parentesco || '';
+        document.getElementById('mpEmergenciaCelular').value = u.emergencia_celular || '';
+
+        document.getElementById('mpMensagem').className = 'mp-mensagem';
+        document.getElementById('mpMensagem').textContent = '';
+        document.getElementById('modalMeuPerfil').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function fecharMeuPerfil() {
+        document.getElementById('modalMeuPerfil').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function mpPreviewFoto(input) {
+        if (!input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const SIZE = 300;
+                canvas.width = SIZE; canvas.height = SIZE;
+                const ctx = canvas.getContext('2d');
+                const side = Math.min(img.width, img.height);
+                const sx = (img.width - side) / 2;
+                const sy = (img.height - side) / 2;
+                ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+                mpFotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                document.getElementById('mpFotoCircle').innerHTML = `<img src="${mpFotoBase64}">`;
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    async function salvarMeuPerfil() {
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        if (!u) return;
+
+        const btn = document.getElementById('mpBtnSalvar');
+        btn.disabled = true; btn.textContent = 'Salvando...';
+
+        const dados = {
+            email: document.getElementById('mpEmail').value.trim() || null,
+            celular: document.getElementById('mpCelular').value.trim() || null,
+            nascimento: document.getElementById('mpNascimento').value || null,
+            endereco: document.getElementById('mpEndereco').value.trim() || null,
+            numero: document.getElementById('mpNumero').value.trim() || null,
+            complemento: document.getElementById('mpComplemento').value.trim() || null,
+            bairro: document.getElementById('mpBairro').value.trim() || null,
+            cidade: document.getElementById('mpCidade').value.trim() || null,
+            estado: document.getElementById('mpEstado').value || null,
+            tamanho_camisa: document.getElementById('mpCamisa').value || null,
+            tamanho_fantasia: document.getElementById('mpFantasia').value || null,
+            tamanho_sapato: document.getElementById('mpSapato').value || null,
+            emergencia_nome: document.getElementById('mpEmergenciaNome').value.trim() || null,
+            emergencia_parentesco: document.getElementById('mpEmergenciaParentesco').value.trim() || null,
+            emergencia_celular: document.getElementById('mpEmergenciaCelular').value.trim() || null,
+            cadastro_completo: true,
+        };
+        if (mpFotoBase64) dados.foto_url = mpFotoBase64;
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${u.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Prefer': 'return=representation',
+            },
+            body: JSON.stringify(dados),
+        });
+
+        if (res.ok) {
+            const atualizado = await res.json();
+            const novosDados = (atualizado && atualizado[0]) ? atualizado[0] : { ...u, ...dados };
+            localStorage.setItem('ritmista', JSON.stringify(novosDados));
+            const mpMsg = document.getElementById('mpMensagem');
+            mpMsg.className = 'mp-mensagem sucesso';
+            mpMsg.textContent = 'Perfil atualizado com sucesso!';
+            // Atualiza foto no header se mudou
+            if (mpFotoBase64) {
+                const initEl = document.getElementById('headerInicial');
+                if (initEl) initEl.textContent = (novosDados.nome || 'A')[0].toUpperCase();
+            }
+            setTimeout(fecharMeuPerfil, 1500);
+        } else {
+            const mpMsg = document.getElementById('mpMensagem');
+            mpMsg.className = 'mp-mensagem erro';
+            mpMsg.textContent = 'Erro ao salvar. Tente novamente.';
+        }
+        btn.disabled = false; btn.textContent = 'Salvar alterações';
+    }
 </script>
 </body>
 </html>

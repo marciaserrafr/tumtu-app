@@ -93,7 +93,7 @@
                                 <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
                             </svg>
                         </div>
-                        <div class="c-role">Ritmista</div>
+                        <div class="c-role" id="cRole">Ritmista</div>
                     </div>
 
                     <div class="c-identidade">
@@ -189,6 +189,13 @@
     if (!ritmista) {
         window.location.href = 'login.html';
     } else {
+        // Label de cargo
+        const perfil = ritmista.perfil || 'ritmista';
+        const labelCargo = perfil === 'mestre' ? 'Mestre de Bateria'
+            : perfil === 'diretor' ? 'Diretor'
+            : 'Ritmista';
+        document.getElementById('cRole').textContent = labelCargo;
+
         // Nome
         const nomeEl = document.getElementById('nomeRitmista');
         nomeEl.textContent = ritmista.nome;

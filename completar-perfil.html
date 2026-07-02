@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete seu perfil — TuTTi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, input, select, textarea { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #12101a;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 20px 60px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 36px 32px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 800;
+            color: #12101a;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+        .logo .tt { color: #D4AF37; }
+
+        .subtitulo {
+            text-align: center;
+            font-size: 13px;
+            color: #8b88a0;
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+        .subtitulo strong { color: #5a5770; }
+
+        .secao {
+            margin-bottom: 28px;
+        }
+        .secao-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .secao-titulo {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #5a5770;
+            white-space: nowrap;
+        }
+        .secao-linha {
+            flex: 1;
+            height: 1px;
+            background: #D4AF37;
+            opacity: 0.4;
+        }
+
+        .foto-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .foto-preview {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 2px dashed #D4AF37;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+            background: #f7f6fb;
+            transition: border-color 0.2s;
+        }
+        .foto-preview:hover { border-color: #B8922A; }
+        .foto-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .foto-preview .foto-hint {
+            font-size: 11px;
+            color: #8b88a0;
+            text-align: center;
+            padding: 12px;
+            line-height: 1.4;
+        }
+        .btn-foto {
+            background: #f7f6fb;
+            border: 1.5px solid #e8e6f0;
+            color: #5a5770;
+            padding: 7px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .btn-foto:hover { background: #eeedf6; }
+        .foto-opcional {
+            font-size: 11px;
+            color: #8b88a0;
+        }
+
+        .campo {
+            margin-bottom: 14px;
+        }
+        .campo label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #5a5770;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        .campo input,
+        .campo select {
+            width: 100%;
+            border: 1.5px solid #e8e6f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: #12101a;
+            background: #ffffff;
+            transition: border-color 0.15s;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .campo input:focus,
+        .campo select:focus {
+            outline: none;
+            border-color: #D4AF37;
+        }
+        .campo input::placeholder { color: #c0bdd0; }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .campo-erro {
+            font-size: 11px;
+            color: #b3261e;
+            margin-top: 3px;
+            display: none;
+        }
+
+        #mensagem {
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: none;
+        }
+        #mensagem.erro { background: #fde8e8; color: #b3261e; display: block; }
+        #mensagem.sucesso { background: #e8f5e8; color: #1f4d1f; display: block; }
+
+        .btn-salvar {
+            width: 100%;
+            background: #D4AF37;
+            color: #12101a;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-top: 8px;
+        }
+        .btn-salvar:hover { background: #B8922A; }
+        .btn-salvar:disabled { background: #e8e6f0; color: #8b88a0; cursor: not-allowed; }
+
+        .rodape-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 12px;
+            color: #8b88a0;
+        }
+        .rodape-link a {
+            color: #D4AF37;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+
+    <div class="logo">Tu<span class="tt">TT</span>i</div>
+    <p class="subtitulo">Complete seu perfil para entrar no painel.<br><strong>Você só precisa fazer isso uma vez.</strong></p>
+
+    <div id="mensagem"></div>
+
+    <!-- FOTO -->
+    <div class="secao">
+        <div class="secao-header">
+            <div class="secao-titulo">Foto</div>
+            <div class="secao-linha"></div>
+        </div>
+        <div class="foto-area">
+            <div class="foto-preview" id="fotoPreview" onclick="document.getElementById('inputFoto').click()">
+                <div class="foto-hint">Clique para adicionar foto</div>
+            </div>
+            <input type="file" id="inputFoto" accept="image/*" style="display:none" onchange="previewFoto(this)">
+            <button class="btn-foto" type="button" onclick="document.getElementById('inputFoto').click()">📷 Escolher foto</button>
+            <span class="foto-opcional">Opcional — pode adicionar depois em Meu perfil</span>
+        </div>
+    </div>
+
+    <!-- DADOS DE CONTATO -->
+    <div class="secao">
+        <div class="secao-header">
+            <div class="secao-titulo">Dados de contato</div>
+            <div class="secao-linha"></div>
+        </div>
+        <div class="campo">
+            <label>E-mail</label>
+            <input type="email" id="email" placeholder="seuemail@exemplo.com">
+        </div>
+        <div class="row-2">
+            <div class="campo">
+                <label>Celular <span style="color:#b3261e">*</span></label>
+                <input type="tel" id="celular" placeholder="(21) 99999-9999" required>
+            </div>
+            <div class="campo">
+                <label>Data de nascimento <span style="color:#b3261e">*</span></label>
+                <input type="date" id="nascimento" required>
+            </div>
+        </div>
+    </div>
+
+    <!-- ENDEREÇO -->
+    <div class="secao">
+        <div class="secao-header">
+            <div class="secao-titulo">Endereço</div>
+            <div class="secao-linha"></div>
+        </div>
+        <div class="campo">
+            <label>Endereço (rua / avenida) <span style="color:#b3261e">*</span></label>
+            <input type="text" id="endereco" placeholder="Rua das Flores" required>
+        </div>
+        <div class="row-2">
+            <div class="campo">
+                <label>Número <span style="color:#b3261e">*</span></label>
+                <input type="text" id="numero" placeholder="123" required>
+            </div>
+            <div class="campo">
+                <label>Complemento</label>
+                <input type="text" id="complemento" placeholder="Apto 4B">
+            </div>
+        </div>
+        <div class="campo">
+            <label>Bairro <span style="color:#b3261e">*</span></label>
+            <input type="text" id="bairro" placeholder="Centro" required>
+        </div>
+        <div class="row-2">
+            <div class="campo">
+                <label>Cidade <span style="color:#b3261e">*</span></label>
+                <input type="text" id="cidade" placeholder="Rio de Janeiro" required>
+            </div>
+            <div class="campo">
+                <label>Estado <span style="color:#b3261e">*</span></label>
+                <select id="estado" required>
+                    <option value="">UF</option>
+                    <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                    <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                    <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                    <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                    <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                    <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                    <option>SP</option><option>SE</option><option>TO</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- MEDIDAS -->
+    <div class="secao">
+        <div class="secao-header">
+            <div class="secao-titulo">Medidas</div>
+            <div class="secao-linha"></div>
+        </div>
+        <div class="row-3">
+            <div class="campo">
+                <label>Camisa</label>
+                <select id="tamanho_camisa">
+                    <option value="">—</option>
+                    <option>P</option><option>M</option><option>G</option>
+                    <option>GG</option><option>XG</option><option>XGG</option>
+                    <option>Momo</option><option>Outro</option>
+                </select>
+            </div>
+            <div class="campo">
+                <label>Fantasia</label>
+                <select id="tamanho_fantasia">
+                    <option value="">—</option>
+                    <option>P</option><option>M</option><option>G</option>
+                    <option>GG</option><option>XG</option><option>XGG</option>
+                    <option>Momo</option><option>Outro</option>
+                </select>
+            </div>
+            <div class="campo">
+                <label>Sapato</label>
+                <select id="tamanho_sapato">
+                    <option value="">—</option>
+                    <option>33</option><option>34</option><option>35</option>
+                    <option>36</option><option>37</option><option>38</option>
+                    <option>39</option><option>40</option><option>41</option>
+                    <option>42</option><option>43</option><option>44</option>
+                    <option>45</option><option>46</option><option>47</option>
+                    <option>48</option><option>Outro</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTATO DE EMERGÊNCIA -->
+    <div class="secao">
+        <div class="secao-header">
+            <div class="secao-titulo">Contato de emergência</div>
+            <div class="secao-linha"></div>
+        </div>
+        <div class="campo">
+            <label>Nome do contato <span style="color:#b3261e">*</span></label>
+            <input type="text" id="emergencia_nome" placeholder="Maria da Silva" required>
+        </div>
+        <div class="row-2">
+            <div class="campo">
+                <label>Parentesco <span style="color:#b3261e">*</span></label>
+                <input type="text" id="emergencia_parentesco" placeholder="Mãe, Irmão..." required>
+            </div>
+            <div class="campo">
+                <label>Celular <span style="color:#b3261e">*</span></label>
+                <input type="tel" id="emergencia_celular" placeholder="(21) 99999-9999" required>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-salvar" id="btnSalvar" onclick="salvar()">Salvar e entrar no painel</button>
+
+    <div class="rodape-link">
+        Preferir preencher depois? <a href="#" onclick="pularPorAgora()">Entrar sem completar</a>
+    </div>
+
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
+
+    let fotoBase64 = null;
+
+    const usuario = JSON.parse(localStorage.getItem('ritmista') || 'null');
+    if (!usuario || (usuario.perfil !== 'mestre' && usuario.perfil !== 'diretor')) {
+        window.location.href = 'login.html';
+    }
+
+    function previewFoto(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const SIZE = 300;
+                canvas.width = SIZE;
+                canvas.height = SIZE;
+                const ctx = canvas.getContext('2d');
+                const side = Math.min(img.width, img.height);
+                const sx = (img.width - side) / 2;
+                const sy = (img.height - side) / 2;
+                ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+                fotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                const preview = document.getElementById('fotoPreview');
+                preview.innerHTML = `<img src="${fotoBase64}">`;
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function mostrarMensagem(texto, tipo) {
+        const el = document.getElementById('mensagem');
+        el.className = tipo;
+        el.textContent = texto;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function salvar() {
+        const celular = document.getElementById('celular').value.trim();
+        const nascimento = document.getElementById('nascimento').value;
+        const endereco = document.getElementById('endereco').value.trim();
+        const numero = document.getElementById('numero').value.trim();
+        const bairro = document.getElementById('bairro').value.trim();
+        const cidade = document.getElementById('cidade').value.trim();
+        const estado = document.getElementById('estado').value;
+        const emergencia_nome = document.getElementById('emergencia_nome').value.trim();
+        const emergencia_parentesco = document.getElementById('emergencia_parentesco').value.trim();
+        const emergencia_celular = document.getElementById('emergencia_celular').value.trim();
+
+        const obrigatorios = [
+            { val: celular, nome: 'Celular' },
+            { val: nascimento, nome: 'Data de nascimento' },
+            { val: endereco, nome: 'Endereço' },
+            { val: numero, nome: 'Número' },
+            { val: bairro, nome: 'Bairro' },
+            { val: cidade, nome: 'Cidade' },
+            { val: estado, nome: 'Estado' },
+            { val: emergencia_nome, nome: 'Nome do contato de emergência' },
+            { val: emergencia_parentesco, nome: 'Parentesco' },
+            { val: emergencia_celular, nome: 'Celular do contato de emergência' },
+        ];
+        const faltando = obrigatorios.filter(f => !f.val).map(f => f.nome);
+        if (faltando.length > 0) {
+            mostrarMensagem('Preencha os campos obrigatórios: ' + faltando.join(', '), 'erro');
+            return;
+        }
+
+        const btn = document.getElementById('btnSalvar');
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
+
+        const dados = {
+            email: document.getElementById('email').value.trim() || null,
+            celular,
+            nascimento,
+            endereco,
+            numero,
+            complemento: document.getElementById('complemento').value.trim() || null,
+            bairro,
+            cidade,
+            estado,
+            tamanho_camisa: document.getElementById('tamanho_camisa').value || null,
+            tamanho_fantasia: document.getElementById('tamanho_fantasia').value || null,
+            tamanho_sapato: document.getElementById('tamanho_sapato').value || null,
+            emergencia_nome,
+            emergencia_parentesco,
+            emergencia_celular,
+            cadastro_completo: true,
+        };
+        if (fotoBase64) dados.foto_url = fotoBase64;
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${usuario.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Prefer': 'return=representation',
+            },
+            body: JSON.stringify(dados),
+        });
+
+        if (res.ok) {
+            const atualizado = await res.json();
+            if (atualizado && atualizado[0]) {
+                localStorage.setItem('ritmista', JSON.stringify(atualizado[0]));
+            } else {
+                localStorage.setItem('ritmista', JSON.stringify({ ...usuario, ...dados }));
+            }
+            window.location.href = 'admin.html';
+        } else {
+            const erro = await res.text();
+            mostrarMensagem('Erro ao salvar. Tente novamente.', 'erro');
+            console.error(erro);
+            btn.disabled = false;
+            btn.textContent = 'Salvar e entrar no painel';
+        }
+    }
+
+    function pularPorAgora() {
+        window.location.href = 'admin.html';
+    }
+</script>
+</body>
+</html>

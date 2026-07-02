@@ -171,7 +171,11 @@
         localStorage.setItem('ritmista', JSON.stringify(ritmista));
 
         if (perfil === 'mestre' || perfil === 'diretor') {
-            window.location.href = 'admin.html';
+            if (!ritmista.cadastro_completo) {
+                window.location.href = 'completar-perfil.html';
+            } else {
+                window.location.href = 'admin.html';
+            }
         } else if (perfil === 'super_admin') {
             window.location.href = 'super-admin.html';
         } else {
