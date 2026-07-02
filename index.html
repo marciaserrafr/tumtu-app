@@ -529,6 +529,9 @@
     document.getElementById('formCadastro').addEventListener('submit', async (e) => {
         e.preventDefault();
         limparErros();
+        const btnSubmit = document.querySelector('#formCadastro button[type="submit"]') || document.querySelector('button[type="submit"]');
+        if (btnSubmit && btnSubmit.disabled) return;
+        if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Enviando...'; }
 
         const cpf = document.getElementById('cpf').value.trim();
         const email = document.getElementById('email').value.trim();
@@ -600,8 +603,10 @@
             mostrarMensagem('Cadastro enviado com sucesso! Aguarde a aprovação da diretoria.', 'sucesso');
             document.getElementById('formCadastro').reset();
             document.querySelector('.foto-preview').innerHTML = '<span>Clique para adicionar foto</span>';
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
         } else {
             mostrarMensagem('Erro ao enviar cadastro. Tente novamente.', 'erro');
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
         }
     });
 </script>
