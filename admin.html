@@ -43,12 +43,12 @@
         }
         .aba-btn {
             padding: 14px 20px; background: none; border: none; cursor: pointer;
-            font-size: 13px; font-weight: 600; color: #888;
+            font-size: 13px; font-weight: 500; color: #5a5770;
             border-bottom: 2px solid transparent; margin-bottom: -2px;
             transition: color 0.15s; white-space: nowrap;
         }
-        .aba-btn:hover { color: #0f172a; }
-        .aba-btn.ativa { color: #0f172a; border-bottom-color: #12101a; }
+        .aba-btn:hover { color: #12101a; }
+        .aba-btn.ativa { color: #12101a; border-bottom-color: #12101a; }
         .painel { display: none; }
         .painel.ativo { display: block; }
 
@@ -353,71 +353,88 @@
             .modal-acoes-ficha { gap: 6px; }
         }
 
-        /* MODAL MEU PERFIL */
-        #modalMeuPerfil .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 2000;
-            display: flex; align-items: flex-start; justify-content: center;
-            padding: 24px 16px 40px; overflow-y: auto;
-        }
-        #modalMeuPerfil .modal-box {
-            background: #fff; border-radius: 20px; padding: 28px 28px;
-            width: 100%; max-width: 520px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.25);
-        }
-        #modalMeuPerfil .modal-titulo {
-            font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 20px;
-        }
-        #modalMeuPerfil .mp-secao-header {
-            display: flex; align-items: center; gap: 10px; margin: 20px 0 12px;
-        }
-        #modalMeuPerfil .mp-secao-titulo {
-            font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-            text-transform: uppercase; color: #5a5770; white-space: nowrap;
-        }
-        #modalMeuPerfil .mp-linha { flex: 1; height: 1px; background: #D4AF37; opacity: 0.35; }
-        #modalMeuPerfil .mp-campo { margin-bottom: 12px; }
-        #modalMeuPerfil .mp-campo label {
-            display: block; font-size: 11px; font-weight: 600; color: #5a5770;
-            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
-        }
-        #modalMeuPerfil .mp-campo input,
-        #modalMeuPerfil .mp-campo select {
+        /* MEU PERFIL (inline na aba) */
+        .mp-secao-header { display: flex; align-items: center; gap: 10px; margin: 20px 0 12px; }
+        .mp-secao-titulo { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #5a5770; white-space: nowrap; }
+        .mp-linha { flex: 1; height: 1px; background: #D4AF37; opacity: 0.35; }
+        .mp-campo { margin-bottom: 12px; }
+        .mp-campo label { display: block; font-size: 11px; font-weight: 600; color: #5a5770; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .mp-campo input, .mp-campo select {
             width: 100%; border: 1.5px solid #e8e6f0; border-radius: 10px;
             padding: 9px 12px; font-size: 13px; color: #12101a;
             font-family: inherit; background: #fff;
             transition: border-color 0.15s; -webkit-appearance: none;
         }
-        #modalMeuPerfil .mp-campo input:focus,
-        #modalMeuPerfil .mp-campo select:focus { outline: none; border-color: #D4AF37; }
-        #modalMeuPerfil .mp-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        #modalMeuPerfil .mp-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        #modalMeuPerfil .mp-foto-area { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
-        #modalMeuPerfil .mp-foto-circle {
+        .mp-campo input:focus, .mp-campo select:focus { outline: none; border-color: #D4AF37; }
+        .mp-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .mp-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .mp-foto-area { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
+        .mp-foto-circle {
             width: 80px; height: 80px; border-radius: 50%; border: 2px dashed #D4AF37;
             overflow: hidden; cursor: pointer; display: flex; align-items: center;
             justify-content: center; background: #f7f6fb; flex-shrink: 0;
         }
-        #modalMeuPerfil .mp-foto-circle img { width: 100%; height: 100%; object-fit: cover; }
-        #modalMeuPerfil .mp-foto-hint { font-size: 11px; color: #8b88a0; }
-        #modalMeuPerfil .mp-acoes { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
-        #modalMeuPerfil .mp-btn-cancelar {
-            background: transparent; border: 1.5px solid #e8e6f0; color: #5a5770;
-            padding: 10px 20px; border-radius: 10px; cursor: pointer;
-            font-size: 13px; font-weight: 600; font-family: inherit;
-        }
-        #modalMeuPerfil .mp-btn-salvar {
+        .mp-foto-circle img { width: 100%; height: 100%; object-fit: cover; }
+        .mp-foto-hint { font-size: 11px; color: #8b88a0; }
+        .mp-acoes { display: flex; gap: 10px; justify-content: flex-start; margin-top: 24px; }
+        .mp-btn-salvar {
             background: #D4AF37; border: none; color: #12101a;
             padding: 10px 24px; border-radius: 10px; cursor: pointer;
             font-size: 13px; font-weight: 700; font-family: inherit;
         }
-        #modalMeuPerfil .mp-btn-salvar:hover { background: #B8922A; }
-        #modalMeuPerfil .mp-btn-salvar:disabled { background: #e8e6f0; color: #8b88a0; cursor: not-allowed; }
-        #modalMeuPerfil .mp-mensagem {
+        .mp-btn-salvar:hover { background: #B8922A; }
+        .mp-btn-salvar:disabled { background: #e8e6f0; color: #8b88a0; cursor: not-allowed; }
+        .mp-mensagem {
             border-radius: 8px; padding: 10px 14px; font-size: 12px;
             font-weight: 600; margin-bottom: 12px; display: none;
         }
-        #modalMeuPerfil .mp-mensagem.erro { background: #fde8e8; color: #b3261e; display: block; }
-        #modalMeuPerfil .mp-mensagem.sucesso { background: #e8f5e8; color: #1f4d1f; display: block; }
+        .mp-mensagem.erro { background: #fde8e8; color: #b3261e; display: block; }
+        .mp-mensagem.sucesso { background: #e8f5e8; color: #1f4d1f; display: block; }
+        .mp-superadmin-aviso {
+            background: #f7f6fb; border: 1px solid #e8e6f0; border-radius: 12px;
+            padding: 24px; text-align: center; color: #8b88a0; font-size: 13px; margin-top: 8px;
+        }
+        .mp-superadmin-aviso strong { display: block; font-size: 15px; color: #5a5770; margin-bottom: 6px; }
+
+        /* DIRETORIA */
+        .dir-card {
+            background: white; border-radius: 12px; padding: 16px 18px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07); border-left: 3px solid #D4AF37;
+            margin-bottom: 10px; cursor: pointer; transition: box-shadow 0.15s;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .dir-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.12); }
+        .dir-foto {
+            width: 44px; height: 44px; border-radius: 50%; background: #f7f6fb;
+            border: 2px solid #e8e6f0; overflow: hidden; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #8b88a0;
+        }
+        .dir-foto img { width: 100%; height: 100%; object-fit: cover; }
+        .dir-info { flex: 1; min-width: 0; }
+        .dir-nome { font-size: 14px; font-weight: 700; color: #12101a; }
+        .dir-apelido { font-size: 13px; font-weight: 700; color: #D4AF37; }
+        .dir-meta { font-size: 12px; color: #8b88a0; margin-top: 4px; }
+        .dir-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+        .dir-badge-cargo { background: #e8e6f0; color: #5a5770; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+        .dir-badge-ativo { background: #e8f5e8; color: #1f4d1f; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+        .dir-badge-inativo { background: #f5f5f5; color: #757575; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+        /* Modal ficha de admin (Diretoria) */
+        .modal-admin-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000;
+            display: flex; align-items: flex-start; justify-content: center;
+            padding: 24px 16px 40px; overflow-y: auto;
+        }
+        .modal-admin-box {
+            background: #fff; border-radius: 20px; padding: 28px;
+            width: 100%; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+        }
+        .modal-admin-titulo { font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 4px; }
+        .modal-admin-sub { font-size: 13px; color: #8b88a0; margin-bottom: 20px; }
+        .modal-admin-campo { display: flex; flex-direction: column; margin-bottom: 12px; }
+        .modal-admin-campo span { font-size: 11px; font-weight: 600; color: #8b88a0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .modal-admin-campo strong { font-size: 14px; color: #12101a; margin-top: 2px; }
+        .modal-admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+        .modal-admin-acoes { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid #f0f0f0; padding-top: 16px; }
     </style>
 </head>
 <body>
@@ -438,22 +455,24 @@
             <span class="header-user" id="headerNome"></span>
             <span id="headerCargo" style="font-size:10px;color:rgba(212,175,55,0.6);letter-spacing:0.5px;text-transform:uppercase;"></span>
         </div>
-        <button onclick="abrirMeuPerfil()" style="background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);padding:5px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">Meu perfil</button>
+        <button onclick="irParaMeuPerfil()" style="background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);padding:5px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">Meu perfil</button>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
 
 <!-- NAV ABAS -->
 <nav class="nav-abas">
-    <button class="aba-btn ativa" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
-    <button class="aba-btn" onclick="trocarAba('vagas', this)">Vagas</button>
-    <button class="aba-btn" onclick="trocarAba('visao', this)">Visão Geral</button>
+    <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)">Visão Geral</button>
+    <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
+    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)">Diretoria</button>
+    <button class="aba-btn" data-aba="vagas" onclick="trocarAba('vagas', this)">Vagas</button>
+    <button class="aba-btn" data-aba="meu-perfil" onclick="trocarAba('meu-perfil', this)">Meu Perfil</button>
 </nav>
 
 <div class="main">
 
 <!-- PAINEL RITMISTAS -->
-<div class="painel ativo" id="painel-ritmistas">
+<div class="painel" id="painel-ritmistas">
 
     <div class="painel-titulo">Ritmistas</div>
 
@@ -514,7 +533,7 @@
 </div>
 
 <!-- PAINEL VISÃO GERAL -->
-<div class="painel" id="painel-visao">
+<div class="painel ativo" id="painel-visao">
 
     <div class="painel-titulo">Visão Geral</div>
 
@@ -543,6 +562,103 @@
     </div>
 
 </div><!-- /painel-visao -->
+
+<!-- PAINEL DIRETORIA -->
+<div class="painel" id="painel-diretoria">
+    <div class="painel-titulo">Diretoria</div>
+    <div id="listaDiretoria" style="min-height:200px;">
+        <div class="vazio">Carregando...</div>
+    </div>
+</div>
+
+<!-- PAINEL MEU PERFIL -->
+<div class="painel" id="painel-meu-perfil">
+    <div class="painel-titulo">Meu Perfil</div>
+
+    <!-- Aviso Super Admin -->
+    <div id="mpSuperAdminAviso" style="display:none;">
+        <div class="mp-superadmin-aviso">
+            <strong>Modo Super Admin</strong>
+            Você está acessando como Super Admin. Esta área não se aplica ao seu perfil.
+        </div>
+    </div>
+
+    <!-- Formulário (Admin real) -->
+    <div id="mpFormulario">
+        <div class="mp-mensagem" id="mpMensagem"></div>
+
+        <!-- Foto -->
+        <div class="mp-secao-header"><div class="mp-secao-titulo">Foto</div><div class="mp-linha"></div></div>
+        <div class="mp-foto-area">
+            <div class="mp-foto-circle" id="mpFotoCircle" onclick="document.getElementById('mpInputFoto').click()">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+            <input type="file" id="mpInputFoto" accept="image/*" style="display:none" onchange="mpPreviewFoto(this)">
+            <div>
+                <button type="button" onclick="document.getElementById('mpInputFoto').click()" style="background:#f7f6fb;border:1.5px solid #e8e6f0;color:#5a5770;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;">📷 Trocar foto</button>
+                <div class="mp-foto-hint" style="margin-top:6px;">Clique no círculo ou no botão para escolher</div>
+            </div>
+        </div>
+
+        <!-- Contato -->
+        <div class="mp-secao-header"><div class="mp-secao-titulo">Dados de contato</div><div class="mp-linha"></div></div>
+        <div class="mp-campo"><label>E-mail</label><input type="email" id="mpEmail" placeholder="seuemail@exemplo.com"></div>
+        <div class="mp-row-2">
+            <div class="mp-campo"><label>Celular</label><input type="tel" id="mpCelular" placeholder="(21) 99999-9999"></div>
+            <div class="mp-campo"><label>Data de nascimento</label><input type="date" id="mpNascimento"></div>
+        </div>
+
+        <!-- Endereço -->
+        <div class="mp-secao-header"><div class="mp-secao-titulo">Endereço</div><div class="mp-linha"></div></div>
+        <div class="mp-campo"><label>Endereço</label><input type="text" id="mpEndereco" placeholder="Rua das Flores"></div>
+        <div class="mp-row-2">
+            <div class="mp-campo"><label>Número</label><input type="text" id="mpNumero" placeholder="123"></div>
+            <div class="mp-campo"><label>Complemento</label><input type="text" id="mpComplemento" placeholder="Apto 4B"></div>
+        </div>
+        <div class="mp-campo"><label>Bairro</label><input type="text" id="mpBairro" placeholder="Centro"></div>
+        <div class="mp-row-2">
+            <div class="mp-campo"><label>Cidade</label><input type="text" id="mpCidade" placeholder="Rio de Janeiro"></div>
+            <div class="mp-campo"><label>Estado</label>
+                <select id="mpEstado">
+                    <option value="">UF</option>
+                    <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                    <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                    <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                    <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                    <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                    <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                    <option>SP</option><option>SE</option><option>TO</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Medidas -->
+        <div class="mp-secao-header"><div class="mp-secao-titulo">Medidas</div><div class="mp-linha"></div></div>
+        <div class="mp-row-3">
+            <div class="mp-campo"><label>Camisa</label>
+                <select id="mpCamisa"><option value="">—</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option><option>XGG</option><option>Momo</option><option>Outro</option></select>
+            </div>
+            <div class="mp-campo"><label>Fantasia</label>
+                <select id="mpFantasia"><option value="">—</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option><option>XGG</option><option>Momo</option><option>Outro</option></select>
+            </div>
+            <div class="mp-campo"><label>Sapato</label>
+                <select id="mpSapato"><option value="">—</option><option>33</option><option>34</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option><option>46</option><option>47</option><option>48</option><option>Outro</option></select>
+            </div>
+        </div>
+
+        <!-- Emergência -->
+        <div class="mp-secao-header"><div class="mp-secao-titulo">Contato de emergência</div><div class="mp-linha"></div></div>
+        <div class="mp-campo"><label>Nome do contato</label><input type="text" id="mpEmergenciaNome" placeholder="Maria da Silva"></div>
+        <div class="mp-row-2">
+            <div class="mp-campo"><label>Parentesco</label><input type="text" id="mpEmergenciaParentesco" placeholder="Mãe, Irmão..."></div>
+            <div class="mp-campo"><label>Celular</label><input type="tel" id="mpEmergenciaCelular" placeholder="(21) 99999-9999"></div>
+        </div>
+
+        <div class="mp-acoes">
+            <button class="mp-btn-salvar" id="mpBtnSalvar" onclick="salvarMeuPerfil()">Salvar alterações</button>
+        </div>
+    </div>
+</div><!-- /painel-meu-perfil -->
 
 </div><!-- /main -->
 
@@ -1071,13 +1187,6 @@
         await carregarRitmistas();
     }
 
-    function trocarAba(aba, btn) {
-        document.querySelectorAll('.painel').forEach(p => p.classList.remove('ativo'));
-        document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
-        document.getElementById('painel-' + aba).classList.add('ativo');
-        btn.classList.add('ativa');
-    }
-
     function renderizarVisaoGeral() {
         const mesAtual = new Date().getMonth() + 1;
         const aniv = todosRitmistas.filter(r => {
@@ -1300,97 +1409,51 @@
     carregarRitmistas();
 </script>
 
-<!-- MODAL MEU PERFIL -->
-<div id="modalMeuPerfil" style="display:none;">
-<div class="modal-overlay" onclick="if(event.target===this)fecharMeuPerfil()">
-<div class="modal-box">
-    <div class="modal-titulo">Meu perfil</div>
-    <div class="mp-mensagem" id="mpMensagem"></div>
-
-    <!-- Foto -->
-    <div class="mp-secao-header"><div class="mp-secao-titulo">Foto</div><div class="mp-linha"></div></div>
-    <div class="mp-foto-area">
-        <div class="mp-foto-circle" id="mpFotoCircle" onclick="document.getElementById('mpInputFoto').click()">
-            <svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-        </div>
-        <input type="file" id="mpInputFoto" accept="image/*" style="display:none" onchange="mpPreviewFoto(this)">
-        <div>
-            <button type="button" onclick="document.getElementById('mpInputFoto').click()" style="background:#f7f6fb;border:1.5px solid #e8e6f0;color:#5a5770;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;">📷 Trocar foto</button>
-            <div class="mp-foto-hint" style="margin-top:6px;">Clique no círculo ou no botão</div>
-        </div>
-    </div>
-
-    <!-- Contato -->
-    <div class="mp-secao-header"><div class="mp-secao-titulo">Dados de contato</div><div class="mp-linha"></div></div>
-    <div class="mp-campo"><label>E-mail</label><input type="email" id="mpEmail" placeholder="seuemail@exemplo.com"></div>
-    <div class="mp-row-2">
-        <div class="mp-campo"><label>Celular</label><input type="tel" id="mpCelular" placeholder="(21) 99999-9999"></div>
-        <div class="mp-campo"><label>Data de nascimento</label><input type="date" id="mpNascimento"></div>
-    </div>
-
-    <!-- Endereço -->
-    <div class="mp-secao-header"><div class="mp-secao-titulo">Endereço</div><div class="mp-linha"></div></div>
-    <div class="mp-campo"><label>Endereço</label><input type="text" id="mpEndereco" placeholder="Rua das Flores"></div>
-    <div class="mp-row-2">
-        <div class="mp-campo"><label>Número</label><input type="text" id="mpNumero" placeholder="123"></div>
-        <div class="mp-campo"><label>Complemento</label><input type="text" id="mpComplemento" placeholder="Apto 4B"></div>
-    </div>
-    <div class="mp-campo"><label>Bairro</label><input type="text" id="mpBairro" placeholder="Centro"></div>
-    <div class="mp-row-2">
-        <div class="mp-campo"><label>Cidade</label><input type="text" id="mpCidade" placeholder="Rio de Janeiro"></div>
-        <div class="mp-campo"><label>Estado</label>
-            <select id="mpEstado">
-                <option value="">UF</option>
-                <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
-                <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
-                <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
-                <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
-                <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
-                <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
-                <option>SP</option><option>SE</option><option>TO</option>
-            </select>
+<!-- MODAL FICHA DO ADMIN (Diretoria) -->
+<div id="modalAdmin" style="display:none;">
+    <div class="modal-admin-overlay" onclick="if(event.target===this)fecharModalAdmin()">
+        <div class="modal-admin-box">
+            <div class="modal-admin-titulo" id="maNome"></div>
+            <div class="modal-admin-sub" id="maSub"></div>
+            <div class="modal-admin-grid">
+                <div class="modal-admin-campo"><span>CPF</span><strong id="maCpf">—</strong></div>
+                <div class="modal-admin-campo"><span>Celular</span><strong id="maCelular">—</strong></div>
+                <div class="modal-admin-campo"><span>E-mail</span><strong id="maEmail">—</strong></div>
+                <div class="modal-admin-campo"><span>Nascimento</span><strong id="maNascimento">—</strong></div>
+                <div class="modal-admin-campo"><span>Camisa</span><strong id="maCamisa">—</strong></div>
+                <div class="modal-admin-campo"><span>Fantasia</span><strong id="maFantasia">—</strong></div>
+                <div class="modal-admin-campo"><span>Sapato</span><strong id="maSapato">—</strong></div>
+            </div>
+            <div class="modal-admin-acoes">
+                <button onclick="verCarteirinhaAdmin()" style="background:#D4AF37;border:none;color:#12101a;padding:9px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Ver carteirinha ↗</button>
+                <button onclick="fecharModalAdmin()" style="background:transparent;border:1.5px solid #e8e6f0;color:#5a5770;padding:9px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Fechar</button>
+            </div>
         </div>
     </div>
-
-    <!-- Medidas -->
-    <div class="mp-secao-header"><div class="mp-secao-titulo">Medidas</div><div class="mp-linha"></div></div>
-    <div class="mp-row-3">
-        <div class="mp-campo"><label>Camisa</label>
-            <select id="mpCamisa"><option value="">—</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option><option>XGG</option><option>Momo</option><option>Outro</option></select>
-        </div>
-        <div class="mp-campo"><label>Fantasia</label>
-            <select id="mpFantasia"><option value="">—</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option><option>XGG</option><option>Momo</option><option>Outro</option></select>
-        </div>
-        <div class="mp-campo"><label>Sapato</label>
-            <select id="mpSapato"><option value="">—</option><option>33</option><option>34</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option><option>46</option><option>47</option><option>48</option><option>Outro</option></select>
-        </div>
-    </div>
-
-    <!-- Emergência -->
-    <div class="mp-secao-header"><div class="mp-secao-titulo">Contato de emergência</div><div class="mp-linha"></div></div>
-    <div class="mp-campo"><label>Nome do contato</label><input type="text" id="mpEmergenciaNome" placeholder="Maria da Silva"></div>
-    <div class="mp-row-2">
-        <div class="mp-campo"><label>Parentesco</label><input type="text" id="mpEmergenciaParentesco" placeholder="Mãe, Irmão..."></div>
-        <div class="mp-campo"><label>Celular</label><input type="tel" id="mpEmergenciaCelular" placeholder="(21) 99999-9999"></div>
-    </div>
-
-    <div class="mp-acoes">
-        <button class="mp-btn-cancelar" onclick="fecharMeuPerfil()">Cancelar</button>
-        <button class="mp-btn-salvar" id="mpBtnSalvar" onclick="salvarMeuPerfil()">Salvar alterações</button>
-    </div>
-</div>
-</div>
 </div>
 
 <script>
+    // ── MEU PERFIL (aba) ──────────────────────────────────────────────────────
     let mpFotoBase64 = null;
 
-    function abrirMeuPerfil() {
+    function irParaMeuPerfil() {
+        const btn = document.querySelector('.aba-btn[data-aba="meu-perfil"]');
+        trocarAba('meu-perfil', btn);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function iniciarMeuPerfilAba() {
+        const params = new URLSearchParams(window.location.search);
+        const isSuperAdmin = params.get('superadmin') === 'true';
+
+        document.getElementById('mpSuperAdminAviso').style.display = isSuperAdmin ? 'block' : 'none';
+        document.getElementById('mpFormulario').style.display = isSuperAdmin ? 'none' : 'block';
+        if (isSuperAdmin) return;
+
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!u) return;
         mpFotoBase64 = null;
 
-        // Preenche foto
         const circle = document.getElementById('mpFotoCircle');
         if (u.foto_url) {
             circle.innerHTML = `<img src="${u.foto_url}">`;
@@ -1398,7 +1461,6 @@
             circle.innerHTML = `<svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
         }
 
-        // Preenche campos
         document.getElementById('mpEmail').value = u.email || '';
         document.getElementById('mpCelular').value = u.celular || '';
         document.getElementById('mpNascimento').value = u.nascimento || '';
@@ -1415,15 +1477,9 @@
         document.getElementById('mpEmergenciaParentesco').value = u.emergencia_parentesco || '';
         document.getElementById('mpEmergenciaCelular').value = u.emergencia_celular || '';
 
-        document.getElementById('mpMensagem').className = 'mp-mensagem';
-        document.getElementById('mpMensagem').textContent = '';
-        document.getElementById('modalMeuPerfil').style.display = 'block';
-        document.body.style.overflow = 'hidden';
-    }
-
-    function fecharMeuPerfil() {
-        document.getElementById('modalMeuPerfil').style.display = 'none';
-        document.body.style.overflow = '';
+        const msg = document.getElementById('mpMensagem');
+        msg.className = 'mp-mensagem';
+        msg.textContent = '';
     }
 
     function mpPreviewFoto(input) {
@@ -1486,25 +1542,120 @@
             body: JSON.stringify(dados),
         });
 
+        const mpMsg = document.getElementById('mpMensagem');
         if (res.ok) {
             const atualizado = await res.json();
             const novosDados = (atualizado && atualizado[0]) ? atualizado[0] : { ...u, ...dados };
             localStorage.setItem('ritmista', JSON.stringify(novosDados));
-            const mpMsg = document.getElementById('mpMensagem');
             mpMsg.className = 'mp-mensagem sucesso';
             mpMsg.textContent = 'Perfil atualizado com sucesso!';
-            // Atualiza foto no header se mudou
-            if (mpFotoBase64) {
-                const initEl = document.getElementById('headerInicial');
-                if (initEl) initEl.textContent = (novosDados.nome || 'A')[0].toUpperCase();
-            }
-            setTimeout(fecharMeuPerfil, 1500);
+            mpMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else {
-            const mpMsg = document.getElementById('mpMensagem');
             mpMsg.className = 'mp-mensagem erro';
             mpMsg.textContent = 'Erro ao salvar. Tente novamente.';
         }
         btn.disabled = false; btn.textContent = 'Salvar alterações';
+    }
+
+    // ── DIRETORIA ─────────────────────────────────────────────────────────────
+    let diretoriaCarregada = false;
+    let adminSelecionado = null;
+
+    async function carregarDiretoria() {
+        if (diretoriaCarregada) return;
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        const lista = document.getElementById('listaDiretoria');
+        lista.innerHTML = '<div class="vazio">Carregando...</div>';
+
+        let url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&order=perfil.asc,nome.asc&select=*`;
+        if (u && u.bateria_id) {
+            url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&bateria_id=eq.${u.bateria_id}&order=perfil.asc,nome.asc&select=*`;
+        }
+
+        const res = await fetch(url, {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+        const admins = await res.json();
+        renderizarDiretoria(admins);
+        diretoriaCarregada = true;
+    }
+
+    function renderizarDiretoria(admins) {
+        const lista = document.getElementById('listaDiretoria');
+        if (!admins || admins.length === 0) {
+            lista.innerHTML = '<div class="vazio">Nenhum membro da diretoria encontrado.</div>';
+            return;
+        }
+        lista.innerHTML = admins.map(a => {
+            const inicial = (a.nome || 'A')[0].toUpperCase();
+            const fotoHtml = a.foto_url
+                ? `<img src="${a.foto_url}">`
+                : inicial;
+            const cargo = a.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
+            const statusBadge = (a.status === 'aprovado' || !a.status)
+                ? `<span class="dir-badge-ativo">Ativo</span>`
+                : `<span class="dir-badge-inativo">Inativo</span>`;
+            const apelido = a.apelido ? `<span class="dir-apelido">"${a.apelido}"</span>` : '';
+            return `
+            <div class="dir-card" onclick="abrirFichaAdmin(${a.id})">
+                <div class="dir-foto">${fotoHtml}</div>
+                <div class="dir-info">
+                    <div class="dir-nome">${a.nome || '—'} ${apelido}</div>
+                    <div class="dir-badges">
+                        <span class="dir-badge-cargo">${cargo}</span>
+                        ${statusBadge}
+                    </div>
+                    <div class="dir-meta">${a.cpf ? 'CPF: ' + a.cpf : ''}${a.cpf && a.celular ? ' · ' : ''}${a.celular || ''}</div>
+                </div>
+            </div>`;
+        }).join('');
+
+        // Guarda admins para uso no modal
+        window._adminsCache = admins;
+    }
+
+    function abrirFichaAdmin(id) {
+        const admins = window._adminsCache || [];
+        const a = admins.find(x => x.id === id);
+        if (!a) return;
+        adminSelecionado = a;
+
+        const cargo = a.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
+        document.getElementById('maNome').textContent = a.nome || '—';
+        document.getElementById('maSub').textContent = a.apelido ? `"${a.apelido}" · ${cargo}` : cargo;
+        document.getElementById('maCpf').textContent = a.cpf || '—';
+        document.getElementById('maCelular').textContent = a.celular || '—';
+        document.getElementById('maEmail').textContent = a.email || '—';
+
+        const nasc = a.nascimento ? new Date(a.nascimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+        document.getElementById('maNascimento').textContent = nasc;
+        document.getElementById('maCamisa').textContent = a.tamanho_camisa || '—';
+        document.getElementById('maFantasia').textContent = a.tamanho_fantasia || '—';
+        document.getElementById('maSapato').textContent = a.tamanho_sapato || '—';
+
+        document.getElementById('modalAdmin').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function fecharModalAdmin() {
+        document.getElementById('modalAdmin').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function verCarteirinhaAdmin() {
+        if (!adminSelecionado) return;
+        window.open(`carteirinha.html?id=${adminSelecionado.id}`, '_blank');
+    }
+
+    // ── TROCAR ABA (atualizado) ───────────────────────────────────────────────
+    function trocarAba(aba, btn) {
+        document.querySelectorAll('.painel').forEach(p => p.classList.remove('ativo'));
+        document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
+        document.getElementById('painel-' + aba).classList.add('ativo');
+        if (btn) btn.classList.add('ativa');
+
+        if (aba === 'diretoria') carregarDiretoria();
+        if (aba === 'meu-perfil') iniciarMeuPerfilAba();
     }
 </script>
 </body>
