@@ -700,9 +700,9 @@
             </div>
             <input type="hidden" id="escola-id" value="${e.id}">`;
         document.getElementById('modal-escola-rodape').innerHTML = `
-            <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>
             <button class="btn-acao danger" onclick="fecharFormEscola();toggleEscolaAtiva('${e.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
-            <button class="btn-acao btn-editar" onclick="habilitarEdicaoEscola('${e.id}',${ativa})">Editar</button>`;
+            <button class="btn-acao btn-editar" onclick="habilitarEdicaoEscola('${e.id}',${ativa})">Editar</button>
+            <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>`;
         atualizarPreviewEscola();
         document.getElementById('modal-escola-overlay').classList.add('aberto');
     }
@@ -715,8 +715,8 @@
         document.getElementById('escola-cor-primaria').oninput = () => atualizarPreviewEscola();
         document.getElementById('escola-cor-destaque').oninput = () => atualizarPreviewEscola();
         document.getElementById('modal-escola-rodape').innerHTML = `
-            <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>
-            <button class="btn-salvar" onclick="salvarEscola()">Salvar</button>`;
+            <button class="btn-salvar" onclick="salvarEscola()">Salvar</button>
+            <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>`;
     }
 
     async function salvarEscola() {
@@ -886,9 +886,9 @@
             </div>
             <input type="hidden" id="bateria-id" value="${b.id}">`;
         document.getElementById('modal-bateria-rodape').innerHTML = `
-            <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>
             <button class="btn-acao danger" onclick="fecharFormBateria();toggleBateriaAtiva('${b.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
-            <button class="btn-acao btn-editar" onclick="habilitarEdicaoBateria()">Editar</button>`;
+            <button class="btn-acao btn-editar" onclick="habilitarEdicaoBateria()">Editar</button>
+            <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>`;
         document.getElementById('modal-bateria-overlay').classList.add('aberto');
     }
 
@@ -898,8 +898,8 @@
             if (el) el.disabled = false;
         });
         document.getElementById('modal-bateria-rodape').innerHTML = `
-            <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>
-            <button class="btn-salvar" onclick="salvarBateria()">Salvar</button>`;
+            <button class="btn-salvar" onclick="salvarBateria()">Salvar</button>
+            <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>`;
     }
 
     async function salvarBateria() {
@@ -1089,9 +1089,9 @@
             </div>
             <input type="hidden" id="acesso-id" value="${u.id}">`;
         document.getElementById('modal-acesso-rodape').innerHTML = `
-            <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>
             <button class="btn-acao danger" onclick="fecharFormAcesso();toggleAcessoAtivo('${u.id}','${u.status}')">${ativo ? 'Desativar' : 'Ativar'}</button>
-            <button class="btn-acao btn-editar" onclick="habilitarEdicaoAcesso()">Editar</button>`;
+            <button class="btn-acao btn-editar" onclick="habilitarEdicaoAcesso()">Editar</button>
+            <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>`;
         document.getElementById('modal-acesso-overlay').classList.add('aberto');
     }
 
@@ -1104,8 +1104,8 @@
             }
         });
         document.getElementById('modal-acesso-rodape').innerHTML = `
-            <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>
-            <button class="btn-salvar" onclick="salvarAcesso()">Salvar</button>`;
+            <button class="btn-salvar" onclick="salvarAcesso()">Salvar</button>
+            <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>`;
     }
 
     function fecharSeForaModal(event, overlayId, fecharFn) {
