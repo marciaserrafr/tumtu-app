@@ -501,11 +501,23 @@
 
 <!-- ABAS -->
 <div class="nav-abas" id="nav-principal">
-    <div class="aba ativa">Escolas</div>
+    <div class="aba" onclick="trocarAbaPrincipal('dashboard',this)">Dashboard</div>
+    <div class="aba ativa" onclick="trocarAbaPrincipal('escolas',this)">Escolas</div>
 </div>
 
 <!-- MAIN -->
 <div class="main">
+
+    <!-- ════ PAINEL: DASHBOARD ════ -->
+    <div class="painel" id="painel-dashboard" style="display:none">
+        <div class="painel-titulo">Dashboard</div>
+        <div class="painel-sub">Visão geral de todas as escolas e ritmistas.</div>
+        <div class="dashboard-placeholder">
+            <div style="font-size:36px;margin-bottom:12px">📊</div>
+            <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px">Em breve</div>
+            <div style="font-size:14px;color:#64748b">Métricas consolidadas de todas as escolas aparecerão aqui.</div>
+        </div>
+    </div>
 
     <!-- ════ PAINEL: ESCOLAS ════ -->
     <div class="painel ativo" id="painel-escolas">
@@ -625,7 +637,15 @@
     // ── ABAS ──────────────────────────────────────────────────────────
     let escolaSelecionadaId = null;
 
-    function selecionarEscola(id) {
+    function trocarAbaPrincipal(aba, el) {
+        document.querySelectorAll('#nav-principal .aba').forEach(x => x.classList.remove('ativa'));
+        if (el) el.classList.add('ativa');
+        document.getElementById('painel-dashboard').style.display = aba === 'dashboard' ? 'block' : 'none';
+        document.getElementById('painel-escolas').style.display = aba === 'escolas' ? 'block' : 'none';
+        document.getElementById('painel-escola-contexto').style.display = 'none';
+    }
+
+    async function selecionarEscola(id) {
         escolaSelecionadaId = id;
         const e = escolasCache.find(x => x.id === id);
         document.getElementById('escola-ctx-nome').textContent = e ? (e.sigla || e.nome) : '';
@@ -633,8 +653,8 @@
         document.getElementById('painel-escolas').style.display = 'none';
         document.getElementById('painel-escola-contexto').style.display = 'block';
         trocarSubAba('dashboard', document.querySelector('.sub-aba'));
-        carregarBaterias(id);
-        carregarAcessos(id);
+        await carregarBaterias(id);
+        await carregarAcessos(id);
     }
 
     function voltarParaEscolas() {
