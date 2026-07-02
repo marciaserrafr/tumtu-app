@@ -418,8 +418,12 @@
 
     async function selecionarEscola(id) {
         escolaSelecionadaId = id;
-        const e = escolasCache.find(x => x.id === id) || null;
-        escolaAtualData = e;
+
+        // Buscar escola direto do banco para garantir dados frescos
+        const resE = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, { headers });
+        const dadosE = await resE.json();
+        escolaAtualData = dadosE[0] || null;
+        const e = escolaAtualData;
 
         document.getElementById('escola-ctx-nome').textContent = e ? (e.sigla || e.nome) : '';
         document.getElementById('escola-ctx-sigla').textContent = e ? e.nome : '';
@@ -852,7 +856,7 @@
     async function carregarAcessos(escolaId) {
         let url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&order=nome&select=id,nome,apelido,cpf,perfil,bateria_id,status`;
         if (escolaId) {
-            const ids = bateriasCache.filter(b => b.escola_id === escolaId).map(b => b.id);
+            const ids = bateriasCache.map(b => b.id);
             if (!ids.length) { renderizarListaAcessos([]); return; }
             url += `&bateria_id=in.(${ids.join(',')})`;
         }
