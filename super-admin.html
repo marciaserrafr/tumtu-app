@@ -640,9 +640,12 @@
     function trocarAbaPrincipal(aba, el) {
         document.querySelectorAll('#nav-principal .aba').forEach(x => x.classList.remove('ativa'));
         if (el) el.classList.add('ativa');
-        document.getElementById('painel-dashboard').style.display = aba === 'dashboard' ? 'block' : 'none';
-        document.getElementById('painel-escolas').style.display = aba === 'escolas' ? 'block' : 'none';
-        document.getElementById('painel-escola-contexto').style.display = 'none';
+        ['dashboard','escolas','escola-contexto'].forEach(p => {
+            const el = document.getElementById('painel-' + p);
+            if (el) { el.classList.remove('ativo'); el.style.display = 'none'; }
+        });
+        const alvo = document.getElementById('painel-' + aba);
+        if (alvo) { alvo.classList.add('ativo'); alvo.style.display = 'block'; }
     }
 
     async function selecionarEscola(id) {
