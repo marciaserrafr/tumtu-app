@@ -334,8 +334,8 @@
             <span class="escola-ctx-sigla" id="escola-ctx-sigla"></span>
         </div>
 
-        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-            <div class="nav-sub-abas" style="margin-bottom:0;flex:1">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+            <div class="nav-sub-abas" style="margin-bottom:0;border-bottom:none;flex:1">
                 <div class="sub-aba ativa" onclick="trocarSubAba('cadastro',this)">Cadastro</div>
                 <div class="sub-aba" onclick="trocarSubAba('bateria',this)">Bateria</div>
                 <div class="sub-aba" onclick="trocarSubAba('acessos',this)">Acessos</div>
@@ -345,9 +345,10 @@
                 padding:7px 14px;background:#D4AF37;color:#12101a;
                 border:none;border-radius:8px;cursor:pointer;
                 font-size:12px;font-weight:700;font-family:inherit;
-                white-space:nowrap;margin-bottom:2px;flex-shrink:0;
+                white-space:nowrap;flex-shrink:0;margin-bottom:4px;
             ">Acessar como Admin ↗</button>
         </div>
+        <div style="border-bottom:2px solid #f1f1f1;margin-top:-20px;margin-bottom:20px;"></div>
 
         <!-- Cadastro (escola) -->
         <div class="sub-painel ativo" id="sub-painel-cadastro">
