@@ -690,21 +690,33 @@
         document.getElementById('form-escola-titulo').textContent = e.sigla || e.nome;
         document.getElementById('modal-escola-body').innerHTML = `
             <div class="form-grid">
-                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="escola-nome" value="${e.nome || ''}"></div>
-                <div class="campo campo-full"><label>Sigla *</label><input type="text" id="escola-sigla" value="${e.sigla || ''}"></div>
-                <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="escola-logo" value="${e.logo_url || ''}" oninput="atualizarPreviewEscola()"></div>
-                <div class="campo campo-full"><label>Temporada Atual</label><input type="text" id="escola-temporada" value="${e.temporada_atual || ''}"></div>
-                <div class="campo"><label>Cor Primária</label><input type="text" id="escola-cor-primaria" value="${e.cor_primaria || '#12101a'}" placeholder="#000000" oninput="atualizarPreviewEscola()"></div>
-                <div class="campo"><label>Cor Destaque</label><input type="text" id="escola-cor-destaque" value="${e.cor_destaque || '#D4AF37'}" placeholder="#D4AF37" oninput="atualizarPreviewEscola()"></div>
+                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="escola-nome" value="${e.nome || ''}" disabled></div>
+                <div class="campo campo-full"><label>Sigla *</label><input type="text" id="escola-sigla" value="${e.sigla || ''}" disabled></div>
+                <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="escola-logo" value="${e.logo_url || ''}" disabled></div>
+                <div class="campo campo-full"><label>Temporada Atual</label><input type="text" id="escola-temporada" value="${e.temporada_atual || ''}" disabled></div>
+                <div class="campo"><label>Cor Primária</label><input type="text" id="escola-cor-primaria" value="${e.cor_primaria || '#12101a'}" disabled></div>
+                <div class="campo"><label>Cor Destaque</label><input type="text" id="escola-cor-destaque" value="${e.cor_destaque || '#D4AF37'}" disabled></div>
                 <div class="campo campo-full"><label>Preview</label><div class="preview-cores" id="preview-escola"><div class="preview-circulo" id="preview-escola-circulo" style="background:${e.cor_primaria||'#12101a'}"></div><span class="preview-texto">Cores da escola</span><button class="preview-botao" id="preview-escola-botao" style="background:${e.cor_destaque||'#D4AF37'};color:#12101a">Destaque</button></div></div>
             </div>
             <input type="hidden" id="escola-id" value="${e.id}">`;
         document.getElementById('modal-escola-rodape').innerHTML = `
             <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>
             <button class="btn-acao danger" onclick="fecharFormEscola();toggleEscolaAtiva('${e.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
-            <button class="btn-salvar" onclick="salvarEscola()">Atualizar Escola</button>`;
+            <button class="btn-acao btn-editar" onclick="habilitarEdicaoEscola('${e.id}',${ativa})">Editar</button>`;
         atualizarPreviewEscola();
         document.getElementById('modal-escola-overlay').classList.add('aberto');
+    }
+
+    function habilitarEdicaoEscola(id, ativa) {
+        ['escola-nome','escola-sigla','escola-logo','escola-temporada','escola-cor-primaria','escola-cor-destaque'].forEach(campo => {
+            const el = document.getElementById(campo);
+            if (el) { el.disabled = false; }
+        });
+        document.getElementById('escola-cor-primaria').oninput = () => atualizarPreviewEscola();
+        document.getElementById('escola-cor-destaque').oninput = () => atualizarPreviewEscola();
+        document.getElementById('modal-escola-rodape').innerHTML = `
+            <button class="btn-cancelar" onclick="fecharFormEscola()">Fechar</button>
+            <button class="btn-salvar" onclick="salvarEscola()">Salvar</button>`;
     }
 
     async function salvarEscola() {
@@ -866,18 +878,28 @@
         document.getElementById('form-bateria-titulo').textContent = b.nome;
         document.getElementById('modal-bateria-body').innerHTML = `
             <div class="form-grid">
-                <div class="campo campo-full"><label>Nome da Bateria *</label><input type="text" id="bateria-nome" value="${b.nome || ''}"></div>
-                <div class="campo campo-full"><label>Escola Vinculada *</label><select id="bateria-escola-id">${escolasOpcoesHTML(b.escola_id)}</select></div>
-                <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="bateria-logo" value="${b.logo_url || ''}"></div>
-                <div class="campo campo-full"><label>Instagram</label><input type="text" id="bateria-instagram" value="${b.instagram || ''}"></div>
-                <div class="campo campo-full"><label>Mestre de Bateria</label><input type="text" id="bateria-mestre" value="${b.mestre_de_bateria || ''}"></div>
+                <div class="campo campo-full"><label>Nome da Bateria *</label><input type="text" id="bateria-nome" value="${b.nome || ''}" disabled></div>
+                <div class="campo campo-full"><label>Escola Vinculada *</label><select id="bateria-escola-id" disabled>${escolasOpcoesHTML(b.escola_id)}</select></div>
+                <div class="campo campo-full"><label>URL do Logo</label><input type="url" id="bateria-logo" value="${b.logo_url || ''}" disabled></div>
+                <div class="campo campo-full"><label>Instagram</label><input type="text" id="bateria-instagram" value="${b.instagram || ''}" disabled></div>
+                <div class="campo campo-full"><label>Mestre de Bateria</label><input type="text" id="bateria-mestre" value="${b.mestre_de_bateria || ''}" disabled></div>
             </div>
             <input type="hidden" id="bateria-id" value="${b.id}">`;
         document.getElementById('modal-bateria-rodape').innerHTML = `
             <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>
             <button class="btn-acao danger" onclick="fecharFormBateria();toggleBateriaAtiva('${b.id}',${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
-            <button class="btn-salvar" onclick="salvarBateria()">Atualizar Bateria</button>`;
+            <button class="btn-acao btn-editar" onclick="habilitarEdicaoBateria()">Editar</button>`;
         document.getElementById('modal-bateria-overlay').classList.add('aberto');
+    }
+
+    function habilitarEdicaoBateria() {
+        ['bateria-nome','bateria-escola-id','bateria-logo','bateria-instagram','bateria-mestre'].forEach(campo => {
+            const el = document.getElementById(campo);
+            if (el) el.disabled = false;
+        });
+        document.getElementById('modal-bateria-rodape').innerHTML = `
+            <button class="btn-cancelar" onclick="fecharFormBateria()">Fechar</button>
+            <button class="btn-salvar" onclick="salvarBateria()">Salvar</button>`;
     }
 
     async function salvarBateria() {
@@ -1058,19 +1080,32 @@
         document.getElementById('form-acesso-titulo').textContent = u.apelido || u.nome;
         document.getElementById('modal-acesso-body').innerHTML = `
             <div class="form-grid">
-                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="acesso-nome" value="${u.nome || ''}"></div>
-                <div class="campo campo-full"><label>Apelido *</label><input type="text" id="acesso-apelido" value="${u.apelido || ''}"></div>
-                <div class="campo"><label>CPF *</label><input type="text" id="acesso-cpf" value="${u.cpf || ''}" maxlength="14" oninput="mascaraCPF(this)"></div>
-                <div class="campo"><label>Senha <span style="font-weight:400;text-transform:none">(deixe em branco para manter)</span></label><input type="password" id="acesso-senha" placeholder="Nova senha (opcional)"></div>
-                <div class="campo"><label>Perfil *</label><select id="acesso-perfil"><option value="">Selecione...</option><option value="mestre"${u.perfil==='mestre'?' selected':''}>Mestre de Bateria</option><option value="diretor"${u.perfil==='diretor'?' selected':''}>Diretor</option></select></div>
-                <div class="campo"><label>Bateria Vinculada *</label><select id="acesso-bateria-id">${bateriasOpcoesHTML(u.bateria_id)}</select></div>
+                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="acesso-nome" value="${u.nome || ''}" disabled></div>
+                <div class="campo campo-full"><label>Apelido *</label><input type="text" id="acesso-apelido" value="${u.apelido || ''}" disabled></div>
+                <div class="campo"><label>CPF *</label><input type="text" id="acesso-cpf" value="${u.cpf || ''}" maxlength="14" disabled></div>
+                <div class="campo"><label>Senha</label><input type="password" id="acesso-senha" placeholder="Nova senha (opcional)" disabled></div>
+                <div class="campo"><label>Perfil *</label><select id="acesso-perfil" disabled><option value="">Selecione...</option><option value="mestre"${u.perfil==='mestre'?' selected':''}>Mestre de Bateria</option><option value="diretor"${u.perfil==='diretor'?' selected':''}>Diretor</option></select></div>
+                <div class="campo"><label>Bateria Vinculada *</label><select id="acesso-bateria-id" disabled>${bateriasOpcoesHTML(u.bateria_id)}</select></div>
             </div>
             <input type="hidden" id="acesso-id" value="${u.id}">`;
         document.getElementById('modal-acesso-rodape').innerHTML = `
             <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>
             <button class="btn-acao danger" onclick="fecharFormAcesso();toggleAcessoAtivo('${u.id}','${u.status}')">${ativo ? 'Desativar' : 'Ativar'}</button>
-            <button class="btn-salvar" onclick="salvarAcesso()">Atualizar Acesso</button>`;
+            <button class="btn-acao btn-editar" onclick="habilitarEdicaoAcesso()">Editar</button>`;
         document.getElementById('modal-acesso-overlay').classList.add('aberto');
+    }
+
+    function habilitarEdicaoAcesso() {
+        ['acesso-nome','acesso-apelido','acesso-cpf','acesso-senha','acesso-perfil','acesso-bateria-id'].forEach(campo => {
+            const el = document.getElementById(campo);
+            if (el) {
+                el.disabled = false;
+                if (campo === 'acesso-cpf') el.oninput = () => mascaraCPF(el);
+            }
+        });
+        document.getElementById('modal-acesso-rodape').innerHTML = `
+            <button class="btn-cancelar" onclick="fecharFormAcesso()">Fechar</button>
+            <button class="btn-salvar" onclick="salvarAcesso()">Salvar</button>`;
     }
 
     function fecharSeForaModal(event, overlayId, fecharFn) {
