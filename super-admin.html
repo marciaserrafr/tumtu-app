@@ -826,10 +826,13 @@
         }
 
         if (res.ok) {
-            mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
-            await carregarBaterias(escolaSelecionadaId);
-            bateriaAtualData = bateriasCache.find(b => b.escola_id === escolaSelecionadaId) || null;
+            const dados = await res.json();
+            bateriaAtualData = (Array.isArray(dados) ? dados[0] : dados) || bateriaAtualData;
+            const idx = bateriasCache.findIndex(b => b.id === bateriaAtualData.id);
+            if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
+            else { bateriasCache.push(bateriaAtualData); }
             renderizarBateriaInline(bateriaAtualData);
+            mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
         } else {
             const err = await res.json();
             mostrarToast('Erro: ' + (err.message || res.status), 'erro');
