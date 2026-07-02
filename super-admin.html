@@ -441,7 +441,7 @@
         renderizarCadastroEscola(escolaAtualData);
 
         // Renderizar Bateria
-        bateriaAtualData = bateriasCache.find(b => b.escola_id === id) || null;
+        bateriaAtualData = bateriasCache[0] || null;
         renderizarBateriaInline(bateriaAtualData);
 
         // Carregar acessos
