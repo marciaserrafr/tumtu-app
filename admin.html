@@ -567,7 +567,14 @@
 <!-- PAINEL DIRETORIA -->
 <div class="painel" id="painel-diretoria">
     <div class="painel-titulo">Diretoria</div>
-    <button id="btnConvidarDiretor" class="btn-novo" style="display:none;margin-bottom:20px;" onclick="gerarConviteDiretor()">🔗 Convidar Diretor</button>
+    <div id="linkDiretorCadastro" style="display:none;margin-bottom:20px;background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
+        <div style="font-size:12px;font-weight:700;color:#5a5770;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Link de cadastro de Diretor</div>
+        <p style="font-size:12px;color:#5a5770;margin-bottom:10px;">Envie pelo WhatsApp da diretoria — não expira, não é de uso único.</p>
+        <div style="display:flex;gap:8px;">
+            <input type="text" id="linkDiretorInput" readonly style="flex:1;padding:9px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;color:#333;">
+            <button class="btn-modal-confirmar verde" onclick="copiarLinkDiretor()">Copiar</button>
+        </div>
+    </div>
     <div id="listaDiretoria" style="min-height:200px;">
         <div class="vazio">Carregando...</div>
     </div>
@@ -786,21 +793,6 @@
         <div class="modal-acoes">
             <button class="btn-modal-cancelar" onclick="fecharModal('modalDesligar')">Cancelar</button>
             <button class="btn-modal-confirmar vermelho" onclick="confirmarDesligar()">Desligar</button>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL CONVITE DIRETOR -->
-<div class="modal-overlay" id="modalConvite">
-    <div class="modal" style="max-width:440px;">
-        <h2 style="margin-bottom:6px;">Convite de Diretor</h2>
-        <p style="margin-bottom:14px;">Envie este link para o Diretor pelo WhatsApp da diretoria.</p>
-        <div style="display:flex;gap:8px;margin-bottom:20px;">
-            <input type="text" id="conviteLinkInput" readonly style="flex:1;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;">
-            <button class="btn-modal-confirmar verde" onclick="copiarLinkConviteDiretor()">Copiar</button>
-        </div>
-        <div class="modal-acoes">
-            <button class="btn-modal-cancelar" onclick="fecharModal('modalConvite')">Fechar</button>
         </div>
     </div>
 </div>
@@ -1282,31 +1274,21 @@
             : perfil === 'diretor' ? 'Diretor' : '';
         document.getElementById('headerCargo').textContent = cargoLabel;
         if (perfil === 'mestre') {
-            const btnConvite = document.getElementById('btnConvidarDiretor');
-            if (btnConvite) btnConvite.style.display = 'inline-flex';
+            renderizarLinkDiretor(usuario);
         }
         construirMultiSelect();
         aplicarConfigEscola();
     }
 
-    async function gerarConviteDiretor() {
-        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        if (!u || !u.bateria_id) { alert('Bateria não encontrada para este usuário.'); return; }
-        const payload = { tipo: 'diretor', cargo: 'Diretor', bateria_id: u.bateria_id, criado_por: u.id };
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/convites`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=representation' },
-            body: JSON.stringify(payload)
-        });
-        if (!res.ok) { alert('Erro ao gerar convite.'); return; }
-        const criados = await res.json();
-        const link = `${window.location.origin}/index.html?token=${criados[0].token}`;
-        document.getElementById('conviteLinkInput').value = link;
-        document.getElementById('modalConvite').classList.add('aberto');
+    function renderizarLinkDiretor(usuario) {
+        if (!usuario || !usuario.bateria_id) return;
+        const link = `${window.location.origin}/index.html?bateria=${usuario.bateria_id}&cargo=diretor`;
+        document.getElementById('linkDiretorInput').value = link;
+        document.getElementById('linkDiretorCadastro').style.display = 'block';
     }
 
-    function copiarLinkConviteDiretor() {
-        const input = document.getElementById('conviteLinkInput');
+    function copiarLinkDiretor() {
+        const input = document.getElementById('linkDiretorInput');
         input.select();
         navigator.clipboard.writeText(input.value).catch(() => {});
     }

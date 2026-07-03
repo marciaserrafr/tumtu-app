@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="styles/components.css">
     <script src="config-escola.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script>if (window.dcodeIO && !window.bcrypt) window.bcrypt = window.dcodeIO.bcrypt;</script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
@@ -142,7 +144,7 @@
         const campo = isEmail ? 'email' : 'cpf';
 
         const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/ritmistas?${campo}=eq.${encodeURIComponent(identificador)}&senha=eq.${encodeURIComponent(senha)}&select=*`,
+            `${SUPABASE_URL}/rest/v1/ritmistas?${campo}=eq.${encodeURIComponent(identificador)}&select=*`,
             { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
         );
 
@@ -154,6 +156,12 @@
         }
 
         const ritmista = dados[0];
+        let senhaValida = false;
+        try { senhaValida = bcrypt.compareSync(senha, ritmista.senha || ''); } catch (e) { senhaValida = false; }
+        if (!senhaValida) {
+            mostrarMensagem('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
+            return;
+        }
         const perfil = ritmista.perfil || 'ritmista';
         const isAdmin = perfil === 'mestre' || perfil === 'diretor';
 

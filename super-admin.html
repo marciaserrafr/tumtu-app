@@ -6,6 +6,8 @@
     <title>Tutti — Super Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script>if (window.dcodeIO && !window.bcrypt) window.bcrypt = window.dcodeIO.bcrypt;</script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -366,11 +368,16 @@
 
         <!-- Acessos -->
         <div class="sub-painel" id="sub-painel-acessos" style="display:none">
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
                 <button class="btn-novo" onclick="abrirCadastrarUsuario()">+ Cadastrar Usuário</button>
-                <button class="btn-novo" style="background:transparent;border:1.5px solid #D4AF37;color:#12101a;" onclick="gerarConvite('mestre')">🔗 Convidar Mestre</button>
-                <button class="btn-novo" style="background:transparent;border:1.5px solid #D4AF37;color:#12101a;" onclick="gerarConvite('diretor')">🔗 Convidar Diretor</button>
             </div>
+
+            <div class="card-form" style="margin-bottom:20px;">
+                <div class="card-form-titulo">Links de cadastro</div>
+                <p style="font-size:12px;color:#5a5770;margin:-8px 0 14px;">Envie o link pelo WhatsApp da diretoria — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
+                <div id="links-cadastro-lista"></div>
+            </div>
+
             <div id="lista-acessos" class="lista-cards">
                 <div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Carregando...</div>
             </div>
@@ -420,26 +427,6 @@
     </div>
 </div>
 
-<!-- MODAL CONVITE -->
-<div class="modal-overlay" id="modal-convite-overlay" onclick="fecharSeForaModal(event,'modal-convite-overlay','fecharModalConvite')">
-    <div class="modal-sa" style="max-width:460px;">
-        <div class="modal-sa-header">
-            <div class="modal-sa-titulo" id="convite-modal-titulo">Convite gerado</div>
-            <button class="modal-sa-fechar" onclick="fecharModalConvite()">✕</button>
-        </div>
-        <div class="modal-sa-body">
-            <p style="font-size:13px;color:#666;margin-bottom:14px;">Envie este link para o <span id="convite-modal-cargo"></span> pelo WhatsApp da diretoria.</p>
-            <div style="display:flex;gap:8px;">
-                <input type="text" id="convite-modal-link" readonly style="flex:1;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;color:#333;">
-                <button class="btn-ficha btn-ficha-salvar" onclick="copiarLinkConvite()">Copiar link</button>
-            </div>
-        </div>
-        <div class="modal-sa-rodape">
-            <div></div>
-            <button class="btn-ficha" onclick="fecharModalConvite()">Fechar</button>
-        </div>
-    </div>
-</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -513,6 +500,7 @@
         // Renderizar Bateria
         bateriaAtualData = bateriasCache[0] || null;
         renderizarBateriaInline(bateriaAtualData);
+        renderizarLinksCadastro();
 
         // Carregar acessos
         carregarAcessos(id);
@@ -899,6 +887,7 @@
             if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
             else { bateriasCache.push(bateriaAtualData); }
             renderizarBateriaInline(bateriaAtualData);
+            renderizarLinksCadastro();
             mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
         } else {
             const err = await res.json();
@@ -1105,7 +1094,7 @@
         if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
 
         const payload = { nome, apelido, cpf, perfil, bateria_id: bateriaId };
-        if (senha) payload.senha = senha;
+        if (senha) payload.senha = bcrypt.hashSync(senha, 10);
 
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
             method: 'PATCH', headers, body: JSON.stringify(payload)
@@ -1153,44 +1142,38 @@
     }
 
     // ══════════════════════════════════════════════════════════════════
-    // CONVITES (Mestre / Diretor se autocadastram via link)
+    // LINKS DE CADASTRO FIXOS (por bateria + cargo — nunca expiram)
     // ══════════════════════════════════════════════════════════════════
 
-    async function gerarConvite(tipo) {
-        if (!bateriaAtualData) { mostrarToast('Cadastre a bateria antes de gerar um convite.', 'erro'); return; }
-        const cargo = tipo === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
-        const payload = { tipo, cargo, bateria_id: bateriaAtualData.id, criado_por: usuarioLogado.id };
-
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/convites`, {
-            method: 'POST', headers, body: JSON.stringify(payload)
-        });
-        if (!res.ok) {
-            const err = await res.json();
-            mostrarToast('Erro ao gerar convite: ' + (err.message || res.status), 'erro');
+    function renderizarLinksCadastro() {
+        const div = document.getElementById('links-cadastro-lista');
+        if (!div) return;
+        if (!bateriaAtualData) {
+            div.innerHTML = `<p style="font-size:13px;color:#999;">Cadastre a bateria para ver os links.</p>`;
             return;
         }
-        const criados = await res.json();
-        const convite = criados[0];
-        const link = `${window.location.origin}/index.html?token=${convite.token}`;
-
-        document.getElementById('convite-modal-titulo').textContent = `Convite de ${cargo}`;
-        document.getElementById('convite-modal-cargo').textContent = cargo;
-        document.getElementById('convite-modal-link').value = link;
-        document.getElementById('modal-convite-overlay').classList.add('aberto');
+        const base = `${window.location.origin}/index.html?bateria=${bateriaAtualData.id}`;
+        const linhas = [
+            { label: 'Ritmista', url: base },
+            { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },
+            { label: 'Diretor', url: `${base}&cargo=diretor` }
+        ];
+        div.innerHTML = linhas.map((l, i) => `
+            <div style="display:flex;align-items:center;gap:8px;${i > 0 ? 'margin-top:10px;' : ''}">
+                <label style="width:120px;flex-shrink:0;font-size:12px;color:#5a5770;font-weight:600;">${l.label}</label>
+                <input type="text" readonly value="${esc(l.url)}" style="flex:1;padding:9px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;color:#333;">
+                <button class="btn-ficha btn-ficha-salvar" onclick="copiarLinkCadastro(this)">Copiar</button>
+            </div>`).join('');
     }
 
-    function copiarLinkConvite() {
-        const input = document.getElementById('convite-modal-link');
+    function copiarLinkCadastro(btn) {
+        const input = btn.previousElementSibling;
         input.select();
         navigator.clipboard.writeText(input.value).then(() => {
             mostrarToast('Link copiado!');
         }).catch(() => {
             mostrarToast('Não foi possível copiar. Selecione e copie manualmente.', 'erro');
         });
-    }
-
-    function fecharModalConvite() {
-        document.getElementById('modal-convite-overlay').classList.remove('aberto');
     }
 
     // ── UTILITÁRIO ───────────────────────────────────────────────────
