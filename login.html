@@ -155,9 +155,9 @@
 
         const ritmista = dados[0];
         const perfil = ritmista.perfil || 'ritmista';
-        const isStaff = perfil === 'mestre' || perfil === 'diretor' || perfil === 'super_admin';
+        const isAdmin = perfil === 'mestre' || perfil === 'diretor';
 
-        if (!isStaff) {
+        if (!isAdmin && perfil !== 'super_admin') {
             if (ritmista.status === 'pendente') {
                 mostrarMensagem('Seu cadastro ainda está aguardando aprovação da diretoria.', 'aviso');
                 return;
@@ -168,14 +168,21 @@
             }
         }
 
+        if (isAdmin) {
+            if (ritmista.status === 'pendente') {
+                mostrarMensagem('Seu cadastro está em análise. Você poderá acessar o painel assim que for aprovado.', 'aviso');
+                return;
+            }
+            if (ritmista.status === 'rejeitado') {
+                mostrarMensagem('Seu cadastro foi recusado. Entre em contato com o Super Admin.', 'erro');
+                return;
+            }
+        }
+
         localStorage.setItem('ritmista', JSON.stringify(ritmista));
 
-        if (perfil === 'mestre' || perfil === 'diretor') {
-            if (!ritmista.cadastro_completo) {
-                window.location.href = 'completar-perfil.html';
-            } else {
-                window.location.href = 'admin.html';
-            }
+        if (isAdmin) {
+            window.location.href = 'admin.html';
         } else if (perfil === 'super_admin') {
             window.location.href = 'super-admin.html';
         } else {

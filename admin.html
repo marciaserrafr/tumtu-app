@@ -566,6 +566,7 @@
 <!-- PAINEL DIRETORIA -->
 <div class="painel" id="painel-diretoria">
     <div class="painel-titulo">Diretoria</div>
+    <button id="btnConvidarDiretor" class="btn-novo" style="display:none;margin-bottom:20px;" onclick="gerarConviteDiretor()">🔗 Convidar Diretor</button>
     <div id="listaDiretoria" style="min-height:200px;">
         <div class="vazio">Carregando...</div>
     </div>
@@ -784,6 +785,21 @@
         <div class="modal-acoes">
             <button class="btn-modal-cancelar" onclick="fecharModal('modalDesligar')">Cancelar</button>
             <button class="btn-modal-confirmar vermelho" onclick="confirmarDesligar()">Desligar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONVITE DIRETOR -->
+<div class="modal-overlay" id="modalConvite">
+    <div class="modal" style="max-width:440px;">
+        <h2 style="margin-bottom:6px;">Convite de Diretor</h2>
+        <p style="margin-bottom:14px;">Envie este link para o Diretor pelo WhatsApp da diretoria.</p>
+        <div style="display:flex;gap:8px;margin-bottom:20px;">
+            <input type="text" id="conviteLinkInput" readonly style="flex:1;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;">
+            <button class="btn-modal-confirmar verde" onclick="copiarLinkConviteDiretor()">Copiar</button>
+        </div>
+        <div class="modal-acoes">
+            <button class="btn-modal-cancelar" onclick="fecharModal('modalConvite')">Fechar</button>
         </div>
     </div>
 </div>
@@ -1258,8 +1274,34 @@
         const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria'
             : perfil === 'diretor' ? 'Diretor' : '';
         document.getElementById('headerCargo').textContent = cargoLabel;
+        if (perfil === 'mestre') {
+            const btnConvite = document.getElementById('btnConvidarDiretor');
+            if (btnConvite) btnConvite.style.display = 'inline-flex';
+        }
         construirMultiSelect();
         aplicarConfigEscola();
+    }
+
+    async function gerarConviteDiretor() {
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        if (!u || !u.bateria_id) { alert('Bateria não encontrada para este usuário.'); return; }
+        const payload = { tipo: 'diretor', cargo: 'Diretor', bateria_id: u.bateria_id, criado_por: u.id };
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/convites`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=representation' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) { alert('Erro ao gerar convite.'); return; }
+        const criados = await res.json();
+        const link = `${window.location.origin}/index.html?token=${criados[0].token}`;
+        document.getElementById('conviteLinkInput').value = link;
+        document.getElementById('modalConvite').classList.add('aberto');
+    }
+
+    function copiarLinkConviteDiretor() {
+        const input = document.getElementById('conviteLinkInput');
+        input.select();
+        navigator.clipboard.writeText(input.value).catch(() => {});
     }
 
     function construirMultiSelect() {
@@ -1527,7 +1569,6 @@
             emergencia_nome: document.getElementById('mpEmergenciaNome').value.trim() || null,
             emergencia_parentesco: document.getElementById('mpEmergenciaParentesco').value.trim() || null,
             emergencia_celular: document.getElementById('mpEmergenciaCelular').value.trim() || null,
-            cadastro_completo: true,
         };
         if (mpFotoBase64) dados.foto_url = mpFotoBase64;
 

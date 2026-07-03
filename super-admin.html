@@ -362,7 +362,11 @@
 
         <!-- Acessos -->
         <div class="sub-painel" id="sub-painel-acessos" style="display:none">
-            <button class="btn-novo" onclick="abrirFormAcesso()">+ Adicionar Acesso</button>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn-novo" onclick="abrirFormAcesso()">+ Adicionar Acesso</button>
+                <button class="btn-novo" style="background:transparent;border:1.5px solid #D4AF37;color:#12101a;" onclick="gerarConvite('mestre')">🔗 Convidar Mestre</button>
+                <button class="btn-novo" style="background:transparent;border:1.5px solid #D4AF37;color:#12101a;" onclick="gerarConvite('diretor')">🔗 Convidar Diretor</button>
+            </div>
             <div id="lista-acessos" class="lista-cards">
                 <div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Carregando...</div>
             </div>
@@ -381,6 +385,27 @@
         </div>
         <div class="modal-sa-body" id="modal-acesso-body"></div>
         <div class="modal-sa-rodape" id="modal-acesso-rodape"></div>
+    </div>
+</div>
+
+<!-- MODAL CONVITE -->
+<div class="modal-overlay" id="modal-convite-overlay" onclick="fecharSeForaModal(event,'modal-convite-overlay','fecharModalConvite')">
+    <div class="modal-sa" style="max-width:460px;">
+        <div class="modal-sa-header">
+            <div class="modal-sa-titulo" id="convite-modal-titulo">Convite gerado</div>
+            <button class="modal-sa-fechar" onclick="fecharModalConvite()">✕</button>
+        </div>
+        <div class="modal-sa-body">
+            <p style="font-size:13px;color:#666;margin-bottom:14px;">Envie este link para o <span id="convite-modal-cargo"></span> pelo WhatsApp da diretoria.</p>
+            <div style="display:flex;gap:8px;">
+                <input type="text" id="convite-modal-link" readonly style="flex:1;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;color:#333;">
+                <button class="btn-ficha btn-ficha-salvar" onclick="copiarLinkConvite()">Copiar link</button>
+            </div>
+        </div>
+        <div class="modal-sa-rodape">
+            <div></div>
+            <button class="btn-ficha" onclick="fecharModalConvite()">Fechar</button>
+        </div>
     </div>
 </div>
 
@@ -1067,6 +1092,47 @@
             const err = await res.json();
             mostrarToast('Erro: ' + (err.message || res.status), 'erro');
         }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // CONVITES (Mestre / Diretor se autocadastram via link)
+    // ══════════════════════════════════════════════════════════════════
+
+    async function gerarConvite(tipo) {
+        if (!bateriaAtualData) { mostrarToast('Cadastre a bateria antes de gerar um convite.', 'erro'); return; }
+        const cargo = tipo === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
+        const payload = { tipo, cargo, bateria_id: bateriaAtualData.id, criado_por: usuarioLogado.id };
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/convites`, {
+            method: 'POST', headers, body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            mostrarToast('Erro ao gerar convite: ' + (err.message || res.status), 'erro');
+            return;
+        }
+        const criados = await res.json();
+        const convite = criados[0];
+        const link = `${window.location.origin}/index.html?token=${convite.token}`;
+
+        document.getElementById('convite-modal-titulo').textContent = `Convite de ${cargo}`;
+        document.getElementById('convite-modal-cargo').textContent = cargo;
+        document.getElementById('convite-modal-link').value = link;
+        document.getElementById('modal-convite-overlay').classList.add('aberto');
+    }
+
+    function copiarLinkConvite() {
+        const input = document.getElementById('convite-modal-link');
+        input.select();
+        navigator.clipboard.writeText(input.value).then(() => {
+            mostrarToast('Link copiado!');
+        }).catch(() => {
+            mostrarToast('Não foi possível copiar. Selecione e copie manualmente.', 'erro');
+        });
+    }
+
+    function fecharModalConvite() {
+        document.getElementById('modal-convite-overlay').classList.remove('aberto');
     }
 
     // ── UTILITÁRIO ───────────────────────────────────────────────────

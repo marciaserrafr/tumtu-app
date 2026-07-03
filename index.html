@@ -125,6 +125,13 @@
         <h1>Tu<span style="color:#D4AF37;font-weight:900">TT</span>i</h1>
     </div>
 
+    <div id="convite-banner" style="display:none;background:#fff8e6;border:1.5px solid #D4AF37;border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:#5a5770;text-align:center;">
+        Cadastro de <strong id="convite-cargo" style="color:#12101a;"></strong> da bateria <strong id="convite-bateria" style="color:#12101a;"></strong>
+    </div>
+
+    <div id="convite-erro-box" style="display:none;background:#fde8e8;border:1.5px solid #f0c4c0;border-radius:10px;padding:20px;text-align:center;color:#b3261e;font-size:14px;font-weight:600;"></div>
+
+    <div id="conteudo-cadastro">
     <div class="foto-area">
         <div class="foto-preview" onclick="document.getElementById('inputFoto').click()">
             <span>Clique para adicionar foto</span>
@@ -376,6 +383,7 @@
 
         <button type="submit" class="btn-cadastrar btn-primario">Enviar cadastro</button>
     </form>
+    </div><!-- /conteudo-cadastro -->
 
     <div class="link-login">
         Já tem cadastro? <a href="login.html">Entrar</a>
@@ -490,6 +498,35 @@
         el.style.display = 'block';
     }
 
+    // ── CADASTRO VIA CONVITE (?token=) — Mestre/Diretor ────────────────
+    let conviteAtual = null;
+
+    async function inicializarConvite() {
+        const token = new URLSearchParams(window.location.search).get('token');
+        if (!token) return;
+
+        const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/convites?token=eq.${encodeURIComponent(token)}&select=*`, { headers });
+        const linhas = await res.json();
+        const convite = linhas[0];
+
+        if (!convite || convite.usado) {
+            document.getElementById('conteudo-cadastro').style.display = 'none';
+            const erroBox = document.getElementById('convite-erro-box');
+            erroBox.textContent = 'Este convite já foi usado ou não é válido.';
+            erroBox.style.display = 'block';
+            return;
+        }
+
+        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${convite.bateria_id}&select=nome`, { headers });
+        const baterias = await resBat.json();
+
+        conviteAtual = convite;
+        document.getElementById('convite-cargo').textContent = convite.cargo;
+        document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
+        document.getElementById('convite-banner').style.display = 'block';
+    }
+
     function mostrarErroCampo(campo, mensagem) {
         campo.classList.add('campo-invalido');
         let span = campo.parentNode.querySelector('.erro-inline');
@@ -589,26 +626,49 @@
             status: 'pendente'
         };
 
+        if (conviteAtual) {
+            dados.perfil = conviteAtual.tipo;
+            dados.bateria_id = conviteAtual.bateria_id;
+            dados.nivel_acesso = 'total';
+        }
+
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Prefer': 'return=representation'
             },
             body: JSON.stringify(dados)
         });
 
         if (res.ok) {
-            mostrarMensagem('Cadastro enviado com sucesso! Aguarde a aprovação da diretoria.', 'sucesso');
-            document.getElementById('formCadastro').reset();
-            document.querySelector('.foto-preview').innerHTML = '<span>Clique para adicionar foto</span>';
-            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            if (conviteAtual) {
+                const criados = await res.json();
+                const novoId = criados[0] && criados[0].id;
+                await fetch(`${SUPABASE_URL}/rest/v1/convites?id=eq.${conviteAtual.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+                    body: JSON.stringify({ usado: true, usado_por: novoId })
+                });
+                mostrarMensagem('Cadastro enviado! Aguarde a aprovação para acessar o painel.', 'sucesso');
+                document.getElementById('formCadastro').style.display = 'none';
+                document.querySelector('.foto-area').style.display = 'none';
+                document.getElementById('convite-banner').style.display = 'none';
+            } else {
+                mostrarMensagem('Cadastro enviado com sucesso! Aguarde a aprovação da diretoria.', 'sucesso');
+                document.getElementById('formCadastro').reset();
+                document.querySelector('.foto-preview').innerHTML = '<span>Clique para adicionar foto</span>';
+                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            }
         } else {
             mostrarMensagem('Erro ao enviar cadastro. Tente novamente.', 'erro');
             if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
         }
     });
+
+    inicializarConvite();
 </script>
 </body>
 </html>
