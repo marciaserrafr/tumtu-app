@@ -527,6 +527,41 @@
         document.getElementById('convite-banner').style.display = 'block';
     }
 
+    // ── CADASTRO MANUAL (?modo=manual) — Super Admin / Mestre / Diretor ─
+    let modoManualAtual = null;
+
+    async function inicializarModoManual() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('modo') !== 'manual') return;
+
+        const cargo = params.get('cargo');
+        const bateriaId = params.get('bateria_id');
+        const usuarioLogado = JSON.parse(localStorage.getItem('ritmista') || 'null');
+
+        const autorizado = !!usuarioLogado && (
+            usuarioLogado.perfil === 'super_admin' ||
+            (cargo === 'ritmista' && (usuarioLogado.perfil === 'mestre' || usuarioLogado.perfil === 'diretor'))
+        );
+
+        if (!bateriaId || !cargo || !autorizado) {
+            document.getElementById('conteudo-cadastro').style.display = 'none';
+            const erroBox = document.getElementById('convite-erro-box');
+            erroBox.textContent = 'Você não tem permissão para acessar este cadastro.';
+            erroBox.style.display = 'block';
+            return;
+        }
+
+        const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome`, { headers });
+        const baterias = await resBat.json();
+
+        modoManualAtual = { cargo, bateriaId: Number(bateriaId), criadoPorId: usuarioLogado.id };
+        const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor' : 'Ritmista';
+        document.getElementById('convite-cargo').textContent = cargoLabel;
+        document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
+        document.getElementById('convite-banner').style.display = 'block';
+    }
+
     function mostrarErroCampo(campo, mensagem) {
         campo.classList.add('campo-invalido');
         let span = campo.parentNode.querySelector('.erro-inline');
@@ -630,6 +665,12 @@
             dados.perfil = conviteAtual.tipo;
             dados.bateria_id = conviteAtual.bateria_id;
             dados.nivel_acesso = 'total';
+        } else if (modoManualAtual) {
+            dados.perfil = modoManualAtual.cargo;
+            dados.bateria_id = modoManualAtual.bateriaId;
+            dados.status = 'aprovado';
+            dados.aprovado_por = modoManualAtual.criadoPorId;
+            if (modoManualAtual.cargo !== 'ritmista') dados.nivel_acesso = 'total';
         }
 
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas`, {
@@ -656,6 +697,11 @@
                 document.getElementById('formCadastro').style.display = 'none';
                 document.querySelector('.foto-area').style.display = 'none';
                 document.getElementById('convite-banner').style.display = 'none';
+            } else if (modoManualAtual) {
+                mostrarMensagem('Cadastro criado com sucesso! O acesso já está ativo.', 'sucesso');
+                document.getElementById('formCadastro').style.display = 'none';
+                document.querySelector('.foto-area').style.display = 'none';
+                document.getElementById('convite-banner').style.display = 'none';
             } else {
                 mostrarMensagem('Cadastro enviado com sucesso! Aguarde a aprovação da diretoria.', 'sucesso');
                 document.getElementById('formCadastro').reset();
@@ -669,6 +715,7 @@
     });
 
     inicializarConvite();
+    inicializarModoManual();
 </script>
 </body>
 </html>

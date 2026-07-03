@@ -477,7 +477,7 @@
 
     <div class="painel-titulo">Ritmistas</div>
 
-    <button class="btn-novo" onclick="window.location.href='index.html'" style="margin-bottom:20px;">+ Cadastrar Ritmista</button>
+    <button class="btn-novo" onclick="irParaCadastroManualRitmista()" style="margin-bottom:20px;">+ Cadastrar Ritmista</button>
 
     <!-- BUSCA -->
     <div style="margin-bottom:20px;">
@@ -1240,6 +1240,12 @@
     });
 
     function sair() { window.location.href = 'login.html'; }
+
+    function irParaCadastroManualRitmista() {
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        if (!u || !u.bateria_id) { alert('Bateria não encontrada para este usuário.'); return; }
+        window.location.href = `index.html?modo=manual&cargo=ritmista&bateria_id=${u.bateria_id}`;
+    }
 
 
     const INSTRUMENTOS = ['Caixa','Chocalho','Cuíca','Repique','Surdo de 1ª','Surdo de 2ª','Surdo de 3ª','Tamborim'];

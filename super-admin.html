@@ -367,7 +367,7 @@
         <!-- Acessos -->
         <div class="sub-painel" id="sub-painel-acessos" style="display:none">
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <button class="btn-novo" onclick="abrirFormAcesso()">+ Adicionar Acesso</button>
+                <button class="btn-novo" onclick="abrirCadastrarUsuario()">+ Cadastrar Usuário</button>
                 <button class="btn-novo" style="background:transparent;border:1.5px solid #D4AF37;color:#12101a;" onclick="gerarConvite('mestre')">🔗 Convidar Mestre</button>
                 <button class="btn-novo" style="background:transparent;border:1.5px solid #D4AF37;color:#12101a;" onclick="gerarConvite('diretor')">🔗 Convidar Diretor</button>
             </div>
@@ -389,6 +389,34 @@
         </div>
         <div class="modal-sa-body" id="modal-acesso-body"></div>
         <div class="modal-sa-rodape" id="modal-acesso-rodape"></div>
+    </div>
+</div>
+
+<!-- MODAL CADASTRAR USUÁRIO (pré-passo: bateria + cargo) -->
+<div class="modal-overlay" id="modal-cadastrar-usuario-overlay" onclick="fecharSeForaModal(event,'modal-cadastrar-usuario-overlay','fecharCadastrarUsuario')">
+    <div class="modal-sa" style="max-width:420px;">
+        <div class="modal-sa-header">
+            <div class="modal-sa-titulo">Cadastrar Usuário</div>
+            <button class="modal-sa-fechar" onclick="fecharCadastrarUsuario()">✕</button>
+        </div>
+        <div class="modal-sa-body">
+            <div class="campo">
+                <label>Bateria *</label>
+                <select id="cu-bateria-id"></select>
+            </div>
+            <div class="campo" style="margin-bottom:0;">
+                <label>Cargo *</label>
+                <select id="cu-cargo">
+                    <option value="ritmista">Ritmista</option>
+                    <option value="mestre">Mestre de Bateria</option>
+                    <option value="diretor">Diretor</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-sa-rodape">
+            <div></div>
+            <button class="btn-ficha btn-ficha-salvar" onclick="continuarCadastrarUsuario()">Continuar</button>
+        </div>
     </div>
 </div>
 
@@ -987,27 +1015,6 @@
         return `<option value="">Selecione uma bateria...</option>${opts}`;
     }
 
-    function abrirFormAcesso() {
-        const bateriaId = bateriasCache.length > 0 ? bateriasCache[0].id : '';
-        document.getElementById('form-acesso-titulo').textContent = 'Novo Acesso';
-        document.getElementById('modal-acesso-body').innerHTML = `
-            <div class="form-grid">
-                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="acesso-nome" placeholder="Nome completo"></div>
-                <div class="campo campo-full"><label>Apelido *</label><input type="text" id="acesso-apelido" placeholder="Como aparece no sistema"></div>
-                <div class="campo"><label>CPF *</label><input type="text" id="acesso-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)"></div>
-                <div class="campo"><label>Senha *</label><input type="password" id="acesso-senha" placeholder="Mínimo 6 caracteres"></div>
-                <div class="campo"><label>Perfil *</label><select id="acesso-perfil"><option value="">Selecione...</option><option value="mestre">Mestre de Bateria</option><option value="diretor">Diretor</option></select></div>
-                <div class="campo"><label>Bateria Vinculada *</label><select id="acesso-bateria-id">${bateriasOpcoesHTML(bateriaId)}</select></div>
-            </div>
-            <input type="hidden" id="acesso-id" value="">`;
-        document.getElementById('modal-acesso-rodape').innerHTML = `
-            <div class="modal-sa-rodape-esq">
-                <button class="btn-ficha btn-ficha-salvar" onclick="salvarAcesso()">Criar Acesso</button>
-            </div>
-            <button class="btn-ficha" onclick="fecharFormAcesso()">Fechar</button>`;
-        document.getElementById('modal-acesso-overlay').classList.add('aberto');
-    }
-
     function fecharFormAcesso() {
         document.getElementById('modal-acesso-overlay').classList.remove('aberto');
     }
@@ -1093,43 +1100,56 @@
         if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
         if (!apelido) { mostrarToast('Informe o apelido.', 'erro'); return; }
         if (!cpf) { mostrarToast('Informe o CPF.', 'erro'); return; }
-        if (!id && (!senha || senha.length < 6)) { mostrarToast('Senha deve ter no mínimo 6 caracteres.', 'erro'); return; }
-        if (id && senha && senha.length < 6) { mostrarToast('Senha deve ter no mínimo 6 caracteres.', 'erro'); return; }
+        if (senha && senha.length < 6) { mostrarToast('Senha deve ter no mínimo 6 caracteres.', 'erro'); return; }
         if (!perfil) { mostrarToast('Selecione o perfil.', 'erro'); return; }
         if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
 
-        if (!id) {
-            const check = await fetch(
-                `${SUPABASE_URL}/rest/v1/ritmistas?cpf=eq.${encodeURIComponent(cpf)}&select=id`,
-                { headers }
-            );
-            const existente = await check.json();
-            if (existente.length) { mostrarToast('Já existe um cadastro com este CPF.', 'erro'); return; }
-        }
-
         const payload = { nome, apelido, cpf, perfil, bateria_id: bateriaId };
         if (senha) payload.senha = senha;
-        if (!id) payload.status = 'aprovado';
 
-        let res;
-        if (id) {
-            res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
-                method: 'PATCH', headers, body: JSON.stringify(payload)
-            });
-        } else {
-            res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas`, {
-                method: 'POST', headers, body: JSON.stringify(payload)
-            });
-        }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+            method: 'PATCH', headers, body: JSON.stringify(payload)
+        });
 
         if (res.ok) {
-            mostrarToast(id ? 'Acesso atualizado!' : 'Acesso criado com sucesso!');
+            mostrarToast('Acesso atualizado!');
             fecharFormAcesso();
             carregarAcessos(escolaSelecionadaId);
         } else {
             const err = await res.json();
             mostrarToast('Erro: ' + (err.message || res.status), 'erro');
         }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // CADASTRAR USUÁRIO (manual — status já nasce ativo)
+    // ══════════════════════════════════════════════════════════════════
+
+    async function abrirCadastrarUsuario() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?select=id,nome,escola_id&order=nome`, { headers });
+        const todasBaterias = res.ok ? await res.json() : [];
+        const select = document.getElementById('cu-bateria-id');
+        select.innerHTML = todasBaterias.map(b => {
+            const escola = escolasCache.find(e => e.id === b.escola_id);
+            const label = escola ? `${b.nome} — ${escola.sigla || escola.nome}` : b.nome;
+            const selecionado = bateriaAtualData && b.id === bateriaAtualData.id ? ' selected' : '';
+            return `<option value="${b.id}"${selecionado}>${esc(label)}</option>`;
+        }).join('');
+        document.getElementById('cu-cargo').value = 'ritmista';
+        document.getElementById('modal-cadastrar-usuario-overlay').classList.add('aberto');
+    }
+
+    function fecharCadastrarUsuario() {
+        document.getElementById('modal-cadastrar-usuario-overlay').classList.remove('aberto');
+    }
+
+    function continuarCadastrarUsuario() {
+        const bateriaId = document.getElementById('cu-bateria-id').value;
+        const cargo = document.getElementById('cu-cargo').value;
+        if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
+        const url = `${window.location.origin}/index.html?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}`;
+        window.open(url, '_blank');
+        fecharCadastrarUsuario();
     }
 
     // ══════════════════════════════════════════════════════════════════
