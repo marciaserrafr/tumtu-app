@@ -81,6 +81,10 @@
         .item-acoes { display: flex; gap: 8px; align-items: center; }
         .badge-ativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #e8f5e9; color: #2e7d32; }
         .badge-inativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fce4ec; color: #c62828; }
+        .badge-pendente { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fff8e6; color: #9a6200; }
+        .badge-rejeitado { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #f5f5f5; color: #757575; }
+        .acessos-secao-titulo { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
+        .acessos-secao-titulo:first-child { margin-top: 4px; }
 
         /* ── FORMULÁRIOS INLINE ── */
         .card-form {
@@ -915,20 +919,18 @@
         return p;
     }
 
-    function renderizarListaAcessos(lista) {
-        const div = document.getElementById('lista-acessos');
-        if (!lista.length) {
-            div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Nenhum acesso criado ainda.</div>';
-            return;
-        }
-        const ordenada = [...lista].sort((a, b) => {
-            const ordem = { mestre: 0, diretor: 1 };
-            const pa = ordem[a.perfil] ?? 2;
-            const pb = ordem[b.perfil] ?? 2;
-            if (pa !== pb) return pa - pb;
-            return a.nome.localeCompare(b.nome);
-        });
-        div.innerHTML = ordenada.map(u => `
+    function badgeStatusAcesso(status) {
+        if (status === 'pendente') return '<span class="badge-pendente">Pendente</span>';
+        if (status === 'rejeitado') return '<span class="badge-rejeitado">Rejeitado</span>';
+        if (status === 'inativo') return '<span class="badge-inativo">Inativo</span>';
+        return '<span class="badge-ativo">Ativo</span>';
+    }
+
+    function cardAcessoHTML(u) {
+        const botoesPendente = u.status === 'pendente' ? `
+            <button class="btn-ficha btn-ficha-editar" onclick="event.stopPropagation();aprovarAcesso(${u.id})">Aprovar</button>
+            <button class="btn-ficha btn-ficha-danger" onclick="event.stopPropagation();rejeitarAcesso(${u.id})">Rejeitar</button>` : '';
+        return `
             <div class="item-card" style="cursor:pointer" onclick="verAcesso('${u.id}')">
                 <div class="item-info">
                     <div class="item-nome">${u.nome}${u.apelido ? ` <span style="font-size:15px;font-weight:700;color:#D4AF37">"${u.apelido}"</span>` : ''}</div>
@@ -938,10 +940,46 @@
                     </div>
                 </div>
                 <div class="item-acoes">
-                    <span class="${u.status === 'inativo' ? 'badge-inativo' : 'badge-ativo'}">${u.status === 'inativo' ? 'Inativo' : 'Ativo'}</span>
+                    ${botoesPendente}
+                    ${badgeStatusAcesso(u.status)}
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+    }
+
+    function renderizarListaAcessos(lista) {
+        const div = document.getElementById('lista-acessos');
+        if (!lista.length) {
+            div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Nenhum acesso criado ainda.</div>';
+            return;
+        }
+        const porNome = (a, b) => a.nome.localeCompare(b.nome);
+        const mestres = lista.filter(u => u.perfil === 'mestre').sort(porNome);
+        const diretores = lista.filter(u => u.perfil === 'diretor').sort(porNome);
+        const outros = lista.filter(u => u.perfil !== 'mestre' && u.perfil !== 'diretor').sort(porNome);
+
+        let html = '';
+        if (mestres.length) html += `<div class="acessos-secao-titulo">Mestres</div>` + mestres.map(cardAcessoHTML).join('');
+        if (diretores.length) html += `<div class="acessos-secao-titulo">Diretores</div>` + diretores.map(cardAcessoHTML).join('');
+        if (outros.length) html += outros.map(cardAcessoHTML).join('');
+        div.innerHTML = html;
+    }
+
+    async function aprovarAcesso(id) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+            method: 'PATCH', headers,
+            body: JSON.stringify({ status: 'aprovado', aprovado_por: usuarioLogado.id, motivo_status: null })
+        });
+        if (res.ok) { mostrarToast('Acesso aprovado!'); carregarAcessos(escolaSelecionadaId); }
+        else { mostrarToast('Erro ao aprovar.', 'erro'); }
+    }
+
+    async function rejeitarAcesso(id) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+            method: 'PATCH', headers,
+            body: JSON.stringify({ status: 'rejeitado' })
+        });
+        if (res.ok) { mostrarToast('Acesso rejeitado.'); carregarAcessos(escolaSelecionadaId); }
+        else { mostrarToast('Erro ao rejeitar.', 'erro'); }
     }
 
     function bateriasOpcoesHTML(selecionado = '') {

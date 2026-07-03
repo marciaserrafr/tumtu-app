@@ -418,6 +418,7 @@
         .dir-badge-cargo { background: #e8e6f0; color: #5a5770; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
         .dir-badge-ativo { background: #e8f5e8; color: #1f4d1f; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
         .dir-badge-inativo { background: #f5f5f5; color: #757575; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+        .dir-badge-pendente { background: #fff8e6; color: #9a6200; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
         /* Modal ficha de admin (Diretoria) */
         .modal-admin-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000;
@@ -1627,16 +1628,31 @@
             lista.innerHTML = '<div class="vazio">Nenhum membro da diretoria encontrado.</div>';
             return;
         }
+        const usuarioAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        const souMestre = !!usuarioAtual && usuarioAtual.perfil === 'mestre';
+
         lista.innerHTML = admins.map(a => {
             const inicial = (a.nome || 'A')[0].toUpperCase();
             const fotoHtml = a.foto_url
                 ? `<img src="${a.foto_url}">`
                 : inicial;
             const cargo = a.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
-            const statusBadge = (a.status === 'aprovado' || !a.status)
-                ? `<span class="dir-badge-ativo">Ativo</span>`
-                : `<span class="dir-badge-inativo">Inativo</span>`;
             const apelido = a.apelido ? `<span class="dir-apelido">"${a.apelido}"</span>` : '';
+
+            let statusBadge, acoes = '';
+            if (a.status === 'pendente') {
+                statusBadge = `<span class="dir-badge-pendente">Pendente</span>`;
+                if (souMestre && a.perfil === 'diretor') {
+                    acoes = `
+                    <button class="btn-ficha btn-ficha-ativar" onclick="event.stopPropagation();aprovarDiretor(${a.id})">Aprovar</button>
+                    <button class="btn-ficha btn-ficha-rejeitar" onclick="event.stopPropagation();rejeitarDiretor(${a.id})">Rejeitar</button>`;
+                }
+            } else if (a.status === 'rejeitado') {
+                statusBadge = `<span class="dir-badge-inativo">Rejeitado</span>`;
+            } else {
+                statusBadge = `<span class="dir-badge-ativo">Ativo</span>`;
+            }
+
             return `
             <div class="dir-card" onclick="abrirFichaAdmin(${a.id})">
                 <div class="dir-foto">${fotoHtml}</div>
@@ -1648,11 +1664,33 @@
                     </div>
                     <div class="dir-meta">${a.cpf ? 'CPF: ' + a.cpf : ''}${a.cpf && a.celular ? ' · ' : ''}${a.celular || ''}</div>
                 </div>
+                ${acoes ? `<div style="display:flex;gap:6px;flex-shrink:0;" onclick="event.stopPropagation()">${acoes}</div>` : ''}
             </div>`;
         }).join('');
 
         // Guarda admins para uso no modal
         window._adminsCache = admins;
+    }
+
+    async function aprovarDiretor(id) {
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+            body: JSON.stringify({ status: 'aprovado', aprovado_por: u ? u.id : null, motivo_status: null })
+        });
+        diretoriaCarregada = false;
+        await carregarDiretoria();
+    }
+
+    async function rejeitarDiretor(id) {
+        await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+            body: JSON.stringify({ status: 'rejeitado' })
+        });
+        diretoriaCarregada = false;
+        await carregarDiretoria();
     }
 
     function abrirFichaAdmin(id) {
