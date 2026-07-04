@@ -1185,8 +1185,9 @@
     // ── ACESSAR COMO ADMIN ───────────────────────────────────────────
     function acessarComoAdmin() {
         if (!escolaSelecionadaId || !escolaAtualData) return;
+        if (!bateriaAtualData) { mostrarToast('Cadastre a bateria antes de acessar como Admin.', 'erro'); return; }
         const nome = encodeURIComponent(escolaAtualData.nome || '');
-        const url = `admin.html?superadmin=true&escola_nome=${nome}`;
+        const url = `admin.html?superadmin=true&escola_nome=${nome}&bateria_id=${bateriaAtualData.id}`;
         window.open(url, '_blank');
     }
 

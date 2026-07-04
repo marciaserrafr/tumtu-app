@@ -716,10 +716,9 @@
                 <div class="ficha-campo"><span>Instrumento</span><strong id="fc-instrumento"></strong>
                     <select id="fc-instrumento-edit" class="fc-input" style="display:none">
                         <option value="">Selecione</option>
-                        <option>Caixa</option><option>Chocalho</option><option>Cuíca</option>
-                        <option>Repique</option><option>Surdo de 1ª</option>
-                        <option>Surdo de 2ª</option><option>Surdo de 3ª</option>
-                        <option>Tamborim</option>
+                        <option>Agogô</option><option>Caixa</option><option>Chocalho</option>
+                        <option>Cuíca</option><option>Reco-reco</option><option>Repique</option>
+                        <option>Surdo</option><option>Tamborim</option>
                     </select>
                 </div>
                 <div class="ficha-campo"><span>Membro desde</span><strong id="fc-tempo"></strong><input id="fc-tempo-edit" class="fc-input" type="text" placeholder="Ex: 2020" style="display:none"></div>
@@ -838,8 +837,20 @@
         document.getElementById('totalPendentes').textContent = pendentes;
     }
 
+    function bateriaIdContexto() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('superadmin') === 'true') {
+            const bid = params.get('bateria_id');
+            return bid ? Number(bid) : null;
+        }
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        return u ? u.bateria_id : null;
+    }
+
     async function carregarRitmistas() {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?or=(perfil.eq.ritmista,perfil.is.null)&select=*&order=created_at.desc`, {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); renderizarOcupacao(); atualizarTotalizadores(); renderizarVisaoGeral(); return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=*&order=created_at.desc`, {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
         });
         todosRitmistas = await res.json();
@@ -1240,7 +1251,7 @@
     }
 
 
-    const INSTRUMENTOS = ['Caixa','Chocalho','Cuíca','Repique','Surdo de 1ª','Surdo de 2ª','Surdo de 3ª','Tamborim'];
+    const INSTRUMENTOS = ['Agogô','Caixa','Chocalho','Cuíca','Reco-reco','Repique','Surdo','Tamborim'];
     let instrumentosDiretor = INSTRUMENTOS; // padrão: todos (mestre/admin)
     let filtroInstrumentosSelecionados = [];
 
@@ -1593,14 +1604,12 @@
 
     async function carregarDiretoria() {
         if (diretoriaCarregada) return;
-        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        const bateriaId = bateriaIdContexto();
         const lista = document.getElementById('listaDiretoria');
         lista.innerHTML = '<div class="vazio">Carregando...</div>';
 
-        let url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&order=perfil.asc,nome.asc&select=*`;
-        if (u && u.bateria_id) {
-            url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&bateria_id=eq.${u.bateria_id}&order=perfil.asc,nome.asc&select=*`;
-        }
+        if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
+        const url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=*`;
 
         const res = await fetch(url, {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }

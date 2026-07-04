@@ -422,6 +422,8 @@ O título da seção é **"DECLARAÇÃO DO RESPONSÁVEL"** — nunca "MENOR DE I
 | Admin (Mestre ou Diretor) | Vê todos os ritmistas da bateria e aprova cadastros. Em "Meu Perfil", vê e edita somente os próprios dados pessoais | admin.html |
 | Ritmista | Vê só os próprios dados e carteirinha | carteirinha.html |
 
+> ⚠️ **Regra de proteção (03/jul/2026):** nenhuma tela do sistema — hoje ou futura — deve oferecer ação de apagar uma conta de Super Admin, mesmo que no futuro existam vários Super Admins cadastrados. Evita "lockout" (ninguém acima do Super Admin pode restaurar o acesso se essa conta for apagada por engano). Não se aplica a Admin ou Ritmista, que sempre têm alguém acima capaz de corrigir um erro.
+
 **Login:** único para todos os perfis (login.html). O sistema redireciona para a tela certa após autenticação. Qualquer perfil pode se logar usando CPF ou e-mail.
 
 > ✅ **Resolvido em 02/jul/2026:** a linha "Login separado para diretor" da seção 11 estava desatualizada e foi superada pela decisão abaixo. Não existe login separado por perfil — o que existe é um **cadastro por link fixo** para Mestre e Diretor (diferente do cadastro público do Ritmista), mas o login continua sendo o mesmo formulário único para todos.
