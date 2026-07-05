@@ -8,8 +8,7 @@
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="styles/components.css">
     <script src="config-escola.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
-    <script>if (window.dcodeIO && !window.bcrypt) window.bcrypt = window.dcodeIO.bcrypt;</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
@@ -170,7 +169,7 @@
         <div class="form-row">
             <div class="form-group">
                 <label>CPF <span id="cpf-asterisco" class="obrigatorio">*</span></label>
-                <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this); atualizarObrigatoriedadeCpfEmail();">
+                <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" required>
                 <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
                     <input type="checkbox" id="sem_cpf" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="toggleSemCpf()">
                     <label for="sem_cpf" style="margin:0;font-size:12px;color:#666;cursor:pointer;font-weight:500;">Não tenho CPF</label>
@@ -190,7 +189,6 @@
                         <input type="text" id="numero_documento" placeholder="Ex: AB123456">
                     </div>
                 </div>
-                <span class="erro-campo" id="erro-cpf-email"></span>
             </div>
             <div class="form-group">
                 <label>Data de nascimento <span class="obrigatorio">*</span></label>
@@ -202,11 +200,8 @@
             <input type="text" id="celular" placeholder="(21) 99999-9999" maxlength="15" oninput="mascaraCelular(this)" required>
         </div>
         <div class="form-group">
-            <label>E-mail <span id="email-asterisco" class="obrigatorio">*</span></label>
-            <input type="email" id="email" placeholder="seu@email.com" oninput="atualizarObrigatoriedadeCpfEmail()">
-        </div>
-        <div id="aviso-cpf-email" style="font-size:12px;color:#856404;background:#fff3cd;border-radius:8px;padding:10px 12px;margin-bottom:14px;display:none;">
-            Informe pelo menos o CPF ou o e-mail para poder acessar o sistema.
+            <label>E-mail <span class="obrigatorio">*</span></label>
+            <input type="email" id="email" placeholder="seu@email.com" required>
         </div>
 
         <div class="form-row">
@@ -383,6 +378,13 @@
             </div>
         </div>
 
+        <div id="bloco-consentimento" style="display:none; margin-top:6px; margin-bottom:14px; background:#fff8e6; border:1.5px solid #D4AF37; border-radius:10px; padding:12px 14px;">
+            <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; font-weight:500; color:#5a5770; cursor:pointer;">
+                <input type="checkbox" id="consentimento_confirmado" style="margin-top:2px; width:15px; height:15px; accent-color:#D4AF37; cursor:pointer;">
+                Confirmo que a pessoa cadastrada está ciente deste cadastro e autorizou seus dados serem inseridos no Tutti.
+            </label>
+        </div>
+
         <button type="submit" class="btn-cadastrar btn-primario">Enviar cadastro</button>
     </form>
     </div><!-- /conteudo-cadastro -->
@@ -395,6 +397,7 @@
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     function previewFoto(input) {
         if (input.files && input.files[0]) {
@@ -472,10 +475,11 @@
         const numDoc = document.getElementById('numero_documento');
         cpfInput.style.display = semCpf ? 'none' : '';
         cpfInput.value = '';
+        cpfInput.required = !semCpf;
+        document.getElementById('cpf-asterisco').style.display = semCpf ? 'none' : 'inline';
         blocoDoc.style.display = semCpf ? 'block' : 'none';
         tipoDoc.required = semCpf;
         numDoc.required = semCpf;
-        atualizarObrigatoriedadeCpfEmail();
     }
 
     function toggleNacionalidade() {
@@ -486,12 +490,6 @@
         if (tipo === 'Brasileira') input.value = '';
     }
 
-    function atualizarObrigatoriedadeCpfEmail() {
-        const cpf = document.getElementById('cpf').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const temAlgum = cpf || email;
-        document.getElementById('aviso-cpf-email').style.display = temAlgum ? 'none' : 'block';
-    }
 
     function mostrarMensagem(texto, tipo) {
         const el = document.getElementById('mensagem');
@@ -510,7 +508,7 @@
 
         const cargoParam = params.get('cargo'); // 'mestre' | 'diretor' | ausente = ritmista
         const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
-        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=id,nome`, { headers });
+        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/baterias_publicas?id=eq.${bateriaId}&select=id,nome`, { headers });
         const baterias = resBat.ok ? await resBat.json() : [];
         const bateria = baterias[0];
 
@@ -555,7 +553,9 @@
             return;
         }
 
-        const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+        const { data: sessionDataManual } = await sb.auth.getSession();
+        const tokenManual = sessionDataManual.session ? sessionDataManual.session.access_token : SUPABASE_KEY;
+        const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${tokenManual}` };
         const resBat = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome`, { headers });
         const baterias = await resBat.json();
 
@@ -564,6 +564,7 @@
         document.getElementById('convite-cargo').textContent = cargoLabel;
         document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
         document.getElementById('convite-banner').style.display = 'block';
+        document.getElementById('bloco-consentimento').style.display = 'block';
     }
 
     function mostrarErroCampo(campo, mensagem) {
@@ -611,14 +612,8 @@
 
         const cpf = document.getElementById('cpf').value.trim();
         const email = document.getElementById('email').value.trim();
-        if (!cpf && !email) {
-            document.getElementById('aviso-cpf-email').style.display = 'block';
-            document.getElementById('cpf').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            mostrarErroCampo(document.getElementById('cpf'), 'Informe o CPF ou o e-mail.');
-            return;
-        }
 
-        if (!validarCampos()) return;
+        if (!validarCampos()) { if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; } return; }
         const senha = document.getElementById('senha').value;
         const confirmar = document.getElementById('confirmar_senha').value;
         if (senha.length < 6) {
@@ -656,7 +651,6 @@
             tamanho_fantasia: valorTamanho('tamanho_fantasia'),
             tamanho_calca: valorTamanho('tamanho_calca'),
             tamanho_sapato: valorTamanho('tamanho_sapato'),
-            senha: bcrypt.hashSync(senha, 10), // hash client-side (bcryptjs); melhoria futura: mover para Edge Function/Supabase Auth
             membro_desde: document.getElementById('membro_desde').value || null,
             tipo_sanguineo: document.getElementById('tipo_sanguineo').value || null,
             emergencia_nome: document.getElementById('emergencia_nome').value,
@@ -669,20 +663,61 @@
             dados.perfil = linkFixoAtual.perfil;
             dados.bateria_id = linkFixoAtual.bateriaId;
             if (linkFixoAtual.perfil !== 'ritmista') dados.nivel_acesso = 'total';
-        } else if (modoManualAtual) {
-            dados.perfil = modoManualAtual.cargo;
-            dados.bateria_id = modoManualAtual.bateriaId;
-            dados.status = 'aprovado';
-            dados.aprovado_por = modoManualAtual.criadoPorId;
-            if (modoManualAtual.cargo !== 'ritmista') dados.nivel_acesso = 'total';
         }
+
+        // Modo manual (Super Admin/Mestre cadastrando em nome de alguém) passa pela
+        // Edge Function admin-create-user, que cria a conta de auth em nome de outra
+        // pessoa (precisa de service_role — não dá pra fazer isso do navegador direto).
+        if (modoManualAtual) {
+            if (!document.getElementById('consentimento_confirmado').checked) {
+                mostrarMensagem('Confirme que a pessoa está ciente e autorizou o cadastro antes de enviar.', 'erro');
+                document.getElementById('bloco-consentimento').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                return;
+            }
+            const { data: sessionData } = await sb.auth.getSession();
+            const token = sessionData.session ? sessionData.session.access_token : null;
+            if (!token) {
+                mostrarMensagem('Sessão expirada. Faça login novamente.', 'erro');
+                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                return;
+            }
+            dados.senha = senha;
+            dados.consentimento_confirmado = true;
+            const resFn = await fetch(`${SUPABASE_URL}/functions/v1/admin-create-user`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ cargo: modoManualAtual.cargo, bateria_id: modoManualAtual.bateriaId, dados })
+            });
+            const resultado = await resFn.json();
+            if (resFn.ok && resultado.ok) {
+                mostrarMensagem('Cadastro criado com sucesso! O acesso já está ativo.', 'sucesso');
+                document.getElementById('formCadastro').style.display = 'none';
+                document.querySelector('.foto-area').style.display = 'none';
+                document.getElementById('convite-banner').style.display = 'none';
+            } else {
+                mostrarMensagem('Erro ao criar cadastro: ' + (resultado.error || 'tente novamente'), 'erro');
+                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            }
+            return;
+        }
+
+        // Cadastro público e via link fixo criam conta real no Supabase Auth.
+        const { data: authData, error: authError } = await sb.auth.signUp({ email, password: senha });
+        if (authError) {
+            mostrarMensagem('Erro ao criar acesso: ' + authError.message, 'erro');
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            return;
+        }
+        dados.auth_user_id = authData.user.id;
+        const tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
 
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Authorization': `Bearer ${tokenCadastro}`,
                 'Prefer': 'return=representation'
             },
             body: JSON.stringify(dados)
@@ -691,11 +726,6 @@
         if (res.ok) {
             if (linkFixoAtual && linkFixoAtual.perfil !== 'ritmista') {
                 mostrarMensagem('Cadastro enviado! Aguarde a aprovação para acessar o painel.', 'sucesso');
-                document.getElementById('formCadastro').style.display = 'none';
-                document.querySelector('.foto-area').style.display = 'none';
-                document.getElementById('convite-banner').style.display = 'none';
-            } else if (modoManualAtual) {
-                mostrarMensagem('Cadastro criado com sucesso! O acesso já está ativo.', 'sucesso');
                 document.getElementById('formCadastro').style.display = 'none';
                 document.querySelector('.foto-area').style.display = 'none';
                 document.getElementById('convite-banner').style.display = 'none';

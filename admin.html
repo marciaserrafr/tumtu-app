@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="styles/components.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -814,6 +815,13 @@
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const authHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+    async function iniciarSessaoAuth() {
+        const { data: sessionData } = await sb.auth.getSession();
+        if (sessionData.session) authHeaders['Authorization'] = `Bearer ${sessionData.session.access_token}`;
+    }
 
     let todosRitmistas = [];
     let filtroStatusSelecionados = [];
@@ -851,7 +859,7 @@
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); renderizarOcupacao(); atualizarTotalizadores(); renderizarVisaoGeral(); return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=*&order=created_at.desc`, {
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            headers: authHeaders
         });
         todosRitmistas = await res.json();
         aplicarFiltros();
@@ -987,7 +995,7 @@
         if (status === 'aprovado') body.motivo_status = null;
         await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify(body)
         });
         await carregarRitmistas();
@@ -996,7 +1004,7 @@
     async function alternarDeclaracao(id, entregue) {
         await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ declaracao_responsavel: entregue })
         });
         await carregarRitmistas();
@@ -1200,7 +1208,7 @@
         });
         await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${fichaAtualId}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=minimal' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders, 'Prefer': 'return=minimal' },
             body: JSON.stringify(payload)
         });
         fecharModal('modalCadastroOverlay');
@@ -1242,7 +1250,11 @@
         overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('aberto'); });
     });
 
-    function sair() { window.location.href = 'login.html'; }
+    async function sair() {
+        await sb.auth.signOut();
+        localStorage.removeItem('ritmista');
+        window.location.href = 'login.html';
+    }
 
     function irParaCadastroManualRitmista() {
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
@@ -1447,8 +1459,11 @@
         }
     })();
 
-    iniciarUsuario();
-    carregarRitmistas();
+    (async () => {
+        await iniciarSessaoAuth();
+        iniciarUsuario();
+        carregarRitmistas();
+    })();
 </script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) -->
@@ -1576,8 +1591,7 @@
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                ...authHeaders,
                 'Prefer': 'return=representation',
             },
             body: JSON.stringify(dados),
@@ -1612,7 +1626,7 @@
         const url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=*`;
 
         const res = await fetch(url, {
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            headers: authHeaders
         });
         const admins = await res.json();
         renderizarDiretoria(admins);
@@ -1673,7 +1687,7 @@
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ status: 'aprovado', aprovado_por: u ? u.id : null, motivo_status: null })
         });
         diretoriaCarregada = false;
@@ -1683,7 +1697,7 @@
     async function rejeitarDiretor(id) {
         await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ status: 'rejeitado' })
         });
         diretoriaCarregada = false;

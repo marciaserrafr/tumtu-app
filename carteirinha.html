@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="carteirinha-tutti.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="config-escola.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
@@ -185,6 +186,7 @@
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     function renderCarteirinha(ritmista) {
         // Label de cargo
@@ -275,19 +277,23 @@
         btnSair.onclick = () => window.close();
 
         // Modo admin: busca ritmista pelo id na URL
-        fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${idParam}&select=*`, {
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-        })
-        .then(r => r.json())
-        .then(rows => {
-            if (!rows || rows.length === 0) {
-                alert('Ritmista não encontrado.');
-                history.back();
-                return;
-            }
-            renderCarteirinha(rows[0]);
-        })
-        .catch(() => { alert('Erro ao carregar carteirinha.'); history.back(); });
+        (async () => {
+            const { data: sessionData } = await sb.auth.getSession();
+            const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${idParam}&select=*`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+            })
+            .then(r => r.json())
+            .then(rows => {
+                if (!rows || rows.length === 0) {
+                    alert('Ritmista não encontrado.');
+                    history.back();
+                    return;
+                }
+                renderCarteirinha(rows[0]);
+            })
+            .catch(() => { alert('Erro ao carregar carteirinha.'); history.back(); });
+        })();
     } else {
         // Modo normal: usa localStorage
         const ritmista = JSON.parse(localStorage.getItem('ritmista'));
@@ -302,7 +308,8 @@
         document.getElementById('carteirinhaInner').classList.toggle('virada');
     }
 
-    function sair() {
+    async function sair() {
+        await sb.auth.signOut();
         localStorage.removeItem('ritmista');
         window.location.href = 'login.html';
     }

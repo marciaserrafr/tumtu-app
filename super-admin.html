@@ -6,8 +6,7 @@
     <title>Tutti — Super Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
-    <script>if (window.dcodeIO && !window.bcrypt) window.bcrypt = window.dcodeIO.bcrypt;</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -434,6 +433,7 @@
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const headers = {
         'apikey': SUPABASE_KEY,
@@ -1024,7 +1024,6 @@
                 <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="acesso-nome" value="${esc(u.nome)}" disabled></div>
                 <div class="campo campo-full"><label>Apelido *</label><input type="text" id="acesso-apelido" value="${esc(u.apelido)}" disabled></div>
                 <div class="campo"><label>CPF *</label><input type="text" id="acesso-cpf" value="${esc(u.cpf)}" maxlength="14" disabled></div>
-                <div class="campo"><label>Senha</label><input type="password" id="acesso-senha" placeholder="Nova senha (opcional)" disabled></div>
                 <div class="campo"><label>Perfil *</label><select id="acesso-perfil" disabled>
                     <option value="">Selecione...</option>
                     <option value="mestre"${u.perfil==='mestre'?' selected':''}>Mestre de Bateria</option>
@@ -1043,7 +1042,7 @@
     }
 
     function habilitarEdicaoAcesso() {
-        ['acesso-nome','acesso-apelido','acesso-cpf','acesso-senha','acesso-perfil','acesso-bateria-id'].forEach(campo => {
+        ['acesso-nome','acesso-apelido','acesso-cpf','acesso-perfil','acesso-bateria-id'].forEach(campo => {
             const el = document.getElementById(campo);
             if (el) {
                 el.disabled = false;
@@ -1080,7 +1079,6 @@
     async function salvarAcesso() {
         const nome = document.getElementById('acesso-nome').value.trim();
         const cpf = document.getElementById('acesso-cpf').value.trim();
-        const senha = document.getElementById('acesso-senha').value;
         const perfil = document.getElementById('acesso-perfil').value;
         const bateriaId = document.getElementById('acesso-bateria-id').value;
         const apelido = document.getElementById('acesso-apelido').value.trim();
@@ -1089,12 +1087,10 @@
         if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
         if (!apelido) { mostrarToast('Informe o apelido.', 'erro'); return; }
         if (!cpf) { mostrarToast('Informe o CPF.', 'erro'); return; }
-        if (senha && senha.length < 6) { mostrarToast('Senha deve ter no mínimo 6 caracteres.', 'erro'); return; }
         if (!perfil) { mostrarToast('Selecione o perfil.', 'erro'); return; }
         if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
 
         const payload = { nome, apelido, cpf, perfil, bateria_id: bateriaId };
-        if (senha) payload.senha = bcrypt.hashSync(senha, 10);
 
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
             method: 'PATCH', headers, body: JSON.stringify(payload)
@@ -1192,13 +1188,16 @@
     }
 
     // ── SAIR ──────────────────────────────────────────────────────────
-    function sair() {
+    async function sair() {
+        await sb.auth.signOut();
         localStorage.removeItem('ritmista');
         window.location.href = 'login.html';
     }
 
     // ── INICIALIZAR ───────────────────────────────────────────────────
     async function init() {
+        const { data: sessionData } = await sb.auth.getSession();
+        if (sessionData.session) headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
         await carregarEscolas();
     }
 

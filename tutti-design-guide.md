@@ -446,11 +446,13 @@ Os links de cadastro **nunca expiram e podem ser usados por quantas pessoas dife
 | Item | Prioridade | Status |
 |---|---|---|
 | ~~Login separado para diretor~~ | — | Superado — não existe login separado (ver seção 10) |
-| Sistema de link fixo por bateria para cadastro de Mestre, Diretor e Ritmista, + cadastro manual sem link | Alta | Não implementado — decisão final em 03/jul/2026 (substitui o modelo anterior de "convite" com token/expiração) |
-| Cadastro do Admin (Mestre/Diretor) via autocadastro, substituindo "completar perfil no 1º login" | Alta | Não implementado |
-| Campo `nível de acesso` separado de `cargo` no modelo de dados | Alta | Não implementado — base para perfis granulares futuros |
-| Tela de aprovação de Diretor pelo Mestre (e pelo Super Admin) | Alta | Não implementado |
-| Senha com hash (bcrypt), em vez de texto plano | Alta | Em implementação — prompt criado em 03/jul/2026 |
+| Sistema de link fixo por bateria para cadastro de Mestre, Diretor e Ritmista, + cadastro manual sem link | Alta | ✅ Implementado (03/jul/2026) |
+| Cadastro do Admin (Mestre/Diretor) via autocadastro, substituindo "completar perfil no 1º login" | Alta | ✅ Implementado (03/jul/2026) |
+| Campo `nível de acesso` separado de `cargo` no modelo de dados | Alta | ✅ Implementado (03/jul/2026) |
+| Tela de aprovação de Diretor pelo Mestre (e pelo Super Admin) | Alta | ✅ Implementado (03/jul/2026) |
+| Senha com hash — e depois migrada para Supabase Auth real (nunca mais texto puro nem hash no front) | Alta | ✅ Implementado (05/jul/2026) |
+| RLS (Row Level Security) ligado no banco, com políticas por perfil/bateria — reforça no backend as mesmas regras que já existiam só na tela | Alta | ✅ Implementado (05/jul/2026) |
+| Confirmação de consentimento no cadastro manual (LGPD) — checkbox obrigatório, validado no backend também | Alta | ✅ Implementado (05/jul/2026) |
 | **Revisão de fluxos de edição de dados e visibilidade de telas por perfil (Super Admin / Admin / Ritmista)** | Alta | **Pendente — combinado para a próxima sessão (a partir de 03/jul/2026). Inclui decidir o que exibir no campo "Mestre de Bateria" do verso da carteirinha quando a bateria tem mais de um Mestre — hoje `config-escola.js` só prevê um nome fixo** |
 | **Transformar o Tutti em PWA (instalável, sem loja, sem custo)** | **Alta** | **Pendente — condição importante para a continuidade do projeto (03/jul/2026). App em loja (App Store/Google Play) fica pausado até haver orçamento; não descartado, só não é prioridade agora** |
 | Formulário multi-step no cadastro | Média | Planejado para depois |
