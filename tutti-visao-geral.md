@@ -1,9 +1,11 @@
 # Tutti — Visão Geral do Projeto
 
 > Documento vivo. Atualizar sempre que uma decisão importante for tomada.
-> Última atualização: 02/jul/2026
+> Última atualização: 05/jul/2026
 
 ---
+
+> ⚠️ **Mudança de nome (05/jul/2026): Tutti → TumTu.** Motivo: já existem muitas marcas registradas como "Tutti", incluindo domínio; "TumTu" está livre e Márcia vai correr atrás do registro. Este documento e o código ainda usam "Tutti" — a renomeação (incluindo redesenho do logo, já que o "TuTTi" com duplo-T dourado não existe em "TumTu") fica para uma sessão dedicada. Ver `tutti-documentacao-tecnica.md` para detalhes.
 
 ## O que é
 
@@ -83,7 +85,9 @@ No painel do Super Admin, dentro de cada escola, há um botão "Acessar como Adm
 
 - Ritmista **não edita** o próprio cadastro no MVP — edições passam por Admin ou Super Admin. (Futuro: liberar campos como "apelido"; travar outros, como tamanho de fantasia após confecção.)
 - Mestre e Diretor se autocadastram via link fixo de cadastro da bateria (ou são cadastrados manualmente pelo Super Admin/Mestre, sem link, quando a pessoa não tem WhatsApp/celular) — não existe mais "Super Admin cria acesso básico e Admin completa depois".
-- **Segurança (decisão de 02/jul/2026):** senha deixa de ser armazenada em texto plano — passa a usar hash (bcrypt). Detalhamento no `tutti-prompt-implementacao-cadastro-final.md`.
+- **Cadastro:** CPF **e** e-mail são os dois obrigatórios (exceto "Não tenho CPF", que troca por documento estrangeiro — e-mail continua obrigatório sempre). No **login**, é CPF **ou** e-mail — regras diferentes por design.
+- **Cadastro manual exige confirmação de consentimento** (decisão de 05/jul/2026, ver seção Jurídico/LGPD abaixo): quem cadastra em nome de outra pessoa precisa confirmar que ela está ciente e autorizou.
+- **Segurança (decisão de 02/jul/2026, migrada para autenticação real em 05/jul/2026):** login usa Supabase Auth de verdade (não mais comparação manual de senha), e o banco tem RLS (Row Level Security) ligado, reforçando no backend as mesmas regras de permissão que antes só existiam na tela. Detalhamento completo em `tutti-documentacao-tecnica.md`.
 
 ### Funcionalidades do MVP por perfil
 
@@ -212,3 +216,5 @@ HTML/CSS/JS puro, sem framework, com Supabase como banco de dados/backend. Deplo
 Tutti é oferecido de graça à Swing/Imperatriz nesta fase. Márcia quer se resguardar legalmente caso o escopo cresça e seja necessário cobrar no futuro.
 
 Estrutura discutida: *Termo de Cessão de Uso Gratuito de Software / Acordo de Colaboração*, cobrindo: escopo atual, gratuidade condicionada, propriedade intelectual (código + marca "Tutti"), responsabilidades LGPD (escola = controladora, Márcia = operadora), ausência de SLA, cláusula de rescisão/transição para modelo pago, vigência revisável. **Nenhuma minuta criada ainda.**
+
+**Decisão de 05/jul/2026 — não contratar advogado ainda:** Márcia decidiu conscientemente não contratar advogado agora, pois o projeto ainda é pré-receita, sem CNPJ, e todo dado no sistema é fake. Como mitigação proporcional a este estágio, o cadastro manual passou a exigir confirmação de consentimento de quem preenche em nome de outra pessoa (ver `tutti-mvp.md`, regra 8, e `tutti-documentacao-tecnica.md`). **Gatilho para revisitar a contratação de advogado:** a primeira vez que uma pessoa real, de fora do círculo direto da Márcia, digitar dado pessoal real no sistema — o mesmo gatilho que já indicava a necessidade de montar um ambiente de staging separado da produção.
