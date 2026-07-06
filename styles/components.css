@@ -126,6 +126,73 @@
 }
 .mp-superadmin-aviso strong { display: block; font-size: 15px; color: #5a5770; margin-bottom: 6px; }
 
+/* ── Ficha de perfil (motor único — usado em admin.html, super-admin.html, carteirinha.html) ── */
+.btn-ficha {
+    padding: 5px 12px; border-radius: 8px; cursor: pointer;
+    font-size: 12px; font-weight: 600; border: 1px solid #e0e0e0;
+    background: white; color: #0f172a;
+}
+.btn-ficha:hover { background: #f8f8f8; }
+.btn-ficha-ativar    { background: #12101a; border-color: #12101a; color: #ffffff; }
+.btn-ficha-ativar:hover { background: #2a2740; border-color: #2a2740; }
+.btn-ficha-rejeitar  { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+.btn-ficha-rejeitar:hover { background: #fef0eb; }
+.btn-ficha-suspender { border-color: #d4720a; color: #d4720a; }
+.btn-ficha-suspender:hover { background: #fff8f0; }
+.btn-ficha-desligar  { border-color: #c62828; color: #c62828; }
+.btn-ficha-desligar:hover  { background: #fff5f5; }
+.btn-ficha-reativar  { border-color: #0f172a; color: #0f172a; }
+.btn-ficha-reativar:hover  { background: #f0f0f0; }
+.btn-ficha-editar    { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
+.btn-ficha-editar:hover { background: #B8922A; }
+.btn-ficha-salvar    { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
+.btn-ficha-salvar:hover { background: #B8922A; }
+
+.fc-input {
+    display: none;
+    width: 100%;
+    padding: 7px 10px;
+    border: 1.5px solid #D4AF37;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fffdf4;
+    color: #0f172a;
+    margin-top: 2px;
+}
+.fc-input:focus { outline: none; border-color: #b8922a; }
+
+.modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
+.ficha-secao { margin-bottom: 14px; }
+.ficha-secao-titulo { font-size: 10px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #D4AF37; padding-bottom: 3px; }
+.ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+.ficha-campo { font-size: 12px; color: #333; }
+.ficha-campo span { display: block; font-size: 10px; color: #999; margin-bottom: 1px; }
+.ficha-campo strong { font-size: 13px; color: #0f172a; }
+.ficha-campo.full { grid-column: 1 / -1; }
+@media (max-width: 480px) {
+  .ficha-grid { grid-template-columns: 1fr; }
+}
+
+.ficha-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 24px 16px 40px; overflow-y: auto;
+}
+.ficha-modal-box {
+    background: #fff; border-radius: 20px; padding: 24px;
+    width: 100%; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+}
+.ficha-modal-titulo { font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 4px; }
+.ficha-modal-sub { font-size: 13px; color: #8b88a0; margin-bottom: 16px; }
+.ficha-modal-acoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #f0f0f0; padding-top: 16px; }
+.fp-mensagem {
+    border-radius: 8px; padding: 10px 14px; font-size: 12px;
+    font-weight: 600; margin-bottom: 12px; display: none;
+}
+.fp-mensagem.erro { background: #fde8e8; color: #b3261e; display: block; }
+.fp-mensagem.sucesso { background: #e8f5e8; color: #1f4d1f; display: block; }
+
 /* ── Logotipo "TumTu" (padrão único, usado em todas as telas) — spec do handoff de design ── */
 .tt-logo { font-weight: 800; font-family: var(--fonte-principal); }
 .tt-logo .tt-t { color: #D4AF37; }

@@ -132,13 +132,17 @@ Lêem `auth.uid()` (o usuário autenticado da requisição atual) e retornam dad
 **`ritmistas`:**
 | Ação | Quem pode |
 |---|---|
-| Ver/editar o próprio perfil | **Mestre, Diretor ou Super Admin**, na própria linha (`auth_user_id = auth.uid()`). **Ajustado em 05/jul/2026** (policy `proprio_perfil_update`): antes não checava `perfil`, então um Ritmista autenticado também conseguia editar a própria linha via API direta — corrigido para excluir `perfil = 'ritmista'`, batendo com a regra de produto "Ritmista não edita nada, nem a si mesmo" |
+| Ver/editar o próprio perfil | **Todo mundo, inclusive Ritmista** (`auth_user_id = auth.uid()`). **Revertido em 06/jul/2026:** em 05/jul a policy `proprio_perfil_update` excluía `perfil = 'ritmista'` ("Ritmista não edita nada"); a Márcia mudou de ideia — Ritmista agora edita alguns dados próprios (foto, apelido, celular, endereço, emergência) direto pela carteirinha, sem precisar pedir pro Diretor/Mestre. **Quais colunas** cada perfil pode alterar de si mesmo é decidido por uma trigger, não pela policy — ver adiante nesta seção |
 | Ver/editar qualquer linha | Super Admin |
 | Ver ritmistas/admins da própria bateria | Mestre ou Diretor aprovado, só onde `bateria_id` bate com o dele |
-| Editar (qualquer campo, não só status) um Ritmista | Mestre ou Diretor aprovado, só da própria bateria (`admin_update_ritmistas_propria_bateria`) |
-| Editar (qualquer campo, não só aprovar/rejeitar) um Diretor | **Só Mestre** aprovado da própria bateria (`mestre_update_diretor_propria_bateria`) — um Diretor não consegue mexer em outro Diretor nem no Mestre, nem chamando a API direto (testado com tentativa de bypass real, 0 linhas afetadas). RLS não distingue coluna por coluna dentro de uma policy de UPDATE — a mesma regra que já liberava aprovar/rejeitar Diretor também libera editar qualquer outro dado dele |
+| Editar campos específicos (Instrumento + Medidas) de um Ritmista da própria bateria | Mestre ou Diretor aprovado (`admin_update_ritmistas_propria_bateria` continua existindo; a trigger é quem agora restringe a colunas específicas) |
+| Editar dados de um Diretor/Mestre que não seja ele mesmo | **Ninguém.** **Revertido em 06/jul/2026:** a policy `mestre_update_diretor_propria_bateria` (Mestre editando qualquer dado de um Diretor) foi **derrubada** — Mestre continua podendo aprovar/rejeitar/desligar um Diretor (isso é mudança de `status`, ação separada), mas não edita mais os dados cadastrais dele. Cada Diretor/Mestre edita só a própria ficha |
 | Criar cadastro (INSERT) | Só a própria pessoa recém-autenticada (`auth_user_id = auth.uid()`) — cobre autocadastro público/link fixo. Cadastro manual passa pela Edge Function, que usa `service_role` e ignora RLS |
 | Apagar (DELETE) | Ninguém, exceto acesso administrativo direto ao banco (não existe essa ação no app) |
+
+**Restrição por coluna (trigger `BEFORE UPDATE`):** RLS não distingue coluna por coluna dentro de uma policy — só decide se a linha inteira pode ou não ser alterada. Como a regra de "quais campos" varia por combinação (quem está editando × é autoedição ou não), isso é resolvido por uma trigger `aplicar_matriz_edicao_ritmistas()` que reverte pro valor antigo (`old.coluna`) qualquer coluna fora da lista permitida para aquele caso, antes de gravar. Ver seção 11 para a matriz completa.
+
+**⚠️ Status em 06/jul/2026: SQL escrito e revisado, ainda não executado no banco.** Até essa migração rodar, a única proteção real de "quais campos" continua sendo o front-end (o motor único descrito na seção 11 só mostra/envia os campos permitidos) — ou seja, por enquanto alguém com conhecimento técnico ainda conseguiria alterar um campo bloqueado chamando a API do Supabase direto, contornando a tela. Mesmo risco temporário que já existiu entre decisões de produto e a policy correspondente em sessões anteriores.
 
 **`escolas` e `baterias`:** só Super Admin lê/escreve. Exceção: qualquer Mestre/Diretor aprovado pode **ver** (não editar) a própria bateria.
 
@@ -161,8 +165,8 @@ Lêem `auth.uid()` (o usuário autenticado da requisição atual) e retornam dad
 ## 9. Débitos técnicos e pendências conhecidas
 
 - **"Leaked Password Protection"** do Supabase Auth está desligada (checagem de senha vazada contra HaveIBeenPwned) — fácil de ligar, não é urgente.
-- **Reset de senha pelo Super Admin removido:** a tela de Acessos tinha um campo "Nova senha (opcional)" que ficou sem função real depois da migração (escrevia na coluna `senha`, hoje obsoleta). Removido em 05/jul/2026. Se for reconstruído, precisa de uma nova Edge Function usando `admin.auth.admin.updateUserById()`.
-- **Sem "esqueci minha senha"** — mais fácil de implementar agora que existe Supabase Auth nativo (tem fluxo pronto de recuperação por e-mail), mas ainda não foi feito.
+- **Reset de senha pelo Super Admin removido em 05/jul/2026** (a tela de Acessos tinha um campo "Nova senha (opcional)" sem função real depois da migração para Supabase Auth) e **não foi reconstruído** — decisão explícita da Márcia em 06/jul/2026 de não devolver ao Super Admin a capacidade de ver/definir a senha de outra pessoa. Resolvido de outra forma: ver seção 15 ("Esqueci minha senha" nativo do Supabase Auth, sem nenhum admin no meio).
+- **Excluir usuário (LGPD):** ainda não existe nenhuma forma de apagar um cadastro, nem o Super Admin. Discutido em 06/jul/2026 e adiado de propósito — será construído só quando a primeira solicitação real de exclusão acontecer (Super Admin apenas, para pedidos sérios de exclusão de dados, não uma ação de rotina).
 - **CPF não é único** na tabela `ritmistas` — sem constraint, baixa prioridade.
 - **Domínio `tumtu.com.br`** já comprado pela Márcia, ainda não conectado ao deploy da Vercel — passo manual (painel Vercel + DNS do registrador), não é mudança de código.
 - **Nomes dos arquivos de documentação** (`tutti-visao-geral.md`, `tutti-mvp.md`, `tutti-design-guide.md`, `tutti-documentacao-tecnica.md`, `tutti-plano-de-testes.md`, `tutti-dados-fake-reset.xlsx`) continuam com "tutti" no nome — só o conteúdo foi unificado para TumTu. Renomear os arquivos em si não estava no escopo combinado, fica como pendência menor.
@@ -181,32 +185,50 @@ Implementado em 05/jul/2026. Antes disso, `carteirinha.html` **não buscava nada
 
 ---
 
-## 11. Hierarquia de edição de dados por perfil
+## 11. Matriz de edição de dados por perfil (motor único `ficha-perfil.js`)
 
-Implementado em 05/jul/2026, junto com a Fase A (seção 10). Regra decidida:
+**Substituída em 06/jul/2026.** A hierarquia da versão anterior (Mestre podia editar dados de um Diretor; Ritmista não editava nada, nem a si mesmo) foi revista pela Márcia depois de mapear caso a caso quem edita o quê. Duas mudanças de regra, ambas propositais:
+- **Ritmista agora edita alguns dados próprios** direto pela carteirinha (não precisa mais pedir pro Diretor/Mestre pra corrigir celular ou trocar foto).
+- **Mestre não edita mais dados de um Diretor** — só aprova/rejeita/desliga (ação de status, não de dado). Cada Diretor/Mestre edita só a própria ficha.
 
-| Quem edita | Ritmista da bateria | Outro Diretor | Mestre | Próprio perfil |
+### Tabela A — cada perfil editando a própria ficha ("Meu Perfil")
+
+| Campo | Ritmista | Diretor | Mestre | Super Admin |
 |---|---|---|---|---|
-| Ritmista | — | — | — | ❌ |
-| Diretor | ✅ | ❌ | ❌ | ✅ |
-| Mestre | ✅ | ✅ (da própria bateria) | ❌ | ✅ |
-| Super Admin | ✅ | ✅ | ✅ | ✅ |
+| Foto, apelido, celular, endereço (todos os campos), contato de emergência (todos) | ✅ | ✅ | ✅ | ✅ |
+| Medidas (camisa/fantasia/calça/sapato) | 🔒 | ✅ | ✅ | ✅ |
+| Nome, nacionalidade, CPF/documento, nascimento, e-mail, membro desde, tipo sanguíneo | 🔒 | 🔒 | 🔒 | ✅ |
+| Instrumento | não se aplica (só existe pra Ritmista, que não edita) | — | — | — |
 
-**No banco:** só foi necessário ajustar a policy `proprio_perfil_update` (ver seção 7) — as policies que permitem Mestre editar Diretor e qualquer Admin editar Ritmista da própria bateria **já existiam** (criadas antes, provavelmente para o fluxo de aprovar/rejeitar) e, por não terem restrição por coluna, já cobriam edição de qualquer campo.
+### Tabela B — Diretor/Mestre/Super Admin editando a ficha de um Ritmista
 
-**Em `admin.html`:** o modal da aba "Diretoria" (ficha de Mestre/Diretor) era só leitura e mostrava poucos campos (CPF, celular, e-mail, nascimento, medidas). Passou a ter **exatamente os mesmos campos e a mesma estrutura do modal de Ritmista** (dados pessoais, endereço, medidas, saúde, contato de emergência) — decisão explícita da Márcia de não ter conjuntos de campos diferentes para o mesmo modelo de dados. O motor de edição (`ativarEdicaoFicha`/`salvarEdicaoFicha` etc.) foi generalizado em funções únicas (`_iniciarEdicao`, `_cancelarEdicao`, `_salvarEdicao`) parametrizadas por tipo de ficha (`ritmista` ou `admin`), reaproveitando a mesma lista `CAMPOS_EDITAVEIS` (a lista de Admin é derivada dela, só trocando o prefixo dos IDs de `fc-` para `ma-`) — nunca duas listas de campos mantidas à mão.
+| Campo | Diretor/Mestre | Super Admin |
+|---|---|---|
+| Instrumento, Medidas (todos) | ✅ | ✅ |
+| Todo o resto (foto, dados pessoais, endereço, saúde, emergência) | 🔒 | ✅ |
 
-O botão "Editar" no modal da Diretoria só aparece quando a hierarquia permite (`abrirFichaAdmin`) — isso é só cosmético, a segurança real é a RLS acima. Testado com contas fake reais (Mestre e Diretora da bateria 2): edição funcionando nos casos permitidos, e as duas tentativas de burlar (Diretora editando outra pessoa da diretoria) retornaram 0 linhas afetadas direto na API, sem passar pela tela.
+Diretor/Mestre editando um **Diretor/Mestre que não seja ele mesmo**: nenhum campo — o botão "Editar" nem aparece.
+
+### Arquitetura: motor único, uma matriz, três telas
+
+Antes de 06/jul/2026 existiam **dois mecanismos separados e quase idênticos**: a ficha de `admin.html` (Admin editando Ritmista/Diretor) e o "Meu Perfil" (copiado e colado entre `admin.html` e `super-admin.html`, cada cópia com suas próprias funções `mpPreviewFoto`/`salvarMeuPerfil`). Como a regra de "quais campos ficam abertos" é sempre a mesma função de (quem edita, é autoedição ou não, de quem é a ficha), os dois mecanismos foram unificados num motor único, evitando manter a mesma matriz escrita em mais de um lugar (risco real — as duas cópias já quase haviam divergido antes dessa unificação):
+
+- **`ficha-perfil.js`**: `fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil)` é a **única** função que decide campos editáveis, implementando as Tabelas A e B acima. `fpMontar(containerEl)` injeta o HTML compartilhado; `fpIniciar(alvo, meuPerfil, meuId, opcoes)` preenche os dados e calcula o que fica editável; `fpAtivarEdicao`/`fpCancelarEdicao`/`fpSalvar` cuidam da edição; `fpAlterarSenha` é a troca de senha (seção 15).
+- **`ficha-perfil.partial.html`**: HTML único com todos os campos possíveis — o motor decide campo a campo (e seção a seção, ex: "Instrumento" só aparece se o alvo for Ritmista) o que mostrar como texto ou como campo editável.
+- **Usado em:** `admin.html` (aba "Meu Perfil" + ficha de Ritmista na aba "Ritmistas" + ficha de Mestre/Diretor na aba "Diretoria"), `super-admin.html` (aba "Meu Perfil"), `carteirinha.html` (ícone de perfil no card — ver seção 16).
+- **Cuidado de implementação:** como mais de um container pode ter a partial injetada ao mesmo tempo na mesma página (ex: `admin.html` tem três — Meu Perfil, ficha de Ritmista, ficha de Admin — todos com os mesmos `id`s internos), toda busca de elemento dentro do motor é escopada ao container que acabou de ser montado (`fpEl(id)` em vez de `document.getElementById(id)` puro), senão `getElementById` pega o primeiro elemento com aquele `id` no documento, que pode ser de outro container. Bug real, encontrado e corrigido durante o teste desta unificação.
+
+O botão "Editar" só aparece quando a matriz permite (`fp-btn-editar`) — isso é só cosmético, a segurança real é a RLS + trigger da seção 7 (SQL ainda pendente de execução em 06/jul/2026).
 
 ---
 
 ## 12. "Meu Perfil" do Super Admin
 
-Implementado em 05/jul/2026. Antes, o Super Admin não tinha nenhuma tela para editar os próprios dados — a aba "Meu Perfil" só existe em `admin.html`, e quando o Super Admin acessa essa tela via "Acessar como Admin" (`?superadmin=true`), ela mostra um aviso "não se aplica" (é a visão de outra pessoa, não a própria).
+Implementado em 05/jul/2026 (com HTML/funções copiadas de `admin.html`), **migrado para o motor único em 06/jul/2026** (seção 11) — hoje `super-admin.html` só tem `<div id="fp-container-meuperfil"></div>` e uma função `iniciarMeuPerfilAba()` de poucas linhas que chama `fpMontar`+`fpIniciar`, sem nenhuma cópia de HTML ou função de salvar própria.
 
-**Onde mora:** nova aba principal "Meu Perfil" em `super-admin.html`, ao lado de "Dashboard" e "Escolas" — não como sub-aba de uma escola, já que o Super Admin não pertence a nenhuma bateria específica.
+**Onde mora:** aba principal "Meu Perfil" em `super-admin.html`, ao lado de "Dashboard" e "Escolas" — não como sub-aba de uma escola, já que o Super Admin não pertence a nenhuma bateria específica.
 
-**Reaproveitamento:** o CSS `.mp-*` (usado pelo formulário de Meu Perfil) foi extraído do `<style>` inline de `admin.html` para `styles/components.css`, compartilhado agora pelas duas telas. O HTML do formulário e as funções `mpPreviewFoto`/`salvarMeuPerfil` foram copiados de `admin.html` para `super-admin.html` (nova função `iniciarMeuPerfilSuperAdmin`, sem o aviso "não se aplica" e sem o parâmetro `?superadmin=`, já que aqui é sempre o próprio Super Admin). `salvarMeuPerfil` em `super-admin.html` usa a constante `headers` (já inclui `Content-Type` e `Prefer: return=representation`) em vez de `authHeaders` de `admin.html`.
+Continua existindo o aviso "não se aplica" em `admin.html` quando o Super Admin acessa via "Acessar como Admin" (`?superadmin=true`) — nesse caso o container do motor único fica escondido e o aviso aparece no lugar, porque ali é a visão de outra pessoa, não a própria.
 
 ---
 
@@ -216,7 +238,7 @@ Implementado em 05/jul/2026. Deixa o TumTu instalável direto do navegador (íco
 
 **Arquivos novos:**
 - `manifest.json` — nome, ícones, cor de tema (`#12101a`) e `start_url` apontando para `login.html` (entrada comum a todos os perfis).
-- `sw.js` — service worker. Faz cache do "app shell" (as 6 telas HTML, CSS, `config-escola.js` e os ícones) na instalação, para o app abrir mesmo sem internet. Chamadas para o Supabase (ou qualquer origem externa) **nunca são cacheadas** — passam direto pra rede, sempre com dado atual. Em navegação (troca de tela), tenta a rede primeiro e só cai no cache se estiver offline.
+- `sw.js` — service worker. Faz cache do "app shell" na instalação (telas HTML, CSS, `config-escola.js`, o motor único `ficha-perfil.js`/`ficha-perfil.partial.html` e os ícones), para o app abrir mesmo sem internet. Chamadas para o Supabase (ou qualquer origem externa) **nunca são cacheadas** — passam direto pra rede, sempre com dado atual. Em navegação (troca de tela), tenta a rede primeiro e só cai no cache se estiver offline.
 - `pwa-register.js` — registra o service worker; incluído (`<script defer>`) nas 6 páginas.
 - `icons/` — `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` (ícone com margem de segurança para Android), `apple-touch-icon.png` (iOS) e `favicon-32.png`. Inicialmente um placeholder gerado por script (texto "TumTu" completo); **substituídos pela arte final em 05/jul/2026** (ver seção 14) — monograma "T" dourado com risco terracota, mesmos nomes de arquivo e tamanhos.
 
@@ -258,8 +280,35 @@ A Márcia trouxe um handoff formal de um Design Assistant do Claude (`design_han
 
 ---
 
-## 15. Histórico de decisões de arquitetura (linha do tempo resumida)
+## 15. "Esqueci minha senha" e troca de senha logado
+
+Implementado em 06/jul/2026, usando só recursos nativos do Supabase Auth (sem Edge Function nova) — fecha o débito técnico da seção 9 sobre reset de senha, sem devolver ao Super Admin a capacidade de ver/definir a senha de outra pessoa (decisão explícita da Márcia: "muito ruim... meio sem ética").
+
+**Esqueci minha senha (usuário deslogado), em `login.html`:** link "Esqueci minha senha" abre um segundo formulário na mesma página (`#containerRecuperacao`, alternado com `mostrarRecuperacao()`) pedindo CPF ou e-mail — reaproveita a RPC `resolve_login_email` já existente pra traduzir CPF em e-mail. Chama `sb.auth.resetPasswordForEmail(email, { redirectTo: origin + '/redefinir-senha.html' })`. **A mensagem de sucesso é sempre a mesma**, exista ou não o cadastro, pra não revelar quais CPFs/e-mails estão na base.
+
+**`redefinir-senha.html`** (novo): página que o link do e-mail abre. Escuta o evento `PASSWORD_RECOVERY` do Supabase Auth, pede só a nova senha + confirmação (sem pedir a senha antiga — decisão da Márcia, "mais simples possível", a própria sessão de recuperação criada pelo Supabase já prova a identidade), chama `sb.auth.updateUser({ password })`, desloga e redireciona pro login.
+
+**Trocar senha estando logado:** mesma chamada (`sb.auth.updateUser({ password })`), sem pedir senha atual, mas dentro do motor único (`ficha-perfil.js`) — seção "Alterar senha" (`fp-secao-senha`) na própria ficha, visível só quando é autoedição (`fpEstado.autoedicao`), com botão próprio (`fpAlterarSenha()`) separado do botão "Salvar" dos dados de cadastro. Presente automaticamente em `admin.html`, `super-admin.html` e `carteirinha.html`, por ser parte do motor compartilhado.
+
+**Passo manual pendente (Márcia):** adicionar a URL de produção (`.../redefinir-senha.html`) em Supabase → Authentication → URL Configuration → Redirect URLs. Sem isso, o link do e-mail de recuperação não funciona fora do ambiente de preview local.
+
+---
+
+## 16. Tela do Ritmista — acesso ao próprio perfil pela carteirinha
+
+Implementado em 06/jul/2026. Antes, o Ritmista não tinha nenhuma tela além da carteirinha — não conseguia corrigir o próprio celular, trocar a foto ou ver o próprio cadastro sem pedir pro Diretor/Mestre.
+
+**Decisão de UX (Opção B, aprovada pela Márcia depois de comparar 2 mockups):** a carteirinha continua sendo a primeira e principal tela do Ritmista — não vira uma tela "atrás" de um perfil. Em vez disso, um pequeno ícone de perfil aparece no canto do próprio card (`#btnAbrirPerfil`, ao lado do badge "Ativo"), que abre os dados de cadastro **por cima**, num modal.
+
+**Em `carteirinha.html`:** o ícone só aparece no "modo normal" (pessoa logada vendo a própria carteirinha, via `localStorage`) — fica escondido no "modo admin" (`carteirinha.html?id=`, usado pelo botão "Ver carteirinha ↗" de `admin.html`/`super-admin.html`, onde quem está olhando não é necessariamente o dono da carteirinha). Clique abre `#modalPerfilOverlay` (usa as classes `.ficha-modal-*` de `styles/components.css`) com `fpMontar`+`fpIniciar` do motor único (seção 11), mostrando pro Ritmista exatamente os campos da Tabela A que ele pode ver/editar.
+
+**Sincronização com o card da carteirinha:** como apelido e foto aparecem na frente do cartão, o callback `aoSalvar` do motor único atualiza esses dois elementos diretamente após salvar — **sem** chamar `renderCarteirinha()` de novo inteira, porque isso re-executaria a geração do QR code (biblioteca `qrcodejs`) uma segunda vez em cima da primeira.
+
+---
+
+## 17. Histórico de decisões de arquitetura (linha do tempo resumida)
 
 - **02/jul/2026** — decisão de separar `cargo` de `nivel_acesso`; decisão de usar hash de senha (bcrypt) em vez de texto plano.
 - **03/jul/2026** — abandona modelo de "convite por token de uso único", adota link fixo permanente por bateria+cargo. Implementa Fases 1-5 do prompt de cadastro (schema, links fixos, aprovação, cadastro manual, hash bcrypt). Reset completo do banco a pedido da Márcia (produção passa a rodar só com dado fake, populado a partir de `tutti-dados-fake-reset.xlsx`).
-- **05/jul/2026** — sessão de migração para autenticação real do Supabase + RLS (7 fases, plano em `C:\Users\Márcia Serra\.claude\plans\replicated-stirring-rossum.md`): coluna `auth_user_id`, funções auxiliares, views públicas, cadastro/login/logout migrados para Supabase Auth, Edge Function `admin-create-user`, RLS ligado com políticas por perfil/bateria, remoção do bcrypt. Além disso: correção da regra de CPF+e-mail no cadastro, confirmação de consentimento no cadastro manual (LGPD), correção do bug de isolamento entre baterias no painel do Admin (achado ao popular dados fake de 2 escolas), implementação do PWA (manifest, service worker, ícones — seção 13), view `mestres_publicos` pra carteirinha mostrar Mestre(s) reais (seção 10), hierarquia de edição por perfil (seção 11), "Meu Perfil" do Super Admin (seção 12), e — mais adiante no mesmo dia — o rename de marca de fato no código (seção 14).
+- **05/jul/2026** — sessão de migração para autenticação real do Supabase + RLS (7 fases, plano em `C:\Users\Márcia Serra\.claude\plans\replicated-stirring-rossum.md`): coluna `auth_user_id`, funções auxiliares, views públicas, cadastro/login/logout migrados para Supabase Auth, Edge Function `admin-create-user`, RLS ligado com políticas por perfil/bateria, remoção do bcrypt. Além disso: correção da regra de CPF+e-mail no cadastro, confirmação de consentimento no cadastro manual (LGPD), correção do bug de isolamento entre baterias no painel do Admin (achado ao popular dados fake de 2 escolas), implementação do PWA (manifest, service worker, ícones — seção 13), view `mestres_publicos` pra carteirinha mostrar Mestre(s) reais (seção 10), hierarquia de edição por perfil (versão original da seção 11), "Meu Perfil" do Super Admin (seção 12), e — mais adiante no mesmo dia — o rename de marca de fato no código (seção 14).
+- **06/jul/2026** — sessão de "esqueci minha senha" + unificação do motor de edição de perfil (plano em `C:\Users\Márcia Serra\.claude\plans\validated-orbiting-thompson.md`): "Esqueci minha senha" e troca de senha logado via Supabase Auth nativo (seção 15); revisão completa da matriz de edição com a Márcia — Ritmista passa a editar alguns dados próprios, Mestre deixa de editar dados de Diretor (seção 11, substitui a versão de 05/jul); motor único `ficha-perfil.js`/`ficha-perfil.partial.html` compartilhado por `admin.html`, `super-admin.html` e `carteirinha.html`, eliminando duas cópias quase-divergentes do "Meu Perfil"; ícone de perfil na carteirinha do Ritmista (seção 16); SQL da trigger de restrição por coluna escrito e revisado, ainda **não executado** (pendente de rodar no Supabase — seção 7); decisão explícita de adiar "excluir usuário" (LGPD) até a primeira solicitação real (seção 9).

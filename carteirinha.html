@@ -59,6 +59,13 @@
         }
         .btn-sair:hover { background: rgba(212,175,55,0.08); }
         .carteirinha-scene { margin-top: 40px; }
+        .c-btn-perfil {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(212,175,55,0.3);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; padding: 0;
+        }
+        .c-btn-perfil:hover { background: rgba(212,175,55,0.15); }
     </style>
 </head>
 <body>
@@ -89,9 +96,14 @@
                             <div class="c-escola" id="c-escola-nome"></div>
                             <div class="c-bateria" id="c-bateria-nome"></div>
                         </div>
-                        <div class="c-status">
-                            <div class="c-status-dot"></div>
-                            Ativo
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                            <div class="c-status">
+                                <div class="c-status-dot"></div>
+                                Ativo
+                            </div>
+                            <button class="c-btn-perfil" id="btnAbrirPerfil" style="display:none;" onclick="event.stopPropagation(); abrirPerfil();" aria-label="Meu perfil">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#D4AF37" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                            </button>
                         </div>
                     </div>
 
@@ -192,6 +204,17 @@
 
 </div>
 
+<!-- MODAL: MEU PERFIL -->
+<div class="ficha-modal-overlay" id="modalPerfilOverlay" style="display:none;" onclick="if(event.target===this) fecharPerfil()">
+    <div class="ficha-modal-box">
+        <div id="fp-container-perfil"></div>
+        <div style="text-align:right; margin-top:12px;">
+            <button class="btn-ficha" onclick="fecharPerfil()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<script src="ficha-perfil.js"></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
@@ -331,7 +354,31 @@
         } else {
             renderCarteirinha(ritmista);
             renderMestres(ritmista.bateria_id);
+            document.getElementById('btnAbrirPerfil').style.display = 'flex';
         }
+    }
+
+    async function abrirPerfil() {
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        if (!u) return;
+        await fpMontar(document.getElementById('fp-container-perfil'));
+        fpIniciar(u, u.perfil, u.id, {
+            aoSalvar: (novosDados) => {
+                document.getElementById('apelidoRitmista').textContent = novosDados.apelido ? '"' + novosDados.apelido + '"' : '';
+                if (novosDados.foto_url) {
+                    const img = document.createElement('img');
+                    img.src = novosDados.foto_url;
+                    const box = document.getElementById('fotoRitmista');
+                    box.innerHTML = '';
+                    box.appendChild(img);
+                }
+            }
+        });
+        document.getElementById('modalPerfilOverlay').style.display = 'flex';
+    }
+
+    function fecharPerfil() {
+        document.getElementById('modalPerfilOverlay').style.display = 'none';
     }
 
     function virarCarteirinha() {

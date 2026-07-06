@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="styles/components.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="ficha-perfil.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -559,81 +560,7 @@
         </div>
     </div>
 
-    <!-- Formulário (Admin real) -->
-    <div id="mpFormulario">
-        <div class="mp-mensagem" id="mpMensagem"></div>
-
-        <!-- Foto -->
-        <div class="mp-secao-header"><div class="mp-secao-titulo">Foto</div><div class="mp-linha"></div></div>
-        <div class="mp-foto-area">
-            <div class="mp-foto-circle" id="mpFotoCircle" onclick="document.getElementById('mpInputFoto').click()">
-                <svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            </div>
-            <input type="file" id="mpInputFoto" accept="image/*" style="display:none" onchange="mpPreviewFoto(this)">
-            <div>
-                <button type="button" onclick="document.getElementById('mpInputFoto').click()" style="background:#f7f6fb;border:1.5px solid #e8e6f0;color:#5a5770;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;">📷 Trocar foto</button>
-                <div class="mp-foto-hint" style="margin-top:6px;">Clique no círculo ou no botão para escolher</div>
-            </div>
-        </div>
-
-        <!-- Contato -->
-        <div class="mp-secao-header"><div class="mp-secao-titulo">Dados de contato</div><div class="mp-linha"></div></div>
-        <div class="mp-campo"><label>E-mail</label><input type="email" id="mpEmail" placeholder="seuemail@exemplo.com"></div>
-        <div class="mp-row-2">
-            <div class="mp-campo"><label>Celular</label><input type="tel" id="mpCelular" placeholder="(21) 99999-9999"></div>
-            <div class="mp-campo"><label>Data de nascimento</label><input type="date" id="mpNascimento"></div>
-        </div>
-
-        <!-- Endereço -->
-        <div class="mp-secao-header"><div class="mp-secao-titulo">Endereço</div><div class="mp-linha"></div></div>
-        <div class="mp-campo"><label>Endereço</label><input type="text" id="mpEndereco" placeholder="Rua das Flores"></div>
-        <div class="mp-row-2">
-            <div class="mp-campo"><label>Número</label><input type="text" id="mpNumero" placeholder="123"></div>
-            <div class="mp-campo"><label>Complemento</label><input type="text" id="mpComplemento" placeholder="Apto 4B"></div>
-        </div>
-        <div class="mp-campo"><label>Bairro</label><input type="text" id="mpBairro" placeholder="Centro"></div>
-        <div class="mp-row-2">
-            <div class="mp-campo"><label>Cidade</label><input type="text" id="mpCidade" placeholder="Rio de Janeiro"></div>
-            <div class="mp-campo"><label>Estado</label>
-                <select id="mpEstado">
-                    <option value="">UF</option>
-                    <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
-                    <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
-                    <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
-                    <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
-                    <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
-                    <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
-                    <option>SP</option><option>SE</option><option>TO</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Medidas -->
-        <div class="mp-secao-header"><div class="mp-secao-titulo">Medidas</div><div class="mp-linha"></div></div>
-        <div class="mp-row-3">
-            <div class="mp-campo"><label>Camisa</label>
-                <select id="mpCamisa"><option value="">—</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option><option>XGG</option><option>Momo</option><option>Outro</option></select>
-            </div>
-            <div class="mp-campo"><label>Fantasia</label>
-                <select id="mpFantasia"><option value="">—</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option><option>XGG</option><option>Momo</option><option>Outro</option></select>
-            </div>
-            <div class="mp-campo"><label>Sapato</label>
-                <select id="mpSapato"><option value="">—</option><option>33</option><option>34</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option><option>46</option><option>47</option><option>48</option><option>Outro</option></select>
-            </div>
-        </div>
-
-        <!-- Emergência -->
-        <div class="mp-secao-header"><div class="mp-secao-titulo">Contato de emergência</div><div class="mp-linha"></div></div>
-        <div class="mp-campo"><label>Nome do contato</label><input type="text" id="mpEmergenciaNome" placeholder="Maria da Silva"></div>
-        <div class="mp-row-2">
-            <div class="mp-campo"><label>Parentesco</label><input type="text" id="mpEmergenciaParentesco" placeholder="Mãe, Irmão..."></div>
-            <div class="mp-campo"><label>Celular</label><input type="tel" id="mpEmergenciaCelular" placeholder="(21) 99999-9999"></div>
-        </div>
-
-        <div class="mp-acoes">
-            <button class="mp-btn-salvar" id="mpBtnSalvar" onclick="salvarMeuPerfil()">Salvar alterações</button>
-        </div>
-    </div>
+    <div id="fp-container-meuperfil"></div>
 </div><!-- /painel-meu-perfil -->
 
 </div><!-- /main -->
@@ -643,80 +570,10 @@
 <div class="modal-overlay" id="modalCadastroOverlay">
     <div class="modal modal-cadastro">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px;">
-            <h2 id="modalCadastroNome" style="margin:0;"></h2>
             <span id="fc-status-badge"></span>
         </div>
-        <div class="subtitulo" id="modalCadastroSubtitulo"></div>
 
-        <div class="ficha-secao">
-            <div class="ficha-secao-titulo">Dados pessoais</div>
-            <div class="ficha-grid">
-                <div class="ficha-campo full"><span>Nome</span><strong id="fc-nome"></strong></div>
-                <div class="ficha-campo"><span>Apelido</span><strong id="fc-apelido"></strong></div>
-                <div class="ficha-campo"><span>Nacionalidade</span><strong id="fc-nacionalidade"></strong></div>
-                <div class="ficha-campo"><span>CPF</span><strong id="fc-cpf"></strong></div>
-                <div class="ficha-campo" id="fc-bloco-documento" style="display:none">
-                    <span>Documento</span><strong id="fc-documento"></strong>
-                </div>
-                <div class="ficha-campo"><span>Data de nascimento</span><strong id="fc-nascimento"></strong></div>
-                <div class="ficha-campo"><span>Celular</span><strong id="fc-celular"></strong></div>
-                <div class="ficha-campo"><span>Cadastro</span><strong id="fc-cadastro"></strong></div>
-            </div>
-        </div>
-
-        <div class="ficha-secao">
-            <div class="ficha-secao-titulo">Endereço</div>
-            <div class="ficha-grid">
-                <div class="ficha-campo full"><span>Rua / Logradouro</span><strong id="fc-endereco"></strong><input id="fc-endereco-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>Número</span><strong id="fc-numero"></strong><input id="fc-numero-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>Complemento</span><strong id="fc-complemento"></strong><input id="fc-complemento-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>Bairro</span><strong id="fc-bairro"></strong><input id="fc-bairro-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>Cidade</span><strong id="fc-cidade"></strong><input id="fc-cidade-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>Estado</span><strong id="fc-estado"></strong><input id="fc-estado-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>País</span><strong id="fc-pais"></strong><input id="fc-pais-edit" class="fc-input" type="text" style="display:none"></div>
-            </div>
-        </div>
-
-        <div class="ficha-secao" id="fc-secao-vestimenta">
-            <div class="ficha-secao-titulo">Medidas</div>
-            <div class="ficha-grid">
-                <div class="ficha-campo"><span>Instrumento</span><strong id="fc-instrumento"></strong>
-                    <select id="fc-instrumento-edit" class="fc-input" style="display:none">
-                        <option value="">Selecione</option>
-                        <option>Agogô</option><option>Caixa</option><option>Chocalho</option>
-                        <option>Cuíca</option><option>Reco-reco</option><option>Repique</option>
-                        <option>Surdo</option><option>Tamborim</option>
-                    </select>
-                </div>
-                <div class="ficha-campo"><span>Membro desde</span><strong id="fc-tempo"></strong><input id="fc-tempo-edit" class="fc-input" type="text" placeholder="Ex: 2020" style="display:none"></div>
-                <div class="ficha-campo"><span>Camisa</span><strong id="fc-camisa"></strong><input id="fc-camisa-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>Fantasia</span><strong id="fc-fantasia"></strong><input id="fc-fantasia-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>Calça</span><strong id="fc-calca"></strong><input id="fc-calca-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>Sapato</span><strong id="fc-sapato"></strong><input id="fc-sapato-edit" class="fc-input" type="text" style="display:none"></div>
-            </div>
-        </div>
-
-        <div class="ficha-secao">
-            <div class="ficha-secao-titulo">Saúde</div>
-            <div class="ficha-grid">
-                <div class="ficha-campo"><span>Tipo sanguíneo</span><strong id="fc-tipo-sanguineo"></strong>
-                    <select id="fc-tipo-sanguineo-edit" class="fc-input" style="display:none">
-                        <option value="">Não informado</option>
-                        <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-                        <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="ficha-secao" id="fc-secao-emergencia">
-            <div class="ficha-secao-titulo">Contato de emergência</div>
-            <div class="ficha-grid">
-                <div class="ficha-campo"><span>Nome</span><strong id="fc-emergencia-nome"></strong><input id="fc-emergencia-nome-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo"><span>Parentesco</span><strong id="fc-emergencia-parentesco"></strong><input id="fc-emergencia-parentesco-edit" class="fc-input" type="text" style="display:none"></div>
-                <div class="ficha-campo full"><span>Celular</span><strong id="fc-emergencia-celular"></strong><input id="fc-emergencia-celular-edit" class="fc-input" type="text" style="display:none"></div>
-            </div>
-        </div>
+        <div id="fp-container-ritmista"></div>
 
         <div id="fc-secao-menor" class="ficha-secao" style="display:none;">
             <div class="ficha-secao-titulo">Declaração do responsável</div>
@@ -724,12 +581,7 @@
         </div>
 
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding-top:14px; border-top:1px solid #f0f0f0; margin-top:16px;">
-            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                <button id="btn-editar-ficha" class="btn-ficha btn-ficha-editar" style="display:none" onclick="ativarEdicaoFicha()">Editar</button>
-                <button id="btn-salvar-ficha" class="btn-ficha btn-ficha-salvar" style="display:none" onclick="salvarEdicaoFicha()">Salvar</button>
-                <button id="btn-cancelar-ficha" class="btn-ficha" style="display:none" onclick="cancelarEdicaoFicha()">Cancelar</button>
-                <div id="modalCadastroAcoes" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
-            </div>
+            <div id="modalCadastroAcoes" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
             <button class="btn-ficha" onclick="fecharModal('modalCadastroOverlay')">Fechar</button>
         </div>
     </div>
@@ -1030,41 +882,14 @@
 
     let fichaAtualId = null;
 
-    function abrirCadastro(id) {
+    async function abrirCadastro(id) {
         const r = todosRitmistas.find(x => x.id === id);
         if (!r) return;
         fichaAtualId = id;
-        cancelarEdicaoFicha();
 
         const idade = calcularIdade(r.nascimento);
         const status = r.status || 'pendente';
-        const statusLabels = { pendente: 'Pendente', aprovado: 'Ativo', suspenso: 'Suspenso', desligado: 'Desligado', rejeitado: 'Rejeitado' };
 
-        document.getElementById('modalCadastroNome').textContent = r.nome;
-        document.getElementById('modalCadastroSubtitulo').textContent = [r.apelido ? `"${r.apelido}"` : '', r.instrumento || '', idade !== null ? `${idade} anos` : ''].filter(Boolean).join(' · ');
-
-        document.getElementById('fc-nome').textContent = r.nome || '—';
-        document.getElementById('fc-apelido').textContent = r.apelido || '—';
-        document.getElementById('fc-nacionalidade').textContent = r.nacionalidade || '—';
-        document.getElementById('fc-cpf').textContent = r.cpf || '—';
-        const blocoDoc = document.getElementById('fc-bloco-documento');
-        if (r.tipo_documento || r.numero_documento) {
-            document.getElementById('fc-documento').textContent = [r.tipo_documento, r.numero_documento].filter(Boolean).join(' · ');
-            blocoDoc.style.display = '';
-        } else {
-            blocoDoc.style.display = 'none';
-        }
-        document.getElementById('fc-nascimento').textContent = r.nascimento ? new Date(r.nascimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
-        document.getElementById('fc-celular').textContent = r.celular || '—';
-        document.getElementById('fc-cadastro').textContent = new Date(r.created_at).toLocaleDateString('pt-BR');
-        document.getElementById('fc-endereco').textContent = r.endereco || '—';
-        document.getElementById('fc-numero').textContent = r.numero || '—';
-        document.getElementById('fc-complemento').textContent = r.complemento || '—';
-        document.getElementById('fc-bairro').textContent = r.bairro || '—';
-        document.getElementById('fc-cidade').textContent = r.cidade || '—';
-        document.getElementById('fc-estado').textContent = r.estado || '—';
-        document.getElementById('fc-pais').textContent = r.pais || 'Brasil';
-        document.getElementById('fc-instrumento').textContent = r.instrumento || '—';
         const statusBadgeHTML = {
             pendente:  `<span class="badge badge-pendente">Pendente</span>`,
             aprovado:  `<span class="badge badge-aprovado">Ativo</span>`,
@@ -1073,15 +898,10 @@
             rejeitado: `<span class="badge badge-rejeitado">Rejeitado</span>`,
         };
         document.getElementById('fc-status-badge').innerHTML = statusBadgeHTML[status] || '';
-        document.getElementById('fc-tempo').textContent = r.membro_desde || '—';
-        document.getElementById('fc-tipo-sanguineo').textContent = r.tipo_sanguineo || '—';
-        document.getElementById('fc-camisa').textContent = r.tamanho_camisa || '—';
-        document.getElementById('fc-fantasia').textContent = r.tamanho_fantasia || '—';
-        document.getElementById('fc-calca').textContent = r.tamanho_calca || '—';
-        document.getElementById('fc-sapato').textContent = r.tamanho_sapato || '—';
-        document.getElementById('fc-emergencia-nome').textContent = r.emergencia_nome || '—';
-        document.getElementById('fc-emergencia-parentesco').textContent = r.emergencia_parentesco || '—';
-        document.getElementById('fc-emergencia-celular').textContent = r.emergencia_celular || '—';
+
+        const meu = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        await fpMontar(document.getElementById('fp-container-ritmista'));
+        fpIniciar(r, meu ? meu.perfil : null, meu ? meu.id : null, { aoSalvar: () => carregarRitmistas() });
 
         // Menor — declaração
         const menor = idade !== null && idade < 18;
@@ -1093,7 +913,7 @@
             secaoMenor.style.display = 'none';
         }
 
-        // Botões de ação (sem ícones)
+        // Botões de ação de status (sem ícones)
         const acoesDiv = document.getElementById('modalCadastroAcoes');
         let btns = '';
         if (status === 'pendente') {
@@ -1110,117 +930,13 @@
         }
         acoesDiv.innerHTML = btns;
 
-        // Botão Editar instrumento — só para ativo/suspenso
-        const btnEditar = document.getElementById('btn-editar-ficha');
-        btnEditar.style.display = (status === 'aprovado' || status === 'suspenso') ? 'inline-flex' : 'none';
+        // Só edita dados de ritmista ativo/suspenso (regra já existia antes do motor único)
+        if (status !== 'aprovado' && status !== 'suspenso') {
+            document.getElementById('fp-container-ritmista').querySelector('#fp-btn-editar').style.display = 'none';
+        }
 
         document.getElementById('modalCadastroOverlay').classList.add('aberto');
     }
-
-    const CAMPOS_EDITAVEIS = [
-        { id: 'fc-endereco',           editId: 'fc-endereco-edit',           col: 'endereco' },
-        { id: 'fc-numero',             editId: 'fc-numero-edit',             col: 'numero' },
-        { id: 'fc-complemento',        editId: 'fc-complemento-edit',        col: 'complemento' },
-        { id: 'fc-bairro',             editId: 'fc-bairro-edit',             col: 'bairro' },
-        { id: 'fc-cidade',             editId: 'fc-cidade-edit',             col: 'cidade' },
-        { id: 'fc-estado',             editId: 'fc-estado-edit',             col: 'estado' },
-        { id: 'fc-instrumento',        editId: 'fc-instrumento-edit',        col: 'instrumento' },
-        { id: 'fc-tempo',              editId: 'fc-tempo-edit',              col: 'membro_desde' },
-        { id: 'fc-tipo-sanguineo',     editId: 'fc-tipo-sanguineo-edit',     col: 'tipo_sanguineo' },
-        { id: 'fc-camisa',             editId: 'fc-camisa-edit',             col: 'tamanho_camisa' },
-        { id: 'fc-fantasia',           editId: 'fc-fantasia-edit',           col: 'tamanho_fantasia' },
-        { id: 'fc-calca',              editId: 'fc-calca-edit',              col: 'tamanho_calca' },
-        { id: 'fc-sapato',             editId: 'fc-sapato-edit',             col: 'tamanho_sapato' },
-        { id: 'fc-emergencia-nome',    editId: 'fc-emergencia-nome-edit',    col: 'emergencia_nome' },
-        { id: 'fc-emergencia-parentesco', editId: 'fc-emergencia-parentesco-edit', col: 'emergencia_parentesco' },
-        { id: 'fc-emergencia-celular', editId: 'fc-emergencia-celular-edit', col: 'emergencia_celular' },
-        { id: 'fc-pais',               editId: 'fc-pais-edit',               col: 'pais' },
-    ];
-
-    // Mesma lista de campos usada na ficha de Ritmista, só trocando o prefixo
-    // dos IDs (fc- → ma-) — Diretoria usa exatamente os mesmos campos/colunas.
-    const CAMPOS_EDITAVEIS_ADMIN = CAMPOS_EDITAVEIS.map(c => ({
-        id: c.id.replace('fc-', 'ma-'),
-        editId: c.editId.replace('fc-', 'ma-'),
-        col: c.col
-    }));
-
-    const BOTOES_FICHA = {
-        ritmista: { editar: 'btn-editar-ficha', salvar: 'btn-salvar-ficha', cancelar: 'btn-cancelar-ficha' },
-        admin:    { editar: 'btn-editar-admin', salvar: 'btn-salvar-admin', cancelar: 'btn-cancelar-admin' }
-    };
-
-    let fichaEmEdicao = { tipo: null, id: null, campos: null };
-
-    function _aplicarCampos(campos, mostrarInput) {
-        campos.forEach(({ id, editId }) => {
-            const strong = document.getElementById(id);
-            const input = document.getElementById(editId);
-            if (!strong || !input) return;
-            strong.style.display = mostrarInput ? 'none' : '';
-            input.style.display = mostrarInput ? '' : 'none';
-        });
-    }
-
-    function _iniciarEdicao(tipo, id, campos, origemArray) {
-        const r = (origemArray || []).find(x => x.id === id);
-        if (!r) return;
-        fichaEmEdicao = { tipo, id, campos };
-        campos.forEach(({ editId, col }) => {
-            const input = document.getElementById(editId);
-            if (input) input.value = r[col] || '';
-        });
-        _aplicarCampos(campos, true);
-        const b = BOTOES_FICHA[tipo];
-        document.getElementById(b.editar).style.display = 'none';
-        document.getElementById(b.salvar).style.display = 'inline-flex';
-        document.getElementById(b.cancelar).style.display = 'inline-flex';
-    }
-
-    function _cancelarEdicao() {
-        if (!fichaEmEdicao.campos) return;
-        _aplicarCampos(fichaEmEdicao.campos, false);
-        const b = BOTOES_FICHA[fichaEmEdicao.tipo];
-        document.getElementById(b.editar).style.display = 'inline-flex';
-        document.getElementById(b.salvar).style.display = 'none';
-        document.getElementById(b.cancelar).style.display = 'none';
-        fichaEmEdicao = { tipo: null, id: null, campos: null };
-    }
-
-    async function _salvarEdicao() {
-        if (!fichaEmEdicao.id) return;
-        const payload = {};
-        fichaEmEdicao.campos.forEach(({ editId, col }) => {
-            const input = document.getElementById(editId);
-            if (input) payload[col] = input.value.trim() || null;
-        });
-        const tipo = fichaEmEdicao.tipo;
-        const id = fichaEmEdicao.id;
-        await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', ...authHeaders, 'Prefer': 'return=minimal' },
-            body: JSON.stringify(payload)
-        });
-        fichaEmEdicao = { tipo: null, id: null, campos: null };
-        if (tipo === 'ritmista') {
-            fecharModal('modalCadastroOverlay');
-            await carregarRitmistas();
-        } else {
-            fecharModalAdmin();
-            diretoriaCarregada = false;
-            await carregarDiretoria();
-        }
-    }
-
-    // Ficha de Ritmista — mantém os mesmos nomes já usados nos onclick do HTML
-    function ativarEdicaoFicha() { _iniciarEdicao('ritmista', fichaAtualId, CAMPOS_EDITAVEIS, todosRitmistas); }
-    function cancelarEdicaoFicha() { _cancelarEdicao(); }
-    function salvarEdicaoFicha() { return _salvarEdicao(); }
-
-    // Ficha de Admin (Diretoria) — mesmo motor, mesmos campos
-    function ativarEdicaoAdmin() { _iniciarEdicao('admin', adminSelecionado ? adminSelecionado.id : null, CAMPOS_EDITAVEIS_ADMIN, window._adminsCache); }
-    function cancelarEdicaoAdmin() { _cancelarEdicao(); }
-    function salvarEdicaoAdmin() { return _salvarEdicao(); }
 
     function renderizarVisaoGeral() {
         const mesAtual = new Date().getMonth() + 1;
@@ -1477,83 +1193,8 @@
 <div id="modalAdmin" style="display:none;">
     <div class="modal-admin-overlay" onclick="if(event.target===this)fecharModalAdmin()">
         <div class="modal-admin-box">
-            <div class="modal-admin-titulo" id="maNome"></div>
-            <div class="modal-admin-sub" id="maSub"></div>
-
-            <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Dados pessoais</div>
-                <div class="ficha-grid">
-                    <div class="ficha-campo full"><span>Nome</span><strong id="ma-nome"></strong></div>
-                    <div class="ficha-campo"><span>Apelido</span><strong id="ma-apelido"></strong></div>
-                    <div class="ficha-campo"><span>Nacionalidade</span><strong id="ma-nacionalidade"></strong></div>
-                    <div class="ficha-campo"><span>CPF</span><strong id="ma-cpf"></strong></div>
-                    <div class="ficha-campo" id="ma-bloco-documento" style="display:none">
-                        <span>Documento</span><strong id="ma-documento"></strong>
-                    </div>
-                    <div class="ficha-campo"><span>Data de nascimento</span><strong id="ma-nascimento"></strong></div>
-                    <div class="ficha-campo"><span>Celular</span><strong id="ma-celular"></strong></div>
-                    <div class="ficha-campo"><span>Cadastro</span><strong id="ma-cadastro"></strong></div>
-                </div>
-            </div>
-
-            <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Endereço</div>
-                <div class="ficha-grid">
-                    <div class="ficha-campo full"><span>Rua / Logradouro</span><strong id="ma-endereco"></strong><input id="ma-endereco-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo"><span>Número</span><strong id="ma-numero"></strong><input id="ma-numero-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo"><span>Complemento</span><strong id="ma-complemento"></strong><input id="ma-complemento-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo"><span>Bairro</span><strong id="ma-bairro"></strong><input id="ma-bairro-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo"><span>Cidade</span><strong id="ma-cidade"></strong><input id="ma-cidade-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo"><span>Estado</span><strong id="ma-estado"></strong><input id="ma-estado-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo"><span>País</span><strong id="ma-pais"></strong><input id="ma-pais-edit" class="fc-input" type="text" style="display:none"></div>
-                </div>
-            </div>
-
-            <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Medidas</div>
-                <div class="ficha-grid">
-                    <div class="ficha-campo"><span>Instrumento</span><strong id="ma-instrumento"></strong>
-                        <select id="ma-instrumento-edit" class="fc-input" style="display:none">
-                            <option value="">Selecione</option>
-                            <option>Agogô</option><option>Caixa</option><option>Chocalho</option>
-                            <option>Cuíca</option><option>Reco-reco</option><option>Repique</option>
-                            <option>Surdo</option><option>Tamborim</option>
-                        </select>
-                    </div>
-                    <div class="ficha-campo"><span>Membro desde</span><strong id="ma-tempo"></strong><input id="ma-tempo-edit" class="fc-input" type="text" placeholder="Ex: 2020" style="display:none"></div>
-                    <div class="ficha-campo"><span>Camisa</span><strong id="ma-camisa"></strong><input id="ma-camisa-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo"><span>Fantasia</span><strong id="ma-fantasia"></strong><input id="ma-fantasia-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo"><span>Calça</span><strong id="ma-calca"></strong><input id="ma-calca-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo"><span>Sapato</span><strong id="ma-sapato"></strong><input id="ma-sapato-edit" class="fc-input" type="text" style="display:none"></div>
-                </div>
-            </div>
-
-            <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Saúde</div>
-                <div class="ficha-grid">
-                    <div class="ficha-campo"><span>Tipo sanguíneo</span><strong id="ma-tipo-sanguineo"></strong>
-                        <select id="ma-tipo-sanguineo-edit" class="fc-input" style="display:none">
-                            <option value="">Não informado</option>
-                            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-                            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Contato de emergência</div>
-                <div class="ficha-grid">
-                    <div class="ficha-campo"><span>Nome</span><strong id="ma-emergencia-nome"></strong><input id="ma-emergencia-nome-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo"><span>Parentesco</span><strong id="ma-emergencia-parentesco"></strong><input id="ma-emergencia-parentesco-edit" class="fc-input" type="text" style="display:none"></div>
-                    <div class="ficha-campo full"><span>Celular</span><strong id="ma-emergencia-celular"></strong><input id="ma-emergencia-celular-edit" class="fc-input" type="text" style="display:none"></div>
-                </div>
-            </div>
-
+            <div id="fp-container-admin"></div>
             <div class="modal-admin-acoes">
-                <button id="btn-editar-admin" class="btn-ficha btn-ficha-editar" style="display:none" onclick="ativarEdicaoAdmin()">Editar</button>
-                <button id="btn-salvar-admin" class="btn-ficha btn-ficha-salvar" style="display:none" onclick="salvarEdicaoAdmin()">Salvar</button>
-                <button id="btn-cancelar-admin" class="btn-ficha" style="display:none" onclick="cancelarEdicaoAdmin()">Cancelar</button>
                 <button onclick="verCarteirinhaAdmin()" style="background:#D4AF37;border:none;color:#12101a;padding:9px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Ver carteirinha ↗</button>
                 <button onclick="fecharModalAdmin()" style="background:transparent;border:1.5px solid #e8e6f0;color:#5a5770;padding:9px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Fechar</button>
             </div>
@@ -1563,125 +1204,25 @@
 
 <script>
     // ── MEU PERFIL (aba) ──────────────────────────────────────────────────────
-    let mpFotoBase64 = null;
-
     function irParaMeuPerfil() {
         const btn = document.querySelector('.aba-btn[data-aba="meu-perfil"]');
         trocarAba('meu-perfil', btn);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function iniciarMeuPerfilAba() {
+    async function iniciarMeuPerfilAba() {
         const params = new URLSearchParams(window.location.search);
         const isSuperAdmin = params.get('superadmin') === 'true';
 
         document.getElementById('mpSuperAdminAviso').style.display = isSuperAdmin ? 'block' : 'none';
-        document.getElementById('mpFormulario').style.display = isSuperAdmin ? 'none' : 'block';
+        document.getElementById('fp-container-meuperfil').style.display = isSuperAdmin ? 'none' : 'block';
         if (isSuperAdmin) return;
 
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!u) return;
-        mpFotoBase64 = null;
 
-        const circle = document.getElementById('mpFotoCircle');
-        if (u.foto_url) {
-            circle.innerHTML = `<img src="${u.foto_url}">`;
-        } else {
-            circle.innerHTML = `<svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
-        }
-
-        document.getElementById('mpEmail').value = u.email || '';
-        document.getElementById('mpCelular').value = u.celular || '';
-        document.getElementById('mpNascimento').value = u.nascimento || '';
-        document.getElementById('mpEndereco').value = u.endereco || '';
-        document.getElementById('mpNumero').value = u.numero || '';
-        document.getElementById('mpComplemento').value = u.complemento || '';
-        document.getElementById('mpBairro').value = u.bairro || '';
-        document.getElementById('mpCidade').value = u.cidade || '';
-        document.getElementById('mpEstado').value = u.estado || '';
-        document.getElementById('mpCamisa').value = u.tamanho_camisa || '';
-        document.getElementById('mpFantasia').value = u.tamanho_fantasia || '';
-        document.getElementById('mpSapato').value = u.tamanho_sapato || '';
-        document.getElementById('mpEmergenciaNome').value = u.emergencia_nome || '';
-        document.getElementById('mpEmergenciaParentesco').value = u.emergencia_parentesco || '';
-        document.getElementById('mpEmergenciaCelular').value = u.emergencia_celular || '';
-
-        const msg = document.getElementById('mpMensagem');
-        msg.className = 'mp-mensagem';
-        msg.textContent = '';
-    }
-
-    function mpPreviewFoto(input) {
-        if (!input.files || !input.files[0]) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const SIZE = 300;
-                canvas.width = SIZE; canvas.height = SIZE;
-                const ctx = canvas.getContext('2d');
-                const side = Math.min(img.width, img.height);
-                const sx = (img.width - side) / 2;
-                const sy = (img.height - side) / 2;
-                ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
-                mpFotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                document.getElementById('mpFotoCircle').innerHTML = `<img src="${mpFotoBase64}">`;
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-
-    async function salvarMeuPerfil() {
-        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        if (!u) return;
-
-        const btn = document.getElementById('mpBtnSalvar');
-        btn.disabled = true; btn.textContent = 'Salvando...';
-
-        const dados = {
-            email: document.getElementById('mpEmail').value.trim() || null,
-            celular: document.getElementById('mpCelular').value.trim() || null,
-            nascimento: document.getElementById('mpNascimento').value || null,
-            endereco: document.getElementById('mpEndereco').value.trim() || null,
-            numero: document.getElementById('mpNumero').value.trim() || null,
-            complemento: document.getElementById('mpComplemento').value.trim() || null,
-            bairro: document.getElementById('mpBairro').value.trim() || null,
-            cidade: document.getElementById('mpCidade').value.trim() || null,
-            estado: document.getElementById('mpEstado').value || null,
-            tamanho_camisa: document.getElementById('mpCamisa').value || null,
-            tamanho_fantasia: document.getElementById('mpFantasia').value || null,
-            tamanho_sapato: document.getElementById('mpSapato').value || null,
-            emergencia_nome: document.getElementById('mpEmergenciaNome').value.trim() || null,
-            emergencia_parentesco: document.getElementById('mpEmergenciaParentesco').value.trim() || null,
-            emergencia_celular: document.getElementById('mpEmergenciaCelular').value.trim() || null,
-        };
-        if (mpFotoBase64) dados.foto_url = mpFotoBase64;
-
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${u.id}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                ...authHeaders,
-                'Prefer': 'return=representation',
-            },
-            body: JSON.stringify(dados),
-        });
-
-        const mpMsg = document.getElementById('mpMensagem');
-        if (res.ok) {
-            const atualizado = await res.json();
-            const novosDados = (atualizado && atualizado[0]) ? atualizado[0] : { ...u, ...dados };
-            localStorage.setItem('ritmista', JSON.stringify(novosDados));
-            mpMsg.className = 'mp-mensagem sucesso';
-            mpMsg.textContent = 'Perfil atualizado com sucesso!';
-            mpMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-            mpMsg.className = 'mp-mensagem erro';
-            mpMsg.textContent = 'Erro ao salvar. Tente novamente.';
-        }
-        btn.disabled = false; btn.textContent = 'Salvar alterações';
+        await fpMontar(document.getElementById('fp-container-meuperfil'));
+        fpIniciar(u, u.perfil, u.id);
     }
 
     // ── DIRETORIA ─────────────────────────────────────────────────────────────
@@ -1776,69 +1317,15 @@
         await carregarDiretoria();
     }
 
-    function abrirFichaAdmin(id) {
+    async function abrirFichaAdmin(id) {
         const admins = window._adminsCache || [];
         const a = admins.find(x => x.id === id);
         if (!a) return;
         adminSelecionado = a;
 
-        const cargo = a.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
-        document.getElementById('maNome').textContent = a.nome || '—';
-        document.getElementById('maSub').textContent = a.apelido ? `"${a.apelido}" · ${cargo}` : cargo;
-
-        // Dados pessoais
-        document.getElementById('ma-nome').textContent = a.nome || '—';
-        document.getElementById('ma-apelido').textContent = a.apelido || '—';
-        document.getElementById('ma-nacionalidade').textContent = a.nacionalidade || '—';
-        document.getElementById('ma-cpf').textContent = a.cpf || '—';
-        if (a.tipo_documento && a.numero_documento) {
-            document.getElementById('ma-bloco-documento').style.display = '';
-            document.getElementById('ma-documento').textContent = `${a.tipo_documento}: ${a.numero_documento}`;
-        } else {
-            document.getElementById('ma-bloco-documento').style.display = 'none';
-        }
-        const nasc = a.nascimento ? new Date(a.nascimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
-        document.getElementById('ma-nascimento').textContent = nasc;
-        document.getElementById('ma-celular').textContent = a.celular || '—';
-        document.getElementById('ma-cadastro').textContent = a.created_at ? new Date(a.created_at).toLocaleDateString('pt-BR') : '—';
-
-        // Endereço
-        document.getElementById('ma-endereco').textContent = a.endereco || '—';
-        document.getElementById('ma-numero').textContent = a.numero || '—';
-        document.getElementById('ma-complemento').textContent = a.complemento || '—';
-        document.getElementById('ma-bairro').textContent = a.bairro || '—';
-        document.getElementById('ma-cidade').textContent = a.cidade || '—';
-        document.getElementById('ma-estado').textContent = a.estado || '—';
-        document.getElementById('ma-pais').textContent = a.pais || '—';
-
-        // Medidas
-        document.getElementById('ma-instrumento').textContent = a.instrumento || '—';
-        document.getElementById('ma-tempo').textContent = a.membro_desde || '—';
-        document.getElementById('ma-camisa').textContent = a.tamanho_camisa || '—';
-        document.getElementById('ma-fantasia').textContent = a.tamanho_fantasia || '—';
-        document.getElementById('ma-calca').textContent = a.tamanho_calca || '—';
-        document.getElementById('ma-sapato').textContent = a.tamanho_sapato || '—';
-
-        // Saúde
-        document.getElementById('ma-tipo-sanguineo').textContent = a.tipo_sanguineo || '—';
-
-        // Contato de emergência
-        document.getElementById('ma-emergencia-nome').textContent = a.emergencia_nome || '—';
-        document.getElementById('ma-emergencia-parentesco').textContent = a.emergencia_parentesco || '—';
-        document.getElementById('ma-emergencia-celular').textContent = a.emergencia_celular || '—';
-
-        // Hierarquia de edição: Super Admin edita qualquer um; Mestre edita a si
-        // mesmo e os Diretores da própria bateria; Diretor só edita a si mesmo.
         const usuarioAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        const meuPerfil = usuarioAtual ? usuarioAtual.perfil : null;
-        const meuId = usuarioAtual ? usuarioAtual.id : null;
-        const podeEditar =
-            meuPerfil === 'super_admin' ||
-            a.id === meuId ||
-            (meuPerfil === 'mestre' && a.perfil === 'diretor');
-        document.getElementById('btn-editar-admin').style.display = podeEditar ? 'inline-flex' : 'none';
-        document.getElementById('btn-salvar-admin').style.display = 'none';
-        document.getElementById('btn-cancelar-admin').style.display = 'none';
+        await fpMontar(document.getElementById('fp-container-admin'));
+        fpIniciar(a, usuarioAtual ? usuarioAtual.perfil : null, usuarioAtual ? usuarioAtual.id : null, { aoSalvar: () => { diretoriaCarregada = false; carregarDiretoria(); } });
 
         document.getElementById('modalAdmin').style.display = 'block';
         document.body.style.overflow = 'hidden';

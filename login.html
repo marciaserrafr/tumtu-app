@@ -109,7 +109,32 @@
     </form>
 
     <div class="link-cadastro">
+        <a href="#" onclick="mostrarRecuperacao(event)">Esqueci minha senha</a>
+    </div>
+
+    <div class="link-cadastro">
         Ainda não tem cadastro? <a href="index.html">Cadastre-se</a>
+    </div>
+</div>
+
+<div class="container" id="containerRecuperacao" style="display:none;">
+    <div class="logo">
+        <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
+        <p>Recuperar senha</p>
+    </div>
+
+    <div id="mensagemRecuperacao" class="mensagem"></div>
+
+    <form id="formRecuperacao">
+        <div class="form-group">
+            <label>CPF ou e-mail <span class="label-dica">— use o que você cadastrou</span></label>
+            <input type="text" id="identificadorRecuperacao" placeholder="000.000.000-00 ou seu@email.com" required oninput="mascaraIdentificador(this)">
+        </div>
+        <button type="submit" class="btn-entrar btn-primario">Enviar link de recuperação</button>
+    </form>
+
+    <div class="link-cadastro">
+        <a href="#" onclick="mostrarRecuperacao(event)">Voltar ao login</a>
     </div>
 </div>
 
@@ -142,6 +167,38 @@
         el.className = `mensagem ${tipo}`;
         el.style.display = 'block';
     }
+
+    function mostrarRecuperacao(e) {
+        e.preventDefault();
+        const login = document.querySelector('.container:not(#containerRecuperacao)');
+        const recuperacao = document.getElementById('containerRecuperacao');
+        const abrindo = recuperacao.style.display === 'none';
+        login.style.display = abrindo ? 'none' : 'block';
+        recuperacao.style.display = abrindo ? 'block' : 'none';
+    }
+
+    document.getElementById('formRecuperacao').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const identificador = document.getElementById('identificadorRecuperacao').value.trim();
+        const isEmail = identificador.includes('@');
+
+        let authEmail = identificador;
+        if (!isEmail) {
+            const { data: emailResolvido } = await sb.rpc('resolve_login_email', { identificador });
+            authEmail = emailResolvido;
+        }
+
+        const mensagemEl = document.getElementById('mensagemRecuperacao');
+        // Mensagem sempre igual, exista ou não o cadastro — evita revelar quais CPFs/e-mails estão cadastrados.
+        if (authEmail) {
+            await sb.auth.resetPasswordForEmail(authEmail, {
+                redirectTo: window.location.origin + '/redefinir-senha.html',
+            });
+        }
+        mensagemEl.textContent = 'Se o CPF ou e-mail existir no sistema, você vai receber um link de recuperação em instantes.';
+        mensagemEl.className = 'mensagem aviso';
+        mensagemEl.style.display = 'block';
+    });
 
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
         e.preventDefault();

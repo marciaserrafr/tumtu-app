@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tumtu-shell-v4';
+const CACHE_NAME = 'tumtu-shell-v5';
 
 const APP_SHELL = [
   './login.html',
@@ -7,6 +7,9 @@ const APP_SHELL = [
   './super-admin.html',
   './carteirinha.html',
   './qr.html',
+  './redefinir-senha.html',
+  './ficha-perfil.js',
+  './ficha-perfil.partial.html',
   './config-escola.js',
   './manifest.json',
   './styles/tokens.css',
