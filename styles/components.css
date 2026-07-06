@@ -126,17 +126,7 @@
 }
 .mp-superadmin-aviso strong { display: block; font-size: 15px; color: #5a5770; margin-bottom: 6px; }
 
-/* ── Logotipo "TumTu" (padrão único, usado em todas as telas) ── */
-.marca-tumtu { display: inline; }
-.marca-tumtu .mt-t { color: #D4AF37; font-weight: 900; }
-.marca-tumtu .mt-m { position: relative; }
-.marca-tumtu .mt-m::after {
-  content: '';
-  position: absolute;
-  left: 1px;
-  right: 1px;
-  bottom: -3px;
-  height: 2px;
-  background: #7c2d12;
-  border-radius: 1px;
-}
+/* ── Logotipo "TumTu" (padrão único, usado em todas as telas) — spec do handoff de design ── */
+.tt-logo { font-weight: 800; font-family: var(--fonte-principal); }
+.tt-logo .tt-t { color: #D4AF37; }
+.tt-logo .tt-m { border-bottom: 3px solid #7c2d12; padding-bottom: 2px; }

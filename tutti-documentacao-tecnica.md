@@ -164,7 +164,6 @@ Lêem `auth.uid()` (o usuário autenticado da requisição atual) e retornam dad
 - **Reset de senha pelo Super Admin removido:** a tela de Acessos tinha um campo "Nova senha (opcional)" que ficou sem função real depois da migração (escrevia na coluna `senha`, hoje obsoleta). Removido em 05/jul/2026. Se for reconstruído, precisa de uma nova Edge Function usando `admin.auth.admin.updateUserById()`.
 - **Sem "esqueci minha senha"** — mais fácil de implementar agora que existe Supabase Auth nativo (tem fluxo pronto de recuperação por e-mail), mas ainda não foi feito.
 - **CPF não é único** na tabela `ritmistas` — sem constraint, baixa prioridade.
-- **Ícone do PWA é um placeholder** (texto "TumTu" gerado programaticamente, sem o logo definitivo em arte final) — trocar os arquivos em `icons/` quando o logo for desenhado por um designer, mantendo os mesmos nomes de arquivo e tamanhos (não precisa mexer no `manifest.json`).
 - **Domínio `tumtu.com.br`** já comprado pela Márcia, ainda não conectado ao deploy da Vercel — passo manual (painel Vercel + DNS do registrador), não é mudança de código.
 - **Nomes dos arquivos de documentação** (`tutti-visao-geral.md`, `tutti-mvp.md`, `tutti-design-guide.md`, `tutti-documentacao-tecnica.md`, `tutti-plano-de-testes.md`, `tutti-dados-fake-reset.xlsx`) continuam com "tutti" no nome — só o conteúdo foi unificado para TumTu. Renomear os arquivos em si não estava no escopo combinado, fica como pendência menor.
 
@@ -219,7 +218,7 @@ Implementado em 05/jul/2026. Deixa o TumTu instalável direto do navegador (íco
 - `manifest.json` — nome, ícones, cor de tema (`#12101a`) e `start_url` apontando para `login.html` (entrada comum a todos os perfis).
 - `sw.js` — service worker. Faz cache do "app shell" (as 6 telas HTML, CSS, `config-escola.js` e os ícones) na instalação, para o app abrir mesmo sem internet. Chamadas para o Supabase (ou qualquer origem externa) **nunca são cacheadas** — passam direto pra rede, sempre com dado atual. Em navegação (troca de tela), tenta a rede primeiro e só cai no cache se estiver offline.
 - `pwa-register.js` — registra o service worker; incluído (`<script defer>`) nas 6 páginas.
-- `icons/` — `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` (ícone com margem de segurança para Android), `apple-touch-icon.png` (iOS) e `favicon-32.png`. Todos são um **placeholder gerado por script** (texto "TumTu" com os T's em dourado e risco terracota sob o "m"), não o logo definitivo — ver pendência na seção 9.
+- `icons/` — `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` (ícone com margem de segurança para Android), `apple-touch-icon.png` (iOS) e `favicon-32.png`. Inicialmente um placeholder gerado por script (texto "TumTu" completo); **substituídos pela arte final em 05/jul/2026** (ver seção 14) — monograma "T" dourado com risco terracota, mesmos nomes de arquivo e tamanhos.
 
 **Cada uma das 6 páginas** (`login.html`, `index.html`, `admin.html`, `super-admin.html`, `carteirinha.html`, `qr.html`) ganhou no `<head>`: link para o manifest, `theme-color`, ícones (`favicon` e `apple-touch-icon`), meta tags de iOS (`apple-mobile-web-app-*`) e a inclusão do `pwa-register.js`.
 
@@ -244,7 +243,18 @@ Implementado em 05/jul/2026. Antes disso, o rename só existia na documentação
 
 **Testado (05/jul/2026):** as 6 telas conferidas visualmente (logo com T's dourados e risco terracota renderizando certo), sem erro 404 nem de console, tema da carteirinha aplicando as cores certas com o novo valor de `data-tema`, cache do service worker migrando pra v3 com o nome de arquivo novo, e uma busca final confirmando que não sobrou nenhuma menção a "tutti" em código.
 
-**Fora deste rename** (ver seção 9): ícone do PWA continua placeholder (falta a arte final do logo), domínio `tumtu.com.br` ainda não conectado na Vercel, e os nomes dos arquivos de documentação `.md` continuam com "tutti".
+### Handoff de design (mesmo dia, mais tarde) — alinhamento e ícones finais
+
+A Márcia trouxe um handoff formal de um Design Assistant do Claude (`design_handoff_tumtu_rebrand`, entregue como `.zip` dentro da própria pasta do projeto), com auditoria independente da marca. Achados relevantes:
+
+- A auditoria confirmou a mesma decisão de logo já usada acima (opção **"1a — Wordmark clássico"**: T's dourados na 1ª/4ª letra, risco terracota só sob o "m") — nenhuma mudança de conceito, só de nomenclatura de classe CSS.
+- **Nomenclatura de classe alinhada ao handoff:** `.marca-tumtu`/`.mt-t`/`.mt-m` (nomes que eu tinha inventado) viraram `.tt-logo`/`.tt-t`/`.tt-m` (nomes do handoff), com a técnica do risco trocada de `::after` posicionado para `border-bottom` direto no `.tt-m` — mais simples, mesmo resultado visual.
+- **Gap real encontrado pelo handoff que minha varredura anterior não pegou:** `qr.html` tinha um logo (`<div class="marca">Tu<span>TT</span>i</div>`) que minha busca por texto "tutti" não reconheceu, porque as tags HTML quebram a palavra no meio (`Tu` + `TT` + `i`, nunca a string contígua "tutti"). Corrigido: `qr.html` ganhou `styles/tokens.css` e `styles/components.css` no `<head>` (não tinha nenhum dos dois) e o mesmo tratamento `.tt-logo`.
+- **Ícones finais do PWA:** o handoff descartou a ideia de um símbolo de "dois surdos" (círculos) por não comunicar bem sozinho, e entregou um monograma — só o "T" dourado com o risco terracota, fundo `#12101a` — como arte final para `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png` e `favicon-32.png`. Substituíram os placeholders (mesmos nomes de arquivo, `manifest.json` não precisou mudar).
+
+**⚠️ `CACHE_NAME` subiu de novo:** `tumtu-shell-v3` → `v4` — o conteúdo dos ícones mudou mesmo mantendo os mesmos nomes de arquivo, e o service worker cacheia por nome, não por conteúdo.
+
+**Fora deste rename:** domínio `tumtu.com.br` ainda não conectado na Vercel, e os nomes dos arquivos de documentação `.md` continuam com "tutti".
 
 ---
 
