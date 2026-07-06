@@ -1,6 +1,6 @@
 # Prompt para o Claude Code — Cadastro completo do Admin (Mestre/Diretor)
 
-Leia o arquivo `tutti-design-guide.md` e `tutti-mvp.md` antes de começar.
+Leia o arquivo `tumtu-design-guide.md` e `tumtu-mvp.md` antes de começar.
 
 ---
 
@@ -45,7 +45,7 @@ Cria uma tela `completar-perfil.html` (ou modal, se preferir) que aparece quando
 
 Ao salvar: atualiza os dados no Supabase, muda `cadastro_completo = true` e redireciona para `admin.html`.
 
-**Visual:** mesmo padrão do cadastro do ritmista — fundo escuro `#12101a`, card branco centralizado, marca TuTTi no topo, linhas divisórias douradas entre seções.
+**Visual:** mesmo padrão do cadastro do ritmista — fundo escuro `#12101a`, card branco centralizado, marca TumTu no topo, linhas divisórias douradas entre seções.
 
 ## Etapa 3 — Área "Meu perfil" no painel Admin
 

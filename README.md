@@ -1,4 +1,4 @@
-# Tutti — Sistema de Gestão de Ritmistas
+# TumTu — Sistema de Gestão de Ritmistas
 
 ## Quem está construindo
 
@@ -10,7 +10,7 @@
 
 Sistema web de gestão de ritmistas para escolas de samba. Desenvolvido inicialmente para o G.R.E.S. Swing da Leopoldina, com visão SaaS multi-escola — qualquer bateria do Brasil pode contratar e usar.
 
-**Marca:** Tutti (com os dois T's centrais em destaque dourado: Tu**TT**i)
+**Marca:** TumTu (os dois T's — 1ª e 4ª letra — em destaque dourado: T**um**T**u**)
 
 ---
 
@@ -24,7 +24,7 @@ Sistema web de gestão de ritmistas para escolas de samba. Desenvolvido inicialm
 
 ## Identidade visual
 
-**Paleta base (tema Tutti):**
+**Paleta base (tema TumTu):**
 | Token | Valor | Uso |
 |-------|-------|-----|
 | `--cor-fundo-escuro` | `#12101a` | Header, fundo de carteirinha, fundo de login |
@@ -37,8 +37,8 @@ Sistema web de gestão de ritmistas para escolas de samba. Desenvolvido inicialm
 | Fonte | Plus Jakarta Sans | Pesos 300–800 |
 
 **Regras de marca:**
-- "Tu**TT**i" (TT em dourado `#D4AF37`, peso 900) aparece fixo no header do painel e no rodapé do verso da carteirinha
-- Círculos de logo são **sempre** da escola — nunca colocam a marca Tutti
+- "TumTu" (os dois T's em dourado `#D4AF37`, peso 900) aparece fixo no header do painel e no rodapé do verso da carteirinha
+- Círculos de logo são **sempre** da escola — nunca colocam a marca TumTu
 - Quando não há escola configurada, círculos ficam vazios (borda dourada sem conteúdo)
 
 **Override por escola (`[data-tema="nome-da-escola"]` em `styles/tokens.css`):**
@@ -56,8 +56,8 @@ const configEscola = {
   nomeBateria:      "",   // ex: "Swing da Leopoldina"
   logoEscola:       null, // URL da logo; null = espaço reservado vazio
   instagramBateria: "",   // ex: "@swingdaleopoldina"
-  corDestaque:      null, // null = dourado padrão Tutti
-  corPrimaria:      null, // null = escuro padrão Tutti
+  corDestaque:      null, // null = dourado padrão TumTu
+  corPrimaria:      null, // null = escuro padrão TumTu
   mestreDeBateria:  "",
   temporadaAtual:   "",   // ex: "Carnaval 2027"
 };
@@ -78,7 +78,7 @@ const configEscola = {
 - Envia com status `pendente` — aguarda aprovação do diretor
 
 ### `admin.html` — Painel do Diretor
-- Header fixo escuro `#12101a` com marca Tutti + nome da bateria (do config)
+- Header fixo escuro `#12101a` com marca TumTu + nome da bateria (do config)
 - **Totalizadores**: dois cards — "Ritmistas ativos" (número em dourado) e "Pendentes"
 - **Botão "+ Cadastrar Ritmista"** em dourado
 - **Barra de busca** por nome, apelido ou CPF (normaliza acentos)
@@ -87,7 +87,7 @@ const configEscola = {
 - **Cards de ritmistas**: nome, badge de status, apelido, instrumento, CPF, celular, aniversário (🎂 no mês atual), "Desde: mm/aaaa"
   - Desktop: botões de ação empilhados à direita (Ativar, Rejeitar, Instrumento, Suspender, Desligar, Cadastro)
   - Mobile: menu ⋮ no canto do card
-- **Botão Ativar**: cor vinda de `configEscola.corDestaque` (dourado Tutti se não configurado)
+- **Botão Ativar**: cor vinda de `configEscola.corDestaque` (dourado TumTu se não configurado)
 - **Modal Cadastro**: ficha completa do ritmista
 - **Controle de menores**: flag automática por nascimento, controle de entrega de declaração do responsável
 - Rodapé com nome da escola (do config)
@@ -105,7 +105,7 @@ const configEscola = {
   - QR code (decorativo por enquanto)
   - Nome do mestre de bateria (do config)
   - "Válida até" + "Temporada" lado a lado
-  - Rodapé: `@instagram` (do config) + marca "Tu**TT**i" à direita
+  - Rodapé: `@instagram` (do config) + marca "TumTu" à direita
 - Botões: Salvar e Compartilhar
 
 ---
@@ -119,10 +119,10 @@ ritmistas-app/
 ├── admin.html              # Painel do diretor
 ├── carteirinha.html        # Carteirinha digital
 ├── config-escola.js        # Configuração da escola (editado pelo Super Admin)
-├── carteirinha-tutti.css   # CSS da carteirinha (classes .c-*)
+├── carteirinha-tumtu.css   # CSS da carteirinha (classes .c-*)
 ├── carteirinha-swing.css   # CSS arquivado do tema Swing (classes .f-* e .b-*)
 ├── styles/
-│   ├── tokens.css          # CSS variables: :root (Tutti) + overrides por escola
+│   ├── tokens.css          # CSS variables: :root (TumTu) + overrides por escola
 │   └── components.css      # Componentes reutilizáveis: .btn-primario, .campo, etc.
 ```
 

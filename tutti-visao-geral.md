@@ -1,27 +1,27 @@
-# Tutti — Visão Geral do Projeto
+# TumTu — Visão Geral do Projeto
 
 > Documento vivo. Atualizar sempre que uma decisão importante for tomada.
 > Última atualização: 05/jul/2026
 
 ---
 
-> ⚠️ **Mudança de nome (05/jul/2026): Tutti → TumTu.** Motivo: já existem muitas marcas registradas como "Tutti", incluindo domínio; "TumTu" está livre e Márcia vai correr atrás do registro. Este documento e o código ainda usam "Tutti" — a renomeação (incluindo redesenho do logo, já que o "TuTTi" com duplo-T dourado não existe em "TumTu") fica para uma sessão dedicada. Ver `tutti-documentacao-tecnica.md` para detalhes.
+> ⚠️ **Mudança de nome (05/jul/2026): Tutti → TumTu.** Motivo: já existem muitas marcas registradas como "Tutti", incluindo domínio; domínio `tumtu.com.br` já foi adquirido por Márcia. Este documento já reflete o novo nome; o código e as telas do sistema ainda usam "Tutti" — a renomeação (incluindo redesenho do logo, já que o "TuTTi" com duplo-T dourado centralizado não existe do mesmo jeito em "TumTu") fica para uma sessão dedicada. Ver `tumtu-documentacao-tecnica.md` para detalhes.
 
 ## O que é
 
-Tutti é um SaaS para gestão de baterias de escola de samba: cadastro de ritmistas, carteirinha digital, controle de permissões por perfil. Nasceu de uma dor real: a falta de carteirinha digital na Swing da Leopoldina, bateria da G.R.E.S. Imperatriz Leopoldinense, onde Márcia toca. Objetivo original da carteirinha digital: dar acesso gratuito a ritmistas em outras escolas de samba além da própria — não só resolver a questão da Swing/Imperatriz.
+TumTu é um SaaS para gestão de baterias de escola de samba: cadastro de ritmistas, carteirinha digital, controle de permissões por perfil. Nasceu de uma dor real: a falta de carteirinha digital na Swing da Leopoldina, bateria da G.R.E.S. Imperatriz Leopoldinense, onde Márcia toca. Objetivo original da carteirinha digital: dar acesso gratuito a ritmistas em outras escolas de samba além da própria — não só resolver a questão da Swing/Imperatriz.
 
 Projeto pessoal, primeiro produto de software, desenvolvido inteiramente por Márcia (produto, UX e implementação técnica via Claude Code). Piloto direcionado à Swing da Leopoldina, oferecido de graça nesta fase inicial.
 
-**Nome:** Tutti — termo musical italiano para "todos", o momento em que toda a orquestra/bateria toca junta. Logotipo: "TuTTi" com os dois T's centrais em dourado `#D4AF37`.
+**Nome:** TumTu — vem do som cantarolado do surdo de bateria ("TUM-TU, TUM-TU..."), a batida grave-leve dos dois surdos de marcação (primeira e segunda) conversando entre si. Mantém uma leve ligação sonora com o nome anterior do projeto ("Tutti"), sem depender dele. Logotipo: "TumTu" com os dois T's (1ª e 4ª letra) em dourado `#D4AF37`, restante em branco, e um risco fino em terracota `#7c2d12` sob o "m" de "Tum" — referência discreta ao M de Márcia.
 
 **Visão de negócio:** SaaS multi-escola. Cada escola de samba terá identidade visual própria, configurável via CSS variables e `data-tema`.
 
 **Distribuição / futuro "app" (decisão de 03/jul/2026):** o projeto não pode ter custo algum por enquanto — isso é uma condição inegociável pra Márcia continuar o projeto. Por isso:
 - **App em loja (App Store / Google Play) está pausado**, não descartado — só volta a ser cogitado quando houver orçamento (taxa anual de US$ 99 na Apple, taxa única de US$ 25 no Google, fora o trabalho técnico de empacotar o app).
-- **PWA (Progressive Web App) é o próximo passo prioritário**, justamente por não ter custo nenhum: transforma o Tutti (que já é web puro) em algo instalável direto do navegador, com ícone na tela do celular e abrindo em tela cheia, sem depender de loja nem de taxa. Reaproveita a stack atual, não é reescrita do projeto.
+- **PWA (Progressive Web App) — ✅ implementado em 05/jul/2026**, justamente por não ter custo nenhum: o TumTu (que já é web puro) agora é instalável direto do navegador, com ícone na tela do celular e abrindo em tela cheia, sem depender de loja nem de taxa. As telas principais continuam abrindo mesmo com internet instável ou momentaneamente offline (os dados que vêm do banco, como a lista de ritmistas, só atualizam com conexão). Reaproveitou a stack atual, não foi reescrita do projeto. **Continua fora da Google Play e da App Store** — quem quiser o app precisa instalar pelo link do site, não por busca na loja.
 
-**Concorrência:** "Carna.app", lançado por um mestre de bateria conhecido de Márcia — coincidência, não cópia. Diferencial do Tutti: foco específico em bateria, não na escola de samba como um todo.
+**Concorrência:** "Carna.app", lançado por um mestre de bateria conhecido de Márcia — coincidência, não cópia. Diferencial do TumTu: foco específico em bateria, não na escola de samba como um todo.
 
 ---
 
@@ -61,7 +61,7 @@ Super Admin cria escola/bateria
 
 **Não existe mais** o fluxo de "Super Admin cria acesso básico + Admin completa depois no primeiro login". Mestre e Diretor se cadastram por conta própria, uma vez só, como o Ritmista — evita a experiência ruim de entrar no sistema com cadastro pela metade e poder empurrar isso com a barriga.
 
-**Link de cadastro por bateria (conceito revisado em 03/jul/2026 — substitui "convite"):** cada bateria tem, desde o momento em que é criada, três links fixos e permanentes — um por cargo (Mestre, Diretor, Ritmista) — no formato `tutti.app/cadastro?bateria=<id>&cargo=<mestre|diretor>` (o link de Ritmista não precisa de `cargo`, é o padrão). Esses links **nunca expiram, nunca "gastam" e podem ser usados por quantas pessoas diferentes for necessário** — o Mestre manda o mesmo link de Diretor pra todo o grupo da diretoria, do jeito que já faz hoje com o Google Forms, sem precisar gerar um link por pessoa. A tela do Super Admin (e do Mestre, para o link de Diretor) só **exibe** esse link com um botão "copiar" — não existe mais ação de "gerar convite", porque o link já existe sempre. Não há mais tabela de convites, token, prazo de validade ou distinção entre "usado"/"não usado": a única barreira de segurança real é a aprovação, que continua existindo do mesmo jeito para os três perfis.
+**Link de cadastro por bateria (conceito revisado em 03/jul/2026 — substitui "convite"):** cada bateria tem, desde o momento em que é criada, três links fixos e permanentes — um por cargo (Mestre, Diretor, Ritmista) — no formato `tumtu.com.br/cadastro?bateria=<id>&cargo=<mestre|diretor>` (o link de Ritmista não precisa de `cargo`, é o padrão). Esses links **nunca expiram, nunca "gastam" e podem ser usados por quantas pessoas diferentes for necessário** — o Mestre manda o mesmo link de Diretor pra todo o grupo da diretoria, do jeito que já faz hoje com o Google Forms, sem precisar gerar um link por pessoa. A tela do Super Admin (e do Mestre, para o link de Diretor) só **exibe** esse link com um botão "copiar" — não existe mais ação de "gerar convite", porque o link já existe sempre. Não há mais tabela de convites, token, prazo de validade ou distinção entre "usado"/"não usado": a única barreira de segurança real é a aprovação, que continua existindo do mesmo jeito para os três perfis.
 
 **Sem limite de quantidade:** não existe restrição de quantos Mestres, Diretores ou Ritmistas uma bateria pode ter — a aprovação (Super Admin para Mestre; Mestre ou Super Admin para Diretor; qualquer Admin para Ritmista) é a única barreira, não uma contagem automática.
 
@@ -87,7 +87,7 @@ No painel do Super Admin, dentro de cada escola, há um botão "Acessar como Adm
 - Mestre e Diretor se autocadastram via link fixo de cadastro da bateria (ou são cadastrados manualmente pelo Super Admin/Mestre, sem link, quando a pessoa não tem WhatsApp/celular) — não existe mais "Super Admin cria acesso básico e Admin completa depois".
 - **Cadastro:** CPF **e** e-mail são os dois obrigatórios (exceto "Não tenho CPF", que troca por documento estrangeiro — e-mail continua obrigatório sempre). No **login**, é CPF **ou** e-mail — regras diferentes por design.
 - **Cadastro manual exige confirmação de consentimento** (decisão de 05/jul/2026, ver seção Jurídico/LGPD abaixo): quem cadastra em nome de outra pessoa precisa confirmar que ela está ciente e autorizou.
-- **Segurança (decisão de 02/jul/2026, migrada para autenticação real em 05/jul/2026):** login usa Supabase Auth de verdade (não mais comparação manual de senha), e o banco tem RLS (Row Level Security) ligado, reforçando no backend as mesmas regras de permissão que antes só existiam na tela. Detalhamento completo em `tutti-documentacao-tecnica.md`.
+- **Segurança (decisão de 02/jul/2026, migrada para autenticação real em 05/jul/2026):** login usa Supabase Auth de verdade (não mais comparação manual de senha), e o banco tem RLS (Row Level Security) ligado, reforçando no backend as mesmas regras de permissão que antes só existiam na tela. Detalhamento completo em `tumtu-documentacao-tecnica.md`.
 
 ### Funcionalidades do MVP por perfil
 
@@ -188,33 +188,33 @@ Duas versões em paralelo, mesma estrutura de campos:
 
 **Frente:** header (escola/bateria + status) → foto 114px com anel dourado → cargo / Nome / "Apelido" (entre aspas) / Instrumento → linha divisória → CPF centralizado → pílula "Membro desde MM/AAAA" (esquerda) → logo da escola (direita, vazio se não configurada).
 
-**Verso:** header (bateria + escola + logo) → QR code (mostra contato de emergência: nome, parentesco, telefone — ferramenta de segurança em ensaios/desfiles) → Mestre de Bateria + nome → "Válida até" e "Temporada" lado a lado com linha divisória vertical → rodapé com Instagram + marca "Tutti" (sem "por", sem duplicar marca na tela).
+**Verso:** header (bateria + escola + logo) → QR code (mostra contato de emergência: nome, parentesco, telefone — ferramenta de segurança em ensaios/desfiles) → Mestre de Bateria + nome → "Válida até" e "Temporada" lado a lado com linha divisória vertical → rodapé com Instagram + marca "TumTu" (sem "por", sem duplicar marca na tela).
 
 **Campo "cargo" na carteirinha:**
 - Ritmista → exibe "Ritmista"
 - Admin com cargo Mestre → exibe "Mestre de Bateria"
 - Admin com cargo Diretor → exibe "Diretor"
 
-**Tema Tutti (base):** fundo `#12101a` sólido, triângulos dourados entrelaçados nos dois cantos inferiores + sutil no canto superior direito.
+**Tema TumTu (base):** fundo `#12101a` sólido, triângulos dourados entrelaçados nos dois cantos inferiores + sutil no canto superior direito.
 
 **Tema Swing da Leopoldina:** gradiente verde original, triângulo único no canto inferior esquerdo.
 
 Dados da escola (nome, bateria, logo, Instagram) sempre vêm de `config-escola.js` — **nunca hardcoded**.
 
-CSS: `carteirinha-tutti.css` e `carteirinha-swing.css`.
+CSS: `carteirinha-tumtu.css` e `carteirinha-swing.css`.
 
 ---
 
 ## Stack técnico
 
-HTML/CSS/JS puro, sem framework, com Supabase como banco de dados/backend. Deploy via GitHub/Vercel. CSS com variáveis (`data-tema`). Desenvolvido inteiramente por Márcia (produto, UX e implementação técnica) com apoio do Claude Code. **Próximo passo de distribuição: transformar em PWA (instalável, sem custo) — ver "Distribuição / futuro app" acima.**
+HTML/CSS/JS puro, sem framework, com Supabase como banco de dados/backend. Deploy via GitHub/Vercel. CSS com variáveis (`data-tema`). Desenvolvido inteiramente por Márcia (produto, UX e implementação técnica) com apoio do Claude Code. **PWA implementado (05/jul/2026)** — instalável direto do navegador, sem loja e sem custo. Detalhes em `tumtu-documentacao-tecnica.md`.
 
 ---
 
 ## Jurídico / Modelo de negócio (em pausa)
 
-Tutti é oferecido de graça à Swing/Imperatriz nesta fase. Márcia quer se resguardar legalmente caso o escopo cresça e seja necessário cobrar no futuro.
+TumTu é oferecido de graça à Swing/Imperatriz nesta fase. Márcia quer se resguardar legalmente caso o escopo cresça e seja necessário cobrar no futuro.
 
-Estrutura discutida: *Termo de Cessão de Uso Gratuito de Software / Acordo de Colaboração*, cobrindo: escopo atual, gratuidade condicionada, propriedade intelectual (código + marca "Tutti"), responsabilidades LGPD (escola = controladora, Márcia = operadora), ausência de SLA, cláusula de rescisão/transição para modelo pago, vigência revisável. **Nenhuma minuta criada ainda.**
+Estrutura discutida: *Termo de Cessão de Uso Gratuito de Software / Acordo de Colaboração*, cobrindo: escopo atual, gratuidade condicionada, propriedade intelectual (código + marca "TumTu"), responsabilidades LGPD (escola = controladora, Márcia = operadora), ausência de SLA, cláusula de rescisão/transição para modelo pago, vigência revisável. **Nenhuma minuta criada ainda.**
 
-**Decisão de 05/jul/2026 — não contratar advogado ainda:** Márcia decidiu conscientemente não contratar advogado agora, pois o projeto ainda é pré-receita, sem CNPJ, e todo dado no sistema é fake. Como mitigação proporcional a este estágio, o cadastro manual passou a exigir confirmação de consentimento de quem preenche em nome de outra pessoa (ver `tutti-mvp.md`, regra 8, e `tutti-documentacao-tecnica.md`). **Gatilho para revisitar a contratação de advogado:** a primeira vez que uma pessoa real, de fora do círculo direto da Márcia, digitar dado pessoal real no sistema — o mesmo gatilho que já indicava a necessidade de montar um ambiente de staging separado da produção.
+**Decisão de 05/jul/2026 — não contratar advogado ainda:** Márcia decidiu conscientemente não contratar advogado agora, pois o projeto ainda é pré-receita, sem CNPJ, e todo dado no sistema é fake. Como mitigação proporcional a este estágio, o cadastro manual passou a exigir confirmação de consentimento de quem preenche em nome de outra pessoa (ver `tumtu-mvp.md`, regra 8, e `tumtu-documentacao-tecnica.md`). **Gatilho para revisitar a contratação de advogado:** a primeira vez que uma pessoa real, de fora do círculo direto da Márcia, digitar dado pessoal real no sistema — o mesmo gatilho que já indicava a necessidade de montar um ambiente de staging separado da produção.

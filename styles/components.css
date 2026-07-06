@@ -82,3 +82,46 @@
   padding-bottom: 6px;
   border-bottom: 2px solid #D4AF37;
 }
+
+/* ── Meu Perfil (usado em admin.html e super-admin.html) ── */
+.mp-secao-header { display: flex; align-items: center; gap: 10px; margin: 20px 0 12px; }
+.mp-secao-titulo { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #5a5770; white-space: nowrap; }
+.mp-linha { flex: 1; height: 1px; background: #D4AF37; opacity: 0.35; }
+.mp-campo { margin-bottom: 12px; }
+.mp-campo label { display: block; font-size: 11px; font-weight: 600; color: #5a5770; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.mp-campo input, .mp-campo select {
+    width: 100%; border: 1.5px solid #e8e6f0; border-radius: 10px;
+    padding: 9px 12px; font-size: 13px; color: #12101a;
+    font-family: inherit; background: #fff;
+    transition: border-color 0.15s; -webkit-appearance: none;
+}
+.mp-campo input:focus, .mp-campo select:focus { outline: none; border-color: #D4AF37; }
+.mp-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mp-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.mp-foto-area { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
+.mp-foto-circle {
+    width: 80px; height: 80px; border-radius: 50%; border: 2px dashed #D4AF37;
+    overflow: hidden; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; background: #f7f6fb; flex-shrink: 0;
+}
+.mp-foto-circle img { width: 100%; height: 100%; object-fit: cover; }
+.mp-foto-hint { font-size: 11px; color: #8b88a0; }
+.mp-acoes { display: flex; gap: 10px; justify-content: flex-start; margin-top: 24px; }
+.mp-btn-salvar {
+    background: #D4AF37; border: none; color: #12101a;
+    padding: 10px 24px; border-radius: 10px; cursor: pointer;
+    font-size: 13px; font-weight: 700; font-family: inherit;
+}
+.mp-btn-salvar:hover { background: #B8922A; }
+.mp-btn-salvar:disabled { background: #e8e6f0; color: #8b88a0; cursor: not-allowed; }
+.mp-mensagem {
+    border-radius: 8px; padding: 10px 14px; font-size: 12px;
+    font-weight: 600; margin-bottom: 12px; display: none;
+}
+.mp-mensagem.erro { background: #fde8e8; color: #b3261e; display: block; }
+.mp-mensagem.sucesso { background: #e8f5e8; color: #1f4d1f; display: block; }
+.mp-superadmin-aviso {
+    background: #f7f6fb; border: 1px solid #e8e6f0; border-radius: 12px;
+    padding: 24px; text-align: center; color: #8b88a0; font-size: 13px; margin-top: 8px;
+}
+.mp-superadmin-aviso strong { display: block; font-size: 15px; color: #5a5770; margin-bottom: 6px; }

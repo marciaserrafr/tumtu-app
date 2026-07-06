@@ -1,14 +1,14 @@
-# Tutti — Escopo do MVP
+# TumTu — Escopo do MVP
 ## Documento oficial de produto
 
 ---
 
-## O que é o Tutti
+## O que é o TumTu
 
 Sistema SaaS de gestão de baterias de escola de samba.
 O ritmista se cadastra, o Diretor/Mestre aprova, e o ritmista recebe a carteirinha digital.
 
-**Marca:** TuTTi — "todos juntos", o momento em que toda a bateria toca em conjunto.
+**Marca:** TumTu — vem do som do surdo de bateria ("TUM-TU, TUM-TU..."), a batida dos dois surdos de marcação (primeira e segunda) conversando entre si.
 
 ---
 
@@ -182,7 +182,7 @@ Quando alguém escaneia o QR code da carteirinha, a página mostra:
 - QR code
 - Mestre de Bateria + nome (variável do config)
 - Válida até + Temporada — lado a lado
-- Rodapé: @instagram da bateria (variável) + marca "TuTTi"
+- Rodapé: @instagram da bateria (variável) + marca "TumTu"
 
 ---
 

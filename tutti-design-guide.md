@@ -1,30 +1,30 @@
-# Tutti — Guia de Design do Sistema
+# TumTu — Guia de Design do Sistema
 ## Referência obrigatória para o Claude Code antes de qualquer alteração visual
 
 ---
 
-## 1. O QUE É O TUTTI
+## 1. O QUE É O TUMTU
 
-Tutti é um sistema SaaS de gestão de baterias de escola de samba.
-O nome vem do italiano: "todos juntos" — o momento em que toda a bateria toca em conjunto.
+TumTu é um sistema SaaS de gestão de baterias de escola de samba.
+O nome vem do som cantarolado do surdo de bateria ("TUM-TU, TUM-TU..."), a batida grave-leve dos dois surdos de marcação (primeira e segunda) conversando entre si — mantém uma leve ligação sonora com o nome anterior do projeto ("Tutti"), sem depender dele.
 
-**Marca:** TuTTi — os dois T's centrais sempre em dourado #D4AF37, peso 800.
+**Marca:** TumTu — os dois T's (1ª e 4ª letra: T**um**T**u**) sempre em dourado #D4AF37, peso 800. Risco fino terracota #7c2d12 sob o "m" de "Tum" (detalhe discreto, referência ao M de Márcia).
 **Slogan:** Gestão de Bateria (nunca usar "Sistema de Gestão da Bateria")
 
 ---
 
-## 2. REGRA FUNDAMENTAL — TUTTI vs. ESCOLA
+## 2. REGRA FUNDAMENTAL — TUMTU vs. ESCOLA
 
 Esta é a regra mais importante do sistema. Toda decisão visual parte daqui.
 
-| O que é TUTTI (fixo, sempre igual) | O que é da ESCOLA (variável, vem do config) |
+| O que é TUMTU (fixo, sempre igual) | O que é da ESCOLA (variável, vem do config) |
 |---|---|
-| Marca "TuTTi" | Nome da escola |
+| Marca "TumTu" | Nome da escola |
 | Paleta base (#12101a, #D4AF37) | Nome da bateria |
 | Fonte Plus Jakarta Sans | Logo da escola |
 | Estrutura de layout | Cor primária da escola |
 | QR code, carteirinha (estrutura) | Instagram da bateria |
-| Rodapé "TuTTi" na carteirinha | Nome do mestre |
+| Rodapé "TumTu" na carteirinha | Nome do mestre |
 | Header escuro no painel | Temporada atual |
 
 **NUNCA colocar dados da Swing da Leopoldina, Imperatriz Leopoldinense
@@ -37,7 +37,7 @@ Se um campo estiver vazio, o espaço fica vazio — nunca preenche com placehold
 
 ## 3. PALETA DE CORES
 
-### Paleta base do Tutti (padrão — sem escola configurada)
+### Paleta base do TumTu (padrão — sem escola configurada)
 
 ```css
 :root {
@@ -97,7 +97,7 @@ Se um campo estiver vazio, o espaço fica vazio — nunca preenche com placehold
 
 | Elemento | Tamanho | Peso | Cor |
 |---|---|---|---|
-| Marca TuTTi (header) | 20px | 800 | branco + TT dourado |
+| Marca TumTu (header) | 20px | 800 | branco + T's dourados |
 | Título de página | 24px | 800 | --cor-texto-principal |
 | Título de seção | 11px | 700 | --cor-texto-secundario (uppercase, letter-spacing) |
 | Nome do ritmista (card) | 16px | 700 | --cor-texto-principal |
@@ -260,7 +260,7 @@ O título da seção é **"DECLARAÇÃO DO RESPONSÁVEL"** — nunca "MENOR DE I
 **Quem usa:** ritmista, pelo celular
 **Fundo:** `#12101a` (escuro, mesma cor do header do painel)
 **Card central:** branco `#ffffff`, border-radius 20px, sombra suave
-**Logo no topo do card:** marca "TuTTi" em texto (Tu em branco, TT em #D4AF37, i em branco)
+**Logo no topo do card:** marca "TumTu" em texto ("u", "m", "u" em branco; os dois T's em #D4AF37; risco terracota #7c2d12 sob o "m")
 **Sem header fixo, sem rodapé**
 
 #### Login
@@ -314,7 +314,7 @@ O título da seção é **"DECLARAÇÃO DO RESPONSÁVEL"** — nunca "MENOR DE I
 
 #### Header (fixo no topo)
 - Fundo: `#12101a`
-- Esquerda: marca "TuTTi" (peso 800, TT em dourado) + abaixo nome da bateria (`configEscola.nomeBateria`, texto menor, cor muted)
+- Esquerda: marca "TumTu" (peso 800, os dois T's em dourado) + abaixo nome da bateria (`configEscola.nomeBateria`, texto menor, cor muted)
 - Direita: círculo com inicial do usuário logado + nome + cargo + botão "Sair"
 - Botão "+ Cadastrar Ritmista": dourado, no header à direita (antes do perfil)
 
@@ -346,7 +346,7 @@ O título da seção é **"DECLARAÇÃO DO RESPONSÁVEL"** — nunca "MENOR DE I
 
 #### Rodapé do painel
 - Esquerda: `configEscola.nomeEscola` (se vazio, não mostra nada)
-- Direita: "Desenvolvido por TuTTi · [ano atual]"
+- Direita: "Desenvolvido por TumTu · [ano atual]"
 
 ---
 
@@ -366,7 +366,7 @@ O título da seção é **"DECLARAÇÃO DO RESPONSÁVEL"** — nunca "MENOR DE I
 - Linha divisória (rgba branco 0.08)
 - CPF centralizado
 - Pílula "Membro desde MM/AAAA" (canto inferior esquerdo, fundo escuro semitransparente, borda dourada)
-- Círculo logo da escola (canto inferior direito) — SE `configEscola.logoEscola` existir, mostra a imagem. SE não existir, círculo vazio com borda dourada. NUNCA colocar "TuTTi" aqui.
+- Círculo logo da escola (canto inferior direito) — SE `configEscola.logoEscola` existir, mostra a imagem. SE não existir, círculo vazio com borda dourada. NUNCA colocar "TumTu" aqui.
 
 #### Verso
 - Header: `configEscola.nomeBateria` (dourado) + `configEscola.nomeEscola` (muted)
@@ -375,9 +375,9 @@ O título da seção é **"DECLARAÇÃO DO RESPONSÁVEL"** — nunca "MENOR DE I
 - Label "VALIDAÇÃO DIGITAL"
 - Label "MESTRE DE BATERIA" + `configEscola.mestreDeBateria`
 - "Válida até" + "Temporada" lado a lado com linha divisória vertical
-- Rodapé: `configEscola.instagramBateria` (esquerda) + "TuTTi" texto simples (direita, sem círculo)
+- Rodapé: `configEscola.instagramBateria` (esquerda) + "TumTu" texto simples (direita, sem círculo)
 
-#### Tema Tutti (sem escola configurada)
+#### Tema TumTu (sem escola configurada)
 - Fundo: #12101a sólido
 - Triângulos dourados entrelaçados: canto inferior esquerdo (maior), canto inferior direito (menor), canto superior direito (sutil)
 
@@ -390,10 +390,10 @@ O título da seção é **"DECLARAÇÃO DO RESPONSÁVEL"** — nunca "MENOR DE I
 
 ## 8. LOGO DA ESCOLA — REGRAS
 
-1. Círculos de logo são SEMPRE da escola, nunca do Tutti
+1. Círculos de logo são SEMPRE da escola, nunca do TumTu
 2. Se `configEscola.logoEscola` for null → círculo vazio com borda dourada `#D4AF37`, sem texto, sem ícone
 3. Se `configEscola.logoEscola` existir → `<img>` dentro do círculo, object-fit: cover
-4. A marca "TuTTi" em texto aparece apenas:
+4. A marca "TumTu" em texto aparece apenas:
    - Header do painel administrativo (nome do produto)
    - Rodapé do verso da carteirinha (assinatura discreta)
 
@@ -403,11 +403,11 @@ O título da seção é **"DECLARAÇÃO DO RESPONSÁVEL"** — nunca "MENOR DE I
 
 ### Painel administrativo
 - Esquerda: `configEscola.nomeEscola` → se vazio, não renderiza nada
-- Direita: "Desenvolvido por TuTTi · [ano]"
+- Direita: "Desenvolvido por TumTu · [ano]"
 
 ### Carteirinha (verso)
 - Esquerda: `configEscola.instagramBateria` → se vazio, não renderiza nada
-- Direita: "TuTTi" (texto simples, sem círculo, sem "por")
+- Direita: "TumTu" (texto simples, sem círculo, sem "por")
 
 ### Login e Cadastro
 - Sem rodapé
@@ -453,8 +453,8 @@ Os links de cadastro **nunca expiram e podem ser usados por quantas pessoas dife
 | Senha com hash — e depois migrada para Supabase Auth real (nunca mais texto puro nem hash no front) | Alta | ✅ Implementado (05/jul/2026) |
 | RLS (Row Level Security) ligado no banco, com políticas por perfil/bateria — reforça no backend as mesmas regras que já existiam só na tela | Alta | ✅ Implementado (05/jul/2026) |
 | Confirmação de consentimento no cadastro manual (LGPD) — checkbox obrigatório, validado no backend também | Alta | ✅ Implementado (05/jul/2026) |
-| **Revisão de fluxos de edição de dados e visibilidade de telas por perfil (Super Admin / Admin / Ritmista)** | Alta | **Pendente — combinado para a próxima sessão (a partir de 03/jul/2026). Inclui decidir o que exibir no campo "Mestre de Bateria" do verso da carteirinha quando a bateria tem mais de um Mestre — hoje `config-escola.js` só prevê um nome fixo** |
-| **Transformar o Tutti em PWA (instalável, sem loja, sem custo)** | **Alta** | **Pendente — condição importante para a continuidade do projeto (03/jul/2026). App em loja (App Store/Google Play) fica pausado até haver orçamento; não descartado, só não é prioridade agora** |
+| **Revisão de fluxos de edição de dados e visibilidade de telas por perfil (Super Admin / Admin / Ritmista)** | Alta | **✅ Implementado (05/jul/2026) — carteirinha mostra o(s) Mestre(s) reais da bateria; Mestre edita Diretor da própria bateria, Diretor só edita a si mesmo, Ritmista não edita nada (nem a si mesmo); Super Admin ganhou tela própria de "Meu Perfil". Ver `tumtu-documentacao-tecnica.md` seções 10-12** |
+| **Transformar o TumTu em PWA (instalável, sem loja, sem custo)** | **Alta** | **✅ Implementado (05/jul/2026) — manifest, service worker e ícone placeholder. Ver `tumtu-documentacao-tecnica.md`. App em loja (App Store/Google Play) continua pausado até haver orçamento** |
 | Formulário multi-step no cadastro | Média | Planejado para depois |
 | Tela do Super Admin | Média | Não implementado |
 | QR code real (não decorativo) | Baixa | Planejado |
@@ -471,7 +471,7 @@ O Claude Code deve verificar antes de mexer em qualquer tela:
 - [ ] Estou usando `configEscola.nomeBateria` e não "Swing da Leopoldina" fixo?
 - [ ] Estou usando `configEscola.nomeEscola` e não "Imperatriz Leopoldinense" fixo?
 - [ ] O círculo de logo está vazio (borda dourada sem conteúdo) quando não há logo configurada?
-- [ ] A marca "TuTTi" aparece só no header do painel e no rodapé da carteirinha?
+- [ ] A marca "TumTu" aparece só no header do painel e no rodapé da carteirinha?
 - [ ] Os badges de instrumento estão neutros (fundo #e8e6f0, texto #5a5770)?
 - [ ] O botão "Ativar" está preto `#12101a`?
 - [ ] O botão "Rejeitar" e "Desativar" estão com contorno terracota `#7c2d12`?

@@ -1,0 +1,17 @@
+{
+  "name": "TumTu — Gestão de Bateria",
+  "short_name": "TumTu",
+  "description": "Gestão de baterias de escola de samba: cadastro de ritmistas, carteirinha digital e aprovação por perfil.",
+  "start_url": "./login.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#12101a",
+  "theme_color": "#12101a",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

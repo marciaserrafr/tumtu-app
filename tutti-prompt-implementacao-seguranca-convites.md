@@ -1,10 +1,10 @@
-# Tutti — Prompt de Implementação: Segurança de Senha e Convites
+# TumTu — Prompt de Implementação: Segurança de Senha e Convites
 ## Contexto para o Claude Code
 
 Decisão de arquitetura tomada em 03/jul/2026, complementar ao
-`tutti-prompt-implementacao-convite-admin.md` (fluxo de convite + autocadastro
+`tumtu-prompt-implementacao-convite-admin.md` (fluxo de convite + autocadastro
 de Admin já decidido em 02/jul/2026). Leia os três documentos de produto
-(`tutti-visao-geral.md`, `tutti-mvp.md`, `tutti-design-guide.md`) antes de
+(`tumtu-visao-geral.md`, `tumtu-mvp.md`, `tumtu-design-guide.md`) antes de
 começar.
 
 Este prompt resolve pendências de segurança e regras de negócio identificadas

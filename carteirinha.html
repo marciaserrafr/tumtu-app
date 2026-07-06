@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carteirinha — Tutti</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#12101a">
+    <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TumTu">
+    <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="carteirinha-tutti.css">
@@ -149,8 +157,8 @@
                     </div>
 
                     <div class="c-mestre" id="c-mestre-bloco" style="display:none">
-                        <div class="c-mestre-label">Mestre de Bateria</div>
-                        <div class="c-mestre-nome" id="c-mestre-nome"></div>
+                        <div class="c-mestre-label" id="c-mestre-label">Mestre de Bateria</div>
+                        <div class="c-mestre-nomes" id="c-mestre-nomes"></div>
                     </div>
 
                     <!-- Válida até + Temporada — lado a lado com divisória vertical -->
@@ -237,10 +245,6 @@
         document.getElementById('c-bateria-nome').textContent = cfg.nomeBateria || '';
         document.getElementById('c-verso-titulo').textContent = cfg.nomeBateria || 'Tutti';
         document.getElementById('c-verso-sub').textContent = cfg.nomeEscola || 'Gestão de Baterias';
-        if (cfg.mestreDeBateria) {
-            document.getElementById('c-mestre-nome').textContent = cfg.mestreDeBateria;
-            document.getElementById('c-mestre-bloco').style.display = 'flex';
-        }
         if (cfg.temporadaAtual) document.getElementById('c-temporada-valor').textContent = cfg.temporadaAtual;
 
         const igEl = document.getElementById('c-rodape-instagram');
@@ -264,6 +268,29 @@
                 const img = document.getElementById(id);
                 if (img) { img.src = cfg.logoEscola; img.style.display = 'block'; }
             });
+        }
+    }
+
+    async function renderMestres(bateriaId) {
+        if (!bateriaId) return;
+        try {
+            const res = await fetch(
+                `${SUPABASE_URL}/rest/v1/mestres_publicos?bateria_id=eq.${bateriaId}&select=nome&order=nome.asc`,
+                { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+            );
+            const mestres = await res.json();
+            if (!Array.isArray(mestres) || mestres.length === 0) return;
+
+            const bloco = document.getElementById('c-mestre-bloco');
+            const container = document.getElementById('c-mestre-nomes');
+            const label = document.getElementById('c-mestre-label');
+
+            label.textContent = mestres.length > 1 ? 'Mestres de Bateria' : 'Mestre de Bateria';
+            container.classList.toggle('varios', mestres.length > 1);
+            container.innerHTML = mestres.map(m => `<div class="c-mestre-nome">${m.nome}</div>`).join('');
+            bloco.style.display = 'flex';
+        } catch (e) {
+            // Silencioso — carteirinha continua funcional sem o bloco de mestre
         }
     }
 
@@ -291,6 +318,7 @@
                     return;
                 }
                 renderCarteirinha(rows[0]);
+                renderMestres(rows[0].bateria_id);
             })
             .catch(() => { alert('Erro ao carregar carteirinha.'); history.back(); });
         })();
@@ -301,6 +329,7 @@
             window.location.href = 'login.html';
         } else {
             renderCarteirinha(ritmista);
+            renderMestres(ritmista.bateria_id);
         }
     }
 

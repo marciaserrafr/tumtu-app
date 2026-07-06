@@ -1,8 +1,8 @@
-# Tutti — Prompt de Implementação: Cadastro de Admin por Convite
+# TumTu — Prompt de Implementação: Cadastro de Admin por Convite
 ## Contexto para o Claude Code
 
-Decisão de arquitetura tomada em 02/jul/2026, documentada em `tutti-visao-geral.md`,
-`tutti-mvp.md` e `tutti-design-guide.md` (seções atualizadas: Onboarding, Perfis de
+Decisão de arquitetura tomada em 02/jul/2026, documentada em `tumtu-visao-geral.md`,
+`tumtu-mvp.md` e `tumtu-design-guide.md` (seções atualizadas: Onboarding, Perfis de
 Usuário, Fluxo de cadastro do Admin). Leia esses três arquivos antes de começar
 qualquer fase abaixo.
 
@@ -182,7 +182,7 @@ Não mexer em nenhuma tela ainda. Só modelo de dados.
    Diretor) — isso é exclusivo do Super Admin.
 
 3. Revisar todos os textos e telas afetadas contra o checklist da seção 12
-   do `tutti-design-guide.md` antes de considerar a fase concluída.
+   do `tumtu-design-guide.md` antes de considerar a fase concluída.
 
 4. Atualizar a página de login: **nenhuma mudança de campo ou de navegação é
    necessária** — CPF ou e-mail continuam funcionando exatamente como hoje,

@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tutti — Painel do Diretor</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#12101a">
+    <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TumTu">
+    <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="styles/components.css">
@@ -354,48 +362,7 @@
             .modal-acoes-ficha { gap: 6px; }
         }
 
-        /* MEU PERFIL (inline na aba) */
-        .mp-secao-header { display: flex; align-items: center; gap: 10px; margin: 20px 0 12px; }
-        .mp-secao-titulo { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #5a5770; white-space: nowrap; }
-        .mp-linha { flex: 1; height: 1px; background: #D4AF37; opacity: 0.35; }
-        .mp-campo { margin-bottom: 12px; }
-        .mp-campo label { display: block; font-size: 11px; font-weight: 600; color: #5a5770; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-        .mp-campo input, .mp-campo select {
-            width: 100%; border: 1.5px solid #e8e6f0; border-radius: 10px;
-            padding: 9px 12px; font-size: 13px; color: #12101a;
-            font-family: inherit; background: #fff;
-            transition: border-color 0.15s; -webkit-appearance: none;
-        }
-        .mp-campo input:focus, .mp-campo select:focus { outline: none; border-color: #D4AF37; }
-        .mp-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .mp-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .mp-foto-area { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
-        .mp-foto-circle {
-            width: 80px; height: 80px; border-radius: 50%; border: 2px dashed #D4AF37;
-            overflow: hidden; cursor: pointer; display: flex; align-items: center;
-            justify-content: center; background: #f7f6fb; flex-shrink: 0;
-        }
-        .mp-foto-circle img { width: 100%; height: 100%; object-fit: cover; }
-        .mp-foto-hint { font-size: 11px; color: #8b88a0; }
-        .mp-acoes { display: flex; gap: 10px; justify-content: flex-start; margin-top: 24px; }
-        .mp-btn-salvar {
-            background: #D4AF37; border: none; color: #12101a;
-            padding: 10px 24px; border-radius: 10px; cursor: pointer;
-            font-size: 13px; font-weight: 700; font-family: inherit;
-        }
-        .mp-btn-salvar:hover { background: #B8922A; }
-        .mp-btn-salvar:disabled { background: #e8e6f0; color: #8b88a0; cursor: not-allowed; }
-        .mp-mensagem {
-            border-radius: 8px; padding: 10px 14px; font-size: 12px;
-            font-weight: 600; margin-bottom: 12px; display: none;
-        }
-        .mp-mensagem.erro { background: #fde8e8; color: #b3261e; display: block; }
-        .mp-mensagem.sucesso { background: #e8f5e8; color: #1f4d1f; display: block; }
-        .mp-superadmin-aviso {
-            background: #f7f6fb; border: 1px solid #e8e6f0; border-radius: 12px;
-            padding: 24px; text-align: center; color: #8b88a0; font-size: 13px; margin-top: 8px;
-        }
-        .mp-superadmin-aviso strong { display: block; font-size: 15px; color: #5a5770; margin-bottom: 6px; }
+        /* MEU PERFIL (.mp-*) agora vive em styles/components.css, compartilhado com super-admin.html */
 
         /* DIRETORIA */
         .dir-card {
@@ -1171,49 +1138,90 @@
         { id: 'fc-pais',               editId: 'fc-pais-edit',               col: 'pais' },
     ];
 
-    function ativarEdicaoFicha() {
-        const r = todosRitmistas.find(x => x.id === fichaAtualId);
+    // Mesma lista de campos usada na ficha de Ritmista, só trocando o prefixo
+    // dos IDs (fc- → ma-) — Diretoria usa exatamente os mesmos campos/colunas.
+    const CAMPOS_EDITAVEIS_ADMIN = CAMPOS_EDITAVEIS.map(c => ({
+        id: c.id.replace('fc-', 'ma-'),
+        editId: c.editId.replace('fc-', 'ma-'),
+        col: c.col
+    }));
+
+    const BOTOES_FICHA = {
+        ritmista: { editar: 'btn-editar-ficha', salvar: 'btn-salvar-ficha', cancelar: 'btn-cancelar-ficha' },
+        admin:    { editar: 'btn-editar-admin', salvar: 'btn-salvar-admin', cancelar: 'btn-cancelar-admin' }
+    };
+
+    let fichaEmEdicao = { tipo: null, id: null, campos: null };
+
+    function _aplicarCampos(campos, mostrarInput) {
+        campos.forEach(({ id, editId }) => {
+            const strong = document.getElementById(id);
+            const input = document.getElementById(editId);
+            if (!strong || !input) return;
+            strong.style.display = mostrarInput ? 'none' : '';
+            input.style.display = mostrarInput ? '' : 'none';
+        });
+    }
+
+    function _iniciarEdicao(tipo, id, campos, origemArray) {
+        const r = (origemArray || []).find(x => x.id === id);
         if (!r) return;
-        CAMPOS_EDITAVEIS.forEach(({ id, editId, col }) => {
-            const strong = document.getElementById(id);
+        fichaEmEdicao = { tipo, id, campos };
+        campos.forEach(({ editId, col }) => {
             const input = document.getElementById(editId);
-            if (!strong || !input) return;
-            input.value = r[col] || '';
-            strong.style.display = 'none';
-            input.style.display = '';
+            if (input) input.value = r[col] || '';
         });
-        document.getElementById('btn-editar-ficha').style.display = 'none';
-        document.getElementById('btn-salvar-ficha').style.display = 'inline-flex';
-        document.getElementById('btn-cancelar-ficha').style.display = 'inline-flex';
+        _aplicarCampos(campos, true);
+        const b = BOTOES_FICHA[tipo];
+        document.getElementById(b.editar).style.display = 'none';
+        document.getElementById(b.salvar).style.display = 'inline-flex';
+        document.getElementById(b.cancelar).style.display = 'inline-flex';
     }
 
-    function cancelarEdicaoFicha() {
-        CAMPOS_EDITAVEIS.forEach(({ id, editId }) => {
-            const strong = document.getElementById(id);
-            const input = document.getElementById(editId);
-            if (!strong || !input) return;
-            strong.style.display = '';
-            input.style.display = 'none';
-        });
-        document.getElementById('btn-editar-ficha').style.display = 'inline-flex';
-        document.getElementById('btn-salvar-ficha').style.display = 'none';
-        document.getElementById('btn-cancelar-ficha').style.display = 'none';
+    function _cancelarEdicao() {
+        if (!fichaEmEdicao.campos) return;
+        _aplicarCampos(fichaEmEdicao.campos, false);
+        const b = BOTOES_FICHA[fichaEmEdicao.tipo];
+        document.getElementById(b.editar).style.display = 'inline-flex';
+        document.getElementById(b.salvar).style.display = 'none';
+        document.getElementById(b.cancelar).style.display = 'none';
+        fichaEmEdicao = { tipo: null, id: null, campos: null };
     }
 
-    async function salvarEdicaoFicha() {
+    async function _salvarEdicao() {
+        if (!fichaEmEdicao.id) return;
         const payload = {};
-        CAMPOS_EDITAVEIS.forEach(({ editId, col }) => {
+        fichaEmEdicao.campos.forEach(({ editId, col }) => {
             const input = document.getElementById(editId);
             if (input) payload[col] = input.value.trim() || null;
         });
-        await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${fichaAtualId}`, {
+        const tipo = fichaEmEdicao.tipo;
+        const id = fichaEmEdicao.id;
+        await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders, 'Prefer': 'return=minimal' },
             body: JSON.stringify(payload)
         });
-        fecharModal('modalCadastroOverlay');
-        await carregarRitmistas();
+        fichaEmEdicao = { tipo: null, id: null, campos: null };
+        if (tipo === 'ritmista') {
+            fecharModal('modalCadastroOverlay');
+            await carregarRitmistas();
+        } else {
+            fecharModalAdmin();
+            diretoriaCarregada = false;
+            await carregarDiretoria();
+        }
     }
+
+    // Ficha de Ritmista — mantém os mesmos nomes já usados nos onclick do HTML
+    function ativarEdicaoFicha() { _iniciarEdicao('ritmista', fichaAtualId, CAMPOS_EDITAVEIS, todosRitmistas); }
+    function cancelarEdicaoFicha() { _cancelarEdicao(); }
+    function salvarEdicaoFicha() { return _salvarEdicao(); }
+
+    // Ficha de Admin (Diretoria) — mesmo motor, mesmos campos
+    function ativarEdicaoAdmin() { _iniciarEdicao('admin', adminSelecionado ? adminSelecionado.id : null, CAMPOS_EDITAVEIS_ADMIN, window._adminsCache); }
+    function cancelarEdicaoAdmin() { _cancelarEdicao(); }
+    function salvarEdicaoAdmin() { return _salvarEdicao(); }
 
     function renderizarVisaoGeral() {
         const mesAtual = new Date().getMonth() + 1;
@@ -1466,22 +1474,87 @@
     })();
 </script>
 
-<!-- MODAL FICHA DO ADMIN (Diretoria) -->
+<!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">
     <div class="modal-admin-overlay" onclick="if(event.target===this)fecharModalAdmin()">
         <div class="modal-admin-box">
             <div class="modal-admin-titulo" id="maNome"></div>
             <div class="modal-admin-sub" id="maSub"></div>
-            <div class="modal-admin-grid">
-                <div class="modal-admin-campo"><span>CPF</span><strong id="maCpf">—</strong></div>
-                <div class="modal-admin-campo"><span>Celular</span><strong id="maCelular">—</strong></div>
-                <div class="modal-admin-campo"><span>E-mail</span><strong id="maEmail">—</strong></div>
-                <div class="modal-admin-campo"><span>Nascimento</span><strong id="maNascimento">—</strong></div>
-                <div class="modal-admin-campo"><span>Camisa</span><strong id="maCamisa">—</strong></div>
-                <div class="modal-admin-campo"><span>Fantasia</span><strong id="maFantasia">—</strong></div>
-                <div class="modal-admin-campo"><span>Sapato</span><strong id="maSapato">—</strong></div>
+
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Dados pessoais</div>
+                <div class="ficha-grid">
+                    <div class="ficha-campo full"><span>Nome</span><strong id="ma-nome"></strong></div>
+                    <div class="ficha-campo"><span>Apelido</span><strong id="ma-apelido"></strong></div>
+                    <div class="ficha-campo"><span>Nacionalidade</span><strong id="ma-nacionalidade"></strong></div>
+                    <div class="ficha-campo"><span>CPF</span><strong id="ma-cpf"></strong></div>
+                    <div class="ficha-campo" id="ma-bloco-documento" style="display:none">
+                        <span>Documento</span><strong id="ma-documento"></strong>
+                    </div>
+                    <div class="ficha-campo"><span>Data de nascimento</span><strong id="ma-nascimento"></strong></div>
+                    <div class="ficha-campo"><span>Celular</span><strong id="ma-celular"></strong></div>
+                    <div class="ficha-campo"><span>Cadastro</span><strong id="ma-cadastro"></strong></div>
+                </div>
             </div>
+
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Endereço</div>
+                <div class="ficha-grid">
+                    <div class="ficha-campo full"><span>Rua / Logradouro</span><strong id="ma-endereco"></strong><input id="ma-endereco-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo"><span>Número</span><strong id="ma-numero"></strong><input id="ma-numero-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo"><span>Complemento</span><strong id="ma-complemento"></strong><input id="ma-complemento-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo"><span>Bairro</span><strong id="ma-bairro"></strong><input id="ma-bairro-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo"><span>Cidade</span><strong id="ma-cidade"></strong><input id="ma-cidade-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo"><span>Estado</span><strong id="ma-estado"></strong><input id="ma-estado-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo"><span>País</span><strong id="ma-pais"></strong><input id="ma-pais-edit" class="fc-input" type="text" style="display:none"></div>
+                </div>
+            </div>
+
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Medidas</div>
+                <div class="ficha-grid">
+                    <div class="ficha-campo"><span>Instrumento</span><strong id="ma-instrumento"></strong>
+                        <select id="ma-instrumento-edit" class="fc-input" style="display:none">
+                            <option value="">Selecione</option>
+                            <option>Agogô</option><option>Caixa</option><option>Chocalho</option>
+                            <option>Cuíca</option><option>Reco-reco</option><option>Repique</option>
+                            <option>Surdo</option><option>Tamborim</option>
+                        </select>
+                    </div>
+                    <div class="ficha-campo"><span>Membro desde</span><strong id="ma-tempo"></strong><input id="ma-tempo-edit" class="fc-input" type="text" placeholder="Ex: 2020" style="display:none"></div>
+                    <div class="ficha-campo"><span>Camisa</span><strong id="ma-camisa"></strong><input id="ma-camisa-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo"><span>Fantasia</span><strong id="ma-fantasia"></strong><input id="ma-fantasia-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo"><span>Calça</span><strong id="ma-calca"></strong><input id="ma-calca-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo"><span>Sapato</span><strong id="ma-sapato"></strong><input id="ma-sapato-edit" class="fc-input" type="text" style="display:none"></div>
+                </div>
+            </div>
+
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Saúde</div>
+                <div class="ficha-grid">
+                    <div class="ficha-campo"><span>Tipo sanguíneo</span><strong id="ma-tipo-sanguineo"></strong>
+                        <select id="ma-tipo-sanguineo-edit" class="fc-input" style="display:none">
+                            <option value="">Não informado</option>
+                            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Contato de emergência</div>
+                <div class="ficha-grid">
+                    <div class="ficha-campo"><span>Nome</span><strong id="ma-emergencia-nome"></strong><input id="ma-emergencia-nome-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo"><span>Parentesco</span><strong id="ma-emergencia-parentesco"></strong><input id="ma-emergencia-parentesco-edit" class="fc-input" type="text" style="display:none"></div>
+                    <div class="ficha-campo full"><span>Celular</span><strong id="ma-emergencia-celular"></strong><input id="ma-emergencia-celular-edit" class="fc-input" type="text" style="display:none"></div>
+                </div>
+            </div>
+
             <div class="modal-admin-acoes">
+                <button id="btn-editar-admin" class="btn-ficha btn-ficha-editar" style="display:none" onclick="ativarEdicaoAdmin()">Editar</button>
+                <button id="btn-salvar-admin" class="btn-ficha btn-ficha-salvar" style="display:none" onclick="salvarEdicaoAdmin()">Salvar</button>
+                <button id="btn-cancelar-admin" class="btn-ficha" style="display:none" onclick="cancelarEdicaoAdmin()">Cancelar</button>
                 <button onclick="verCarteirinhaAdmin()" style="background:#D4AF37;border:none;color:#12101a;padding:9px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Ver carteirinha ↗</button>
                 <button onclick="fecharModalAdmin()" style="background:transparent;border:1.5px solid #e8e6f0;color:#5a5770;padding:9px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Fechar</button>
             </div>
@@ -1713,15 +1786,60 @@
         const cargo = a.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
         document.getElementById('maNome').textContent = a.nome || '—';
         document.getElementById('maSub').textContent = a.apelido ? `"${a.apelido}" · ${cargo}` : cargo;
-        document.getElementById('maCpf').textContent = a.cpf || '—';
-        document.getElementById('maCelular').textContent = a.celular || '—';
-        document.getElementById('maEmail').textContent = a.email || '—';
 
+        // Dados pessoais
+        document.getElementById('ma-nome').textContent = a.nome || '—';
+        document.getElementById('ma-apelido').textContent = a.apelido || '—';
+        document.getElementById('ma-nacionalidade').textContent = a.nacionalidade || '—';
+        document.getElementById('ma-cpf').textContent = a.cpf || '—';
+        if (a.tipo_documento && a.numero_documento) {
+            document.getElementById('ma-bloco-documento').style.display = '';
+            document.getElementById('ma-documento').textContent = `${a.tipo_documento}: ${a.numero_documento}`;
+        } else {
+            document.getElementById('ma-bloco-documento').style.display = 'none';
+        }
         const nasc = a.nascimento ? new Date(a.nascimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
-        document.getElementById('maNascimento').textContent = nasc;
-        document.getElementById('maCamisa').textContent = a.tamanho_camisa || '—';
-        document.getElementById('maFantasia').textContent = a.tamanho_fantasia || '—';
-        document.getElementById('maSapato').textContent = a.tamanho_sapato || '—';
+        document.getElementById('ma-nascimento').textContent = nasc;
+        document.getElementById('ma-celular').textContent = a.celular || '—';
+        document.getElementById('ma-cadastro').textContent = a.created_at ? new Date(a.created_at).toLocaleDateString('pt-BR') : '—';
+
+        // Endereço
+        document.getElementById('ma-endereco').textContent = a.endereco || '—';
+        document.getElementById('ma-numero').textContent = a.numero || '—';
+        document.getElementById('ma-complemento').textContent = a.complemento || '—';
+        document.getElementById('ma-bairro').textContent = a.bairro || '—';
+        document.getElementById('ma-cidade').textContent = a.cidade || '—';
+        document.getElementById('ma-estado').textContent = a.estado || '—';
+        document.getElementById('ma-pais').textContent = a.pais || '—';
+
+        // Medidas
+        document.getElementById('ma-instrumento').textContent = a.instrumento || '—';
+        document.getElementById('ma-tempo').textContent = a.membro_desde || '—';
+        document.getElementById('ma-camisa').textContent = a.tamanho_camisa || '—';
+        document.getElementById('ma-fantasia').textContent = a.tamanho_fantasia || '—';
+        document.getElementById('ma-calca').textContent = a.tamanho_calca || '—';
+        document.getElementById('ma-sapato').textContent = a.tamanho_sapato || '—';
+
+        // Saúde
+        document.getElementById('ma-tipo-sanguineo').textContent = a.tipo_sanguineo || '—';
+
+        // Contato de emergência
+        document.getElementById('ma-emergencia-nome').textContent = a.emergencia_nome || '—';
+        document.getElementById('ma-emergencia-parentesco').textContent = a.emergencia_parentesco || '—';
+        document.getElementById('ma-emergencia-celular').textContent = a.emergencia_celular || '—';
+
+        // Hierarquia de edição: Super Admin edita qualquer um; Mestre edita a si
+        // mesmo e os Diretores da própria bateria; Diretor só edita a si mesmo.
+        const usuarioAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        const meuPerfil = usuarioAtual ? usuarioAtual.perfil : null;
+        const meuId = usuarioAtual ? usuarioAtual.id : null;
+        const podeEditar =
+            meuPerfil === 'super_admin' ||
+            a.id === meuId ||
+            (meuPerfil === 'mestre' && a.perfil === 'diretor');
+        document.getElementById('btn-editar-admin').style.display = podeEditar ? 'inline-flex' : 'none';
+        document.getElementById('btn-salvar-admin').style.display = 'none';
+        document.getElementById('btn-cancelar-admin').style.display = 'none';
 
         document.getElementById('modalAdmin').style.display = 'block';
         document.body.style.overflow = 'hidden';

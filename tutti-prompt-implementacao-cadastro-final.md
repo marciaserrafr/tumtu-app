@@ -1,21 +1,21 @@
-# Tutti — Prompt de Implementação: Cadastro por Link Fixo + Segurança de Senha
+# TumTu — Prompt de Implementação: Cadastro por Link Fixo + Segurança de Senha
 ## Contexto para o Claude Code
 
 **Este prompt substitui integralmente dois prompts anteriores:**
-`tutti-prompt-implementacao-convite-admin.md` (02/jul/2026) e
-`tutti-prompt-implementacao-seguranca-convites.md` (03/jul/2026, nunca chegou
+`tumtu-prompt-implementacao-convite-admin.md` (02/jul/2026) e
+`tumtu-prompt-implementacao-seguranca-convites.md` (03/jul/2026, nunca chegou
 a ser executado). Ignore os dois — este documento é a versão final e
 consolidada de tudo que foi decidido sobre cadastro de Admin, links e senha.
 
-**Leia antes de começar:** `tutti-visao-geral.md`, `tutti-mvp.md` e
-`tutti-design-guide.md` (seções sobre Onboarding, Perfis de Usuário e Fluxo
+**Leia antes de começar:** `tumtu-visao-geral.md`, `tumtu-mvp.md` e
+`tumtu-design-guide.md` (seções sobre Onboarding, Perfis de Usuário e Fluxo
 de cadastro do Admin) — todos atualizados em 03/jul/2026 com o modelo final.
 
 ---
 
 ## SE VOCÊ JÁ IMPLEMENTOU ALGO DO PROMPT ANTERIOR, LEIA ISTO PRIMEIRO
 
-O prompt anterior (`tutti-prompt-implementacao-convite-admin.md`) descrevia um
+O prompt anterior (`tumtu-prompt-implementacao-convite-admin.md`) descrevia um
 modelo de **convite por token de uso único** (botão "Convidar Mestre" /
 "Convidar Diretor" que gerava um link novo, descartável, por pessoa). **Esse
 modelo foi abandonado.** Se você já implementou parte dele (tabela `convites`,
@@ -199,7 +199,7 @@ Não mexer em nenhuma tela ainda. Só modelo de dados.
    Diretor) — isso é exclusivo do Super Admin.
 
 3. Revisar todos os textos e telas afetadas contra o checklist da seção 12
-   do `tutti-design-guide.md` antes de considerar a fase concluída.
+   do `tumtu-design-guide.md` antes de considerar a fase concluída.
 
 4. Atualizar a página de login: **nenhuma mudança de campo ou de navegação é
    necessária** — CPF ou e-mail continuam funcionando exatamente como hoje,
@@ -250,7 +250,7 @@ Não mexer em nenhuma tela ainda. Só modelo de dados.
 
 ## Não implementar nesta rodada (fora de escopo)
 
-- **PWA** (transformar o Tutti em app instalável) — decisão registrada como
+- **PWA** (transformar o TumTu em app instalável) — decisão registrada como
   prioridade alta nas pendências, mas é um prompt separado, com foco em
   manifest/ícones/service worker, não misturar com este.
 - **Lógica de "Mestre principal"** para exibição na carteirinha (campo

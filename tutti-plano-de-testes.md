@@ -1,4 +1,4 @@
-# Tutti — Plano de Testes
+# TumTu — Plano de Testes
 > Documento vivo, criado em 03/jul/2026 para abrir uma sessão dedicada a testes,
 > antes de qualquer cadastro real entrar em produção.
 
@@ -9,7 +9,7 @@
 Este documento organiza os testes necessários antes de ir para produção,
 depois das mudanças de arquitetura decididas em 02–03/jul/2026 (link fixo por
 bateria, aprovação, cadastro manual, senha em hash — ver
-`tutti-prompt-implementacao-cadastro-final.md`). Ele cobre quatro camadas
+`tumtu-prompt-implementacao-cadastro-final.md`). Ele cobre quatro camadas
 diferentes, cada uma com propósito e ordem de execução próprios:
 
 1. Ambiente de teste (staging)
@@ -51,7 +51,7 @@ diferentes, cada uma com propósito e ordem de execução próprios:
 ### Conjunto de dados fake do reset (decidido em 03/jul/2026)
 
 Este é o conjunto que a Márcia vai pedir ao Claude Code para criar assim que
-ele terminar de implementar o `tutti-prompt-implementacao-cadastro-final.md`
+ele terminar de implementar o `tumtu-prompt-implementacao-cadastro-final.md`
 — nesse momento ainda em produção, já que continua tudo fake (ver seção 1).
 O mesmo conjunto serve de referência para o script de reset do staging,
 quando ele for montado mais adiante.
@@ -89,7 +89,7 @@ bateria, isso significa criar **2 escolas fake**, cada uma com sua bateria.
 | Ritmista — Reco-reco | pendente | |
 
 **Cobertura garantida por esse conjunto:**
-- Todo instrumento aparece pelo menos uma vez (Tamborim, Caixa, Repique, Cuíca, Surdo, Agogô, Chocalho, Reco-reco) — ajuste a lista para os instrumentos reais que o Tutti usa, se forem diferentes.
+- Todo instrumento aparece pelo menos uma vez (Tamborim, Caixa, Repique, Cuíca, Surdo, Agogô, Chocalho, Reco-reco) — ajuste a lista para os instrumentos reais que o TumTu usa, se forem diferentes.
 - Todo status de Ritmista aparece pelo menos uma vez (ativo, pendente, rejeitado, suspenso, desligado).
 - Todo status de Admin aparece pelo menos uma vez (ativo, pendente, rejeitado).
 - Mais de um Mestre na mesma bateria (Bateria 1).
@@ -105,7 +105,7 @@ a cada mudança futura, pegando regressão cedo.
 
 Peça ao Claude Code para escrever testes automatizados cobrindo, no mínimo,
 os casos abaixo (agrupados pelas fases do
-`tutti-prompt-implementacao-cadastro-final.md`):
+`tumtu-prompt-implementacao-cadastro-final.md`):
 
 **Cadastro via link fixo:**
 - [ ] Cadastro de Ritmista pelo link público da bateria → registro criado com `status = pendente`
@@ -173,7 +173,7 @@ de propósito — roteiro simples, sem jargão.
 
 **Observação importante:** este teste pode servir de ensaio para o requisito
 futuro do Google Play (mínimo de 12 testadores reais por 14 dias, caso um dia
-o Tutti vá para loja) — vale já conduzir com esse padrão em mente, mesmo que
+o TumTu vá para loja) — vale já conduzir com esse padrão em mente, mesmo que
 o objetivo imediato seja só validar o MVP.
 
 ### Roteiro para um Mestre de teste

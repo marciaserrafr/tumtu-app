@@ -518,10 +518,22 @@
   text-transform: uppercase;
 }
 
+.c-mestre-nomes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
 .c-mestre-nome {
   font-size: 18px;
   font-weight: 700;
   color: var(--cor-texto-claro);
+}
+
+/* Quando há mais de um Mestre, reduz a fonte para não estourar o layout */
+.c-mestre-nomes.varios .c-mestre-nome {
+  font-size: 14px;
 }
 
 /* Válida até + Temporada — lado a lado com linha divisória */
