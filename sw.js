@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tumtu-shell-v2';
+const CACHE_NAME = 'tumtu-shell-v3';
 
 const APP_SHELL = [
   './login.html',
@@ -11,7 +11,7 @@ const APP_SHELL = [
   './manifest.json',
   './styles/tokens.css',
   './styles/components.css',
-  './carteirinha-tutti.css',
+  './carteirinha-tumtu.css',
   './carteirinha-swing.css',
   './icons/icon-192.png',
   './icons/icon-512.png',

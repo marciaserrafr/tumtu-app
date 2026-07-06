@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-tema="tutti">
+<html lang="pt-BR" data-tema="tumtu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutti — Painel do Diretor</title>
+    <title>TumTu — Painel do Diretor</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#12101a">
     <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
@@ -38,7 +38,6 @@
         }
         .header-esquerda { display: flex; flex-direction: column; gap: 2px; }
         .header-marca { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
-        .header-marca span { color: #D4AF37; }
         .header-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(212,175,55,0.7); margin-top: 1px; }
         .header-acoes { display: flex; gap: 12px; align-items: center; }
         .header-user { font-size: 13px; color: rgba(255,255,255,0.6); }
@@ -416,7 +415,7 @@
 
 <div class="header">
     <div class="header-esquerda">
-        <div class="header-marca">Tu<span>TT</span>i</div>
+        <div class="header-marca"><span class="marca-tumtu"><span class="mt-t">T</span>u<span class="mt-m">m</span><span class="mt-t">T</span>u</span></div>
         <div class="header-badge" id="headerBateria"></div>
     </div>
     <div class="header-acoes">
@@ -1278,11 +1277,11 @@
     function aplicarConfigEscola() {
         const cfg = (typeof configEscola !== 'undefined') ? configEscola : {};
 
-        // Header: nome da bateria abaixo da marca Tutti
+        // Header: nome da bateria abaixo da marca TumTu
         const batEl = document.getElementById('headerBateria');
         if (batEl) batEl.textContent = cfg.nomeBateria || '';
 
-        // Cor do botão Ativar (usa corDestaque da escola ou dourado Tutti)
+        // Cor do botão Ativar (usa corDestaque da escola ou dourado TumTu)
         const cor = cfg.corDestaque || '#D4AF37';
         const textoCor = cfg.corDestaque ? '#ffffff' : '#12101a';
         document.querySelectorAll('.btn-aprovar').forEach(btn => {

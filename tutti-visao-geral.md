@@ -5,7 +5,7 @@
 
 ---
 
-> ⚠️ **Mudança de nome (05/jul/2026): Tutti → TumTu.** Motivo: já existem muitas marcas registradas como "Tutti", incluindo domínio; domínio `tumtu.com.br` já foi adquirido por Márcia. Este documento já reflete o novo nome; o código e as telas do sistema ainda usam "Tutti" — a renomeação (incluindo redesenho do logo, já que o "TuTTi" com duplo-T dourado centralizado não existe do mesmo jeito em "TumTu") fica para uma sessão dedicada. Ver `tumtu-documentacao-tecnica.md` para detalhes.
+> ✅ **Mudança de nome (05/jul/2026): Tutti → TumTu — concluída no código também.** Motivo: já existem muitas marcas registradas como "Tutti", incluindo domínio; domínio `tumtu.com.br` já foi adquirido por Márcia. O logotipo ganhou um desenho próprio (os dois T's — 1ª e 4ª letra — em dourado, risco terracota sob o "m"), diferente do antigo "TuTTi" com duplo-T centralizado. Documentos e telas do sistema já refletem o novo nome. Pendências menores: ícone do PWA ainda é placeholder (falta a arte final do logo), domínio ainda não conectado na Vercel, e os arquivos `.md` de documentação continuam com "tutti" no nome do arquivo. Ver `tumtu-documentacao-tecnica.md` seção 14 para detalhes.
 
 ## O que é
 

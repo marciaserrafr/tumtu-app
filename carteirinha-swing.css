@@ -1,7 +1,7 @@
 /* ================================
    CARTEIRINHA DIGITAL — TEMA SWING DA LEOPOLDINA
    Mantém o desenho original (um triângulo só, canto esquerdo)
-   Adiciona: Temporada ao lado de Válida até + marca Tutti no rodapé
+   Adiciona: Temporada ao lado de Válida até + marca TumTu no rodapé
    ================================ */
 
 /* FONTE — adiciona no <head> do HTML, se ainda não tiver */
@@ -437,7 +437,7 @@
   color: #D4AF37;
 }
 
-/* Rodapé — Instagram + marca Tutti lado a lado */
+/* Rodapé — Instagram + marca TumTu lado a lado */
 .b-footer {
   display: flex;
   justify-content: space-between;
@@ -450,16 +450,12 @@
   font-weight: 500;
 }
 
-/* NOVO — marca Tutti no rodapé */
-.b-footer-tutti {
+/* NOVO — marca TumTu no rodapé */
+.b-footer-tumtu {
   font-size: 9px;
   color: #5a7a5a;
   font-weight: 600;
   letter-spacing: 0.05em;
-}
-
-.b-footer-tutti .destaque {
-  color: #D4AF37;
 }
 
 /* ================================
@@ -533,7 +529,7 @@
 
   <div class="b-footer">
     <div class="b-footer-item">@swingdaleopoldina</div>
-    <div class="b-footer-tutti">Tu<span class="destaque">tt</span>i</div>
+    <div class="b-footer-tumtu"><span class="marca-tumtu"><span class="mt-t">T</span>u<span class="mt-m">m</span><span class="mt-t">T</span>u</span></div>
   </div>
 
    ================================ */

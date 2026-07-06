@@ -125,3 +125,18 @@
     padding: 24px; text-align: center; color: #8b88a0; font-size: 13px; margin-top: 8px;
 }
 .mp-superadmin-aviso strong { display: block; font-size: 15px; color: #5a5770; margin-bottom: 6px; }
+
+/* ── Logotipo "TumTu" (padrão único, usado em todas as telas) ── */
+.marca-tumtu { display: inline; }
+.marca-tumtu .mt-t { color: #D4AF37; font-weight: 900; }
+.marca-tumtu .mt-m { position: relative; }
+.marca-tumtu .mt-m::after {
+  content: '';
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  bottom: -3px;
+  height: 2px;
+  background: #7c2d12;
+  border-radius: 1px;
+}

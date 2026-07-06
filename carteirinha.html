@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-tema="tutti">
+<html lang="pt-BR" data-tema="tumtu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carteirinha — Tutti</title>
+    <title>Carteirinha — TumTu</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#12101a">
     <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
@@ -14,7 +14,8 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css">
-    <link rel="stylesheet" href="carteirinha-tutti.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="carteirinha-tumtu.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="config-escola.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -63,7 +64,7 @@
 <body>
 
 <div class="topo">
-    <span class="topo-nome">Tutti</span>
+    <span class="topo-nome">TumTu</span>
     <button class="btn-sair" id="btnSairTopo" onclick="sair()">Sair</button>
 </div>
 
@@ -141,7 +142,7 @@
 
                     <div class="c-verso-header">
                         <div>
-                            <div class="c-verso-titulo" id="c-verso-titulo">Tutti</div>
+                            <div class="c-verso-titulo" id="c-verso-titulo">TumTu</div>
                             <div class="c-verso-sub" id="c-verso-sub">Gestão de Baterias</div>
                         </div>
                         <div class="c-logo-verso">
@@ -176,7 +177,7 @@
 
                     <div class="c-verso-rodape">
                         <div class="c-rodape-instagram" id="c-rodape-instagram"></div>
-                        <div class="c-rodape-tutti">Tu<span class="destaque" style="font-weight:900">TT</span>i</div>
+                        <div class="c-rodape-tumtu"><span class="marca-tumtu"><span class="mt-t">T</span>u<span class="mt-m">m</span><span class="mt-t">T</span>u</span></div>
                     </div>
                 </div>
             </div>
@@ -243,7 +244,7 @@
 
         document.getElementById('c-escola-nome').textContent = cfg.nomeEscola || '';
         document.getElementById('c-bateria-nome').textContent = cfg.nomeBateria || '';
-        document.getElementById('c-verso-titulo').textContent = cfg.nomeBateria || 'Tutti';
+        document.getElementById('c-verso-titulo').textContent = cfg.nomeBateria || 'TumTu';
         document.getElementById('c-verso-sub').textContent = cfg.nomeEscola || 'Gestão de Baterias';
         if (cfg.temporadaAtual) document.getElementById('c-temporada-valor').textContent = cfg.temporadaAtual;
 
@@ -351,7 +352,7 @@
         const nome = document.getElementById('nomeRitmista').textContent;
         if (navigator.share && nome) {
             navigator.share({
-                title: 'Minha Carteirinha — Tutti',
+                title: 'Minha Carteirinha — TumTu',
                 text: `${nome} — Ritmista. Carnaval 2027!`
             });
         } else {

@@ -1,5 +1,5 @@
 /* ================================
-   CARTEIRINHA DIGITAL — TEMA TUTTI
+   CARTEIRINHA DIGITAL — TEMA TUMTU
    Paleta base do produto
    ================================ */
 
@@ -7,9 +7,9 @@
 /* <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"> */
 
 /* ================================
-   VARIÁVEIS DO TEMA TUTTI
+   VARIÁVEIS DO TEMA TUMTU
    ================================ */
-[data-tema="tutti"] {
+[data-tema="tumtu"] {
   --cor-fundo-escuro: #12101a;
   --cor-fundo-medio: #1e1b2e;
   --cor-destaque: #D4AF37;
@@ -371,7 +371,7 @@
   border: 2px solid var(--cor-destaque);
 }
 
-/* Logo texto Tutti — os dois T's centrais em destaque */
+/* Logo texto TumTu — os dois T's em destaque */
 .c-logo-texto {
   font-size: 10px;
   font-weight: 800;
@@ -582,16 +582,12 @@
   font-weight: 500;
 }
 
-/* Marca Tutti — sempre presente no rodapé, em qualquer tema */
-.c-rodape-tutti {
+/* Marca TumTu — sempre presente no rodapé, em qualquer tema */
+.c-rodape-tumtu {
   font-size: 9px;
   color: var(--cor-texto-muted);
   font-weight: 600;
   letter-spacing: 0.05em;
-}
-
-.c-rodape-tutti .destaque {
-  color: var(--cor-destaque);
 }
 
 /* ================================
