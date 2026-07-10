@@ -94,14 +94,14 @@ Tumtu/
 - Autenticação real via Supabase Auth (`auth.users` ligado por `ritmistas.auth_user_id`) — RLS ligado em `ritmistas`, `escolas`, `baterias` desde 05/jul/2026. Restrição por coluna (quem edita o quê) é feita por trigger (`aplicar_matriz_edicao_ritmistas`), não pela policy de RLS.
 - Vocabulário: o valor "ativo" no banco é literalmente `status = "aprovado"`, não `"ativo"`.
 
-## Estado atual (alto nível — ver `docs/tumtu-documentacao-tecnica.md` seção 18 para histórico completo)
+## Estado atual (alto nível — ver `docs/tumtu-documentacao-tecnica.md` seção 20 para histórico completo)
 
-✅ Concluído: rename de marca Tutti→TumTu (inclusive nomes de arquivo da documentação e do repositório GitHub), autenticação real + RLS, motor único de edição de perfil, "esqueci minha senha" self-service, PWA, exportação de ritmistas para Excel (seção 17).
-🚧 Em andamento: conexão do domínio `tumtu.com.br` na Vercel (seção 19 — domínio já adicionado ao projeto via `vercel domains add`, falta a Márcia apontar o DNS no Registro.br).
+✅ Concluído: rename de marca Tutti→TumTu (inclusive nomes de arquivo da documentação e do repositório GitHub), autenticação real + RLS, motor único de edição de perfil, "esqueci minha senha" self-service, PWA, exportação de ritmistas para Excel (seção 17), auditoria completa de UX + cadastro em etapas (seção 19).
+🚧 Em andamento: conexão do domínio `tumtu.com.br` na Vercel (seção 18 — domínio já adicionado ao projeto via `vercel domains add`, falta a Márcia apontar o DNS no Registro.br).
 🚧 Pendências conhecidas (não urgentes): ver seção 9 de `tumtu-documentacao-tecnica.md` — "Leaked Password Protection" adiada por depender de plano pago do Supabase.
 
 ## Roadmap combinado com a Márcia em 10/jul/2026 (ordem definida por ela)
-Depois do domínio: 1) revisão de todas as telas (correções gerais) → 2) revisão de layout com visão de UX expert → 3) **inclusão de instrumentos (urgente, logo após a revisão de telas)** → 4) lógica de temporada em relação a ritmistas → 5) controle de camisas por temporada (múltiplas entregas na mesma temporada, não só "marcar quem recebeu"). Depois de tudo isso: fase de marketing, começando por e-mail com o domínio próprio. **Nenhum desses itens está detalhado ainda** — cada um precisa de uma conversa de escopo antes de implementar.
+Depois do domínio: 1) revisão de todas as telas (correções gerais) → 2) revisão de layout com visão de UX expert → 3) **inclusão de instrumentos (urgente, logo após a revisão de telas)** → 4) lógica de temporada em relação a ritmistas → 5) controle de camisas por temporada (múltiplas entregas na mesma temporada, não só "marcar quem recebeu"). Depois de tudo isso: fase de marketing, começando por e-mail com o domínio próprio. **Itens 1 e 2 (revisão de telas + UX) já avançaram bastante em 10/jul/2026 via auditoria de UX** (ver seção 19 da documentação técnica) — itens 3 a 5 ainda não detalhados.
 
 ---
 
