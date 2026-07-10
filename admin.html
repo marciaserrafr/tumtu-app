@@ -445,7 +445,10 @@
 
     <div class="painel-titulo">Ritmistas</div>
 
-    <button class="btn-novo" onclick="irParaCadastroManualRitmista()" style="margin-bottom:20px;">+ Cadastrar Ritmista</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+        <button class="btn-novo" onclick="irParaCadastroManualRitmista()">+ Cadastrar Ritmista</button>
+        <button onclick="abrirModalExportar()" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Excel</button>
+    </div>
 
     <!-- BUSCA -->
     <div style="margin-bottom:20px;">
@@ -628,6 +631,24 @@
     </div>
 </div>
 
+<!-- MODAL EXPORTAR EXCEL -->
+<div class="modal-overlay" id="modalExportarExcel">
+    <div class="modal" style="max-width:460px;">
+        <h2 style="margin-bottom:6px;">Exportar Excel</h2>
+        <p id="exportResumoLista" style="margin-bottom:14px;"></p>
+        <div style="text-align:right;margin-bottom:8px;">
+            <span onclick="exportSelecionarTodos(true)" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Marcar todos</span>
+            <span style="color:#ccc;margin:0 6px;">|</span>
+            <span onclick="exportSelecionarTodos(false)" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar seleção</span>
+        </div>
+        <div id="exportCamposContainer" style="max-height:320px;overflow-y:auto;margin-bottom:16px;"></div>
+        <div class="modal-acoes">
+            <button class="btn-modal-cancelar" onclick="fecharModal('modalExportarExcel')">Cancelar</button>
+            <button class="btn-modal-confirmar verde" onclick="confirmarExportarExcel()">Exportar</button>
+        </div>
+    </div>
+</div>
+
 
 <script src="config-escola.js"></script>
 <script>
@@ -642,6 +663,7 @@
     }
 
     let todosRitmistas = [];
+    let listaFiltradaAtual = [];
     let filtroStatusSelecionados = [];
     const semAcento = s => (s||'').toLowerCase().normalize('NFD').split('').filter(c => c.charCodeAt(0) < 768 || c.charCodeAt(0) > 879).join('').trim();
     let acaoAtualId = null;
@@ -746,6 +768,7 @@
             return (a.nome || '').localeCompare(b.nome || '', 'pt-BR');
         });
 
+        listaFiltradaAtual = lista;
         renderizar(lista);
     }
 
@@ -849,6 +872,107 @@
                 </div>
                 <span style="font-size:13px;font-weight:500;color:${labelColor};">${labelText}</span>
             </div>`;
+    }
+
+    // EXPORTAR EXCEL
+    const CAMPOS_EXPORTAVEIS = [
+        { grupo: 'Dados pessoais', campos: [
+            { chave: 'nome', label: 'Nome' },
+            { chave: 'apelido', label: 'Apelido' },
+            { chave: 'cpf', label: 'CPF' },
+            { chave: 'nascimento', label: 'Data de nascimento' },
+            { chave: 'celular', label: 'Celular' },
+            { chave: 'email', label: 'E-mail' },
+            { chave: 'instrumento', label: 'Instrumento' },
+            { chave: 'membro_desde', label: 'Membro desde' },
+            { chave: 'status', label: 'Status' },
+        ]},
+        { grupo: 'Contato de emergência', campos: [
+            { chave: 'emergencia_nome', label: 'Nome do contato de emergência' },
+            { chave: 'emergencia_parentesco', label: 'Parentesco do contato' },
+            { chave: 'emergencia_celular', label: 'Celular do contato' },
+        ]},
+        { grupo: 'Endereço', campos: [
+            { chave: 'endereco', label: 'Endereço' },
+            { chave: 'numero', label: 'Número' },
+            { chave: 'complemento', label: 'Complemento' },
+            { chave: 'bairro', label: 'Bairro' },
+            { chave: 'cidade', label: 'Cidade' },
+            { chave: 'estado', label: 'Estado' },
+        ]},
+        { grupo: 'Medidas', campos: [
+            { chave: 'tamanho_camisa', label: 'Tamanho da camisa' },
+            { chave: 'tamanho_fantasia', label: 'Tamanho da fantasia' },
+            { chave: 'tamanho_calca', label: 'Tamanho da calça' },
+            { chave: 'tamanho_sapato', label: 'Tamanho do sapato' },
+        ]},
+    ];
+    const LABELS_STATUS_EXPORT = { pendente: 'Pendente', aprovado: 'Ativo', suspenso: 'Suspenso', rejeitado: 'Rejeitado', desligado: 'Desligado' };
+    let sheetJSCarregado = false;
+    function carregarSheetJS() {
+        return new Promise((resolve, reject) => {
+            if (sheetJSCarregado || window.XLSX) { sheetJSCarregado = true; resolve(); return; }
+            const script = document.createElement('script');
+            script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+            script.onload = () => { sheetJSCarregado = true; resolve(); };
+            script.onerror = () => reject(new Error('Não foi possível carregar a biblioteca de exportação.'));
+            document.head.appendChild(script);
+        });
+    }
+    function abrirModalExportar() {
+        const total = listaFiltradaAtual.length;
+        document.getElementById('exportResumoLista').textContent = total === 1
+            ? '1 ritmista será exportado (conforme os filtros aplicados na lista).'
+            : `${total} ritmistas serão exportados (conforme os filtros aplicados na lista).`;
+
+        const container = document.getElementById('exportCamposContainer');
+        container.innerHTML = CAMPOS_EXPORTAVEIS.map(grupo => `
+            <div style="margin-bottom:14px;">
+                <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">${grupo.grupo}</div>
+                ${grupo.campos.map(c => `
+                    <label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#333;cursor:pointer;">
+                        <input type="checkbox" class="export-campo-check" value="${c.chave}">
+                        ${c.label}
+                    </label>
+                `).join('')}
+            </div>
+        `).join('');
+
+        document.getElementById('modalExportarExcel').classList.add('aberto');
+    }
+    function exportSelecionarTodos(marcar) {
+        document.querySelectorAll('.export-campo-check').forEach(c => c.checked = marcar);
+    }
+    async function confirmarExportarExcel() {
+        const marcados = Array.from(document.querySelectorAll('.export-campo-check:checked')).map(c => c.value);
+        if (marcados.length === 0) { alert('Marque pelo menos um campo para exportar.'); return; }
+        if (listaFiltradaAtual.length === 0) { alert('Não há ritmistas para exportar com os filtros atuais.'); return; }
+
+        const todosCampos = CAMPOS_EXPORTAVEIS.flatMap(g => g.campos);
+        const linhas = listaFiltradaAtual.map(r => {
+            const linha = {};
+            marcados.forEach(chave => {
+                const campo = todosCampos.find(c => c.chave === chave);
+                let valor = r[chave] ?? '';
+                if (chave === 'status') valor = LABELS_STATUS_EXPORT[valor] || valor;
+                linha[campo.label] = valor;
+            });
+            return linha;
+        });
+
+        try {
+            await carregarSheetJS();
+        } catch (e) {
+            alert('Não foi possível exportar agora — verifique sua conexão com a internet e tente de novo.');
+            return;
+        }
+
+        const planilha = XLSX.utils.json_to_sheet(linhas);
+        const livro = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(livro, planilha, 'Ritmistas');
+        const dataHoje = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(livro, `ritmistas-${dataHoje}.xlsx`);
+        fecharModal('modalExportarExcel');
     }
 
     // MODAIS

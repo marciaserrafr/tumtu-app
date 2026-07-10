@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tumtu-shell-v5';
+const CACHE_NAME = 'tumtu-shell-v6';
 
 const APP_SHELL = [
   './login.html',
