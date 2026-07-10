@@ -1,5 +1,9 @@
-const CACHE_NAME = 'tumtu-shell-v8';
+const CACHE_NAME = 'tumtu-shell-v9';
 
+// Arquivos com "?v=N" têm o número subido a cada mudança de conteúdo —
+// isso muda a URL inteira, então nem o cache do navegador nem caches de
+// operadora/proxy no meio do caminho conseguem reaproveitar uma cópia
+// antiga: pra eles, é literalmente um arquivo novo, nunca visto.
 const APP_SHELL = [
   './login.html',
   './index.html',
@@ -8,13 +12,13 @@ const APP_SHELL = [
   './carteirinha.html',
   './qr.html',
   './redefinir-senha.html',
-  './ficha-perfil.js',
-  './ficha-perfil.partial.html',
-  './config-escola.js',
+  './ficha-perfil.js?v=1',
+  './ficha-perfil.partial.html?v=1',
+  './config-escola.js?v=1',
   './manifest.json',
-  './styles/tokens.css',
-  './styles/components.css',
-  './carteirinha-tumtu.css',
+  './styles/tokens.css?v=1',
+  './styles/components.css?v=1',
+  './carteirinha-tumtu.css?v=1',
   './carteirinha-swing.css',
   './icons/icon-192.png',
   './icons/icon-512.png',

@@ -72,6 +72,7 @@ Este projeto tem documentação de produto detalhada em `docs/` — **leia o doc
 - **Fonte:** Plus Jakarta Sans (Google Fonts).
 - **Biblioteca de terceiros:** `@supabase/supabase-js@2` via CDN. (`bcryptjs` foi removido em 05/jul/2026 — não usar mais, autenticação é 100% Supabase Auth.)
 - **PWA:** instalável direto do navegador (`manifest.json` + `sw.js`), sem loja/custo. **Atenção:** todo arquivo do "app shell" (listado em `APP_SHELL` dentro de `sw.js`) é servido do cache — ao alterar qualquer `.html`/`.css`/`.js` do shell, subir a versão de `CACHE_NAME` em `sw.js`, senão quem já visitou o site continua vendo a versão antiga.
+- **Cache-busting por versão na URL (`?v=N`):** `styles/tokens.css`, `styles/components.css`, `carteirinha-tumtu.css`, `ficha-perfil.js`, `ficha-perfil.partial.html` e `config-escola.js` são referenciados com `?v=1` (ou mais recente) em todo HTML que os usa, e no `fetch()` dentro de `ficha-perfil.js`. **Toda vez que algum desses arquivos mudar, subir esse número em TODOS os lugares que o referenciam** (busca por `?v=N` no projeto) — isso é mais forte que só trocar o `CACHE_NAME`: derrota até cache de operadora/proxy no meio do caminho, porque a URL vira literalmente outro arquivo. Criado em 10/jul/2026 depois de um incidente real onde a Márcia ficou presa numa versão antiga mesmo depois de limpar cache do navegador — a causa era cache fora do controle do navegador dela.
 
 ## Estrutura de pastas
 
