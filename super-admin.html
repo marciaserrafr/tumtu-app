@@ -499,6 +499,7 @@
 
     // ── NAVEGAÇÃO PRINCIPAL ──────────────────────────────────────────
     function trocarAbaPrincipal(aba, el) {
+        window.scrollTo(0, 0);
         document.querySelectorAll('#nav-principal .aba').forEach(x => x.classList.remove('ativa'));
         if (el) el.classList.add('ativa');
         ['dashboard','escolas','escola-contexto','nova-escola','meu-perfil'].forEach(p => {
@@ -519,6 +520,7 @@
     }
 
     async function selecionarEscola(id) {
+        window.scrollTo(0, 0);
         escolaSelecionadaId = id;
 
         // Buscar escola direto do banco para garantir dados frescos
@@ -556,6 +558,7 @@
     }
 
     function voltarParaEscolas() {
+        window.scrollTo(0, 0);
         escolaSelecionadaId = null;
         escolaAtualData = null;
         bateriaAtualData = null;
@@ -665,6 +668,7 @@
 
     // ── NOVA ESCOLA ──────────────────────────────────────────────────
     function abrirNovaEscola() {
+        window.scrollTo(0, 0);
         ['painel-escolas','painel-dashboard','painel-escola-contexto'].forEach(p => {
             const el = document.getElementById(p);
             if (el) { el.classList.remove('ativo'); el.style.display = 'none'; }

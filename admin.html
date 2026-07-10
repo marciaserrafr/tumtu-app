@@ -1472,6 +1472,7 @@
 
     // ── TROCAR ABA (atualizado) ───────────────────────────────────────────────
     function trocarAba(aba, btn) {
+        window.scrollTo(0, 0);
         document.querySelectorAll('.painel').forEach(p => p.classList.remove('ativo'));
         document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
         document.getElementById('painel-' + aba).classList.add('ativo');
