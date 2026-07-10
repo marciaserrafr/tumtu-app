@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TumTu">
     <script src="pwa-register.js" defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -83,7 +83,7 @@
             padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
         }
         .total-numero {
-            font-size: 28px; font-weight: 800; color: #0f172a; line-height: 1;
+            font-size: 28px; font-weight: 800; color: var(--cor-texto-principal); line-height: 1;
         }
         .total-numero.dourado { color: #D4AF37; }
         .total-label {
@@ -102,9 +102,9 @@
             color: #475569; cursor: pointer; font-size: 13px; font-weight: 500;
             display: inline-flex; align-items: center; gap: 5px;
         }
-        .btn-filtro.ativo { background: #0f172a; color: white; border-color: #0f172a; }
+        .btn-filtro.ativo { background: var(--cor-fundo-escuro); color: white; border-color: var(--cor-fundo-escuro); }
         .btn-filtro.laranja, .btn-filtro.azul, .btn-filtro.verde, .btn-filtro.vermelho { border-color: #cbd5e1; color: #475569; }
-        .btn-filtro.laranja.ativo, .btn-filtro.azul.ativo, .btn-filtro.verde.ativo, .btn-filtro.vermelho.ativo { background: #0f172a; color: white; border-color: #0f172a; }
+        .btn-filtro.laranja.ativo, .btn-filtro.azul.ativo, .btn-filtro.verde.ativo, .btn-filtro.vermelho.ativo { background: var(--cor-fundo-escuro); color: white; border-color: var(--cor-fundo-escuro); }
 
         /* Multi-select instrumento */
         .multi-select { position: relative; display: inline-block; }
@@ -116,7 +116,7 @@
             justify-content: space-between; user-select: none; min-width: 140px;
         }
         .multi-select-trigger.ativo {
-            background: #0f172a; color: white; border-color: #0f172a;
+            background: var(--cor-fundo-escuro); color: white; border-color: var(--cor-fundo-escuro);
         }
         .multi-select-dropdown {
             position: absolute; top: calc(100% + 4px); left: 0; z-index: 200;
@@ -136,7 +136,7 @@
         .vg-placeholder { background: #fafafa; border: 1.5px dashed #e0e0e0; border-radius: 14px; padding: 24px; text-align: center; color: #bbb; font-size: 13px; margin-bottom: 16px; }
         .vg-aniversariante { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
         .vg-aniversariante:last-child { border-bottom: none; }
-        .vg-aniv-nome { font-weight: 700; color: #0f172a; }
+        .vg-aniv-nome { font-weight: 700; color: var(--cor-texto-principal); }
         .vg-aniv-detalhe { font-size: 12px; color: #888; }
 
         /* CONTADOR */
@@ -159,7 +159,7 @@
 
         .card-esquerda { flex: 1; min-width: 0; }
         .card-linha1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-        .card-nome { font-size: 15px; font-weight: 700; color: #0f172a; }
+        .card-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
         .card-apelido-inline { font-size: 15px; font-weight: 700; color: #D4AF37; }
         .card-linha2 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
         .pill-instrumento {
@@ -195,7 +195,7 @@
         /* BOTÕES PADRÃO (igual super-admin) */
         .btn-cancelar {
             padding: 9px 20px; border: 1px solid #e0e0e0; background: white;
-            color: #0f172a; border-radius: 10px; cursor: pointer;
+            color: var(--cor-texto-principal); border-radius: 10px; cursor: pointer;
             font-size: 13px; font-weight: 600;
         }
         .btn-cancelar:hover { background: #f8f8f8; }
@@ -207,13 +207,13 @@
         .btn-primario:hover { background: #B8922A; }
 
         /* MODAL — BOTÕES */
-        .btn-modal-cancelar { padding: 9px 20px; border: 1px solid #e0e0e0; background: white; color: #0f172a; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .btn-modal-cancelar { padding: 9px 20px; border: 1px solid #e0e0e0; background: white; color: var(--cor-texto-principal); border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; }
         .btn-modal-cancelar:hover { background: #f8f8f8; }
         .btn-modal-confirmar { padding: 9px 20px; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700; color: white; }
         .btn-modal-confirmar.verde  { background: #D4AF37; color: #12101a; }
         .btn-modal-confirmar.laranja { background: #d4720a; }
         .btn-modal-confirmar.vermelho { background: #c62828; }
-        .btn-modal-confirmar.azul { background: #0f172a; }
+        .btn-modal-confirmar.azul { background: var(--cor-fundo-escuro); }
 
         /* MODAL — AÇÕES DO CADASTRO */
         .modal-acoes-ficha {
@@ -223,7 +223,7 @@
         .btn-ficha {
             padding: 5px 12px; border-radius: 8px; cursor: pointer;
             font-size: 12px; font-weight: 600; border: 1px solid #e0e0e0;
-            background: white; color: #0f172a;
+            background: white; color: var(--cor-texto-principal);
         }
         .btn-ficha:hover { background: #f8f8f8; }
         .btn-ficha-ativar    { background: #12101a; border-color: #12101a; color: #ffffff; }
@@ -234,7 +234,7 @@
         .btn-ficha-suspender:hover { background: #fff8f0; }
         .btn-ficha-desligar  { border-color: #c62828; color: #c62828; }
         .btn-ficha-desligar:hover  { background: #fff5f5; }
-        .btn-ficha-reativar  { border-color: #0f172a; color: #0f172a; }
+        .btn-ficha-reativar  { border-color: var(--cor-texto-principal); color: var(--cor-texto-principal); }
         .btn-ficha-reativar:hover  { background: #f0f0f0; }
         .btn-ficha-editar    { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
         .btn-ficha-editar:hover { background: #B8922A; }
@@ -251,7 +251,7 @@
             font-size: 13px;
             font-family: inherit;
             background: #fffdf4;
-            color: #0f172a;
+            color: var(--cor-texto-principal);
             margin-top: 2px;
         }
         .fc-input:focus { outline: none; border-color: #b8922a; }
@@ -262,10 +262,10 @@
         }
         .toggle-track {
             width: 40px; height: 22px; border-radius: 11px;
-            background: #e2e0ec; position: relative;
+            background: #b3261e; border: 1.5px solid #b3261e; position: relative;
             transition: background 0.2s; flex-shrink: 0;
         }
-        .toggle-track.on { background: #2d7a4f; }
+        .toggle-track.on { background: #1f4d1f; border-color: #1f4d1f; }
         .toggle-thumb {
             position: absolute; top: 3px; left: 3px;
             width: 16px; height: 16px; border-radius: 50%;
@@ -292,7 +292,7 @@
             width: 100%; max-width: 420px; margin: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .modal h2 { font-size: 18px; color: #0f172a; margin-bottom: 6px; }
+        .modal h2 { font-size: 18px; color: var(--cor-texto-principal); margin-bottom: 6px; }
         .modal p { font-size: 13px; color: #666; margin-bottom: 16px; }
         .modal label { font-size: 13px; font-weight: bold; color: #333; display: block; margin-bottom: 6px; }
         .modal select, .modal textarea, .modal input {
@@ -310,7 +310,7 @@
         .btn-modal-confirmar.verde { background: #D4AF37; color: #12101a; }
         .btn-modal-confirmar.laranja { background: #fd7e14; }
         .btn-modal-confirmar.vermelho { background: #dc3545; }
-        .btn-modal-confirmar.azul { background: #0f172a; }
+        .btn-modal-confirmar.azul { background: var(--cor-fundo-escuro); }
 
         /* MODAL CADASTRO COMPLETO */
         .modal-cadastro { max-width: 480px; padding: 20px 24px; }
@@ -321,9 +321,9 @@
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
         .ficha-campo { font-size: 12px; color: #333; }
         .ficha-campo span { display: block; font-size: 10px; color: #999; margin-bottom: 1px; }
-        .ficha-campo strong { font-size: 13px; color: #0f172a; }
+        .ficha-campo strong { font-size: 13px; color: var(--cor-texto-principal); }
         .ficha-campo.full { grid-column: 1 / -1; }
-        .btn-imprimir { display: inline-flex; align-items: center; gap: 6px; background: #0f172a; color: white; border: none; padding: 9px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn-imprimir { display: inline-flex; align-items: center; gap: 6px; background: var(--cor-fundo-escuro); color: white; border: none; padding: 9px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
 
         @media print {
             body > *:not(#modalCadastroOverlay) { display: none !important; }
@@ -1259,7 +1259,7 @@
             nome.textContent = inst;
 
             const count = document.createElement('span');
-            count.style.cssText = `font-weight:bold;color:${vermelho ? '#c0392b' : alerta ? '#b8860b' : '#0f172a'};`;
+            count.style.cssText = `font-weight:bold;color:${vermelho ? '#c0392b' : alerta ? '#b8860b' : 'var(--cor-texto-principal)'};`;
             count.textContent = limite > 0 ? `${atual}/${limite}` : `${atual}`;
 
             chip.appendChild(nome);
