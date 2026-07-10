@@ -3,6 +3,7 @@ imagens/
 
 # Handoff de design recebido como .zip — fonte, não precisa versionar
 docs/Conhecendo Design Assistant.zip
+docs/Conhecendo Design Assistant/
 
 .vercel
 .env*
