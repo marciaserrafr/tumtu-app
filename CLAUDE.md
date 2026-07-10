@@ -93,10 +93,10 @@ Tumtu/
 - Autenticação real via Supabase Auth (`auth.users` ligado por `ritmistas.auth_user_id`) — RLS ligado em `ritmistas`, `escolas`, `baterias` desde 05/jul/2026. Restrição por coluna (quem edita o quê) é feita por trigger (`aplicar_matriz_edicao_ritmistas`), não pela policy de RLS.
 - Vocabulário: o valor "ativo" no banco é literalmente `status = "aprovado"`, não `"ativo"`.
 
-## Estado atual (alto nível — ver `docs/tumtu-documentacao-tecnica.md` seção 17 para histórico completo)
+## Estado atual (alto nível — ver `docs/tumtu-documentacao-tecnica.md` seção 18 para histórico completo)
 
-✅ Concluído: rename de marca Tutti→TumTu (inclusive nomes de arquivo da documentação), autenticação real + RLS, motor único de edição de perfil, "esqueci minha senha" self-service, PWA.
-🚧 Pendências conhecidas (não urgentes): ver seção 9 de `tumtu-documentacao-tecnica.md` — inclui exportação de lista para Excel, domínio `tumtu.com.br` ainda não conectado na Vercel, "Leaked Password Protection" adiada por depender de plano pago do Supabase.
+✅ Concluído: rename de marca Tutti→TumTu (inclusive nomes de arquivo da documentação), autenticação real + RLS, motor único de edição de perfil, "esqueci minha senha" self-service, PWA, exportação de ritmistas para Excel (seção 17).
+🚧 Pendências conhecidas (não urgentes): ver seção 9 de `tumtu-documentacao-tecnica.md` — inclui domínio `tumtu.com.br` ainda não conectado na Vercel, "Leaked Password Protection" adiada por depender de plano pago do Supabase.
 
 ---
 
