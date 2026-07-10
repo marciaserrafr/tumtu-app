@@ -168,12 +168,12 @@ Lêem `auth.uid()` (o usuário autenticado da requisição atual) e retornam dad
 
 ## 9. Débitos técnicos e pendências conhecidas
 
-- **"Leaked Password Protection"** do Supabase Auth está desligada (checagem de senha vazada contra HaveIBeenPwned) — fácil de ligar, não é urgente.
 - **Reset de senha pelo Super Admin removido em 05/jul/2026** (a tela de Acessos tinha um campo "Nova senha (opcional)" sem função real depois da migração para Supabase Auth) e **não foi reconstruído** — decisão explícita da Márcia em 06/jul/2026 de não devolver ao Super Admin a capacidade de ver/definir a senha de outra pessoa. Resolvido de outra forma: ver seção 15 ("Esqueci minha senha" nativo do Supabase Auth, sem nenhum admin no meio).
 - **Excluir usuário (LGPD):** ainda não existe nenhuma forma de apagar um cadastro, nem o Super Admin. Discutido em 06/jul/2026 e adiado de propósito — será construído só quando a primeira solicitação real de exclusão acontecer (Super Admin apenas, para pedidos sérios de exclusão de dados, não uma ação de rotina).
 - **CPF não é único** na tabela `ritmistas` — sem constraint, baixa prioridade.
 - **Domínio `tumtu.com.br`** já comprado pela Márcia, ainda não conectado ao deploy da Vercel — passo manual (painel Vercel + DNS do registrador), não é mudança de código.
 - **Nomes dos arquivos de documentação** (`tutti-visao-geral.md`, `tutti-mvp.md`, `tutti-design-guide.md`, `tutti-documentacao-tecnica.md`, `tutti-plano-de-testes.md`, `tutti-dados-fake-reset.xlsx`) continuam com "tutti" no nome — só o conteúdo foi unificado para TumTu. Renomear os arquivos em si não estava no escopo combinado, fica como pendência menor.
+- **"Leaked Password Protection"** do Supabase Auth está desligada (checagem de senha vazada contra HaveIBeenPwned). **Descoberto em 09/jul/2026: só existe no plano Pro do Supabase (pago), não aparece no plano Free.** Rebaixado para o final da lista de propósito — a Márcia avalia que o projeto não deve precisar disso tão cedo e não quer gastar no Supabase agora; revisitar só se/quando houver receita real.
 
 ---
 
