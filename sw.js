@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tumtu-shell-v7';
+const CACHE_NAME = 'tumtu-shell-v8';
 
 const APP_SHELL = [
   './login.html',
@@ -50,7 +50,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Stale-while-revalidate: responde na hora com o que já está em cache
+  // (rápido, funciona offline), mas busca uma versão fresca em segundo
+  // plano e atualiza o cache pra próxima visita — evita ficar preso numa
+  // versão antiga de CSS/JS por muito tempo depois de um deploy.
   event.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request))
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.match(request).then((cached) => {
+        const fetchAtualizado = fetch(request).then((response) => {
+          if (response && response.ok) cache.put(request, response.clone());
+          return response;
+        }).catch(() => cached);
+        return cached || fetchAtualizado;
+      })
+    )
   );
 });
