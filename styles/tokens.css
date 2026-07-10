@@ -1,3 +1,11 @@
+/* Transição suave ao navegar entre páginas (cada tela do TumTu é um
+   arquivo .html separado, não um app de tela única) — puro CSS, sem
+   JavaScript. Funciona em navegadores recentes (Chrome, Safari); em
+   navegadores sem suporte, a navegação continua normal, sem erro. */
+@view-transition {
+  navigation: auto;
+}
+
 :root {
   --cor-fundo-escuro:      #12101a;
   --cor-fundo-medio:       #1e1b2e;
@@ -11,11 +19,18 @@
 
   --cor-texto-principal:   #12101a;
   --cor-texto-secundario:  #5a5770;
-  --cor-texto-muted:       #8b88a0;
+  --cor-texto-muted:       #706c87;
   --cor-texto-claro:       #ffffff;
 
   --cor-borda:             #e8e6f0;
   --cor-borda-forte:       #d0cde8;
+
+  --cor-erro:              #b3261e;
+  --cor-erro-fundo:        #fde8e8;
+  --cor-sucesso:           #1f4d1f;
+  --cor-sucesso-fundo:     #e8f5e8;
+  --cor-aviso:             #856404;
+  --cor-aviso-fundo:       #fff3cd;
 
   --fonte-principal: 'Plus Jakarta Sans', sans-serif;
 }
@@ -30,6 +45,13 @@
   --cor-borda:             #c8e6c8;
   --cor-borda-forte:       #a5d1a5;
   --cor-texto-destaque:    #ffffff;
+}
+
+html {
+  /* Reserva sempre o espaço da barra de rolagem vertical, mesmo quando o
+     conteúdo não precisa dela — evita a página "pular" horizontalmente ao
+     trocar de aba entre um conteúdo longo (com rolagem) e um curto (sem). */
+  scrollbar-gutter: stable;
 }
 
 body {

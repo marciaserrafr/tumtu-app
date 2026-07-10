@@ -28,35 +28,13 @@
             padding: 20px;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 36px 32px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-        }
         .logo { text-align: center; margin-bottom: 8px; }
         .logo p { color: #666; font-size: 14px; margin-top: 8px; text-align: center; margin-bottom: 24px; }
-        .form-group { margin-bottom: 16px; }
-        label { display: block; font-size: 13px; font-weight: bold; color: #333; margin-bottom: 5px; }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 15px;
-            font-family: inherit;
-        }
-        input:focus { outline: none; border-color: #D4AF37; }
         .btn-confirmar { width: 100%; margin-top: 8px; font-size: 16px; }
-        .mensagem { padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; display: none; }
-        .mensagem.erro { background: #f8d7da; color: #721c24; }
-        .mensagem.sucesso { background: #e8f5e8; color: #1f4d1f; }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="auth-container">
     <div class="logo">
         <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
     </div>
@@ -65,18 +43,18 @@
     <div id="mensagem" class="mensagem"></div>
 
     <form id="formRedefinir">
-        <div class="form-group">
+        <div class="auth-form-group">
             <label>Nova senha</label>
             <div style="position:relative;">
                 <input type="password" id="senhaNova" placeholder="Mínimo 6 caracteres" required minlength="6" style="padding-right:40px;">
-                <span onclick="toggleSenha('senhaNova',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;user-select:none;display:flex;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                <span onclick="toggleSenha('senhaNova',this)" style="position:absolute;right:0;top:50%;transform:translateY(-50%);cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:center;padding:13px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
             </div>
         </div>
-        <div class="form-group">
+        <div class="auth-form-group">
             <label>Confirmar nova senha</label>
             <div style="position:relative;">
                 <input type="password" id="senhaConfirmar" placeholder="Repita a senha" required minlength="6" style="padding-right:40px;">
-                <span onclick="toggleSenha('senhaConfirmar',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;user-select:none;display:flex;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                <span onclick="toggleSenha('senhaConfirmar',this)" style="position:absolute;right:0;top:50%;transform:translateY(-50%);cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:center;padding:13px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
             </div>
         </div>
         <button type="submit" class="btn-confirmar btn-primario">Salvar nova senha</button>

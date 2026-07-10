@@ -50,7 +50,7 @@ Este projeto tem documentação de produto detalhada em `docs/` — **leia o doc
 - **O card do ritmista é o elemento mais importante da tela do Admin.** Tudo ao redor (filtros, vagas, seções extras) é secundário — deve ficar clean, sem poluir visualmente o card.
 
 ### Hierarquia visual
-- Botão de ação principal (ex: "Cadastro") precisa de destaque real: fundo sólido escuro `#1a1a2e` ou dourado `#F5C518`. Botões secundários = só borda, transparente.
+- Botão de ação principal (ex: "Cadastro") precisa de destaque real: fundo sólido escuro `#12101a` ou dourado `#D4AF37` (tokens `--cor-fundo-escuro`/`--cor-destaque` em `styles/tokens.css`). Botões secundários = só borda, transparente.
 - Seções auxiliares (ex: "Vagas por Instrumento") devem ser simples — listas com texto, sem chips/cards aninhados/cores excessivas.
 
 ---

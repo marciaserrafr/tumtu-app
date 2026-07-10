@@ -625,6 +625,15 @@
   background: rgba(212, 175, 55, 0.08);
 }
 
+.c-btn-salvar:disabled {
+  border-color: rgba(212, 175, 55, 0.35);
+  color: rgba(212, 175, 55, 0.5);
+  cursor: not-allowed;
+}
+.c-btn-salvar:disabled:hover {
+  background: transparent;
+}
+
 .c-btn-compartilhar {
   flex: 1;
   padding: 13px;

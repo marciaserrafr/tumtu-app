@@ -66,6 +66,14 @@
             cursor: pointer; padding: 0;
         }
         .c-btn-perfil:hover { background: rgba(212,175,55,0.15); }
+        .c-toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: #1e1b2e; color: white; padding: 12px 20px; border-radius: 12px;
+            font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            z-index: 9999; display: none; border-left: 4px solid #D4AF37; max-width: 90vw;
+        }
+        .c-toast.erro { border-left-color: #ef4444; }
+        .c-toast.visivel { display: block; }
     </style>
 </head>
 <body>
@@ -198,7 +206,7 @@
     </div>
 
     <div class="c-botoes">
-        <button class="c-btn-salvar" onclick="salvarImagem()">Salvar</button>
+        <button class="c-btn-salvar" disabled title="Em breve">Salvar (em breve)</button>
         <button class="c-btn-compartilhar" onclick="compartilhar()">Compartilhar</button>
     </div>
 
@@ -214,11 +222,20 @@
     </div>
 </div>
 
+<div class="c-toast" id="cToast"></div>
+
 <script src="ficha-perfil.js"></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function mostrarToast(msg, tipo = 'ok') {
+        const t = document.getElementById('cToast');
+        t.textContent = msg;
+        t.className = 'c-toast visivel ' + tipo;
+        setTimeout(() => { t.className = 'c-toast'; }, 3500);
+    }
 
     function renderCarteirinha(ritmista) {
         // Label de cargo
@@ -337,14 +354,14 @@
             .then(r => r.json())
             .then(rows => {
                 if (!rows || rows.length === 0) {
-                    alert('Ritmista não encontrado.');
-                    history.back();
+                    mostrarToast('Ritmista não encontrado.', 'erro');
+                    setTimeout(() => history.back(), 1200);
                     return;
                 }
                 renderCarteirinha(rows[0]);
                 renderMestres(rows[0].bateria_id);
             })
-            .catch(() => { alert('Erro ao carregar carteirinha.'); history.back(); });
+            .catch(() => { mostrarToast('Erro ao carregar carteirinha.', 'erro'); setTimeout(() => history.back(), 1200); });
         })();
     } else {
         // Modo normal: usa localStorage
@@ -391,10 +408,6 @@
         window.location.href = 'login.html';
     }
 
-    function salvarImagem() {
-        alert('Função de salvar imagem será ativada em breve!');
-    }
-
     function compartilhar() {
         const nome = document.getElementById('nomeRitmista').textContent;
         if (navigator.share && nome) {
@@ -403,7 +416,7 @@
                 text: `${nome} — Ritmista. Carnaval 2027!`
             });
         } else {
-            alert('Compartilhamento não disponível neste dispositivo.');
+            mostrarToast('Compartilhamento não disponível neste dispositivo.', 'erro');
         }
     }
 </script>

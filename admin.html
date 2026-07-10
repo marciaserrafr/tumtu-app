@@ -39,7 +39,7 @@
         }
         .header-esquerda { display: flex; flex-direction: column; gap: 2px; }
         .header-marca { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
-        .header-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(212,175,55,0.7); margin-top: 1px; }
+        .header-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(212,175,55,0.7); margin-top: 7px; }
         .header-acoes { display: flex; gap: 12px; align-items: center; }
         .header-user { font-size: 13px; color: rgba(255,255,255,0.6); }
         .btn-sair { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
@@ -277,6 +277,8 @@
 
         /* VAZIO */
         .vazio { text-align: center; padding: 40px; color: #999; font-size: 15px; }
+        .estado-vazio { text-align: center; padding: 40px 20px; color: var(--cor-texto-muted); font-size: 14px; }
+        .estado-vazio-icone { font-size: 36px; margin-bottom: 10px; }
 
         /* MODAL */
         .modal-overlay {
@@ -299,6 +301,9 @@
             font-family: Arial, sans-serif;
         }
         .modal select:focus, .modal textarea:focus { outline: none; border-color: #D4AF37; }
+        /* Checkbox do modal de exportar Excel não deve herdar largura/margem de campo de texto */
+        .modal input.export-campo-check { width: auto; margin-bottom: 0; }
+        .modal label.export-campo-label { display: flex; margin-bottom: 0; }
         .modal-acoes { display: flex; gap: 10px; justify-content: flex-end; }
         .btn-modal-cancelar { background: #f0f0f0; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; }
         .btn-modal-confirmar { border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; color: white; }
@@ -778,7 +783,7 @@
         if (contadorEl) contadorEl.textContent = `${lista.length} ritmista(s) encontrado(s)`;
 
         if (lista.length === 0) {
-            container.innerHTML = '<div class="vazio">Nenhum ritmista encontrado.</div>';
+            container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Nenhum ritmista encontrado.</div>';
             return;
         }
 
@@ -930,7 +935,7 @@
             <div style="margin-bottom:14px;">
                 <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">${grupo.grupo}</div>
                 ${grupo.campos.map(c => `
-                    <label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#333;cursor:pointer;">
+                    <label class="export-campo-label" style="align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#333;cursor:pointer;">
                         <input type="checkbox" class="export-campo-check" value="${c.chave}">
                         ${c.label}
                     </label>
@@ -1373,7 +1378,7 @@
     function renderizarDiretoria(admins) {
         const lista = document.getElementById('listaDiretoria');
         if (!admins || admins.length === 0) {
-            lista.innerHTML = '<div class="vazio">Nenhum membro da diretoria encontrado.</div>';
+            lista.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Nenhum membro da diretoria encontrado.</div>';
             return;
         }
         const usuarioAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');

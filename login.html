@@ -28,44 +28,18 @@
             justify-content: center;
             padding: 20px;
         }
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 36px 32px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-        }
         .logo {
             text-align: center;
             margin-bottom: 32px;
         }
         .logo h1 { color: #0f172a; font-size: 28px; font-weight: bold; }
         .logo p { color: #666; font-size: 14px; margin-top: 4px; }
-        .form-group { margin-bottom: 16px; }
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
         .label-dica {
             font-size: 12px;
             font-weight: 400;
             color: #888;
             margin-left: 4px;
         }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 15px;
-            font-family: inherit;
-            transition: border-color 0.2s;
-        }
-        input:focus { outline: none; border-color: #D4AF37; }
         .btn-entrar { width: 100%; margin-top: 8px; font-size: 16px; }
         .link-cadastro {
             text-align: center;
@@ -74,19 +48,10 @@
             color: #666;
         }
         .link-cadastro a { color: #D4AF37; font-weight: bold; text-decoration: none; }
-        .mensagem {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
-            display: none;
-        }
-        .mensagem.erro { background: #f8d7da; color: #721c24; }
-        .mensagem.aviso { background: #fff3cd; color: #856404; }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="auth-container">
     <div class="logo">
         <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
     </div>
@@ -94,15 +59,15 @@
     <div id="mensagem" class="mensagem"></div>
 
     <form id="formLogin">
-        <div class="form-group">
+        <div class="auth-form-group">
             <label>CPF ou e-mail <span class="label-dica">— use o que você cadastrou</span></label>
             <input type="text" id="identificador" placeholder="000.000.000-00 ou seu@email.com" autocomplete="username" required oninput="mascaraIdentificador(this)">
         </div>
-        <div class="form-group">
+        <div class="auth-form-group">
             <label>Senha</label>
             <div style="position:relative;">
                 <input type="password" id="senha" placeholder="Sua senha" autocomplete="current-password" required style="padding-right:40px;">
-                <span onclick="toggleSenha('senha',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;user-select:none;display:flex;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                <span onclick="toggleSenha('senha',this)" style="position:absolute;right:0;top:50%;transform:translateY(-50%);cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:center;padding:13px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
             </div>
         </div>
         <button type="submit" class="btn-entrar btn-primario">Entrar</button>
@@ -117,7 +82,7 @@
     </div>
 </div>
 
-<div class="container" id="containerRecuperacao" style="display:none;">
+<div class="auth-container" id="containerRecuperacao" style="display:none;">
     <div class="logo">
         <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
         <p>Recuperar senha</p>
@@ -126,7 +91,7 @@
     <div id="mensagemRecuperacao" class="mensagem"></div>
 
     <form id="formRecuperacao">
-        <div class="form-group">
+        <div class="auth-form-group">
             <label>CPF ou e-mail <span class="label-dica">— use o que você cadastrou</span></label>
             <input type="text" id="identificadorRecuperacao" placeholder="000.000.000-00 ou seu@email.com" required oninput="mascaraIdentificador(this)">
         </div>
@@ -173,7 +138,7 @@
 
     function mostrarRecuperacao(e) {
         e.preventDefault();
-        const login = document.querySelector('.container:not(#containerRecuperacao)');
+        const login = document.querySelector('.auth-container:not(#containerRecuperacao)');
         const recuperacao = document.getElementById('containerRecuperacao');
         const abrindo = recuperacao.style.display === 'none';
         login.style.display = abrindo ? 'none' : 'block';
@@ -182,29 +147,43 @@
 
     document.getElementById('formRecuperacao').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const identificador = document.getElementById('identificadorRecuperacao').value.trim();
-        const isEmail = identificador.includes('@');
+        const btn = e.target.querySelector('button[type=submit]');
+        const textoOriginal = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+        try {
+            const identificador = document.getElementById('identificadorRecuperacao').value.trim();
+            const isEmail = identificador.includes('@');
 
-        let authEmail = identificador;
-        if (!isEmail) {
-            const { data: emailResolvido } = await sb.rpc('resolve_login_email', { identificador });
-            authEmail = emailResolvido;
-        }
+            let authEmail = identificador;
+            if (!isEmail) {
+                const { data: emailResolvido } = await sb.rpc('resolve_login_email', { identificador });
+                authEmail = emailResolvido;
+            }
 
-        const mensagemEl = document.getElementById('mensagemRecuperacao');
-        // Mensagem sempre igual, exista ou não o cadastro — evita revelar quais CPFs/e-mails estão cadastrados.
-        if (authEmail) {
-            await sb.auth.resetPasswordForEmail(authEmail, {
-                redirectTo: window.location.origin + '/redefinir-senha.html',
-            });
+            const mensagemEl = document.getElementById('mensagemRecuperacao');
+            // Mensagem sempre igual, exista ou não o cadastro — evita revelar quais CPFs/e-mails estão cadastrados.
+            if (authEmail) {
+                await sb.auth.resetPasswordForEmail(authEmail, {
+                    redirectTo: window.location.origin + '/redefinir-senha.html',
+                });
+            }
+            mensagemEl.textContent = 'Se o CPF ou e-mail existir no sistema, você vai receber um link de recuperação em instantes.';
+            mensagemEl.className = 'mensagem aviso';
+            mensagemEl.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = textoOriginal;
         }
-        mensagemEl.textContent = 'Se o CPF ou e-mail existir no sistema, você vai receber um link de recuperação em instantes.';
-        mensagemEl.className = 'mensagem aviso';
-        mensagemEl.style.display = 'block';
     });
 
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const btn = e.target.querySelector('button[type=submit]');
+        const textoOriginal = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Entrando...';
+        try {
 
         const identificador = document.getElementById('identificador').value.trim();
         const senha = document.getElementById('senha').value;
@@ -266,6 +245,10 @@
             window.location.href = 'super-admin.html';
         } else {
             window.location.href = 'carteirinha.html';
+        }
+        } finally {
+            btn.disabled = false;
+            btn.textContent = textoOriginal;
         }
     });
 </script>

@@ -118,8 +118,8 @@
     border-radius: 8px; padding: 10px 14px; font-size: 12px;
     font-weight: 600; margin-bottom: 12px; display: none;
 }
-.mp-mensagem.erro { background: #fde8e8; color: #b3261e; display: block; }
-.mp-mensagem.sucesso { background: #e8f5e8; color: #1f4d1f; display: block; }
+.mp-mensagem.erro { background: var(--cor-erro-fundo); color: var(--cor-erro); display: block; }
+.mp-mensagem.sucesso { background: var(--cor-sucesso-fundo); color: var(--cor-sucesso); display: block; }
 .mp-superadmin-aviso {
     background: #f7f6fb; border: 1px solid #e8e6f0; border-radius: 12px;
     padding: 24px; text-align: center; color: #8b88a0; font-size: 13px; margin-top: 8px;
@@ -190,8 +190,58 @@
     border-radius: 8px; padding: 10px 14px; font-size: 12px;
     font-weight: 600; margin-bottom: 12px; display: none;
 }
-.fp-mensagem.erro { background: #fde8e8; color: #b3261e; display: block; }
-.fp-mensagem.sucesso { background: #e8f5e8; color: #1f4d1f; display: block; }
+.fp-mensagem.erro { background: var(--cor-erro-fundo); color: var(--cor-erro); display: block; }
+.fp-mensagem.sucesso { background: var(--cor-sucesso-fundo); color: var(--cor-sucesso); display: block; }
+
+/* ── Cartão de tela de autenticação (login/cadastro/redefinir-senha) — compartilhado ── */
+.auth-container {
+  background: var(--cor-superficie);
+  border-radius: 20px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.auth-form-group { margin-bottom: 16px; min-width: 0; }
+.auth-form-group input,
+.auth-form-group select { max-width: 100%; }
+.auth-form-group input[type="date"] { min-width: 0; }
+.auth-form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+.auth-form-group input,
+.auth-form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  background: white;
+  transition: border-color 0.2s;
+}
+.auth-form-group input:focus,
+.auth-form-group select:focus { outline: none; border-color: var(--cor-destaque); }
+.auth-form-group label .obrigatorio { color: red; margin-left: 2px; }
+.auth-form-group input.campo-invalido,
+.auth-form-group select.campo-invalido { border-color: #dc3545; background: #fff5f5; }
+.auth-form-group .erro-campo,
+.auth-form-group .erro-inline { font-size: 12px; color: #dc3545; margin-top: 4px; display: none; }
+.auth-form-group .erro-campo.visivel { display: block; }
+.mensagem {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  display: none;
+}
+.mensagem.erro { background: var(--cor-erro-fundo); color: var(--cor-erro); }
+.mensagem.aviso { background: var(--cor-aviso-fundo); color: var(--cor-aviso); }
+.mensagem.sucesso { background: var(--cor-sucesso-fundo); color: var(--cor-sucesso); }
 
 /* ── Logotipo "TumTu" (padrão único, usado em todas as telas) — spec do handoff de design ── */
 .tt-logo { font-weight: 800; font-family: var(--fonte-principal); }
