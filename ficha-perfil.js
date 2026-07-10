@@ -1,6 +1,6 @@
 // ── FICHA DE PERFIL — motor único de edição ──────────────────────────────
 // Implementa a matriz de permissões aprovada em 06/jul/2026 (ver
-// tutti-documentacao-tecnica.md, seção 11). Usado por admin.html (Meu
+// tumtu-documentacao-tecnica.md, seção 11). Usado por admin.html (Meu
 // Perfil + ficha de Ritmista na Diretoria), super-admin.html (Meu Perfil)
 // e carteirinha.html (perfil do Ritmista). Depende de SUPABASE_URL,
 // SUPABASE_KEY e do client `sb` já existirem globalmente na página que o

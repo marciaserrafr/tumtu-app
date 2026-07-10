@@ -19,13 +19,11 @@ Este projeto tem documentação de produto detalhada em `docs/` — **leia o doc
 
 | Arquivo | Cobre | Quando ler |
 |---|---|---|
-| `docs/tutti-visao-geral.md` | Visão de negócio, marca, identidade visual, jurídico/LGPD | Antes de decisões de produto/negócio |
-| `docs/tutti-mvp.md` | Escopo funcional do MVP, perfis, fluxos, regras numeradas (1 a 11) | Antes de mudar fluxo de cadastro/aprovação/permissão |
-| `docs/tutti-design-guide.md` | Paleta, tipografia, componentes visuais, checklist obrigatório antes de mudança visual | **Sempre antes de qualquer alteração visual** |
-| `docs/tutti-documentacao-tecnica.md` | Arquitetura, modelo de dados, RLS, Edge Function, histórico de decisões técnicas | Antes de mexer em banco, autenticação, permissões |
-| `docs/tutti-plano-de-testes.md` | Estratégia de teste, dados fake, roteiros de teste manual | Antes de testar mudanças ou popular dados |
-
-Nomes de arquivo ainda dizem "tutti" (nome antigo do projeto) — só o conteúdo foi migrado para TumTu. Isso é uma pendência conhecida, não confundir com o produto.
+| `docs/tumtu-visao-geral.md` | Visão de negócio, marca, identidade visual, jurídico/LGPD | Antes de decisões de produto/negócio |
+| `docs/tumtu-mvp.md` | Escopo funcional do MVP, perfis, fluxos, regras numeradas (1 a 11) | Antes de mudar fluxo de cadastro/aprovação/permissão |
+| `docs/tumtu-design-guide.md` | Paleta, tipografia, componentes visuais, checklist obrigatório antes de mudança visual | **Sempre antes de qualquer alteração visual** |
+| `docs/tumtu-documentacao-tecnica.md` | Arquitetura, modelo de dados, RLS, Edge Function, histórico de decisões técnicas | Antes de mexer em banco, autenticação, permissões |
+| `docs/tumtu-plano-de-testes.md` | Estratégia de teste, dados fake, roteiros de teste manual | Antes de testar mudanças ou popular dados |
 
 `docs/README.md` **não existe mais** — foi removido em 09/jul/2026 por descrever uma versão bem antiga do sistema (senha em texto puro, sem Super Admin) que divergia dos 4 docs acima.
 
@@ -87,7 +85,7 @@ Tumtu/
 └── .claude/
 ```
 
-## Modelo de dados (resumo — detalhe completo em `docs/tutti-documentacao-tecnica.md`)
+## Modelo de dados (resumo — detalhe completo em `docs/tumtu-documentacao-tecnica.md`)
 
 - Tabela `ritmistas` guarda **todos os perfis** (`ritmista`/`mestre`/`diretor`/`super_admin`), diferenciados pela coluna `perfil`. IDs são `bigint`, não UUID.
 - `cargo` (o que aparece na carteirinha) é separado de `nivel_acesso` (hoje só existe o valor `"total"`) — decisão proposital para permitir permissões granulares no futuro sem migração.
@@ -95,13 +93,13 @@ Tumtu/
 - Autenticação real via Supabase Auth (`auth.users` ligado por `ritmistas.auth_user_id`) — RLS ligado em `ritmistas`, `escolas`, `baterias` desde 05/jul/2026. Restrição por coluna (quem edita o quê) é feita por trigger (`aplicar_matriz_edicao_ritmistas`), não pela policy de RLS.
 - Vocabulário: o valor "ativo" no banco é literalmente `status = "aprovado"`, não `"ativo"`.
 
-## Estado atual (alto nível — ver `docs/tutti-documentacao-tecnica.md` seção 17 para histórico completo)
+## Estado atual (alto nível — ver `docs/tumtu-documentacao-tecnica.md` seção 17 para histórico completo)
 
-✅ Concluído: rename de marca Tutti→TumTu, autenticação real + RLS, motor único de edição de perfil, "esqueci minha senha" self-service, PWA.
-🚧 Pendências conhecidas (não urgentes): ver seção 9 de `tutti-documentacao-tecnica.md` — inclui "Leaked Password Protection" desligada no Supabase Auth, exportação de lista para Excel, domínio `tumtu.com.br` ainda não conectado na Vercel.
+✅ Concluído: rename de marca Tutti→TumTu (inclusive nomes de arquivo da documentação), autenticação real + RLS, motor único de edição de perfil, "esqueci minha senha" self-service, PWA.
+🚧 Pendências conhecidas (não urgentes): ver seção 9 de `tumtu-documentacao-tecnica.md` — inclui exportação de lista para Excel, domínio `tumtu.com.br` ainda não conectado na Vercel, "Leaked Password Protection" adiada por depender de plano pago do Supabase.
 
 ---
 
 ## Contas de teste
 
-Banco roda só com dados fake (`dados/tutti-dados-fake-reset.xlsx`). Senha padrão de todas as contas fake: `Teste123`. Super Admin (Márcia): `tutti2027`.
+Banco roda só com dados fake (`dados/tumtu-dados-fake-reset.xlsx`). Senha padrão de todas as contas fake: `Teste123`. Super Admin (Márcia): `tutti2027`.
