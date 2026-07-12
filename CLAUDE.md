@@ -24,6 +24,7 @@ Este projeto tem documentação de produto detalhada em `docs/` — **leia o doc
 | `docs/tumtu-design-guide.md` | Paleta, tipografia, componentes visuais, checklist obrigatório antes de mudança visual | **Sempre antes de qualquer alteração visual** |
 | `docs/tumtu-documentacao-tecnica.md` | Arquitetura, modelo de dados, RLS, Edge Function, histórico de decisões técnicas | Antes de mexer em banco, autenticação, permissões |
 | `docs/tumtu-plano-de-testes.md` | Estratégia de teste, dados fake, roteiros de teste manual | Antes de testar mudanças ou popular dados |
+| `docs/tumtu-estrategia-piloto.md` | Estratégia de entrada via carteirinha beta gratuita, operação do piloto, problema de ritmista em múltiplas baterias (bloqueador ativo) | Antes de mexer em cadastro/aprovação/login pensando no piloto, ou em qualquer coisa ligada a "múltiplas baterias por pessoa" |
 
 `docs/README.md` **não existe mais** — foi removido em 09/jul/2026 por descrever uma versão bem antiga do sistema (senha em texto puro, sem Super Admin) que divergia dos 4 docs acima.
 
