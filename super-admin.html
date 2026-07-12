@@ -356,8 +356,8 @@
             <div class="painel-titulo">Instrumentos</div>
             <div class="painel-sub">Biblioteca mestre — vale para todas as escolas. Cada categoria pode ter mais de um nome possível (nomenclatura); cada bateria escolhe qual usar em "Configurações → Instrumentos" no painel dela.</div>
             <button class="btn-novo" onclick="abrirNovaCategoria()">+ Nova Categoria</button>
-            <div id="sa-categorias-lista"></div>
             <div id="sa-categoria-editor" style="display:none;"></div>
+            <div id="sa-categorias-lista"></div>
         </div>
 
     </div>
@@ -1408,6 +1408,7 @@
                     <button class="btn-ficha" onclick="fecharEditorCategoria()">Cancelar</button>
                 </div>
             </div>`;
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function sincronizarNomenclaturasDoDOM() {
