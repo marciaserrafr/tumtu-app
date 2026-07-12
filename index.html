@@ -196,7 +196,10 @@
                 </div>
             </div>
             <div class="auth-form-group">
-                <label>Data de nascimento <span class="obrigatorio">*</span></label>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                    <label style="margin-bottom:0;">Data de nascimento <span class="obrigatorio">*</span></label>
+                    <button type="button" onclick="document.getElementById('nascimento').value=''" style="background:none;border:none;padding:0;font-size:12px;color:var(--cor-texto-secundario);cursor:pointer;text-decoration:underline;">Limpar</button>
+                </div>
                 <input type="date" id="nascimento" required>
             </div>
         </div>
@@ -214,14 +217,6 @@
                 <label>Instrumento <span class="obrigatorio">*</span></label>
                 <select id="instrumento" required>
                     <option value="">Selecione</option>
-                    <option>Agogô</option>
-                    <option>Caixa</option>
-                    <option>Chocalho</option>
-                    <option>Cuíca</option>
-                    <option>Reco-reco</option>
-                    <option>Repique</option>
-                    <option>Surdo</option>
-                    <option>Tamborim</option>
                 </select>
             </div>
             <div class="auth-form-group">
@@ -544,6 +539,16 @@
         el.style.display = 'block';
     }
 
+    // ── OPÇÕES DE INSTRUMENTO (dinâmicas, dependem da bateria) ──────────────
+    async function carregarOpcoesInstrumento(bateriaId) {
+        const select = document.getElementById('instrumento');
+        if (!select || !bateriaId) return;
+        const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos_publicos?bateria_id=eq.${bateriaId}&order=grupo,ordem`, { headers });
+        const opcoes = res.ok ? await res.json() : [];
+        select.innerHTML = '<option value="">Selecione</option>' + opcoes.map(o => `<option value="${o.id}">${o.nome_exibicao}</option>`).join('');
+    }
+
     // ── CADASTRO VIA LINK FIXO (?bateria=&cargo=) — Ritmista/Mestre/Diretor ─
     let linkFixoAtual = null;
 
@@ -568,6 +573,7 @@
 
         const perfil = cargoParam === 'mestre' ? 'mestre' : cargoParam === 'diretor' ? 'diretor' : 'ritmista';
         linkFixoAtual = { perfil, bateriaId: bateria.id };
+        await carregarOpcoesInstrumento(bateria.id);
 
         const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = cargoLabel;
@@ -606,6 +612,7 @@
         const baterias = await resBat.json();
 
         modoManualAtual = { cargo, bateriaId: Number(bateriaId), criadoPorId: usuarioLogado.id };
+        await carregarOpcoesInstrumento(Number(bateriaId));
         const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = cargoLabel;
         document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
@@ -734,7 +741,7 @@
             nascimento: document.getElementById('nascimento').value,
             celular: document.getElementById('celular').value,
             email: email || null,
-            instrumento: document.getElementById('instrumento').value,
+            bateria_instrumento_id: document.getElementById('instrumento').value ? Number(document.getElementById('instrumento').value) : null,
             endereco: document.getElementById('endereco').value,
             numero: document.getElementById('numero').value,
             complemento: document.getElementById('complemento').value || null,

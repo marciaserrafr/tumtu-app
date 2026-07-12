@@ -207,7 +207,7 @@
             return;
         }
 
-        const { data: perfilRows } = await sb.from('ritmistas').select('*').eq('auth_user_id', authData.user.id).limit(1);
+        const { data: perfilRows } = await sb.from('ritmistas_com_instrumento').select('*').eq('auth_user_id', authData.user.id).limit(1);
         if (!perfilRows || perfilRows.length === 0) {
             mostrarMensagem('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
             return;

@@ -224,7 +224,7 @@
 
 <div class="c-toast" id="cToast"></div>
 
-<script src="ficha-perfil.js?v=1"></script>
+<script src="ficha-perfil.js?v=2"></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
@@ -259,7 +259,7 @@
         }
 
         // Instrumento
-        document.getElementById('instrumentoRitmista').textContent = ritmista.instrumento || '—';
+        document.getElementById('instrumentoRitmista').textContent = ritmista.instrumento_nome || '—';
 
         // CPF
         document.getElementById('cpfRitmista').textContent = ritmista.cpf || '—';
@@ -348,7 +348,7 @@
         (async () => {
             const { data: sessionData } = await sb.auth.getSession();
             const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
-            fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${idParam}&select=*`, {
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?id=eq.${idParam}&select=*`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
             })
             .then(r => r.json())

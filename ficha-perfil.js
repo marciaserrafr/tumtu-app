@@ -15,7 +15,6 @@ const FP_CAMPOS = [
     { id: 'fp-celular',              col: 'celular' },
     { id: 'fp-email',                col: 'email' },
     { id: 'fp-membro-desde',         col: 'membro_desde' },
-    { id: 'fp-instrumento',          col: 'instrumento' },
     { id: 'fp-endereco',             col: 'endereco' },
     { id: 'fp-numero',               col: 'numero' },
     { id: 'fp-complemento',          col: 'complemento' },
@@ -48,7 +47,7 @@ function fpEl(id) {
 // Tabela A (autoedição) + Tabela B (editando outra pessoa) — fonte única.
 function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
     if (atorPerfil === 'super_admin') {
-        return new Set(FP_CAMPOS.map(c => c.col).concat(['foto_url']));
+        return new Set(FP_CAMPOS.map(c => c.col).concat(['foto_url', 'bateria_instrumento_id']));
     }
 
     if (autoedicao) {
@@ -60,7 +59,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
     }
 
     if ((atorPerfil === 'diretor' || atorPerfil === 'mestre') && alvoPerfil === 'ritmista') {
-        return new Set(['instrumento', 'tamanho_camisa', 'tamanho_fantasia', 'tamanho_calca', 'tamanho_sapato']);
+        return new Set(['bateria_instrumento_id', 'tamanho_camisa', 'tamanho_fantasia', 'tamanho_calca', 'tamanho_sapato']);
     }
 
     return new Set();
@@ -68,7 +67,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=1');
+        const res = await fetch('ficha-perfil.partial.html?v=2');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -119,6 +118,7 @@ function fpIniciar(alvo, meuPerfil, meuId, opcoes) {
     }
 
     fpEl('fp-secao-instrumento').style.display = alvo.perfil === 'ritmista' ? '' : 'none';
+    fpEl('fp-instrumento').textContent = alvo.instrumento_nome || '—';
     fpEl('fp-secao-senha').style.display = autoedicao ? '' : 'none';
     fpEl('fp-senha-nova').value = '';
     fpEl('fp-senha-confirmar').value = '';
@@ -132,7 +132,27 @@ function fpIniciar(alvo, meuPerfil, meuId, opcoes) {
     fpEl('fp-btn-cancelar').style.display = 'none';
 }
 
-function fpAtivarEdicao() {
+async function fpCarregarOpcoesInstrumento(bateriaId) {
+    if (!bateriaId) return [];
+    const { data: sessionData } = await sb.auth.getSession();
+    const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
+    const authHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` };
+    const [resBI, resCat, resNom] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?bateria_id=eq.${bateriaId}&ativo=eq.true`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas`, { headers: authHeaders }),
+    ]);
+    const bi = await resBI.json();
+    const categorias = await resCat.json();
+    const nomenclaturas = await resNom.json();
+    return bi.map(item => {
+        const cat = categorias.find(c => c.id === item.categoria_id);
+        const nom = nomenclaturas.find(n => n.id === item.nomenclatura_id);
+        return { id: item.id, nome: (nom && nom.nome) || (cat && cat.nome) || '—' };
+    }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+}
+
+async function fpAtivarEdicao() {
     FP_CAMPOS.forEach(({ id, col, tipo }) => {
         const strong = fpEl(id);
         const input = fpEl(id + '-edit');
@@ -148,6 +168,16 @@ function fpAtivarEdicao() {
         fpEl('fp-documento').style.display = 'none';
         fpEl('fp-tipo-documento-edit').style.display = 'block';
         fpEl('fp-numero-documento-edit').style.display = 'block';
+    }
+
+    if (fpEstado.editaveis.has('bateria_instrumento_id')) {
+        const select = fpEl('fp-instrumento-edit');
+        const opcoes = await fpCarregarOpcoesInstrumento(fpEstado.alvo.bateria_id);
+        select.innerHTML = '<option value="">Selecione</option>' + opcoes.map(o =>
+            `<option value="${o.id}" ${o.id === fpEstado.alvo.bateria_instrumento_id ? 'selected' : ''}>${o.nome}</option>`
+        ).join('');
+        fpEl('fp-instrumento').style.display = 'none';
+        select.style.display = 'block';
     }
 
     fpEl('fp-btn-editar').style.display = 'none';
@@ -167,6 +197,10 @@ function fpCancelarEdicao() {
         fpEl('fp-documento').style.display = '';
         fpEl('fp-tipo-documento-edit').style.display = 'none';
         fpEl('fp-numero-documento-edit').style.display = 'none';
+    }
+    if (fpEstado.editaveis.has('bateria_instrumento_id')) {
+        fpEl('fp-instrumento').style.display = '';
+        fpEl('fp-instrumento-edit').style.display = 'none';
     }
     fpFotoBase64 = null;
     fpEl('fp-btn-editar').style.display = 'inline-flex';
@@ -207,6 +241,10 @@ async function fpSalvar() {
         payload.tipo_documento = fpEl('fp-tipo-documento-edit').value.trim() || null;
         payload.numero_documento = fpEl('fp-numero-documento-edit').value.trim() || null;
     }
+    if (fpEstado.editaveis.has('bateria_instrumento_id')) {
+        const val = fpEl('fp-instrumento-edit').value;
+        payload.bateria_instrumento_id = val ? Number(val) : null;
+    }
     if (fpFotoBase64 && fpEstado.editaveis.has('foto_url')) payload.foto_url = fpFotoBase64;
 
     const { data: sessionData } = await sb.auth.getSession();
@@ -225,8 +263,13 @@ async function fpSalvar() {
 
     const mensagem = fpEl('fp-mensagem');
     if (res.ok) {
-        const atualizado = await res.json();
-        const novosDados = (atualizado && atualizado[0]) ? atualizado[0] : { ...fpEstado.alvo, ...payload };
+        // Busca na view (não na resposta do PATCH) pra já vir com instrumento_nome
+        // resolvido — inclusive quando o instrumento acabou de ser trocado.
+        const resFresco = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?id=eq.${fpEstado.alvo.id}`, {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` },
+        });
+        const frescos = await resFresco.json();
+        const novosDados = (frescos && frescos[0]) ? frescos[0] : { ...fpEstado.alvo, ...payload };
         if (fpEstado.autoedicao) {
             localStorage.setItem('ritmista', JSON.stringify(novosDados));
         }

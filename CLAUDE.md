@@ -7,7 +7,7 @@
 
 ## O que é o TumTu
 
-SaaS de gestão de baterias de escola de samba: cadastro de ritmistas, aprovação por Mestre/Diretor, carteirinha digital. Nome vem do som do surdo de bateria ("TUM-TU, TUM-TU..."). Piloto gratuito na Swing da Leopoldina (bateria da G.R.E.S. Imperatriz Leopoldinense), com visão de virar produto comercial multi-escola no futuro.
+SaaS de gestão de baterias de escola de samba: cadastro de ritmistas, aprovação por Mestre/Diretor, carteirinha digital. Nome vem do som do surdo de bateria ("TUM-TU, TUM-TU..."). Visão de virar produto comercial multi-escola no futuro.
 
 **Quem constrói:** Márcia Serra — empreendedora, **não é desenvolvedora**, zero conhecimento prévio de programação. Todo o código é escrito pela IA (Claude Code); Márcia decide produto, UX e regras de negócio. Ela está aprendendo sobre IA construindo este projeto ao mesmo tempo.
 
@@ -108,4 +108,4 @@ Depois do domínio: 1) revisão de todas as telas (correções gerais) → 2) re
 
 ## Contas de teste
 
-Banco roda só com dados fake (`dados/tumtu-dados-fake-reset.xlsx`). Senha padrão de todas as contas fake: `Teste123`. Super Admin (Márcia): `tutti2027`.
+Banco roda só com dados fake (`dados/tumtu-dados-fake-reset.xlsx`). Senha padrão de todas as contas fake: `Teste123`. Super Admin (Márcia): e-mail `tumtuapp@gmail.com`, senha `tumtu2027`.
