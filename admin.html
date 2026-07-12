@@ -1321,7 +1321,7 @@
         const container = document.getElementById('config-instrumentos-lista');
         const grupos = [['tradicional', 'Tradicionais'], ['especial', 'Especiais']];
         container.innerHTML = grupos.map(([chave, label]) => {
-            const itens = bibliotecaInstrumentos.filter(c => c.grupo === chave);
+            const itens = bibliotecaInstrumentos.filter(c => c.grupo === chave).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
             if (itens.length === 0) return '';
             return `<div class="config-grupo-titulo">${label}</div>${itens.map(c => renderizarLinhaInstrumento(c)).join('')}`;
         }).join('');
@@ -1334,7 +1334,7 @@
         if (ativo && c.nomenclaturas.length > 0) {
             nomenclaturaHtml = `
                 <select class="config-instrumento-nomenclatura" onchange="salvarInstrumentoBateria(${c.id}, true, this.value)">
-                    ${c.nomenclaturas.map(n => `<option value="${n.id}" ${existente && existente.nomenclatura_id === n.id ? 'selected' : ''}>${n.nome}</option>`).join('')}
+                    ${[...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => `<option value="${n.id}" ${existente && existente.nomenclatura_id === n.id ? 'selected' : ''}>${n.nome}</option>`).join('')}
                 </select>`;
         }
         return `

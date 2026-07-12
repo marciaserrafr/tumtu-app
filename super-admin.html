@@ -1332,13 +1332,13 @@
         }
         const grupos = [['tradicional', 'Tradicionais'], ['especial', 'Especiais']];
         container.innerHTML = grupos.map(([chave, label]) => {
-            const itens = categoriasCache.filter(c => c.grupo === chave).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            const itens = categoriasCache.filter(c => c.grupo === chave).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
             if (itens.length === 0) return '';
             return `<div class="config-grupo-titulo">${label}</div>` + itens.map(c => `
                 <div class="item-card">
                     <div class="item-info">
                         <div class="item-nome">${esc(c.nome)} ${c.ativo === false ? '<span class="badge-inativo">Inativa</span>' : ''}</div>
-                        <div class="item-detalhe">${c.nomenclaturas.length > 0 ? esc(c.nomenclaturas.map(n => n.nome).join(', ')) : 'Sem nomenclaturas alternativas'}</div>
+                        <div class="item-detalhe">${c.nomenclaturas.length > 0 ? esc([...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => n.nome).join(', ')) : 'Sem nomenclaturas alternativas'}</div>
                     </div>
                     <div class="item-acoes">
                         <button class="btn-ficha" onclick="abrirEditarCategoria(${c.id})">Editar</button>
@@ -1358,7 +1358,7 @@
         if (!c) return;
         categoriaEditando = {
             id: c.id, nome: c.nome, grupo: c.grupo, ativo: c.ativo !== false,
-            nomenclaturas: c.nomenclaturas.map(n => ({ id: n.id, nome: n.nome })),
+            nomenclaturas: [...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => ({ id: n.id, nome: n.nome })),
             removidas: []
         };
         renderizarEditorCategoria();
@@ -1367,7 +1367,6 @@
     function renderizarEditorCategoria() {
         const ce = categoriaEditando;
         const editor = document.getElementById('sa-categoria-editor');
-        document.getElementById('sa-categorias-lista').style.display = ce ? 'none' : 'block';
         if (!ce) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
         editor.innerHTML = `
@@ -1449,46 +1448,51 @@
         const btnSalvar = document.getElementById('cat-btn-salvar');
         if (btnSalvar) btnSalvar.disabled = true;
 
-        let categoriaId = categoriaEditando.id;
-        if (categoriaId) {
-            await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?id=eq.${categoriaId}`, {
-                method: 'PATCH', headers, body: JSON.stringify({ nome, grupo, ativo })
-            });
-        } else {
-            const ordem = Math.max(0, ...categoriasCache.map(c => c.ordem || 0)) + 1;
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias`, {
-                method: 'POST', headers, body: JSON.stringify({ nome, grupo, ativo, ordem })
-            });
-            const dados = await res.json();
-            categoriaId = dados[0].id;
-        }
-
-        for (const id of categoriaEditando.removidas) {
-            await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?id=eq.${id}`, { method: 'DELETE', headers });
-        }
-
-        let ordemNom = 1;
-        for (const n of categoriaEditando.nomenclaturas) {
-            const nomeNom = (n.nome || '').trim();
-            if (!nomeNom) { ordemNom++; continue; }
-            if (n.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?id=eq.${n.id}`, {
-                    method: 'PATCH', headers, body: JSON.stringify({ nome: nomeNom, ordem: ordemNom })
+        try {
+            let categoriaId = categoriaEditando.id;
+            if (categoriaId) {
+                await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?id=eq.${categoriaId}`, {
+                    method: 'PATCH', headers, body: JSON.stringify({ nome, grupo, ativo })
                 });
             } else {
-                await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas`, {
-                    method: 'POST', headers, body: JSON.stringify({ categoria_id: categoriaId, nome: nomeNom, ordem: ordemNom })
+                const ordem = Math.max(0, ...categoriasCache.map(c => c.ordem || 0)) + 1;
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias`, {
+                    method: 'POST', headers, body: JSON.stringify({ nome, grupo, ativo, ordem })
                 });
+                const dados = await res.json();
+                categoriaId = dados[0].id;
             }
-            ordemNom++;
-        }
 
-        mostrarToast(categoriaEditando.id ? 'Categoria atualizada!' : 'Categoria criada!');
-        categoriaEditando = null;
-        salvandoCategoria = false;
-        await carregarCategorias();
-        renderizarEditorCategoria();
-        renderizarCategoriasLista();
+            for (const id of categoriaEditando.removidas) {
+                await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?id=eq.${id}`, { method: 'DELETE', headers });
+            }
+
+            let ordemNom = 1;
+            for (const n of categoriaEditando.nomenclaturas) {
+                const nomeNom = (n.nome || '').trim();
+                if (!nomeNom) { ordemNom++; continue; }
+                if (n.id) {
+                    await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?id=eq.${n.id}`, {
+                        method: 'PATCH', headers, body: JSON.stringify({ nome: nomeNom, ordem: ordemNom })
+                    });
+                } else {
+                    await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas`, {
+                        method: 'POST', headers, body: JSON.stringify({ categoria_id: categoriaId, nome: nomeNom, ordem: ordemNom })
+                    });
+                }
+                ordemNom++;
+            }
+
+            mostrarToast(categoriaEditando.id ? 'Categoria atualizada!' : 'Categoria criada!');
+            categoriaEditando = null;
+            await carregarCategorias();
+            renderizarEditorCategoria();
+            renderizarCategoriasLista();
+        } catch (e) {
+            mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro');
+        } finally {
+            salvandoCategoria = false;
+        }
     }
 
     async function excluirCategoria(id) {
