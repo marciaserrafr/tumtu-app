@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=2"></script>
+    <script src="ficha-perfil.js?v=3"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -557,7 +557,7 @@
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!u) return;
         await fpMontar(document.getElementById('fp-container-meuperfil'));
-        fpIniciar(u, u.perfil, u.id);
+        fpIniciar(u, u.perfil, u.pessoa_id);
     }
 
     async function selecionarEscola(id) {
@@ -1025,7 +1025,7 @@
     // ══════════════════════════════════════════════════════════════════
 
     async function carregarAcessos(escolaId) {
-        let url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&order=nome&select=id,nome,apelido,cpf,perfil,bateria_id,status`;
+        let url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor)&order=nome&select=id,pessoa_id,nome,apelido,cpf,perfil,bateria_id,status`;
         if (escolaId) {
             const ids = bateriasCache.map(b => b.id);
             if (!ids.length) { renderizarListaAcessos([]); return; }
@@ -1094,16 +1094,16 @@
     }
 
     async function aprovarAcesso(id) {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
             method: 'PATCH', headers,
-            body: JSON.stringify({ status: 'aprovado', aprovado_por: usuarioLogado.id, motivo_status: null })
+            body: JSON.stringify({ status: 'aprovado', aprovado_por: usuarioLogado.pessoa_id, motivo_status: null })
         });
         if (res.ok) { mostrarToast('Acesso aprovado!'); carregarAcessos(escolaSelecionadaId); }
         else { mostrarToast('Erro ao aprovar.', 'erro'); }
     }
 
     async function rejeitarAcesso(id) {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
             method: 'PATCH', headers,
             body: JSON.stringify({ status: 'rejeitado' })
         });
@@ -1123,7 +1123,7 @@
     async function verAcesso(id) { await editarAcesso(id); }
     async function editarAcesso(id) {
         const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}&select=id,nome,apelido,cpf,perfil,bateria_id,status`,
+            `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?id=eq.${id}&select=id,pessoa_id,nome,apelido,cpf,perfil,bateria_id,status`,
             { headers }
         );
         const dados = await res.json();
@@ -1143,7 +1143,8 @@
                 </select></div>
                 <div class="campo"><label>Bateria Vinculada *</label><select id="acesso-bateria-id" disabled>${bateriasOpcoesHTML(u.bateria_id)}</select></div>
             </div>
-            <input type="hidden" id="acesso-id" value="${u.id}">`;
+            <input type="hidden" id="acesso-id" value="${u.id}">
+            <input type="hidden" id="acesso-pessoa-id" value="${u.pessoa_id}">`;
         document.getElementById('modal-acesso-rodape').innerHTML = `
             <div class="modal-sa-rodape-esq">
                 <button class="btn-ficha btn-ficha-editar" onclick="habilitarEdicaoAcesso()">Editar</button>
@@ -1174,13 +1175,13 @@
             const motivo = prompt('Informe o motivo da desativação:');
             if (motivo === null) return;
             if (!motivo.trim()) { mostrarToast('Informe um motivo para desativar.', 'erro'); return; }
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
                 method: 'PATCH', headers,
                 body: JSON.stringify({ status: 'inativo', motivo_status: motivo.trim() })
             });
             if (res.ok) { mostrarToast('Acesso desativado.'); carregarAcessos(escolaSelecionadaId); }
         } else {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
                 method: 'PATCH', headers,
                 body: JSON.stringify({ status: 'aprovado', motivo_status: null })
             });
@@ -1195,6 +1196,7 @@
         const bateriaId = document.getElementById('acesso-bateria-id').value;
         const apelido = document.getElementById('acesso-apelido').value.trim();
         const id = document.getElementById('acesso-id').value;
+        const pessoaId = document.getElementById('acesso-pessoa-id').value;
 
         if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
         if (!apelido) { mostrarToast('Informe o apelido.', 'erro'); return; }
@@ -1202,19 +1204,21 @@
         if (!perfil) { mostrarToast('Selecione o perfil.', 'erro'); return; }
         if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
 
-        const payload = { nome, apelido, cpf, perfil, bateria_id: bateriaId };
-
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
-            method: 'PATCH', headers, body: JSON.stringify(payload)
+        const resPessoa = await fetch(`${SUPABASE_URL}/rest/v1/pessoas?id=eq.${pessoaId}`, {
+            method: 'PATCH', headers, body: JSON.stringify({ nome, apelido, cpf })
+        });
+        const resVinculo = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
+            method: 'PATCH', headers, body: JSON.stringify({ perfil, bateria_id: bateriaId })
         });
 
-        if (res.ok) {
+        if (resPessoa.ok && resVinculo.ok) {
             mostrarToast('Acesso atualizado!');
             fecharFormAcesso();
             carregarAcessos(escolaSelecionadaId);
         } else {
-            const err = await res.json();
-            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+            const errRes = !resPessoa.ok ? resPessoa : resVinculo;
+            const err = await errRes.json();
+            mostrarToast('Erro: ' + (err.message || errRes.status), 'erro');
         }
     }
 

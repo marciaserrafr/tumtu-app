@@ -768,6 +768,14 @@
             if (linkFixoAtual.perfil !== 'ritmista') dados.nivel_acesso = 'total';
         }
 
+        // Cadastro só existe vinculado a uma escola/bateria (link fixo ou modo manual) —
+        // o "modo público" sem nenhum parâmetro na URL não é mais um caminho válido.
+        if (!linkFixoAtual && !modoManualAtual) {
+            mostrarMensagem('Link de cadastro inválido. Peça um novo link ao seu Mestre ou Diretor.', 'erro');
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            return;
+        }
+
         // Modo manual (Super Admin/Mestre cadastrando em nome de alguém) passa pela
         // Edge Function admin-create-user, que cria a conta de auth em nome de outra
         // pessoa (precisa de service_role — não dá pra fazer isso do navegador direto).
@@ -805,17 +813,80 @@
             return;
         }
 
-        // Cadastro público e via link fixo criam conta real no Supabase Auth.
-        const { data: authData, error: authError } = await sb.auth.signUp({ email, password: senha });
-        if (authError) {
-            mostrarMensagem('Erro ao criar acesso: ' + authError.message, 'erro');
+        // Cadastro via link fixo: primeiro verifica se essa pessoa (CPF/e-mail) já
+        // tem conta no TumTu — se tiver, entra na conta existente e só cria o vínculo
+        // novo com esta bateria, em vez de tentar criar uma conta duplicada (o que
+        // sempre falhava quando a pessoa já tocava em outra bateria).
+        const { data: checagem, error: erroChecagem } = await sb.rpc('verificar_pessoa_existente', { p_email: email, p_cpf: cpf || '' });
+        const info = checagem && checagem[0] ? checagem[0] : { existe_email: false, existe_cpf: false, cpf_bate_email: false };
+
+        if (info.existe_cpf && !info.cpf_bate_email) {
+            mostrarMensagem('Esse CPF já tem cadastro no TumTu com outro e-mail. Use o e-mail original ou clique em "Esqueci minha senha" no login.', 'erro');
             if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
             return;
         }
-        dados.auth_user_id = authData.user.id;
-        const tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
 
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas`, {
+        // pessoaId/tokenCadastro ficam prontos tanto pro caminho "pessoa nova"
+        // quanto pro caminho "pessoa já existe, só entra numa bateria nova".
+        let pessoaId = null;
+        let tokenCadastro = SUPABASE_KEY;
+
+        if (info.existe_email) {
+            const { data: authData, error: authError } = await sb.auth.signInWithPassword({ email, password: senha });
+            if (authError || !authData.user) {
+                mostrarMensagem('Esse e-mail já tem cadastro no TumTu. Se não lembra a senha, clique em "Esqueci minha senha" no login.', 'erro');
+                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                return;
+            }
+            tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
+            const resPessoa = await fetch(`${SUPABASE_URL}/rest/v1/pessoas?auth_user_id=eq.${authData.user.id}&select=id`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${tokenCadastro}` }
+            });
+            const pessoaExistente = await resPessoa.json();
+            pessoaId = pessoaExistente && pessoaExistente[0] ? pessoaExistente[0].id : null;
+        } else {
+            const { data: authData, error: authError } = await sb.auth.signUp({ email, password: senha });
+            if (authError) {
+                mostrarMensagem('Erro ao criar acesso: ' + authError.message, 'erro');
+                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                return;
+            }
+            tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
+            const dadosPessoa = {
+                auth_user_id: authData.user.id,
+                nome: dados.nome, apelido: dados.apelido, nacionalidade: dados.nacionalidade, cpf: dados.cpf,
+                tipo_documento: dados.tipo_documento, numero_documento: dados.numero_documento, nascimento: dados.nascimento,
+                celular: dados.celular, email: dados.email, endereco: dados.endereco, numero: dados.numero,
+                complemento: dados.complemento, bairro: dados.bairro, cidade: dados.cidade, estado: dados.estado,
+                pais: dados.pais, tamanho_camisa: dados.tamanho_camisa, tamanho_fantasia: dados.tamanho_fantasia,
+                tamanho_calca: dados.tamanho_calca, tamanho_sapato: dados.tamanho_sapato, tipo_sanguineo: dados.tipo_sanguineo,
+                emergencia_nome: dados.emergencia_nome, emergencia_parentesco: dados.emergencia_parentesco,
+                emergencia_celular: dados.emergencia_celular
+            };
+            const resPessoa = await fetch(`${SUPABASE_URL}/rest/v1/pessoas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${tokenCadastro}`, 'Prefer': 'return=representation' },
+                body: JSON.stringify(dadosPessoa)
+            });
+            if (!resPessoa.ok) {
+                mostrarMensagem('Erro ao enviar cadastro. Tente novamente.', 'erro');
+                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                return;
+            }
+            const novaPessoa = await resPessoa.json();
+            pessoaId = novaPessoa && novaPessoa[0] ? novaPessoa[0].id : null;
+        }
+
+        const dadosVinculo = {
+            pessoa_id: pessoaId,
+            bateria_id: dados.bateria_id,
+            perfil: dados.perfil,
+            status: 'pendente',
+            nivel_acesso: dados.nivel_acesso || null,
+            bateria_instrumento_id: dados.bateria_instrumento_id,
+            membro_desde: dados.membro_desde
+        };
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -823,7 +894,7 @@
                 'Authorization': `Bearer ${tokenCadastro}`,
                 'Prefer': 'return=representation'
             },
-            body: JSON.stringify(dados)
+            body: JSON.stringify(dadosVinculo)
         });
 
         if (res.ok) {
@@ -839,7 +910,12 @@
                 if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
             }
         } else {
-            mostrarMensagem('Erro ao enviar cadastro. Tente novamente.', 'erro');
+            const erroTexto = await res.text();
+            if (erroTexto.includes('23505')) {
+                mostrarMensagem('Você já tem cadastro nesta bateria.', 'erro');
+            } else {
+                mostrarMensagem('Erro ao enviar cadastro. Tente novamente.', 'erro');
+            }
             if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
         }
     });

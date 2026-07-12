@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=2"></script>
+    <script src="ficha-perfil.js?v=3"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -870,7 +870,7 @@
         const body = { status };
         if (motivo !== null) body.motivo_status = motivo;
         if (status === 'aprovado') body.motivo_status = null;
-        await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify(body)
@@ -879,7 +879,7 @@
     }
 
     async function alternarDeclaracao(id, entregue) {
-        await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ declaracao_responsavel: entregue })
@@ -1061,7 +1061,7 @@
 
         const meu = JSON.parse(localStorage.getItem('ritmista') || 'null');
         await fpMontar(document.getElementById('fp-container-ritmista'));
-        fpIniciar(r, meu ? meu.perfil : null, meu ? meu.id : null, { aoSalvar: () => carregarRitmistas() });
+        fpIniciar(r, meu ? meu.perfil : null, meu ? meu.pessoa_id : null, { aoSalvar: () => carregarRitmistas() });
 
         // Menor — declaração
         const menor = idade !== null && idade < 18;
@@ -1462,7 +1462,7 @@
         if (!u) return;
 
         await fpMontar(document.getElementById('fp-container-meuperfil'));
-        fpIniciar(u, u.perfil, u.id);
+        fpIniciar(u, u.perfil, u.pessoa_id);
     }
 
     // ── DIRETORIA ─────────────────────────────────────────────────────────────
@@ -1476,7 +1476,7 @@
         lista.innerHTML = '<div class="vazio">Carregando...</div>';
 
         if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
-        const url = `${SUPABASE_URL}/rest/v1/ritmistas?perfil=in.(mestre,diretor)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=*`;
+        const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=*`;
 
         const res = await fetch(url, {
             headers: authHeaders
@@ -1538,17 +1538,17 @@
 
     async function aprovarDiretor(id) {
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
-            body: JSON.stringify({ status: 'aprovado', aprovado_por: u ? u.id : null, motivo_status: null })
+            body: JSON.stringify({ status: 'aprovado', aprovado_por: u ? u.pessoa_id : null, motivo_status: null })
         });
         diretoriaCarregada = false;
         await carregarDiretoria();
     }
 
     async function rejeitarDiretor(id) {
-        await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${id}`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ status: 'rejeitado' })
@@ -1565,7 +1565,7 @@
 
         const usuarioAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');
         await fpMontar(document.getElementById('fp-container-admin'));
-        fpIniciar(a, usuarioAtual ? usuarioAtual.perfil : null, usuarioAtual ? usuarioAtual.id : null, { aoSalvar: () => { diretoriaCarregada = false; carregarDiretoria(); } });
+        fpIniciar(a, usuarioAtual ? usuarioAtual.perfil : null, usuarioAtual ? usuarioAtual.pessoa_id : null, { aoSalvar: () => { diretoriaCarregada = false; carregarDiretoria(); } });
 
         document.getElementById('modalAdmin').style.display = 'block';
         document.body.style.overflow = 'hidden';

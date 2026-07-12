@@ -224,7 +224,7 @@
 
 <div class="c-toast" id="cToast"></div>
 
-<script src="ficha-perfil.js?v=2"></script>
+<script src="ficha-perfil.js?v=3"></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
@@ -379,7 +379,7 @@
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!u) return;
         await fpMontar(document.getElementById('fp-container-perfil'));
-        fpIniciar(u, u.perfil, u.id, {
+        fpIniciar(u, u.perfil, u.pessoa_id, {
             aoSalvar: (novosDados) => {
                 document.getElementById('apelidoRitmista').textContent = novosDados.apelido ? '"' + novosDados.apelido + '"' : '';
                 if (novosDados.foto_url) {

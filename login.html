@@ -82,6 +82,14 @@
     </div>
 </div>
 
+<div class="auth-container" id="containerEscolherBateria" style="display:none;">
+    <div class="logo">
+        <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
+        <p>Qual bateria você quer ver?</p>
+    </div>
+    <div id="listaBaterias"></div>
+</div>
+
 <div class="auth-container" id="containerRecuperacao" style="display:none;">
     <div class="logo">
         <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
@@ -136,6 +144,36 @@
         el.textContent = texto;
         el.className = `mensagem ${tipo}`;
         el.style.display = 'block';
+    }
+
+    function continuarComVinculo(vinculo) {
+        const perfil = vinculo.perfil || 'ritmista';
+        const isAdmin = perfil === 'mestre' || perfil === 'diretor';
+
+        if (vinculo.status === 'pendente') {
+            mostrarMensagem(isAdmin
+                ? 'Seu cadastro está em análise. Você poderá acessar o painel assim que for aprovado.'
+                : 'Seu cadastro ainda está aguardando aprovação da diretoria.', 'aviso');
+            return;
+        }
+        if (vinculo.status === 'rejeitado') {
+            mostrarMensagem(isAdmin
+                ? 'Seu cadastro foi recusado. Entre em contato com o Super Admin.'
+                : 'Seu cadastro foi recusado. Entre em contato com a diretoria.', 'erro');
+            return;
+        }
+
+        localStorage.setItem('ritmista', JSON.stringify(vinculo));
+
+        if (isAdmin) {
+            window.location.href = 'admin.html';
+        } else {
+            window.location.href = 'carteirinha.html';
+        }
+    }
+
+    function escolherVinculo(indice) {
+        continuarComVinculo(window.vinculosParaEscolher[indice]);
     }
 
     function mostrarRecuperacao(e) {
@@ -207,47 +245,41 @@
             return;
         }
 
-        const { data: perfilRows } = await sb.from('ritmistas_com_instrumento').select('*').eq('auth_user_id', authData.user.id).limit(1);
-        if (!perfilRows || perfilRows.length === 0) {
+        // Super Admin não tem vínculo com bateria nenhuma — checa isso primeiro, direto na tabela de pessoas.
+        const { data: pessoa } = await sb.from('pessoas').select('id, nome, super_admin').eq('auth_user_id', authData.user.id).maybeSingle();
+        if (!pessoa) {
             mostrarMensagem('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
             return;
         }
-
-        const ritmista = perfilRows[0];
-        const perfil = ritmista.perfil || 'ritmista';
-        const isAdmin = perfil === 'mestre' || perfil === 'diretor';
-
-        if (!isAdmin && perfil !== 'super_admin') {
-            if (ritmista.status === 'pendente') {
-                mostrarMensagem('Seu cadastro ainda está aguardando aprovação da diretoria.', 'aviso');
-                return;
-            }
-            if (ritmista.status === 'rejeitado') {
-                mostrarMensagem('Seu cadastro foi recusado. Entre em contato com a diretoria.', 'erro');
-                return;
-            }
-        }
-
-        if (isAdmin) {
-            if (ritmista.status === 'pendente') {
-                mostrarMensagem('Seu cadastro está em análise. Você poderá acessar o painel assim que for aprovado.', 'aviso');
-                return;
-            }
-            if (ritmista.status === 'rejeitado') {
-                mostrarMensagem('Seu cadastro foi recusado. Entre em contato com o Super Admin.', 'erro');
-                return;
-            }
-        }
-
-        localStorage.setItem('ritmista', JSON.stringify(ritmista));
-
-        if (isAdmin) {
-            window.location.href = 'admin.html';
-        } else if (perfil === 'super_admin') {
+        if (pessoa.super_admin) {
+            localStorage.setItem('ritmista', JSON.stringify({ pessoa_id: pessoa.id, id: pessoa.id, super_admin: true, perfil: 'super_admin', nome: pessoa.nome }));
             window.location.href = 'super-admin.html';
-        } else {
-            window.location.href = 'carteirinha.html';
+            return;
         }
+
+        const { data: vinculos } = await sb.from('ritmistas_com_instrumento').select('*').eq('pessoa_id', pessoa.id);
+        if (!vinculos || vinculos.length === 0) {
+            mostrarMensagem('Você ainda não tem vínculo com nenhuma bateria. Procure seu Mestre ou Diretor pra pedir o link de cadastro.', 'aviso');
+            return;
+        }
+
+        if (vinculos.length === 1) {
+            continuarComVinculo(vinculos[0]);
+            return;
+        }
+
+        // Mais de uma bateria — mostra a telinha de escolha em vez de entrar direto.
+        const { data: baterias } = await sb.from('baterias').select('id, nome').in('id', vinculos.map(v => v.bateria_id));
+        const nomesPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b.nome]));
+        const cargoLabel = { mestre: 'Mestre de Bateria', diretor: 'Diretor', ritmista: 'Ritmista' };
+
+        document.getElementById('listaBaterias').innerHTML = vinculos.map((v, i) => `
+            <button type="button" class="btn-secundario" style="width:100%;margin-top:10px;text-align:left;" onclick="escolherVinculo(${i})">
+                ${nomesPorBateria[v.bateria_id] || 'Bateria'} <span class="label-dica">— ${cargoLabel[v.perfil] || v.perfil}</span>
+            </button>`).join('');
+        window.vinculosParaEscolher = vinculos;
+        document.querySelector('.auth-container:not(#containerRecuperacao):not(#containerEscolherBateria)').style.display = 'none';
+        document.getElementById('containerEscolherBateria').style.display = 'block';
         } finally {
             btn.disabled = false;
             btn.textContent = textoOriginal;

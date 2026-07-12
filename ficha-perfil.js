@@ -34,7 +34,15 @@ const FP_CAMPOS = [
 
 let fpPartialHtml = null;
 let fpFotoBase64 = null;
-let fpEstado = { container: null, alvo: null, meuPerfil: null, meuId: null, autoedicao: false, editaveis: new Set(), aoSalvar: null };
+let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: null, autoedicao: false, editaveis: new Set(), aoSalvar: null };
+
+// Cada coluna editável mora em "pessoas" (dado da pessoa, não muda entre baterias)
+// ou "vinculos" (dado do vínculo com uma bateria específica) — usado por fpSalvar()
+// pra saber em qual tabela gravar cada campo.
+const FP_CAMPO_TABELA = { membro_desde: 'vinculos', bateria_instrumento_id: 'vinculos' };
+function fpTabelaDoCampo(col) {
+    return FP_CAMPO_TABELA[col] || 'pessoas';
+}
 
 // admin.html pode ter mais de um container com a partial injetada ao mesmo
 // tempo (Meu Perfil + ficha da Diretoria + ficha do Ritmista), todos com os
@@ -79,11 +87,11 @@ function fpFormatarData(iso) {
     return new Date(iso + 'T00:00:00').toLocaleDateString('pt-BR');
 }
 
-function fpIniciar(alvo, meuPerfil, meuId, opcoes) {
+function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     opcoes = opcoes || {};
-    const autoedicao = alvo.id === meuId;
+    const autoedicao = alvo.pessoa_id === minhaPessoaId;
     const editaveis = fpCamposEditaveis(meuPerfil, autoedicao, alvo.perfil);
-    fpEstado = { container: fpEstado.container, alvo, meuPerfil, meuId, autoedicao, editaveis, aoSalvar: opcoes.aoSalvar || null };
+    fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, aoSalvar: opcoes.aoSalvar || null };
     fpFotoBase64 = null;
 
     const cargo = alvo.perfil === 'mestre' ? 'Mestre de Bateria' : alvo.perfil === 'diretor' ? 'Diretor' : alvo.perfil === 'super_admin' ? 'Super Admin' : 'Ritmista';
@@ -231,45 +239,68 @@ function fpPreviewFoto(input) {
 }
 
 async function fpSalvar() {
-    const payload = {};
+    const payloadPessoa = {};
+    const payloadVinculo = {};
     FP_CAMPOS.forEach(({ id, col }) => {
         if (!fpEstado.editaveis.has(col)) return;
         const input = fpEl(id + '-edit');
-        if (input) payload[col] = input.value.trim() || null;
+        if (!input) return;
+        const alvoPayload = fpTabelaDoCampo(col) === 'vinculos' ? payloadVinculo : payloadPessoa;
+        alvoPayload[col] = input.value.trim() || null;
     });
     if (fpEstado.editaveis.has('tipo_documento')) {
-        payload.tipo_documento = fpEl('fp-tipo-documento-edit').value.trim() || null;
-        payload.numero_documento = fpEl('fp-numero-documento-edit').value.trim() || null;
+        payloadPessoa.tipo_documento = fpEl('fp-tipo-documento-edit').value.trim() || null;
+        payloadPessoa.numero_documento = fpEl('fp-numero-documento-edit').value.trim() || null;
     }
     if (fpEstado.editaveis.has('bateria_instrumento_id')) {
         const val = fpEl('fp-instrumento-edit').value;
-        payload.bateria_instrumento_id = val ? Number(val) : null;
+        payloadVinculo.bateria_instrumento_id = val ? Number(val) : null;
     }
-    if (fpFotoBase64 && fpEstado.editaveis.has('foto_url')) payload.foto_url = fpFotoBase64;
+    if (fpFotoBase64 && fpEstado.editaveis.has('foto_url')) payloadPessoa.foto_url = fpFotoBase64;
 
     const { data: sessionData } = await sb.auth.getSession();
     const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
+    const headers = {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Prefer': 'return=representation',
+    };
 
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas?id=eq.${fpEstado.alvo.id}`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${token}`,
-            'Prefer': 'return=representation',
-        },
-        body: JSON.stringify(payload),
-    });
+    let ok = true;
+    if (Object.keys(payloadPessoa).length > 0) {
+        const resPessoa = await fetch(`${SUPABASE_URL}/rest/v1/pessoas?id=eq.${fpEstado.alvo.pessoa_id}`, {
+            method: 'PATCH', headers, body: JSON.stringify(payloadPessoa),
+        });
+        ok = ok && resPessoa.ok;
+    }
+    if (ok && Object.keys(payloadVinculo).length > 0 && fpEstado.alvo.vinculo_id) {
+        const resVinculo = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${fpEstado.alvo.vinculo_id}`, {
+            method: 'PATCH', headers, body: JSON.stringify(payloadVinculo),
+        });
+        ok = ok && resVinculo.ok;
+    }
 
     const mensagem = fpEl('fp-mensagem');
-    if (res.ok) {
-        // Busca na view (não na resposta do PATCH) pra já vir com instrumento_nome
-        // resolvido — inclusive quando o instrumento acabou de ser trocado.
-        const resFresco = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?id=eq.${fpEstado.alvo.id}`, {
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` },
-        });
-        const frescos = await resFresco.json();
-        const novosDados = (frescos && frescos[0]) ? frescos[0] : { ...fpEstado.alvo, ...payload };
+    if (ok) {
+        // Busca fresca pra já vir com instrumento_nome resolvido — Super Admin sem
+        // vínculo busca direto em "pessoas"; todo o resto busca na view de sempre.
+        let novosDados;
+        if (fpEstado.alvo.super_admin) {
+            const resFresco = await fetch(`${SUPABASE_URL}/rest/v1/pessoas?id=eq.${fpEstado.alvo.pessoa_id}`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` },
+            });
+            const frescos = await resFresco.json();
+            novosDados = (frescos && frescos[0])
+                ? { ...frescos[0], id: frescos[0].id, pessoa_id: frescos[0].id, super_admin: true, perfil: 'super_admin' }
+                : { ...fpEstado.alvo, ...payloadPessoa };
+        } else {
+            const resFresco = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?id=eq.${fpEstado.alvo.vinculo_id}`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` },
+            });
+            const frescos = await resFresco.json();
+            novosDados = (frescos && frescos[0]) ? frescos[0] : { ...fpEstado.alvo, ...payloadPessoa, ...payloadVinculo };
+        }
         if (fpEstado.autoedicao) {
             localStorage.setItem('ritmista', JSON.stringify(novosDados));
         }
@@ -277,7 +308,7 @@ async function fpSalvar() {
         mensagem.textContent = 'Dados atualizados com sucesso!';
         mensagem.style.display = 'block';
         fpCancelarEdicao();
-        fpIniciar(novosDados, fpEstado.meuPerfil, fpEstado.meuId, { aoSalvar: fpEstado.aoSalvar });
+        fpIniciar(novosDados, fpEstado.meuPerfil, fpEstado.minhaPessoaId, { aoSalvar: fpEstado.aoSalvar });
         if (fpEstado.aoSalvar) fpEstado.aoSalvar(novosDados);
     } else {
         mensagem.className = 'fp-mensagem erro';
