@@ -1142,7 +1142,7 @@
     function irParaCadastroManualRitmista() {
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!u || !u.bateria_id) { alert('Bateria não encontrada para este usuário.'); return; }
-        window.location.href = `index.html?modo=manual&cargo=ritmista&bateria_id=${u.bateria_id}`;
+        window.location.href = `cadastro.html?modo=manual&cargo=ritmista&bateria_id=${u.bateria_id}`;
     }
 
 
@@ -1223,7 +1223,7 @@
 
     function renderizarLinkDiretor(usuario) {
         if (!usuario || !usuario.bateria_id) return;
-        const link = `${window.location.origin}/index.html?bateria=${usuario.bateria_id}&cargo=diretor`;
+        const link = `${window.location.origin}/cadastro.html?bateria=${usuario.bateria_id}&cargo=diretor`;
         document.getElementById('linkDiretorInput').value = link;
         document.getElementById('linkDiretorCadastro').style.display = 'block';
     }

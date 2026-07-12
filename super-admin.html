@@ -1244,7 +1244,7 @@
         const bateriaId = document.getElementById('cu-bateria-id').value;
         const cargo = document.getElementById('cu-cargo').value;
         if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
-        const url = `${window.location.origin}/index.html?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}`;
+        const url = `${window.location.origin}/cadastro.html?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}`;
         window.open(url, '_blank');
         fecharCadastrarUsuario();
     }
@@ -1260,7 +1260,7 @@
             div.innerHTML = `<p style="font-size:13px;color:#999;">Cadastre a bateria para ver os links.</p>`;
             return;
         }
-        const base = `${window.location.origin}/index.html?bateria=${bateriaAtualData.id}`;
+        const base = `${window.location.origin}/cadastro.html?bateria=${bateriaAtualData.id}`;
         const linhas = [
             { label: 'Ritmista', url: base },
             { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },

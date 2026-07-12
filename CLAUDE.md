@@ -38,7 +38,7 @@ Este projeto tem documentação de produto detalhada em `docs/` — **leia o doc
 - **Quando a Márcia disser "estava melhor antes"** — reverter imediatamente, sem questionar e sem tentar "melhorar" a versão anterior por conta própria.
 
 ### Regras de produto (não violar sem confirmar com a Márcia)
-- **Um único formulário de cadastro** (`index.html`), reaproveitado em 3 modos (público/link fixo/manual) — nunca duplicar em telas separadas.
+- **Um único formulário de cadastro** (`cadastro.html`, renomeado de `index.html` em 12/jul/2026 — ver seção "Domínio" abaixo), reaproveitado em 3 modos (público/link fixo/manual) — nunca duplicar em telas separadas. O modo "público" (escolher escola livremente) existe no código mas não é linkado de lugar nenhum hoje — todo cadastro real acontece via link fixo, vinculado a uma bateria específica.
 - **Um único motor de edição de perfil** (`ficha-perfil.js` + `ficha-perfil.partial.html`) compartilhado por `admin.html`, `super-admin.html` e `carteirinha.html` — nunca copiar/colar essa lógica numa tela nova.
 - **Telas que mostram o mesmo modelo de dados para perfis diferentes devem ter os mesmos campos.** Ex: modal de Admin e modal de Ritmista mostram os mesmos campos — a diferença entre perfis é sobre quem pode ver/editar, não sobre quais campos existem na tela.
 - **Dados de escola são sempre variáveis via `config-escola.js`** — nunca hardcoded no código.
@@ -97,8 +97,8 @@ Tumtu/
 
 ## Estado atual (alto nível — ver `docs/tumtu-documentacao-tecnica.md` seção 21 para histórico completo)
 
-✅ Concluído: rename de marca Tutti→TumTu (inclusive nomes de arquivo da documentação e do repositório GitHub), autenticação real + RLS, motor único de edição de perfil, "esqueci minha senha" self-service, PWA, exportação de ritmistas para Excel (seção 17), auditoria completa de UX + cadastro em etapas (seção 19), cache-busting por versão pra evitar qualquer tipo de cache travar atualização (seção 20).
-🚧 Em andamento: conexão do domínio `tumtu.com.br` na Vercel (seção 18 — domínio já adicionado ao projeto via `vercel domains add`, falta a Márcia apontar o DNS no Registro.br).
+✅ Concluído: rename de marca Tutti→TumTu (inclusive nomes de arquivo da documentação e do repositório GitHub), autenticação real + RLS, motor único de edição de perfil, "esqueci minha senha" self-service, PWA, exportação de ritmistas para Excel (seção 17), auditoria completa de UX + cadastro em etapas (seção 19), cache-busting por versão pra evitar qualquer tipo de cache travar atualização (seção 20), configuração de instrumentos (biblioteca mestre + por bateria), domínio `tumtu.com.br` no ar (DNS + certificado SSL configurados em 12/jul/2026).
+✅ `index.html` agora é uma landing page provisória ("Em breve", sem nenhum link/ação) — o formulário de cadastro real foi renomeado para `cadastro.html`. Decisão de 12/jul/2026: como o domínio virou público, não faz sentido expor o cadastro aberto (modo "público", sem bateria vinculada) na porta de entrada do site.
 🚧 Pendências conhecidas (não urgentes): ver seção 9 de `tumtu-documentacao-tecnica.md` — "Leaked Password Protection" adiada por depender de plano pago do Supabase.
 
 ## Roadmap combinado com a Márcia em 10/jul/2026 (ordem definida por ela)
