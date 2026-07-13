@@ -400,13 +400,13 @@
 
         <div class="form-row">
             <div class="auth-form-group">
-                <label>Senha <span class="obrigatorio">*</span></label>
+                <label id="label-senha">Senha <span class="obrigatorio">*</span></label>
                 <div style="position:relative;">
                     <input type="password" id="senha" placeholder="Mínimo 6 caracteres" required minlength="6" style="padding-right:40px;">
                     <button type="button" aria-label="Mostrar senha" aria-pressed="false" onclick="toggleSenha('senha',this)" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:13px;"><svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
                 </div>
             </div>
-            <div class="auth-form-group">
+            <div class="auth-form-group oculto-pessoa-existente">
                 <label>Confirmar senha <span class="obrigatorio">*</span></label>
                 <div style="position:relative;">
                     <input type="password" id="confirmar_senha" placeholder="Digite novamente" required style="padding-right:40px;">
@@ -624,6 +624,9 @@
         document.getElementById('pessoa-existente-nome').textContent = encontrada.nome || '';
         document.getElementById('pessoa-existente-banner').style.display = 'block';
         document.body.classList.add('pessoa-existente');
+        document.getElementById('label-senha').innerHTML = 'Sua senha do TumTu <span class="obrigatorio">*</span>';
+        document.getElementById('senha').placeholder = 'A senha que você já usa pra entrar';
+        document.getElementById('confirmar_senha').required = false;
         CAMPOS_PESSOA_OBRIGATORIOS_QUANDO_NOVA.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.required = false;
@@ -634,6 +637,9 @@
         pessoaExistente = null;
         document.getElementById('pessoa-existente-banner').style.display = 'none';
         document.body.classList.remove('pessoa-existente');
+        document.getElementById('label-senha').innerHTML = 'Senha <span class="obrigatorio">*</span>';
+        document.getElementById('senha').placeholder = 'Mínimo 6 caracteres';
+        document.getElementById('confirmar_senha').required = true;
         CAMPOS_PESSOA_OBRIGATORIOS_QUANDO_NOVA.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.required = true;
@@ -794,7 +800,7 @@
             document.getElementById('senha').scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
-        if (senha !== confirmar) {
+        if (!pessoaExistente && senha !== confirmar) {
             mostrarErroCampo(document.getElementById('confirmar_senha'), 'As senhas não coincidem.');
             document.getElementById('confirmar_senha').scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
