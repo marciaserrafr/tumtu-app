@@ -165,7 +165,7 @@
 
         localStorage.setItem('ritmista', JSON.stringify(vinculo));
 
-        if (isAdmin) {
+        if (isAdmin && !vinculo.modo_piloto) {
             window.location.href = 'admin.html';
         } else {
             window.location.href = 'carteirinha.html';
@@ -263,13 +263,17 @@
             return;
         }
 
+        // Busca o modo_piloto de cada bateria envolvida e anexa em cada vínculo — usado pra decidir admin.html x carteirinha.html.
+        const { data: baterias } = await sb.from('baterias').select('id, nome, modo_piloto').in('id', vinculos.map(v => v.bateria_id));
+        const infoPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b]));
+        vinculos.forEach(v => { v.modo_piloto = infoPorBateria[v.bateria_id]?.modo_piloto || false; });
+
         if (vinculos.length === 1) {
             continuarComVinculo(vinculos[0]);
             return;
         }
 
         // Mais de uma bateria — mostra a telinha de escolha em vez de entrar direto.
-        const { data: baterias } = await sb.from('baterias').select('id, nome').in('id', vinculos.map(v => v.bateria_id));
         const nomesPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b.nome]));
         const cargoLabel = { mestre: 'Mestre de Bateria', diretor: 'Diretor', ritmista: 'Ritmista' };
 

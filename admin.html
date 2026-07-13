@@ -1207,6 +1207,8 @@
     async function iniciarUsuario() {
         const usuario = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!usuario) { window.location.href = 'login.html'; return; }
+        // Trava da fase piloto: Mestre/Diretor de bateria com modo_piloto ligado não vê o painel, mesmo digitando a URL direto.
+        if (usuario.modo_piloto) { window.location.href = 'carteirinha.html'; return; }
         document.getElementById('headerNome').textContent = usuario.nome || 'Admin';
         const perfil = usuario.perfil || '';
         const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria'
