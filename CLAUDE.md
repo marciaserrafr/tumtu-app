@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 > Este arquivo é lido automaticamente pelo Claude Code toda vez que uma sessão começa nesta pasta. É a ficha de instruções fixas do projeto — diferente dos documentos em `docs/`, que são a documentação de produto/técnica para humanos. Atualizar sempre que uma decisão importante mudar o que está escrito aqui.
-> Última atualização: 10/jul/2026
+> Última atualização: 13/jul/2026
 
 ---
 
@@ -24,7 +24,7 @@ Este projeto tem documentação de produto detalhada em `docs/` — **leia o doc
 | `docs/tumtu-design-guide.md` | Paleta, tipografia, componentes visuais, checklist obrigatório antes de mudança visual | **Sempre antes de qualquer alteração visual** |
 | `docs/tumtu-documentacao-tecnica.md` | Arquitetura, modelo de dados, RLS, Edge Function, histórico de decisões técnicas | Antes de mexer em banco, autenticação, permissões |
 | `docs/tumtu-plano-de-testes.md` | Estratégia de teste, dados fake, roteiros de teste manual | Antes de testar mudanças ou popular dados |
-| `docs/tumtu-estrategia-piloto.md` | Estratégia de entrada via carteirinha beta gratuita, operação do piloto, problema de ritmista em múltiplas baterias (bloqueador ativo) | Antes de mexer em cadastro/aprovação/login pensando no piloto, ou em qualquer coisa ligada a "múltiplas baterias por pessoa" |
+| `docs/tumtu-estrategia-piloto.md` | Estratégia de entrada via carteirinha beta gratuita, operação do piloto (problema de ritmista em múltiplas baterias já resolvido em 13/jul/2026, ver seção 14) | Antes de mexer em cadastro/aprovação/login pensando no piloto |
 
 `docs/README.md` **não existe mais** — foi removido em 09/jul/2026 por descrever uma versão bem antiga do sistema (senha em texto puro, sem Super Admin) que divergia dos 4 docs acima.
 
@@ -88,22 +88,28 @@ Tumtu/
 └── .claude/
 ```
 
-## Modelo de dados (resumo — detalhe completo em `docs/tumtu-documentacao-tecnica.md`)
+## Modelo de dados (resumo — detalhe completo em `docs/tumtu-documentacao-tecnica.md`, seção 22)
 
-- Tabela `ritmistas` guarda **todos os perfis** (`ritmista`/`mestre`/`diretor`/`super_admin`), diferenciados pela coluna `perfil`. IDs são `bigint`, não UUID.
+- **Desde 13/jul/2026, "pessoa" e "vínculo com bateria" são duas tabelas separadas** — mudança grande, ler a seção 22 da documentação técnica antes de mexer em cadastro/login/aprovação/edição de perfil:
+  - **`pessoas`**: quem é a pessoa, não muda entre baterias (nome, CPF, endereço, contato de emergência, foto, `super_admin` boolean). IDs `bigint`, não UUID.
+  - **`vinculos`**: o vínculo de uma pessoa com UMA bateria específica (`perfil`, `status`, instrumento, os 4 tamanhos de roupa, `aprovado_por`). Uma pessoa pode ter vários vínculos, um por bateria — resolve o bug antigo de uma pessoa não conseguir se cadastrar numa segunda bateria.
+  - **Convenção importante:** `.id` em card/lista/URL (`carteirinha.html?id=`) significa **vínculo**, não pessoa. Só autoedição e `aprovado_por` usam `pessoa_id` de verdade.
+  - A tabela antiga `ritmistas` (que juntava as duas coisas numa linha só) ainda existe no banco como rede de segurança, sem receber mais escrita — **não apagar sem confirmar com a Márcia primeiro** (ela quer testar o site publicado com as próprias mãos antes).
 - `cargo` (o que aparece na carteirinha) é separado de `nivel_acesso` (hoje só existe o valor `"total"`) — decisão proposital para permitir permissões granulares no futuro sem migração.
 - Tabelas `escolas` e `baterias` completam o modelo. Tabela `convites` **não existe mais** (dropada 05/jul/2026).
-- Autenticação real via Supabase Auth (`auth.users` ligado por `ritmistas.auth_user_id`) — RLS ligado em `ritmistas`, `escolas`, `baterias` desde 05/jul/2026. Restrição por coluna (quem edita o quê) é feita por trigger (`aplicar_matriz_edicao_ritmistas`), não pela policy de RLS.
+- Autenticação real via Supabase Auth (`auth.users` ligado por `pessoas.auth_user_id`) — RLS ligado em `pessoas`, `vinculos`, `escolas`, `baterias`. Restrição por coluna (quem edita o quê) é feita por trigger (`aplicar_matriz_edicao_pessoas` + `aplicar_matriz_edicao_vinculos`), não pela policy de RLS.
+- Instrumentos são configuráveis (biblioteca mestre de categorias/nomenclaturas + ativação por bateria), não uma lista fixa no código — tabelas `instrumento_categorias`, `instrumento_nomenclaturas`, `bateria_instrumentos`.
 - Vocabulário: o valor "ativo" no banco é literalmente `status = "aprovado"`, não `"ativo"`.
 
 ## Estado atual (alto nível — ver `docs/tumtu-documentacao-tecnica.md` seção 21 para histórico completo)
 
-✅ Concluído: rename de marca Tutti→TumTu (inclusive nomes de arquivo da documentação e do repositório GitHub), autenticação real + RLS, motor único de edição de perfil, "esqueci minha senha" self-service, PWA, exportação de ritmistas para Excel (seção 17), auditoria completa de UX + cadastro em etapas (seção 19), cache-busting por versão pra evitar qualquer tipo de cache travar atualização (seção 20), configuração de instrumentos (biblioteca mestre + por bateria), domínio `tumtu.com.br` no ar (DNS + certificado SSL configurados em 12/jul/2026).
+✅ Concluído: rename de marca Tutti→TumTu (inclusive nomes de arquivo da documentação e do repositório GitHub), autenticação real + RLS, motor único de edição de perfil, "esqueci minha senha" self-service, PWA, exportação de ritmistas para Excel (seção 17), auditoria completa de UX + cadastro em etapas (seção 19), cache-busting por versão pra evitar qualquer tipo de cache travar atualização (seção 20), configuração de instrumentos (biblioteca mestre + por bateria), domínio `tumtu.com.br` no ar (DNS + certificado SSL configurados em 12/jul/2026), migração de arquitetura "pessoa" separada de "vínculo com bateria" (seção 22 — resolve o bug de ritmista em mais de uma bateria).
 ✅ `index.html` agora é uma landing page provisória ("Em breve", sem nenhum link/ação) — o formulário de cadastro real foi renomeado para `cadastro.html`. Decisão de 12/jul/2026: como o domínio virou público, não faz sentido expor o cadastro aberto (modo "público", sem bateria vinculada) na porta de entrada do site.
-🚧 Pendências conhecidas (não urgentes): ver seção 9 de `tumtu-documentacao-tecnica.md` — "Leaked Password Protection" adiada por depender de plano pago do Supabase.
+🚧 Pendências conhecidas (não urgentes): ver seção 9 de `tumtu-documentacao-tecnica.md` — "Leaked Password Protection" adiada por depender de plano pago do Supabase. Apagar a tabela antiga `ritmistas` (só depois da Márcia testar o site publicado). Sistema de nomenclatura de tamanho de roupa por escola (XXG vs XGG), adiado a pedido dela.
+⚠️ **Commit local não enviado:** no momento desta atualização, o commit `487ff17` ("Não pede confirmação de senha pra quem já tem conta") estava só local — a Márcia ainda não confirmou o envio. Checar `git log origin/main..HEAD` antes de presumir que já foi enviado ao GitHub.
 
 ## Roadmap combinado com a Márcia em 10/jul/2026 (ordem definida por ela)
-Depois do domínio: 1) revisão de todas as telas (correções gerais) → 2) revisão de layout com visão de UX expert → 3) **inclusão de instrumentos (urgente, logo após a revisão de telas)** → 4) lógica de temporada em relação a ritmistas → 5) controle de camisas por temporada (múltiplas entregas na mesma temporada, não só "marcar quem recebeu"). Depois de tudo isso: fase de marketing, começando por e-mail com o domínio próprio. **Itens 1 e 2 (revisão de telas + UX) já avançaram bastante em 10/jul/2026 via auditoria de UX** (ver seção 19 da documentação técnica) — itens 3 a 5 ainda não detalhados.
+Depois do domínio: 1) revisão de todas as telas (correções gerais) → 2) revisão de layout com visão de UX expert → 3) **inclusão de instrumentos (urgente, logo após a revisão de telas)** → 4) lógica de temporada em relação a ritmistas → 5) controle de camisas por temporada (múltiplas entregas na mesma temporada, não só "marcar quem recebeu"). Depois de tudo isso: fase de marketing, começando por e-mail com o domínio próprio. **Itens 1, 2 e 3 já concluídos** (revisão de telas + UX em 10/jul, ver seção 19 da documentação técnica; instrumentos configuráveis em 11/jul, seção 22 do MVP/técnica) — itens 4 e 5 ainda não detalhados. Fora da ordem original, mas resolvido com urgência por ser bloqueador do piloto: a migração pessoa/vínculo (13/jul/2026, seção 22 da documentação técnica).
 
 ---
 

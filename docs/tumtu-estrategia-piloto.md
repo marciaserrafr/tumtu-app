@@ -187,9 +187,9 @@ Os dados dos ritmistas do piloto já entram nas mesmas tabelas do Supabase do Tu
 
 ---
 
-## 14. 🚧 Problema crítico descoberto em 12/jul/2026 — ritmista em mais de uma bateria
+## 14. ✅ Problema crítico descoberto em 12/jul/2026 — ritmista em mais de uma bateria (resolvido 13/jul/2026)
 
-**Bloqueia o início do envio de links pelo WhatsApp até ser resolvido.**
+**Não bloqueia mais o início do piloto** — arquitetura corrigida e testada de ponta a ponta. Detalhe técnico completo em `docs/tumtu-documentacao-tecnica.md` seção 22.
 
 A Márcia percebeu (conversando com um amigo, fora de uma sessão de trabalho) que nunca discutimos o caso de uma pessoa que desfila em mais de uma bateria — o próprio caso dela. Ela avalia que isso é **comum**, não raro ("raro é ter um ritmista que desfile em uma escola só").
 
@@ -199,9 +199,12 @@ A Márcia percebeu (conversando com um amigo, fora de uma sessão de trabalho) q
 
 **Decisão da Márcia (12/jul/2026): resolver certo agora, antes de começar o piloto de verdade**, mesmo sendo uma mudança grande — não vale a pena mandar links por WhatsApp com um problema de arquitetura conhecido embaixo.
 
-**Direção acordada** (arquitetura completa sendo desenhada num plano técnico à parte, ainda não implementado):
-- Separar "pessoa" (dados que não mudam entre baterias — nome, CPF, endereço, contato de emergência, foto, medidas) de "vínculo" (dados que variam por bateria — cargo, status, instrumento, data que entrou naquela bateria específica). Uma pessoa passa a poder ter vários vínculos, um por bateria, todos ligados ao mesmo login.
-- **Login, "esqueci minha senha" e a edição de dados próprios continuam exatamente como estão** — são coisas da pessoa, não da bateria, não precisam de nenhum retrabalho.
-- Ao logar, se a pessoa só tem um vínculo (caso mais comum), cai direto na carteirinha, sem fricção. Se tiver mais de um, escolhe qual bateria/carteirinha quer ver antes.
+**O que foi feito (12-13/jul/2026), plano completo em `C:\Users\Márcia Serra\.claude\plans\replicated-waddling-otter.md`:**
+- Banco dividido em duas tabelas: `pessoas` (dados que não mudam entre baterias — nome, CPF, endereço, contato de emergência, foto) e `vinculos` (dados que variam por bateria — cargo, status, instrumento, medidas/tamanhos, data que entrou). Uma pessoa agora pode ter vários vínculos, um por bateria, todos ligados ao mesmo login.
+- **Login, "esqueci minha senha" e a edição de dados próprios continuam exatamente como estavam** — nenhuma mudança perceptível pra quem só tem uma bateria.
+- Login com mais de um vínculo mostra uma telinha simples "Qual bateria você quer ver?" antes de continuar.
+- Cadastro numa segunda bateria: assim que o CPF é digitado, o sistema detecta que a pessoa já existe, mostra "Que bom te ver de novo, [Nome]!", esconde as etapas de dados que já temos (Endereço, Saúde, Emergência) e pede só o que muda por bateria (Instrumento, Medidas) + a senha (só pra confirmar identidade, sem pedir confirmação de senha nem permitir e-mail/senha diferente da conta já existente).
+- Bug de bônus corrigido no mesmo pacote: Mestre não conseguia aprovar Diretor a nível de banco (só nunca tinha aparecido porque no piloto só ela aprova).
+- Tabela antiga `ritmistas` mantida por enquanto como rede de segurança (será apagada só depois dela testar o site publicado com as próprias mãos).
 
-Ver plano técnico detalhado (fases, ordem de execução, o que muda em cada tela) assim que estiver pronto — referência a adicionar aqui quando o plano for salvo.
+**Pendência deliberadamente adiada:** nome do tamanho de roupa variando por escola (ex: XXG vs XGG) — mesma lógica de categoria/nomenclatura já usada pros instrumentos, "vamos mexer nisso depois" (palavras dela).

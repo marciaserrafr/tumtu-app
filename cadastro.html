@@ -124,7 +124,7 @@
     </div>
 
     <div id="pessoa-existente-banner" style="display:none;background:#fff8e6;border:1.5px solid #D4AF37;border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:#5a5770;text-align:center;">
-        Que bom te ver de novo, <strong id="pessoa-existente-nome" style="color:#12101a;"></strong>! Você já tem cadastro no TumTu — só precisamos de alguns dados específicos desta bateria (instrumento, tamanhos, e a sua senha pra confirmar que é você).
+        Que bom te ver de novo, <strong id="pessoa-existente-nome" style="color:#12101a;"></strong>! Você já tem cadastro no TumTu — só precisamos de alguns dados específicos desta bateria (instrumento, medidas, e a sua senha pra confirmar que é você).
     </div>
 
     <div id="convite-erro-box" style="display:none;background:#fde8e8;border:1.5px solid #f0c4c0;border-radius:10px;padding:20px;text-align:center;color:#b3261e;font-size:14px;font-weight:600;"></div>
@@ -542,6 +542,7 @@
         el.textContent = texto;
         el.className = `mensagem ${tipo}`;
         el.style.display = 'block';
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     // ── OPÇÕES DE INSTRUMENTO (dinâmicas, dependem da bateria) ──────────────
@@ -590,7 +591,7 @@
     // ── DETECÇÃO ANTECIPADA DE PESSOA JÁ CADASTRADA (por CPF) ────────────
     // Assim que o CPF é preenchido, checa se essa pessoa já existe no TumTu.
     // Se existir, ela não precisa repetir dados pessoais — só o que é
-    // específico desta bateria (instrumento, tamanhos, senha pra confirmar).
+    // específico desta bateria (instrumento, medidas, senha pra confirmar).
     let pessoaExistente = null;
     // Só os campos que hoje são [required] — os opcionais (apelido, complemento,
     // bairro, tipo_sanguineo) nem precisam ser tocados, já não travam o envio.
