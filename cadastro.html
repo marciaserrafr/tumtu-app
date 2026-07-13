@@ -623,7 +623,9 @@
         document.getElementById('nome').value = encontrada.nome || '';
         document.getElementById('email').value = encontrada.email || '';
         document.getElementById('pessoa-existente-nome').textContent = encontrada.nome || '';
-        document.getElementById('pessoa-existente-banner').style.display = 'block';
+        const banner = document.getElementById('pessoa-existente-banner');
+        banner.style.display = 'block';
+        banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         document.body.classList.add('pessoa-existente');
         document.getElementById('label-senha').innerHTML = 'Sua senha do TumTu <span class="obrigatorio">*</span>';
         document.getElementById('senha').placeholder = 'A senha que você já usa pra entrar';
