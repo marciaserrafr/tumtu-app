@@ -122,6 +122,10 @@
         Cadastro de <strong id="convite-cargo" style="color:#12101a;"></strong> da bateria <strong id="convite-bateria" style="color:#12101a;"></strong>
     </div>
 
+    <div id="pessoa-existente-banner" style="display:none;background:#fff8e6;border:1.5px solid #D4AF37;border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:#5a5770;text-align:center;">
+        Que bom te ver de novo, <strong id="pessoa-existente-nome" style="color:#12101a;"></strong>! Você já tem cadastro no TumTu — só precisamos de alguns dados específicos desta bateria (instrumento, tamanhos, e a sua senha pra confirmar que é você).
+    </div>
+
     <div id="convite-erro-box" style="display:none;background:#fde8e8;border:1.5px solid #f0c4c0;border-radius:10px;padding:20px;text-align:center;color:#b3261e;font-size:14px;font-weight:600;"></div>
 
     <div id="conteudo-cadastro">
@@ -174,7 +178,7 @@
         <div class="form-row">
             <div class="auth-form-group">
                 <label>CPF <span id="cpf-asterisco" class="obrigatorio">*</span></label>
-                <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" required>
+                <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" onblur="verificarCpfExistente()" required>
                 <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
                     <input type="checkbox" id="sem_cpf" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="toggleSemCpf()">
                     <label for="sem_cpf" style="margin:0;font-size:12px;color:var(--cor-texto-secundario);cursor:pointer;font-weight:500;">Não tenho CPF</label>
@@ -582,6 +586,61 @@
         document.getElementById('convite-banner').style.display = 'block';
     }
 
+    // ── DETECÇÃO ANTECIPADA DE PESSOA JÁ CADASTRADA (por CPF) ────────────
+    // Assim que o CPF é preenchido, checa se essa pessoa já existe no TumTu.
+    // Se existir, ela não precisa repetir dados pessoais — só o que é
+    // específico desta bateria (instrumento, tamanhos, senha pra confirmar).
+    let pessoaExistente = null;
+    // Só os campos que hoje são [required] — os opcionais (apelido, complemento,
+    // bairro, tipo_sanguineo) nem precisam ser tocados, já não travam o envio.
+    const CAMPOS_PESSOA_OBRIGATORIOS_QUANDO_NOVA = [
+        'nacionalidade_tipo', 'nascimento', 'celular',
+        'endereco', 'numero', 'cidade', 'estado', 'pais',
+        'emergencia_nome', 'emergencia_parentesco', 'emergencia_celular',
+    ];
+
+    async function verificarCpfExistente() {
+        const cpfInput = document.getElementById('cpf');
+        const cpf = cpfInput.value.trim();
+        const bateriaId = linkFixoAtual ? linkFixoAtual.bateriaId : (modoManualAtual ? modoManualAtual.bateriaId : null);
+        if (!cpf || cpf.replace(/\D/g, '').length !== 11 || !bateriaId) return;
+
+        const { data } = await sb.rpc('buscar_pessoa_por_cpf', { p_cpf: cpf, p_bateria_id: Number(bateriaId) });
+        const encontrada = data && data[0] ? data[0] : null;
+
+        if (!encontrada) {
+            if (pessoaExistente) desativarModoPessoaExistente();
+            return;
+        }
+        if (encontrada.ja_tem_vinculo_nesta_bateria) {
+            mostrarMensagem('Você já tem cadastro nesta bateria. Use a tela de Login pra entrar.', 'aviso');
+            return;
+        }
+
+        pessoaExistente = encontrada;
+        document.getElementById('nome').value = encontrada.nome || '';
+        document.getElementById('nome').disabled = true;
+        document.getElementById('email').value = encontrada.email || '';
+        document.getElementById('email').disabled = true;
+        document.getElementById('pessoa-existente-nome').textContent = encontrada.nome || '';
+        document.getElementById('pessoa-existente-banner').style.display = 'block';
+        CAMPOS_PESSOA_OBRIGATORIOS_QUANDO_NOVA.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.required = false;
+        });
+    }
+
+    function desativarModoPessoaExistente() {
+        pessoaExistente = null;
+        document.getElementById('nome').disabled = false;
+        document.getElementById('email').disabled = false;
+        document.getElementById('pessoa-existente-banner').style.display = 'none';
+        CAMPOS_PESSOA_OBRIGATORIOS_QUANDO_NOVA.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.required = true;
+        });
+    }
+
     // ── CADASTRO MANUAL (?modo=manual) — Super Admin / Mestre / Diretor ─
     let modoManualAtual = null;
 
@@ -858,8 +917,7 @@
                 tipo_documento: dados.tipo_documento, numero_documento: dados.numero_documento, nascimento: dados.nascimento,
                 celular: dados.celular, email: dados.email, endereco: dados.endereco, numero: dados.numero,
                 complemento: dados.complemento, bairro: dados.bairro, cidade: dados.cidade, estado: dados.estado,
-                pais: dados.pais, tamanho_camisa: dados.tamanho_camisa, tamanho_fantasia: dados.tamanho_fantasia,
-                tamanho_calca: dados.tamanho_calca, tamanho_sapato: dados.tamanho_sapato, tipo_sanguineo: dados.tipo_sanguineo,
+                pais: dados.pais, tipo_sanguineo: dados.tipo_sanguineo,
                 emergencia_nome: dados.emergencia_nome, emergencia_parentesco: dados.emergencia_parentesco,
                 emergencia_celular: dados.emergencia_celular
             };
@@ -884,7 +942,9 @@
             status: 'pendente',
             nivel_acesso: dados.nivel_acesso || null,
             bateria_instrumento_id: dados.bateria_instrumento_id,
-            membro_desde: dados.membro_desde
+            membro_desde: dados.membro_desde,
+            tamanho_camisa: dados.tamanho_camisa, tamanho_fantasia: dados.tamanho_fantasia,
+            tamanho_calca: dados.tamanho_calca, tamanho_sapato: dados.tamanho_sapato,
         };
         const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos`, {
             method: 'POST',

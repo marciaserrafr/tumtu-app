@@ -39,7 +39,10 @@ let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: nu
 // Cada coluna editável mora em "pessoas" (dado da pessoa, não muda entre baterias)
 // ou "vinculos" (dado do vínculo com uma bateria específica) — usado por fpSalvar()
 // pra saber em qual tabela gravar cada campo.
-const FP_CAMPO_TABELA = { membro_desde: 'vinculos', bateria_instrumento_id: 'vinculos' };
+const FP_CAMPO_TABELA = {
+    membro_desde: 'vinculos', bateria_instrumento_id: 'vinculos',
+    tamanho_camisa: 'vinculos', tamanho_fantasia: 'vinculos', tamanho_calca: 'vinculos', tamanho_sapato: 'vinculos',
+};
 function fpTabelaDoCampo(col) {
     return FP_CAMPO_TABELA[col] || 'pessoas';
 }
