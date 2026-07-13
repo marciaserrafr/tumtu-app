@@ -230,6 +230,13 @@
         /* ── DASHBOARD PLACEHOLDER ── */
         .dashboard-placeholder { text-align: center; padding: 60px 20px; color: #64748b; }
 
+        /* ── DASHBOARD: LISTA DE BATERIAS ── */
+        .dashboard-bateria-linha { padding: 14px 0; border-bottom: 1px solid #e5e7eb; }
+        .dashboard-bateria-linha:last-child { border-bottom: none; }
+        .dashboard-bateria-nome { font-size: 14px; font-weight: 700; color: #0f172a; }
+        .dashboard-bateria-nome .dashboard-bateria-escola { font-weight: 400; color: #64748b; }
+        .dashboard-bateria-numeros { font-size: 13px; color: #64748b; margin-top: 2px; }
+
         /* ── ALERTA / TOAST ── */
         .toast {
             position: fixed; bottom: 24px; right: 24px; background: #12101a;
@@ -316,11 +323,7 @@
     <div class="painel" id="painel-dashboard" style="display:none">
         <div class="painel-titulo">Dashboard</div>
         <div class="painel-sub">Visão geral de todas as escolas e ritmistas.</div>
-        <div class="dashboard-placeholder">
-            <div style="font-size:36px;margin-bottom:12px">📊</div>
-            <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px">Em breve</div>
-            <div style="font-size:14px;color:#64748b">Métricas consolidadas de todas as escolas aparecerão aqui.</div>
-        </div>
+        <div id="dashboard-lista-baterias"></div>
     </div>
 
     <!-- ════ PAINEL: ESCOLAS ════ -->
@@ -550,6 +553,40 @@
         if (alvo) { alvo.classList.add('ativo'); alvo.style.display = 'block'; }
         if (aba === 'meu-perfil') iniciarMeuPerfilAba();
         if (aba === 'configuracoes') voltarConfigListaSA();
+        if (aba === 'dashboard') carregarDashboard();
+    }
+
+    // ── DASHBOARD ────────────────────────────────────────────────────
+    async function carregarDashboard() {
+        const container = document.getElementById('dashboard-lista-baterias');
+        const [resBaterias, resEscolas, resVinculos] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/baterias?select=id,nome,escola_id&order=nome`, { headers }),
+            fetch(`${SUPABASE_URL}/rest/v1/escolas?select=id,nome,temporada_atual`, { headers }),
+            fetch(`${SUPABASE_URL}/rest/v1/vinculos?perfil=eq.ritmista&select=bateria_id,status`, { headers })
+        ]);
+        const baterias = await resBaterias.json();
+        const escolas = await resEscolas.json();
+        const vinculos = await resVinculos.json();
+        const escolaPorId = Object.fromEntries((escolas || []).map(e => [e.id, e]));
+
+        if (!baterias || baterias.length === 0) {
+            container.innerHTML = `<div class="dashboard-placeholder">
+                <div style="font-size:36px;margin-bottom:12px">📊</div>
+                <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px">Nenhuma bateria cadastrada ainda</div>
+            </div>`;
+            return;
+        }
+
+        container.innerHTML = baterias.map(b => {
+            const pendentes = vinculos.filter(v => v.bateria_id === b.id && v.status === 'pendente').length;
+            const ativos = vinculos.filter(v => v.bateria_id === b.id && v.status === 'aprovado').length;
+            const escola = escolaPorId[b.escola_id];
+            const temporada = escola?.temporada_atual;
+            return `<div class="dashboard-bateria-linha">
+                <div class="dashboard-bateria-nome">${b.nome}${escola?.nome ? ` <span class="dashboard-bateria-escola">(${escola.nome})</span>` : ''}</div>
+                <div class="dashboard-bateria-numeros">${pendentes} pendente${pendentes === 1 ? '' : 's'} · ${ativos} ativo${ativos === 1 ? '' : 's'}${temporada ? ` · temporada ${temporada}` : ''}</div>
+            </div>`;
+        }).join('');
     }
 
     // ── MEU PERFIL (Super Admin) ──────────────────────────────────────
