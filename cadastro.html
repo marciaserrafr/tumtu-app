@@ -46,6 +46,7 @@
         .progresso-segmento.feito { background: #D4AF37; }
         .form-step { display: none; }
         .form-step.ativo { display: block; }
+        body.pessoa-existente .oculto-pessoa-existente { display: none !important; }
         .form-step-nav {
             display: flex; justify-content: space-between; gap: 10px; margin-top: 24px;
         }
@@ -154,13 +155,13 @@
             <button type="button" class="btn-foto" onclick="document.getElementById('inputFoto').click()">Escolher foto</button>
         </div>
 
-        <div class="secao">Dados Pessoais</div>
+        <div class="secao oculto-pessoa-existente">Dados Pessoais</div>
 
-        <div class="auth-form-group">
+        <div class="auth-form-group oculto-pessoa-existente">
             <label>Nome completo <span class="obrigatorio">*</span></label>
             <input type="text" id="nome" placeholder="Seu nome completo" required>
         </div>
-        <div class="form-row">
+        <div class="form-row oculto-pessoa-existente">
             <div class="auth-form-group">
                 <label>Apelido</label>
                 <input type="text" id="apelido" placeholder="Como você é conhecido na bateria">
@@ -179,7 +180,7 @@
             <div class="auth-form-group">
                 <label>CPF <span id="cpf-asterisco" class="obrigatorio">*</span></label>
                 <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" onblur="verificarCpfExistente()" required>
-                <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+                <div style="margin-top:8px; display:flex; align-items:center; gap:8px;" class="oculto-pessoa-existente">
                     <input type="checkbox" id="sem_cpf" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="toggleSemCpf()">
                     <label for="sem_cpf" style="margin:0;font-size:12px;color:var(--cor-texto-secundario);cursor:pointer;font-weight:500;">Não tenho CPF</label>
                 </div>
@@ -199,7 +200,7 @@
                     </div>
                 </div>
             </div>
-            <div class="auth-form-group">
+            <div class="auth-form-group oculto-pessoa-existente">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
                     <label style="margin-bottom:0;">Data de nascimento <span class="obrigatorio">*</span></label>
                     <button type="button" onclick="document.getElementById('nascimento').value=''" style="background:none;border:none;padding:0;font-size:12px;color:var(--cor-texto-secundario);cursor:pointer;text-decoration:underline;">Limpar</button>
@@ -207,11 +208,11 @@
                 <input type="date" id="nascimento" required>
             </div>
         </div>
-        <div class="auth-form-group">
+        <div class="auth-form-group oculto-pessoa-existente">
             <label>Celular <span class="obrigatorio">*</span></label>
             <input type="text" id="celular" placeholder="(21) 99999-9999" maxlength="15" oninput="mascaraCelular(this)" required>
         </div>
-        <div class="auth-form-group">
+        <div class="auth-form-group oculto-pessoa-existente">
             <label>E-mail <span class="obrigatorio">*</span></label>
             <input type="email" id="email" placeholder="seu@email.com" required>
         </div>
@@ -237,7 +238,7 @@
         </div>
         </div><!-- /form-step 1 -->
 
-        <div class="form-step" data-step="2">
+        <div class="form-step oculto-pessoa-existente" data-step="2">
 
         <div class="secao">Endereço</div>
 
@@ -345,9 +346,9 @@
             </div>
         </div>
 
-        <div class="secao">Saúde</div>
+        <div class="secao oculto-pessoa-existente">Saúde</div>
 
-        <div class="auth-form-group">
+        <div class="auth-form-group oculto-pessoa-existente">
             <label>Tipo sanguíneo</label>
             <select id="tipo_sanguineo">
                 <option value="">Não sei / Prefiro não informar</option>
@@ -368,7 +369,7 @@
         </div>
         </div><!-- /form-step 3 -->
 
-        <div class="form-step" data-step="4">
+        <div class="form-step oculto-pessoa-existente" data-step="4">
 
         <div class="secao">Contato de Emergência</div>
 
@@ -619,11 +620,10 @@
 
         pessoaExistente = encontrada;
         document.getElementById('nome').value = encontrada.nome || '';
-        document.getElementById('nome').disabled = true;
         document.getElementById('email').value = encontrada.email || '';
-        document.getElementById('email').disabled = true;
         document.getElementById('pessoa-existente-nome').textContent = encontrada.nome || '';
         document.getElementById('pessoa-existente-banner').style.display = 'block';
+        document.body.classList.add('pessoa-existente');
         CAMPOS_PESSOA_OBRIGATORIOS_QUANDO_NOVA.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.required = false;
@@ -632,9 +632,8 @@
 
     function desativarModoPessoaExistente() {
         pessoaExistente = null;
-        document.getElementById('nome').disabled = false;
-        document.getElementById('email').disabled = false;
         document.getElementById('pessoa-existente-banner').style.display = 'none';
+        document.body.classList.remove('pessoa-existente');
         CAMPOS_PESSOA_OBRIGATORIOS_QUANDO_NOVA.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.required = true;
@@ -743,7 +742,19 @@
         return valido;
     }
 
-    function mostrarEtapa(n) {
+    function etapaEscondida(n) {
+        if (!pessoaExistente) return false;
+        const stepEl = document.querySelector(`.form-step[data-step="${n}"]`);
+        return !!(stepEl && stepEl.classList.contains('oculto-pessoa-existente'));
+    }
+
+    function mostrarEtapa(n, direcao = 1) {
+        // Quando a pessoa já existe, os passos 2 (Endereço) e 4 (Emergência)
+        // ficam escondidos por inteiro — pula direto pro próximo passo visível.
+        if (n >= 1 && n <= TOTAL_ETAPAS && etapaEscondida(n)) {
+            mostrarEtapa(n + direcao, direcao);
+            return;
+        }
         etapaAtual = n;
         document.querySelectorAll('.form-step').forEach(el => el.classList.remove('ativo'));
         document.querySelector(`.form-step[data-step="${n}"]`).classList.add('ativo');
@@ -757,12 +768,12 @@
     function avancarEtapa(n) {
         limparErros();
         if (!validarCamposEtapa(n)) return;
-        mostrarEtapa(n + 1);
+        mostrarEtapa(n + 1, 1);
     }
 
     function voltarEtapa(n) {
         limparErros();
-        mostrarEtapa(n - 1);
+        mostrarEtapa(n - 1, -1);
     }
 
     document.getElementById('formCadastro').addEventListener('submit', async (e) => {
