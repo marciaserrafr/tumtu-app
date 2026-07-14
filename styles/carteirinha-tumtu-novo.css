@@ -13,7 +13,7 @@
 
 .carteirinha {
   width: 300px;   /* largura real em produção */
-  height: 500px;  /* altura FIXA — tamanho do documento. Fonte/logo/degradê grandes couberam apertando só as margens internas, sem crescer o cartão. */
+  height: 540px;  /* altura do documento — 500px original + 40px (pedido da Márcia em 14/jul/2026: largura ficou boa, mas queria "um pouquinho mais comprida"). Fonte/logo/degradê grandes couberam apertando só as margens internas, sem crescer a largura. */
   border-radius: 22px;
   overflow: hidden;
   display: flex;
@@ -215,8 +215,10 @@
      quase coincidindo = a "sombra" que vazava pra fora do anel). Agora é um
      brilho desfocado (box-shadow), sem borda dura nenhuma pra competir com
      a borda do anel. */
-  width: 112px;
-  height: 112px;
+  /* 144px — aumentada de 112px em 14/jul/2026 a pedido da Márcia (foto é o
+     elemento mais importante de uma carteirinha, precisava de mais peso). */
+  width: 144px;
+  height: 144px;
   border-radius: 50%;
   box-shadow: 0 0 10px 3px var(--cor-halo-foto, rgba(212,175,55,0.10));
 }
@@ -684,9 +686,27 @@
   gap: 6px;
 }
 
+/* Contêiner responsivo: reserva o espaço final (já ampliado) na tela.
+   O tamanho real é calculado em JS (carteirinha.html, ajustarZoomCarteirinha)
+   a partir do espaço disponível na tela, e aplicado como --fator-zoom-carteirinha
+   no .carteirinha-wrap abaixo — que mantém sua largura/altura nativas
+   (300×540, o "documento" original) e só cresce visualmente via transform,
+   preservando toda a proporção interna (fonte, foto, QR etc. crescem juntos,
+   como um zoom, sem recalcular nada). */
+.carteirinha-zoom {
+  position: relative;
+  width: var(--largura-cartao, 300px);
+  aspect-ratio: 300 / 540;
+}
+
 .carteirinha-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 300px;
-  height: 500px;
+  height: 540px;
+  transform-origin: top left;
+  transform: scale(var(--fator-zoom-carteirinha, 1));
   -webkit-perspective: 1000px;
   perspective: 1000px;
   cursor: pointer;
@@ -702,7 +722,9 @@
 }
 
 .carteirinha-inner.virada {
-  transform: rotateY(180deg);
+  /* Sentido negativo = gira "como abrir um livro" (pedido da Márcia em
+     14/jul/2026) — antes girava no sentido contrário. */
+  transform: rotateY(-180deg);
 }
 
 /* Container 3D da face — o visual (borda, sombra, overflow) já vem do
@@ -721,26 +743,37 @@
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   visibility: visible;
-  transition: visibility 0s linear 0.35s;
+  opacity: 1;
+  /* Opacidade também com atraso de metade do giro (0.35s): a face que fica
+     visível surge com um fade suave na segunda metade da animação, em vez
+     de "pular"/aparecer pronta de uma vez — foi o que causava a sensação de
+     o QR "se encaixando" ao virar (relatado pela Márcia em 14/jul/2026). O
+     mesmo atraso na face que se esconde não atrapalha: ela já vira
+     invisível (visibility) no mesmo instante, então o fade dela nunca chega
+     a aparecer na tela. */
+  transition: visibility 0s linear 0.35s, opacity 0.35s ease 0.35s;
 }
 
 .face-verso {
   transform: rotateY(180deg);
   visibility: hidden;
+  opacity: 0;
 }
 
 .carteirinha-inner.virada .carteirinha-face:not(.face-verso) {
   visibility: hidden;
+  opacity: 0;
 }
 
 .carteirinha-inner.virada .face-verso {
   visibility: visible;
+  opacity: 1;
 }
 
 .c-botoes {
   display: flex;
   gap: 10px;
-  width: 300px;
+  width: var(--largura-cartao, 300px);
 }
 
 .c-btn-salvar {

@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=3">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=4">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -35,10 +35,21 @@
             position: fixed;
             top: 0; left: 0; right: 0;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: center;
             padding: 10px 20px;
             z-index: 10;
+        }
+        /* Alinhado com a mesma largura do cartão/botões (--largura-cartao,
+           calculada em ajustarZoomCarteirinha) — antes o topo espalhava até
+           a borda da tela enquanto o cartão ficava mais estreito e
+           centralizado, dando a impressão de estar "desproporcional"
+           (pedido da Márcia em 14/jul/2026). */
+        .topo-conteudo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: var(--largura-cartao, 300px);
         }
         .topo-nome {
             font-size: 15px;
@@ -87,13 +98,15 @@
 <body>
 
 <div class="topo">
-    <span class="topo-nome tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
-    <div class="topo-acoes">
-        <button class="link-meuperfil" id="btnAbrirPerfil" style="display:none;" onclick="abrirPerfil();" aria-label="Meu perfil">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-            Meu perfil
-        </button>
-        <button class="btn-sair" id="btnSairTopo" onclick="sair()">Sair</button>
+    <div class="topo-conteudo">
+        <span class="topo-nome tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
+        <div class="topo-acoes">
+            <button class="link-meuperfil" id="btnAbrirPerfil" style="display:none;" onclick="abrirPerfil();" aria-label="Meu perfil">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                Meu perfil
+            </button>
+            <button class="btn-sair" id="btnSairTopo" onclick="sair()">Sair</button>
+        </div>
     </div>
 </div>
 
@@ -101,6 +114,7 @@
 
     <div class="c-hint">↺ toque para virar</div>
 
+    <div class="carteirinha-zoom" id="carteirinhaZoom">
     <div class="carteirinha-wrap" onclick="virarCarteirinha()">
         <div class="carteirinha-inner" id="carteirinhaInner">
 
@@ -124,7 +138,7 @@
                                 <div class="foto-halo">
                                     <div class="foto-anel">
                                         <div class="foto-img" id="fotoRitmista">
-                                            <svg width="56" height="56" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+                                            <svg width="72" height="72" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
                                         </div>
                                     </div>
                                 </div>
@@ -210,6 +224,7 @@
             </div>
 
         </div>
+    </div>
     </div>
 
     <div class="c-botoes">
@@ -462,6 +477,37 @@
     function virarCarteirinha() {
         document.getElementById('carteirinhaInner').classList.toggle('virada');
     }
+
+    // Tamanho responsivo do cartão (14/jul/2026): o "documento" original
+    // continua 300×540 (regra da Márcia, nunca mexer nesse valor base), mas
+    // na tela ele cresce via zoom (transform: scale, mantém toda a
+    // proporção interna) pra preencher melhor telas de celular mais altas,
+    // sem sobrar tanto espaço vazio em cima/embaixo do cartão. Nunca fica
+    // menor que o tamanho original (300×540 é sempre o piso).
+    // A largura calculada (--largura-cartao) também é usada pelo topo
+    // (.topo-conteudo) e pelos botões de baixo (.c-botoes), pra tudo ficar
+    // alinhado na mesma coluna — por isso é aplicada no <html>, não só no
+    // cartão.
+    function ajustarZoomCarteirinha() {
+        const zoom = document.getElementById('carteirinhaZoom');
+        if (!zoom) return;
+
+        const LARGURA_BASE = 300;
+        const ALTURA_BASE = 540;
+        const RESERVA_VERTICAL = 160; // header + dica + botões + respiros, fora do cartão
+
+        const larguraMax = Math.min(window.innerWidth * 0.92, 400);
+        const alturaDisponivel = window.innerHeight - RESERVA_VERTICAL;
+        const larguraPorAltura = alturaDisponivel * (LARGURA_BASE / ALTURA_BASE);
+
+        const largura = Math.max(LARGURA_BASE, Math.min(larguraMax, larguraPorAltura));
+        const fator = largura / LARGURA_BASE;
+
+        document.documentElement.style.setProperty('--largura-cartao', largura + 'px');
+        zoom.style.setProperty('--fator-zoom-carteirinha', fator);
+    }
+    window.addEventListener('resize', ajustarZoomCarteirinha);
+    ajustarZoomCarteirinha();
 
     async function sair() {
         await sb.auth.signOut();
