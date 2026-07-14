@@ -15,9 +15,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
-    <link rel="stylesheet" href="carteirinha-tumtu.css?v=2">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=1">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="config-escola.js?v=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,7 +28,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px 20px;
+            padding: 12px 20px;
         }
         .topo {
             position: fixed;
@@ -37,16 +36,31 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 20px;
+            padding: 10px 20px;
             z-index: 10;
         }
         .topo-nome {
-            font-size: 11px;
-            color: #D4AF37;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            opacity: 0.8;
+            font-size: 15px;
+            color: #f4f2f7;
         }
+        .topo-acoes {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .link-meuperfil {
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0;
+        }
+        .link-meuperfil:hover { color: #fff; }
         .btn-sair {
             background: transparent;
             border: 1px solid rgba(212,175,55,0.3);
@@ -58,14 +72,7 @@
             letter-spacing: 1px;
         }
         .btn-sair:hover { background: rgba(212,175,55,0.08); }
-        .carteirinha-scene { margin-top: 40px; }
-        .c-btn-perfil {
-            width: 24px; height: 24px; border-radius: 50%;
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(212,175,55,0.3);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; padding: 0;
-        }
-        .c-btn-perfil:hover { background: rgba(212,175,55,0.15); }
+        .carteirinha-scene { margin-top: 44px; }
         .c-toast {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
             background: #1e1b2e; color: white; padding: 12px 20px; border-radius: 12px;
@@ -79,8 +86,14 @@
 <body>
 
 <div class="topo">
-    <span class="topo-nome">TumTu</span>
-    <button class="btn-sair" id="btnSairTopo" onclick="sair()">Sair</button>
+    <span class="topo-nome tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
+    <div class="topo-acoes">
+        <button class="link-meuperfil" id="btnAbrirPerfil" style="display:none;" onclick="abrirPerfil();" aria-label="Meu perfil">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            Meu perfil
+        </button>
+        <button class="btn-sair" id="btnSairTopo" onclick="sair()">Sair</button>
+    </div>
 </div>
 
 <div class="carteirinha-scene">
@@ -92,112 +105,105 @@
 
             <!-- ════ FRENTE ════ -->
             <div class="carteirinha-face">
-                <div class="c-frente">
-                    <div class="c-tri-esquerda-1"></div>
-                    <div class="c-tri-esquerda-2"></div>
-                    <div class="c-tri-direita-1"></div>
-                    <div class="c-tri-direita-2"></div>
-                    <div class="c-tri-topo"></div>
+                <div class="carteirinha">
+                    <div class="carteirinha-frente">
 
-                    <div class="c-header">
-                        <div>
-                            <div class="c-escola" id="c-escola-nome"></div>
-                            <div class="c-bateria" id="c-bateria-nome"></div>
-                        </div>
-                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-                            <div class="c-status">
-                                <div class="c-status-dot"></div>
-                                Ativo
+                        <div class="c-header">
+                            <div class="c-header__info">
+                                <div class="c-header__escola" id="c-escola-nome"></div>
+                                <div class="c-header__bateria" id="c-bateria-nome"></div>
                             </div>
-                            <button class="c-btn-perfil" id="btnAbrirPerfil" style="display:none;" onclick="event.stopPropagation(); abrirPerfil();" aria-label="Meu perfil">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#D4AF37" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                            </button>
+                            <div class="c-header__acoes">
+                                <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="c-foto-area">
-                        <div class="c-foto" id="fotoRitmista">
-                            <div class="c-foto-anel"></div>
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="8" r="4"/>
-                                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                            </svg>
+                        <div class="corpo-frente">
+                            <div class="foto-section">
+                                <div class="foto-halo">
+                                    <div class="foto-anel">
+                                        <div class="foto-img" id="fotoRitmista">
+                                            <svg width="56" height="56" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="cargo-label" id="cRole">Ritmista</div>
+                            </div>
+
+                            <div class="identidade">
+                                <div class="id-nome" id="nomeRitmista">—</div>
+                                <div class="id-apelido" id="apelidoRitmista"></div>
+                                <div class="id-instrumento" id="instrumentoRitmista" style="display:none;">—</div>
+                            </div>
+
+                            <div class="divisor"></div>
+
+                            <div class="cpf-block">
+                                <div class="cpf-label">CPF</div>
+                                <div class="cpf-valor" id="cpfRitmista">—</div>
+                            </div>
                         </div>
-                        <div class="c-role" id="cRole">Ritmista</div>
-                    </div>
 
-                    <div class="c-identidade">
-                        <div class="c-nome" id="nomeRitmista">—</div>
-                        <div class="c-apelido" id="apelidoRitmista"></div>
-                        <div class="c-instrumento" id="instrumentoRitmista">—</div>
-                    </div>
-
-                    <div class="c-divisor"></div>
-
-                    <div class="c-cpf">
-                        <div class="c-label">CPF</div>
-                        <div class="c-valor" id="cpfRitmista">—</div>
-                    </div>
-
-                    <!-- Membro desde — canto inferior esquerdo -->
-                    <div class="c-membro-desde" id="membroDesdeBox" style="display:none">
-                        <div class="c-label">Membro desde</div>
-                        <div class="c-valor" id="membroDesde">—</div>
-                    </div>
-
-                    <!-- Logo da escola — canto inferior direito -->
-                    <div class="c-logo">
-                        <div class="c-logo-circulo">
-                            <img id="logoEscolaFrente" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                        <div class="rodape-fluido">
+                            <div class="rodape-gradiente"></div>
+                            <div class="rodape-content">
+                                <div>
+                                    <div class="membro-label">Membro desde</div>
+                                    <div class="membro-ano" id="membroDesde">—</div>
+                                </div>
+                                <div class="logo-circulo">
+                                    <img id="logoEscolaFrente" style="display:none;">
+                                </div>
+                            </div>
                         </div>
+
+                        <div class="faixa-ouro"></div>
                     </div>
                 </div>
             </div>
 
             <!-- ════ VERSO ════ -->
-            <div class="carteirinha-face carteirinha-verso">
-                <div class="c-verso-bg">
-                    <div class="c-verso-tri-esquerda"></div>
-                    <div class="c-verso-tri-direita"></div>
+            <div class="carteirinha-face face-verso">
+                <div class="carteirinha">
+                    <div class="carteirinha-verso">
 
-                    <div class="c-verso-header">
-                        <div>
-                            <div class="c-verso-titulo" id="c-verso-titulo">TumTu</div>
-                            <div class="c-verso-sub" id="c-verso-sub">Gestão de Baterias</div>
+                        <div class="v-header">
+                            <div>
+                                <div class="v-header__bateria" id="c-verso-titulo">TumTu</div>
+                                <div class="v-header__escola" id="c-verso-sub">Gestão de Baterias</div>
+                            </div>
+                            <div class="v-logo">
+                                <img id="logoEscolaVerso" style="display:none;">
+                            </div>
                         </div>
-                        <div class="c-logo-verso">
-                            <img id="logoEscolaVerso" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
-                        </div>
-                    </div>
 
-                    <div class="c-qr-area">
-                        <div class="c-qr">
-                            <div id="qrcode"></div>
-                        </div>
-                        <div class="c-qr-label">Validação Digital</div>
-                    </div>
+                        <div class="v-content">
+                            <div class="v-qr-box"><div id="qrcode"></div></div>
+                            <div class="v-qr-label">QR de emergência</div>
 
-                    <div class="c-mestre" id="c-mestre-bloco" style="display:none">
-                        <div class="c-mestre-label" id="c-mestre-label">Mestre de Bateria</div>
-                        <div class="c-mestre-nomes" id="c-mestre-nomes"></div>
-                    </div>
-
-                    <!-- Válida até + Temporada — lado a lado com divisória vertical -->
-                    <div class="c-validade-temporada">
-                        <div class="c-validade">
-                            <div class="c-label">Válida até</div>
-                            <div class="c-validade-valor">31/07/2027</div>
+                            <div class="v-mestre" id="c-mestre-bloco" style="display:none">
+                                <div class="v-mestre__label" id="c-mestre-label">Mestre de Bateria</div>
+                                <div id="c-mestre-nomes"></div>
+                            </div>
                         </div>
-                        <div class="c-divisor-vertical"></div>
-                        <div class="c-temporada">
-                            <div class="c-label">Temporada</div>
-                            <div class="c-temporada-valor" id="c-temporada-valor">Carnaval 2027</div>
-                        </div>
-                    </div>
 
-                    <div class="c-verso-rodape">
-                        <div class="c-rodape-instagram" id="c-rodape-instagram"></div>
-                        <div class="c-rodape-tumtu tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
+                        <div class="v-validade">
+                            <div class="v-val-item">
+                                <div class="v-val-label">Válida até</div>
+                                <div class="v-val-valor">31/07/2027</div>
+                            </div>
+                            <div class="v-val-sep"></div>
+                            <div class="v-val-item">
+                                <div class="v-val-label">Temporada</div>
+                                <div class="v-val-valor" id="c-temporada-valor">Carnaval 2027</div>
+                            </div>
+                        </div>
+
+                        <div class="v-rodape">
+                            <div class="v-ig" id="c-rodape-instagram"></div>
+                            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -247,26 +253,24 @@
             : 'Ritmista';
         document.getElementById('cRole').textContent = labelCargo;
 
-        // Nome
-        const nomeEl = document.getElementById('nomeRitmista');
-        nomeEl.textContent = ritmista.nome;
-        const len = ritmista.nome.length;
-        if (len > 30) nomeEl.style.fontSize = '13px';
-        else if (len > 22) nomeEl.style.fontSize = '15px';
-        else if (len > 16) nomeEl.style.fontSize = '14px';
+        document.getElementById('nomeRitmista').textContent = ritmista.nome;
 
-        // Apelido
         if (ritmista.apelido) {
             document.getElementById('apelidoRitmista').textContent = '"' + ritmista.apelido + '"';
         }
 
-        // Instrumento
-        document.getElementById('instrumentoRitmista').textContent = ritmista.instrumento_nome || '—';
+        // Mestre/Diretor não têm instrumento — a linha some por completo em vez
+        // de ficar vazia, pra não desalinhar o bloco central (que é centralizado).
+        const instEl = document.getElementById('instrumentoRitmista');
+        if (perfil === 'ritmista' && ritmista.instrumento_nome) {
+            instEl.textContent = ritmista.instrumento_nome;
+            instEl.style.display = '';
+        } else {
+            instEl.style.display = 'none';
+        }
 
-        // CPF
         document.getElementById('cpfRitmista').textContent = ritmista.cpf || '—';
 
-        // Foto
         if (ritmista.foto_url) {
             const img = document.createElement('img');
             img.src = ritmista.foto_url;
@@ -275,25 +279,7 @@
             box.appendChild(img);
         }
 
-        // Membro desde
-        if (ritmista.membro_desde) {
-            document.getElementById('membroDesde').textContent = ritmista.membro_desde;
-            document.getElementById('membroDesdeBox').style.display = 'block';
-        }
-
-        // Config da escola
-        const cfg = (typeof configEscola !== 'undefined') ? configEscola : {};
-
-        document.getElementById('c-escola-nome').textContent = cfg.nomeEscola || '';
-        document.getElementById('c-bateria-nome').textContent = cfg.nomeBateria || '';
-        document.getElementById('c-verso-titulo').textContent = cfg.nomeBateria || 'TumTu';
-        document.getElementById('c-verso-sub').textContent = cfg.nomeEscola || 'Gestão de Baterias';
-        if (cfg.temporadaAtual) document.getElementById('c-temporada-valor').textContent = cfg.temporadaAtual;
-
-        const igEl = document.getElementById('c-rodape-instagram');
-        if (igEl && cfg.instagramBateria) {
-            igEl.textContent = cfg.instagramBateria.startsWith('@') ? cfg.instagramBateria : '@' + cfg.instagramBateria;
-        }
+        document.getElementById('membroDesde').textContent = ritmista.membro_desde || '—';
 
         // QR code real apontando para a página de emergência
         const qrUrl = `${window.location.origin}/qr.html?id=${ritmista.id}`;
@@ -305,20 +291,74 @@
             colorLight: '#ffffff',
             correctLevel: QRCode.CorrectLevel.M
         });
+    }
 
-        if (cfg.logoEscola) {
-            ['logoEscolaFrente', 'logoEscolaVerso'].forEach(id => {
-                const img = document.getElementById(id);
-                if (img) { img.src = cfg.logoEscola; img.style.display = 'block'; }
-            });
+    // Busca nome/logo/temporada/cores da escola e bateria no banco (substitui
+    // o antigo config-escola.js estático — cada bateria mostra os dados certos).
+    async function carregarConfigEscola(bateriaId, token) {
+        const cfgVazio = { nomeEscola: '', nomeBateria: '', logoEscola: null, logoBateria: null, instagramBateria: '', temporadaAtual: '', cores: [] };
+        if (!bateriaId) return cfgVazio;
+        try {
+            const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token || SUPABASE_KEY}` };
+
+            const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome,logo_url,instagram,escola_id`, { headers: hdrs });
+            const baterias = await resBateria.json();
+            const bateria = Array.isArray(baterias) && baterias[0] ? baterias[0] : null;
+            if (!bateria) return cfgVazio;
+
+            let escola = null;
+            if (bateria.escola_id) {
+                const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,logo_url,temporada_atual,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria`, { headers: hdrs });
+                const escolas = await resEscola.json();
+                escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
+            }
+
+            return {
+                nomeEscola: escola ? (escola.nome || '') : '',
+                nomeBateria: bateria.nome || '',
+                logoEscola: (escola && escola.logo_url) || null,
+                logoBateria: bateria.logo_url || null,
+                instagramBateria: bateria.instagram || '',
+                temporadaAtual: (escola && escola.temporada_atual) || '',
+                cores: escola ? [escola.cor_primaria, escola.cor_secundaria, escola.cor_terciaria, escola.cor_quaternaria].filter(Boolean) : [],
+            };
+        } catch (e) {
+            return cfgVazio;
         }
+    }
+
+    function aplicarConfigEscola(cfg) {
+        document.getElementById('c-escola-nome').textContent = cfg.nomeEscola || 'TumTu';
+        document.getElementById('c-bateria-nome').textContent = cfg.nomeBateria || 'Time TumTu';
+        document.getElementById('c-verso-titulo').textContent = cfg.nomeBateria || 'Time TumTu';
+        document.getElementById('c-verso-sub').textContent = cfg.nomeEscola || 'TumTu';
+        document.getElementById('c-temporada-valor').textContent = cfg.temporadaAtual || 'Carnaval 2027';
+
+        const igEl = document.getElementById('c-rodape-instagram');
+        igEl.textContent = cfg.instagramBateria
+            ? (cfg.instagramBateria.startsWith('@') ? cfg.instagramBateria : '@' + cfg.instagramBateria)
+            : '@tumtu.app';
+
+        const logoFrente = document.getElementById('logoEscolaFrente');
+        if (cfg.logoEscola) { logoFrente.src = cfg.logoEscola; logoFrente.style.display = 'block'; }
+        else logoFrente.style.display = 'none';
+
+        // Logo do verso: prioriza a logo da bateria; se não houver, cai pra logo da escola.
+        const logoVerso = document.getElementById('logoEscolaVerso');
+        const urlLogoVerso = cfg.logoBateria || cfg.logoEscola;
+        if (urlLogoVerso) { logoVerso.src = urlLogoVerso; logoVerso.style.display = 'block'; }
+        else logoVerso.style.display = 'none';
+
+        // Cores injetadas no ancestral comum de frente e verso — herdam por CSS custom properties.
+        const inner = document.getElementById('carteirinhaInner');
+        (cfg.cores || []).forEach((cor, i) => inner.style.setProperty(`--cor-${i + 1}`, cor));
     }
 
     async function renderMestres(bateriaId) {
         if (!bateriaId) return;
         try {
             const res = await fetch(
-                `${SUPABASE_URL}/rest/v1/mestres_publicos?bateria_id=eq.${bateriaId}&select=nome,genero&order=nome.asc`,
+                `${SUPABASE_URL}/rest/v1/mestres_publicos?bateria_id=eq.${bateriaId}&select=nome,apelido,genero&order=nome.asc`,
                 { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
             );
             const mestres = await res.json();
@@ -332,9 +372,15 @@
             label.textContent = mestres.length > 1 ? 'Mestres de Bateria'
                 : mestres[0].genero === 'feminino' ? 'Mestra de Bateria'
                 : 'Mestre de Bateria';
-            container.classList.toggle('varios', mestres.length > 1);
-            container.innerHTML = mestres.map(m => `<div class="c-mestre-nome">${m.nome}</div>`).join('');
-            bloco.style.display = 'flex';
+
+            // Nome exibido: apelido se tiver, senão o nome completo — nunca prefixado com "Mestre".
+            container.innerHTML = mestres.map((m, i) => {
+                const nomeExibido = m.apelido || m.nome;
+                const sep = i > 0 ? '<div class="v-mestre__sep"></div>' : '';
+                return sep + `<div class="v-mestre__nome">${nomeExibido}</div>`;
+            }).join('');
+
+            bloco.style.display = 'block';
         } catch (e) {
             // Silencioso — carteirinha continua funcional sem o bloco de mestre
         }
@@ -357,14 +403,17 @@
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
             })
             .then(r => r.json())
-            .then(rows => {
+            .then(async rows => {
                 if (!rows || rows.length === 0) {
                     mostrarToast('Ritmista não encontrado.', 'erro');
                     setTimeout(() => history.back(), 1200);
                     return;
                 }
-                renderCarteirinha(rows[0]);
-                renderMestres(rows[0].bateria_id);
+                const ritmista = rows[0];
+                renderCarteirinha(ritmista);
+                renderMestres(ritmista.bateria_id);
+                const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
+                aplicarConfigEscola(cfg);
             })
             .catch(() => { mostrarToast('Erro ao carregar carteirinha.', 'erro'); setTimeout(() => history.back(), 1200); });
         })();
@@ -377,6 +426,12 @@
             renderCarteirinha(ritmista);
             renderMestres(ritmista.bateria_id);
             document.getElementById('btnAbrirPerfil').style.display = 'flex';
+            (async () => {
+                const { data: sessionData } = await sb.auth.getSession();
+                const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
+                const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
+                aplicarConfigEscola(cfg);
+            })();
         }
     }
 

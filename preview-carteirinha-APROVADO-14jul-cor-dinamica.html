@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teste — Carteirinha (rodapé claro)</title>
+<link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=teste21">
+<style>
+  body {
+    background: #f4f2f7;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 40px 20px;
+    margin: 0;
+  }
+  h1 { text-align: center; font-size: 18px; color: #12101a; margin-bottom: 4px; }
+  .aviso { text-align: center; color: #706c87; font-size: 13px; margin-bottom: 40px; }
+  .grupo { margin-bottom: 56px; }
+  .grupo-titulo { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #706c87; margin-bottom: 16px; }
+  .par { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+  .rotulo { text-align: center; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #9490a8; margin-bottom: 8px; }
+  .foto-placeholder-icon { width: 56px; height: 56px; opacity: 0.35; }
+
+  /* ── TESTE: barra de cima com "Meu perfil" (mesmo padrão do .topo real) ── */
+  .topo-demo {
+    background: #12101a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-radius: 12px;
+    max-width: 400px;
+    margin: 0 auto 8px;
+  }
+  .topo-demo-nome {
+    font-size: 15px;
+    color: #f4f2f7;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  /* Marca oficial TumTu (mesma classe de styles/components.css) — T's em
+     dourado, "m" com risco terracota embaixo, resto na cor do texto ao redor. */
+  .tt-logo { font-weight: 800; }
+  .tt-logo .tt-t { color: #D4AF37; }
+  .tt-logo .tt-m { border-bottom: 3px solid #7c2d12; padding-bottom: 2px; }
+  .topo-demo-acoes { display: flex; align-items: center; gap: 10px; }
+  .link-meuperfil {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .link-meuperfil:hover { color: #fff; }
+  .btn-sair-demo {
+    background: transparent;
+    border: 1px solid rgba(212,175,55,0.3);
+    color: #D4AF37;
+    padding: 5px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+
+<h1>Teste — rodapé claro na frente (verso continua igual ao CSS salvo)</h1>
+<p class="aviso">Só pra visualização. Nada aqui está ligado ao site de verdade ainda.</p>
+
+<div class="grupo-titulo" style="margin-bottom:8px;">Teste — "Meu perfil" saiu do cartão, foi pra barra de cima</div>
+<div class="topo-demo">
+  <span class="topo-demo-nome tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
+  <div class="topo-demo-acoes">
+    <button class="link-meuperfil">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+      Meu perfil
+    </button>
+    <button class="btn-sair-demo">Sair</button>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Padrão C — Imperatriz — Ritmista (mostra instrumento)</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="imperatriz">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">G.R.E.S. Imperatriz Leopoldinense</div>
+              <div class="c-header__bateria">Bateria Imperial</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Ritmista</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Ana Souza</div>
+            <div class="id-apelido">"Aninha"</div>
+            <div class="id-instrumento">Caixa</div>
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">456.789.123-00</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2018</div></div>
+              <div class="logo-circulo"><img src="imagens/carteirinhas%20de%20escola%20de%20samba/logo-imperatriz.png" alt=""></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="rotulo">Verso</div>
+      <div class="carteirinha" data-escola="imperatriz">
+        <div class="carteirinha-verso">
+          <div class="v-header">
+            <div>
+              <div class="v-header__bateria">Bateria Imperial</div>
+              <div class="v-header__escola">G.R.E.S. Imperatriz Leopoldinense</div>
+            </div>
+            <div class="v-logo"><img src="imagens/carteirinhas%20de%20escola%20de%20samba/logo-swing.png" alt=""></div>
+          </div>
+          <div class="v-content">
+            <div class="v-qr-box">QR</div>
+            <div class="v-qr-label">QR de emergência</div>
+            <div class="v-mestre">
+              <div class="v-mestre__label">Mestre de Bateria</div>
+              <div class="v-mestre__nome">Mestre Cláudio</div>
+            </div>
+          </div>
+          <div class="v-validade">
+            <div class="v-val-item"><div class="v-val-label">Válida até</div><div class="v-val-valor">31/07/2027</div></div>
+            <div class="v-val-sep"></div>
+            <div class="v-val-item"><div class="v-val-label">Temporada</div><div class="v-val-valor">Carnaval 2027</div></div>
+          </div>
+          <div class="v-rodape">
+            <div class="v-ig">@bateriaimperial</div>
+            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Padrão A — Jacarezinho — Diretora (sem instrumento, feminino)</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="jacarezinho">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">G.R.E.S. Unidos do Jacarezinho</div>
+              <div class="c-header__bateria">Bateria</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Diretora</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Marina Costa</div>
+            <div class="id-apelido">"Mari"</div>
+            <!-- Diretor/Diretora não mostra instrumento -->
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">321.654.987-00</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2015</div></div>
+              <div class="logo-circulo"></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="rotulo">Verso</div>
+      <div class="carteirinha" data-escola="jacarezinho">
+        <div class="carteirinha-verso">
+          <div class="v-header">
+            <div>
+              <div class="v-header__bateria">Bateria</div>
+              <div class="v-header__escola">G.R.E.S. Unidos do Jacarezinho</div>
+            </div>
+            <div class="v-logo"></div>
+          </div>
+          <div class="v-content">
+            <div class="v-qr-box">QR</div>
+            <div class="v-qr-label">QR de emergência</div>
+            <div class="v-mestre">
+              <div class="v-mestre__label">Mestre de Bateria</div>
+              <div class="v-mestre__nome">Mestre Ricardinho</div>
+            </div>
+          </div>
+          <div class="v-validade">
+            <div class="v-val-item"><div class="v-val-label">Válida até</div><div class="v-val-valor">31/07/2027</div></div>
+            <div class="v-val-sep"></div>
+            <div class="v-val-item"><div class="v-val-label">Temporada</div><div class="v-val-valor">Carnaval 2027</div></div>
+          </div>
+          <div class="v-rodape">
+            <div class="v-ig">@unidosdojacarezinho</div>
+            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Padrão B — Tijuca — Mestre (sem instrumento, masculino)</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="tijuca">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">Unidos da Tijuca</div>
+              <div class="c-header__bateria">Bateria</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Mestre</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Paulo Henrique</div>
+            <div class="id-apelido">"Paulinho"</div>
+            <!-- Mestre/Mestra não mostra instrumento -->
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">789.123.456-00</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2010</div></div>
+              <div class="logo-circulo"></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="rotulo">Verso</div>
+      <div class="carteirinha" data-escola="tijuca">
+        <div class="carteirinha-verso">
+          <div class="v-header">
+            <div>
+              <div class="v-header__bateria">Bateria</div>
+              <div class="v-header__escola">Unidos da Tijuca</div>
+            </div>
+            <div class="v-logo"></div>
+          </div>
+          <div class="v-content">
+            <div class="v-qr-box">QR</div>
+            <div class="v-qr-label">QR de emergência</div>
+            <div class="v-mestre">
+              <div class="v-mestre__label">Mestre de Bateria</div>
+              <div class="v-mestre__nome">Paulo Henrique</div>
+            </div>
+          </div>
+          <div class="v-validade">
+            <div class="v-val-item"><div class="v-val-label">Válida até</div><div class="v-val-valor">31/07/2027</div></div>
+            <div class="v-val-sep"></div>
+            <div class="v-val-item"><div class="v-val-label">Temporada</div><div class="v-val-valor">Carnaval 2027</div></div>
+          </div>
+          <div class="v-rodape">
+            <div class="v-ig">@unidosdatijuca</div>
+            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Perfil TumTu (sem escola cadastrada) — exemplo pedido por você</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="tumtu-base">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">TumTu</div>
+              <div class="c-header__bateria">Time TumTu</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Fundadora</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Márcia Serra</div>
+            <div class="id-apelido">"Márcia"</div>
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">000.000.000-00</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2026</div></div>
+              <div class="logo-circulo"><img src="imagens/carteirinhas%20de%20escola%20de%20samba/logo-swing.png" alt=""></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="rotulo">Verso</div>
+      <div class="carteirinha" data-escola="tumtu-base">
+        <div class="carteirinha-verso">
+          <div class="v-header">
+            <div>
+              <div class="v-header__bateria">Time TumTu</div>
+              <div class="v-header__escola">TumTu</div>
+            </div>
+            <div class="v-logo"><img src="imagens/carteirinhas%20de%20escola%20de%20samba/logo-swing.png" alt=""></div>
+          </div>
+          <div class="v-content">
+            <div class="v-qr-box">QR</div>
+            <div class="v-qr-label">QR de emergência</div>
+            <div class="v-mestre">
+              <div class="v-mestre__label">Fundadora</div>
+              <div class="v-mestre__nome">Márcia Serra</div>
+            </div>
+          </div>
+          <div class="v-validade">
+            <div class="v-val-item"><div class="v-val-label">Válida até</div><div class="v-val-valor">31/07/2027</div></div>
+            <div class="v-val-sep"></div>
+            <div class="v-val-item"><div class="v-val-label">Temporada</div><div class="v-val-valor">Carnaval 2027</div></div>
+          </div>
+          <div class="v-rodape">
+            <div class="v-ig">@tumtu.app</div>
+            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Teste de estresse — nome bem comprido (sua preocupação de agora)</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="mangueira">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">Estação Primeira de Mangueira</div>
+              <div class="c-header__bateria">Bateria</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Ritmista</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Maria Fernanda de Oliveira Cavalcanti Nascimento Santos</div>
+            <div class="id-apelido">"Fê"</div>
+            <div class="id-instrumento">Tamborim</div>
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">111.222.333-44</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2019</div></div>
+              <div class="logo-circulo"></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Padrão A — Salgueiro — Ritmista</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="salgueiro">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">Acadêmicos do Salgueiro</div>
+              <div class="c-header__bateria">Bateria</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Ritmista</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Rafael Souza</div>
+            <div class="id-apelido">"Rafa"</div>
+            <div class="id-instrumento">Repique</div>
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">222.333.444-55</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2016</div></div>
+              <div class="logo-circulo"></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="rotulo">Verso</div>
+      <div class="carteirinha" data-escola="salgueiro">
+        <div class="carteirinha-verso">
+          <div class="v-header">
+            <div>
+              <div class="v-header__bateria">Bateria</div>
+              <div class="v-header__escola">Acadêmicos do Salgueiro</div>
+            </div>
+            <div class="v-logo"></div>
+          </div>
+          <div class="v-content">
+            <div class="v-qr-box">QR</div>
+            <div class="v-qr-label">QR de emergência</div>
+            <div class="v-mestre">
+              <div class="v-mestre__label">Mestre de Bateria</div>
+              <div class="v-mestre__nome">Mestre Anderson</div>
+            </div>
+          </div>
+          <div class="v-validade">
+            <div class="v-val-item"><div class="v-val-label">Válida até</div><div class="v-val-valor">31/07/2027</div></div>
+            <div class="v-val-sep"></div>
+            <div class="v-val-item"><div class="v-val-label">Temporada</div><div class="v-val-valor">Carnaval 2027</div></div>
+          </div>
+          <div class="v-rodape">
+            <div class="v-ig">@salgueiro</div>
+            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Padrão C — Acadêmicos do Grande Rio — Ritmista</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="granderio">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">Acadêmicos do Grande Rio</div>
+              <div class="c-header__bateria">Bateria</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Ritmista</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Bruno Alves</div>
+            <div class="id-apelido">"Bruninho"</div>
+            <div class="id-instrumento">Surdo de Marcação</div>
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">333.444.555-66</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2020</div></div>
+              <div class="logo-circulo"></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="rotulo">Verso</div>
+      <div class="carteirinha" data-escola="granderio">
+        <div class="carteirinha-verso">
+          <div class="v-header">
+            <div>
+              <div class="v-header__bateria">Bateria</div>
+              <div class="v-header__escola">Acadêmicos do Grande Rio</div>
+            </div>
+            <div class="v-logo"></div>
+          </div>
+          <div class="v-content">
+            <div class="v-qr-box">QR</div>
+            <div class="v-qr-label">QR de emergência</div>
+            <div class="v-mestre">
+              <div class="v-mestre__label">Mestre de Bateria</div>
+              <div class="v-mestre__nome">Mestre Diego</div>
+            </div>
+          </div>
+          <div class="v-validade">
+            <div class="v-val-item"><div class="v-val-label">Válida até</div><div class="v-val-valor">31/07/2027</div></div>
+            <div class="v-val-sep"></div>
+            <div class="v-val-item"><div class="v-val-label">Temporada</div><div class="v-val-valor">Carnaval 2027</div></div>
+          </div>
+          <div class="v-rodape">
+            <div class="v-ig">@grande_rio</div>
+            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Padrão C+ (4 cores) — União de Maricá — Ritmista</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="marica">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">União de Maricá</div>
+              <div class="c-header__bateria">Bateria</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Ritmista</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Camila Rocha</div>
+            <div class="id-apelido">"Cacá"</div>
+            <div class="id-instrumento">Chocalho</div>
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">444.555.666-77</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2022</div></div>
+              <div class="logo-circulo"></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="rotulo">Verso</div>
+      <div class="carteirinha" data-escola="marica">
+        <div class="carteirinha-verso">
+          <div class="v-header">
+            <div>
+              <div class="v-header__bateria">Bateria</div>
+              <div class="v-header__escola">União de Maricá</div>
+            </div>
+            <div class="v-logo"></div>
+          </div>
+          <div class="v-content">
+            <div class="v-qr-box">QR</div>
+            <div class="v-qr-label">QR de emergência</div>
+            <div class="v-mestre">
+              <div class="v-mestre__label">Mestre de Bateria</div>
+              <div class="v-mestre__nome">Mestre Wagner</div>
+            </div>
+          </div>
+          <div class="v-validade">
+            <div class="v-val-item"><div class="v-val-label">Válida até</div><div class="v-val-valor">31/07/2027</div></div>
+            <div class="v-val-sep"></div>
+            <div class="v-val-item"><div class="v-val-label">Temporada</div><div class="v-val-valor">Carnaval 2027</div></div>
+          </div>
+          <div class="v-rodape">
+            <div class="v-ig">@uniaodemarica</div>
+            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Padrão B — São Clemente — Ritmista</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="saoclemente">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">São Clemente</div>
+              <div class="c-header__bateria">Bateria</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Ritmista</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Thiago Lima</div>
+            <div class="id-apelido">"Thiaguinho"</div>
+            <div class="id-instrumento">Cuíca</div>
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">555.666.777-88</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2017</div></div>
+              <div class="logo-circulo"></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="rotulo">Verso</div>
+      <div class="carteirinha" data-escola="saoclemente">
+        <div class="carteirinha-verso">
+          <div class="v-header">
+            <div>
+              <div class="v-header__bateria">Bateria</div>
+              <div class="v-header__escola">São Clemente</div>
+            </div>
+            <div class="v-logo"></div>
+          </div>
+          <div class="v-content">
+            <div class="v-qr-box">QR</div>
+            <div class="v-qr-label">QR de emergência</div>
+            <div class="v-mestre">
+              <div class="v-mestre__label">Mestre de Bateria</div>
+              <div class="v-mestre__nome">Mestre Robson</div>
+            </div>
+          </div>
+          <div class="v-validade">
+            <div class="v-val-item"><div class="v-val-label">Válida até</div><div class="v-val-valor">31/07/2027</div></div>
+            <div class="v-val-sep"></div>
+            <div class="v-val-item"><div class="v-val-label">Temporada</div><div class="v-val-valor">Carnaval 2027</div></div>
+          </div>
+          <div class="v-rodape">
+            <div class="v-ig">@saoclemente</div>
+            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Padrão A — Botafogo Samba Clube — Ritmista</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="botafogo">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">Botafogo Samba Clube</div>
+              <div class="c-header__bateria">Bateria</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Ritmista</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Larissa Prado</div>
+            <div class="id-apelido">"Lari"</div>
+            <div class="id-instrumento">Agogô</div>
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">666.777.888-99</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2021</div></div>
+              <div class="logo-circulo"></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="rotulo">Verso</div>
+      <div class="carteirinha" data-escola="botafogo">
+        <div class="carteirinha-verso">
+          <div class="v-header">
+            <div>
+              <div class="v-header__bateria">Bateria</div>
+              <div class="v-header__escola">Botafogo Samba Clube</div>
+            </div>
+            <div class="v-logo"></div>
+          </div>
+          <div class="v-content">
+            <div class="v-qr-box">QR</div>
+            <div class="v-qr-label">QR de emergência</div>
+            <div class="v-mestre">
+              <div class="v-mestre__label">Mestre de Bateria</div>
+              <div class="v-mestre__nome">Mestre Jorge</div>
+            </div>
+          </div>
+          <div class="v-validade">
+            <div class="v-val-item"><div class="v-val-label">Válida até</div><div class="v-val-valor">31/07/2027</div></div>
+            <div class="v-val-sep"></div>
+            <div class="v-val-item"><div class="v-val-label">Temporada</div><div class="v-val-valor">Carnaval 2027</div></div>
+          </div>
+          <div class="v-rodape">
+            <div class="v-ig">@botafogosambaclube</div>
+            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grupo">
+  <div class="grupo-titulo">Padrão A — Unidos de Vila Isabel — Ritmista</div>
+  <div class="par">
+    <div>
+      <div class="rotulo">Frente</div>
+      <div class="carteirinha" data-escola="vilaisabel">
+        <div class="carteirinha-frente">
+          <div class="c-header">
+            <div class="c-header__info">
+              <div class="c-header__escola">Unidos de Vila Isabel</div>
+              <div class="c-header__bateria">Bateria</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>Ativo</div>
+          </div>
+          <div class="corpo-frente">
+          <div class="foto-section">
+            <div class="foto-halo"><div class="foto-anel"><div class="foto-img">
+              <svg class="foto-placeholder-icon" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div></div></div>
+            <div class="cargo-label">Ritmista</div>
+          </div>
+          <div class="identidade">
+            <div class="id-nome">Felipe Nunes</div>
+            <div class="id-apelido">"Fefe"</div>
+            <div class="id-instrumento">Tarol</div>
+          </div>
+          <div class="divisor"></div>
+          <div class="cpf-block">
+            <div class="cpf-label">CPF</div>
+            <div class="cpf-valor">777.888.999-00</div>
+          </div>
+          </div>
+          <div class="rodape-fluido">
+            <div class="rodape-gradiente"></div>
+            <div class="rodape-content">
+              <div><div class="membro-label">Membro desde</div><div class="membro-ano">2014</div></div>
+              <div class="logo-circulo"></div>
+            </div>
+          </div>
+          <div class="faixa-ouro"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="rotulo">Verso</div>
+      <div class="carteirinha" data-escola="vilaisabel">
+        <div class="carteirinha-verso">
+          <div class="v-header">
+            <div>
+              <div class="v-header__bateria">Bateria</div>
+              <div class="v-header__escola">Unidos de Vila Isabel</div>
+            </div>
+            <div class="v-logo"></div>
+          </div>
+          <div class="v-content">
+            <div class="v-qr-box">QR</div>
+            <div class="v-qr-label">QR de emergência</div>
+            <div class="v-mestre">
+              <div class="v-mestre__label">Mestre de Bateria</div>
+              <div class="v-mestre__nome">Mestre Nilton</div>
+            </div>
+          </div>
+          <div class="v-validade">
+            <div class="v-val-item"><div class="v-val-label">Válida até</div><div class="v-val-valor">31/07/2027</div></div>
+            <div class="v-val-sep"></div>
+            <div class="v-val-item"><div class="v-val-label">Temporada</div><div class="v-val-valor">Carnaval 2027</div></div>
+          </div>
+          <div class="v-rodape">
+            <div class="v-ig">@unidosdevilaisabel</div>
+            <div class="tumtu-mono"><span class="tumtu-mono__t">T</span><div class="tumtu-mono__risco"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Mesma técnica que a carteirinha.html real vai usar: só --cor-1/2/3/4
+  // injetadas por JS. Aqui vem de um objeto fixo, na produção vem do banco.
+  const CORES_POR_ESCOLA = {
+    'imperatriz':  ['#007A3D', '#D4AF37'],
+    'jacarezinho': ['#E8427A'],
+    'tijuca':      ['#005BAA', '#FFD700'],
+    'tumtu-base':  ['#12101a', '#D4AF37'],
+    'mangueira':   ['#009B3A', '#FF69B4'],
+    'salgueiro':   ['#CC0000'],
+    'granderio':   ['#009B3A', '#CC0000'],
+    'marica':      ['#CC0000', '#FFD700', '#003DA5'],
+    'saoclemente': ['#1A1A1A', '#FFD700'],
+    'botafogo':    ['#1A1A1A'],
+    'vilaisabel':  ['#003DA5'],
+  };
+
+  document.querySelectorAll('[data-escola]').forEach(el => {
+    const cores = CORES_POR_ESCOLA[el.dataset.escola] || [];
+    cores.forEach((cor, i) => el.style.setProperty(`--cor-${i + 1}`, cor));
+  });
+</script>
+
+</body>
+</html>

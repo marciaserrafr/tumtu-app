@@ -1,0 +1,762 @@
+/* ============================================================
+   CARTEIRINHA TUMTU — Design System v2
+   Gerado em sessão Claude Chat — Julho 2026
+   Para implementação via Claude Code
+   ============================================================ */
+
+/* ── IMPORTS ── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap');
+
+/* ============================================================
+   ESTRUTURA BASE
+   ============================================================ */
+
+.carteirinha {
+  width: 300px;   /* largura real em produção */
+  height: 500px;  /* altura FIXA — tamanho do documento. Fonte/logo/degradê grandes couberam apertando só as margens internas, sem crescer o cartão. */
+  border-radius: 22px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.04),
+    0 8px 20px rgba(0,0,0,0.10),
+    0 20px 48px rgba(0,0,0,0.12),
+    0 0 0 0.5px rgba(0,0,0,0.05);
+
+  /* ── SISTEMA DE COR DINÂMICO (14/jul/2026) ──────────────────────────────
+     Só --cor-1/--cor-2/--cor-3/--cor-4 precisam ser injetadas (via JS,
+     carteirinha.style.setProperty, a partir de escolas.cor_primaria/
+     secundaria/terciaria/quaternaria no banco). Tudo abaixo deriva sozinho,
+     em cascata — escola nova NUNCA mais precisa de bloco de CSS escrito à
+     mão. --cor-1 é a única obrigatória; sem nenhuma cor, cai no TumTu
+     (escuro + dourado). Perfil TumTu deve injetar --cor-1:#12101a e
+     --cor-2:#D4AF37 (a marca É a "escola base", não um caso especial). */
+  --cor-primaria: var(--cor-1, #12101a);
+  --cor-brilho-header: color-mix(in srgb, var(--cor-primaria) 7%, transparent);
+  --header-gradiente: linear-gradient(180deg, color-mix(in srgb, var(--cor-primaria) 8%, transparent) 0%, transparent 100%);
+  --cor-pill-borda: color-mix(in srgb, var(--cor-primaria) 22%, transparent);
+  --cor-pill-bg: color-mix(in srgb, var(--cor-primaria) 7%, transparent);
+  --cor-foto-bg: color-mix(in srgb, var(--cor-primaria) 6%, white);
+
+  /* Anel da foto e halo: cor 2, caindo pra cor 1 se não houver, caindo pro dourado TumTu se não houver nenhuma cor. */
+  --cor-anel-gradiente: linear-gradient(135deg,
+    var(--cor-2, var(--cor-1, #D4AF37)),
+    color-mix(in srgb, var(--cor-2, var(--cor-1, #D4AF37)) 75%, black),
+    var(--cor-2, var(--cor-1, #D4AF37))
+  );
+  --cor-halo-foto: color-mix(in srgb, var(--cor-2, var(--cor-1, #D4AF37)) 10%, transparent);
+
+  /* Número do "ano": cor 3, senão cor 2, senão branco (escola só com 1 cor real, ex: Padrão A com branco embutido) */
+  --cor-ano: var(--cor-3, var(--cor-2, #fff));
+
+  /* Borda da logo: cor 4, senão 3, senão 2 — NUNCA cai pra cor 1 (regra do Padrão A: logo é sempre dourado quando só há 1 cor real, não a cor da escola) */
+  --cor-logo-borda: color-mix(in srgb, var(--cor-4, var(--cor-3, var(--cor-2, #D4AF37))) 70%, transparent);
+
+  /* Verso: gradiente diagonal simples na cor primária (decisão de 13/jul: sem alto contraste, "como estava antes") */
+  --verso-bg: linear-gradient(150deg,
+    var(--cor-primaria) 0%,
+    color-mix(in srgb, var(--cor-primaria) 80%, black) 40%,
+    color-mix(in srgb, var(--cor-primaria) 60%, black) 100%
+  );
+}
+
+/* ============================================================
+   FRENTE
+   ============================================================ */
+
+.carteirinha-frente {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+/* Bloco central (foto + identidade + CPF) — centralizado no espaço entre
+   header e rodapé, em vez de colado no topo com um vão morto antes do rodapé. */
+.corpo-frente {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+}
+
+/* brilho radial no canto superior direito — cor da escola */
+.carteirinha-frente::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    var(--cor-brilho-header, rgba(18,16,26,0.07)) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── HEADER DA FRENTE ── */
+.c-header {
+  padding: 12px 18px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  background: var(--header-gradiente, linear-gradient(180deg, rgba(18,16,26,0.08) 0%, transparent 100%));
+}
+
+/* Bloco de texto (escola + bateria) — encolhe e quebra linha em vez de
+   espremer contra o selo "Ativo" quando o nome da escola é comprido. */
+.c-header__info {
+  min-width: 0;
+  flex: 1;
+}
+
+.c-header__escola {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a87a0;
+  margin-bottom: 3px;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+
+.c-header__bateria {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--cor-primaria, #12101a);
+  overflow-wrap: break-word;
+}
+
+/* Coluna direita do header: status pill + botão "Meu perfil" empilhados
+   (mesmo elemento que já existe em produção — carteirinha.html, #btnAbrirPerfil) */
+.c-header__acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.c-btn-perfil {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--cor-pill-bg, rgba(18,16,26,0.07));
+  border: 1px solid var(--cor-pill-borda, rgba(18,16,26,0.22));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.c-btn-perfil {
+  color: var(--cor-primaria, #12101a);
+}
+
+.c-btn-perfil:hover {
+  background: var(--cor-halo-foto, rgba(18,16,26,0.12));
+}
+
+/* ── STATUS PILL ── */
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--cor-pill-borda, rgba(18,16,26,0.22));
+  background: var(--cor-pill-bg, rgba(18,16,26,0.07));
+  color: var(--cor-primaria, #12101a);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.status-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 4px rgba(34,197,94,0.8);
+}
+
+/* ── FOTO ── */
+.foto-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 0 0;
+  margin-top: 36px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.foto-halo {
+  /* Antes era um 2º círculo com padding revelando a cor (2 bordas duras
+     quase coincidindo = a "sombra" que vazava pra fora do anel). Agora é um
+     brilho desfocado (box-shadow), sem borda dura nenhuma pra competir com
+     a borda do anel. */
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 3px var(--cor-halo-foto, rgba(212,175,55,0.10));
+}
+
+.foto-anel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  padding: 3px;
+  background: var(--cor-anel-gradiente, linear-gradient(135deg, #D4AF37, #B8922A, #D4AF37));
+}
+
+.foto-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--cor-foto-bg, #f4f4f4);
+}
+
+.foto-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.cargo-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #9490a8;
+  margin-top: 14px;
+}
+
+/* ── IDENTIDADE ── */
+.identidade {
+  text-align: center;
+  padding: 4px 16px 0;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.id-nome {
+  font-size: 19px;
+  font-weight: 900;
+  color: #0c0b14;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  overflow-wrap: break-word;
+  /* Nome muito comprido: no máximo 2 linhas, com "..." se precisar de uma 3ª — nunca estoura o cartão. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.id-apelido {
+  font-size: 13px;
+  font-weight: 500;
+  font-style: italic;
+  color: #D4AF37; /* dourado TumTu — sempre fixo */
+  margin-top: 4px;
+}
+
+.id-instrumento {
+  font-size: 12px;
+  color: #9490a8;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* ── DIVISOR ── */
+.divisor {
+  height: 1px;
+  margin: 8px 22px 8px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, transparent, rgba(216,213,232,0.55), transparent);
+}
+
+/* ── CPF ── */
+.cpf-block {
+  text-align: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.cpf-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #9490a8;
+  margin-bottom: 3px;
+}
+
+.cpf-valor {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2a2838;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── RODAPÉ FLUIDO (poolside) ── */
+/*
+  O rodapé não tem borda definida.
+  A cor emerge suavemente do fundo — como piscina sem borda.
+  O gradiente cobre os últimos 120px do card.
+  O conteúdo (membro desde + logo) flutua sobre o gradiente.
+  IMPORTANTE: padding-top do rodape-content deve ser <= (height do gradiente - altura do conteúdo)
+  para o conteúdo nunca ser cortado.
+*/
+.rodape-fluido {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  padding: 0 18px 16px;
+}
+
+.rodape-gradiente {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 180px;
+  pointer-events: none;
+  /* Calculado direto de --cor-primaria via color-mix (não precisa mais definir
+     --rodape-gradiente escola por escola — uma fórmula só serve pra todas).
+     Bem ousado embaixo (quase cor cheia), sem virar bloco opaco. */
+  background:
+    linear-gradient(to top,
+      color-mix(in srgb, var(--cor-primaria, #12101a) 92%, transparent) 0%,
+      color-mix(in srgb, var(--cor-primaria, #12101a) 62%, transparent) 32%,
+      color-mix(in srgb, var(--cor-primaria, #12101a) 25%, transparent) 62%,
+      transparent 95%
+    );
+}
+
+.rodape-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  /* padding-top garante que membro+logo ficam visíveis dentro da zona bem colorida */
+  padding-top: 70px;
+}
+
+.membro-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 2px;
+}
+
+.membro-ano {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--cor-ano, #fff);
+}
+
+/* ── LOGO DA ESCOLA (frente, canto inferior direito) ── */
+.logo-circulo {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 1px solid var(--cor-logo-borda, rgba(212,175,55,0.7));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.12);
+  overflow: hidden;
+}
+
+.logo-circulo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* ── FAIXA DOURADA (assinatura TumTu — sempre presente) ── */
+.faixa-ouro {
+  height: 3px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #9a7520, #D4AF37, #f5d778, #D4AF37, #9a7520);
+}
+
+/* ============================================================
+   VERSO
+   ============================================================ */
+
+.carteirinha-verso {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  /* Volta pra cor por escola (--verso-bg), sem o degradê de alto contraste —
+     só o véu claro que se esvai no topo, entrando na cor. Decisão de 13/jul: a
+     Márcia preferiu isso ao degradê mais ousado que eu tinha testado depois. */
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.10) 16%, transparent 32%),
+    var(--verso-bg, linear-gradient(150deg, #12101a 0%, #0a0814 40%, #060410 100%));
+}
+
+/* brilho radial dourado no canto superior esquerdo */
+.carteirinha-verso::before {
+  content: '';
+  position: absolute;
+  top: -50px; left: -50px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── HEADER DO VERSO ── */
+/* Gradiente suave no topo — sem linha de corte */
+.v-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 18px 14px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(0,0,0,0.22) 0%, transparent 100%);
+}
+
+.v-header__bateria {
+  font-size: 17px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  overflow-wrap: break-word;
+}
+
+.v-header__escola {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* ── LOGO DA BATERIA (verso, canto direito do header) ── */
+/* Se não houver logo da bateria: usa logo da escola */
+.v-logo {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 1px solid var(--cor-logo-borda, rgba(212,175,55,0.7));
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* ── CONTEÚDO DO VERSO ── */
+/* QR fica mais perto do topo; Mestre(s) fica claramente separado dele,
+   não colado — o espaço sobrando vai pra essa separação, não pra cima do QR. */
+.v-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 0;
+  padding: 14px 18px 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── QR CODE ── */
+.v-qr-box {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.22), 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.v-qr-label {
+  /* Menor que o label do Mestre de propósito — isso aqui é legenda de apoio
+     (avisa pra que serve o QR), não identidade. Não deve competir em peso
+     visual com "Mestre de Bateria". */
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  margin-top: 9px;
+}
+
+/* ── MESTRE(S) DE BATERIA ── */
+.v-mestre {
+  margin-top: 52px;
+  text-align: center;
+  width: 100%;
+}
+
+.v-mestre__label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 6px;
+}
+
+.v-mestre__nome {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+}
+
+/* separador entre dois mestres */
+.v-mestre__sep {
+  height: 1px;
+  background: rgba(255,255,255,0.12);
+  margin: 5px 20px;
+}
+
+/* ── VALIDADE ── */
+.v-validade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 14px 0 8px;
+}
+
+.v-val-item {
+  text-align: center;
+}
+
+.v-val-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 3px;
+}
+
+.v-val-valor {
+  font-size: 15px;
+  font-weight: 700;
+  color: #D4AF37; /* dourado TumTu — sempre */
+  white-space: nowrap; /* "Carnaval 2027" sempre em uma linha */
+}
+
+.v-val-sep {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.12);
+}
+
+/* ── RODAPÉ DO VERSO ── */
+.v-rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 18px 14px;
+  position: relative;
+  z-index: 2;
+}
+
+.v-rodape::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 18px; right: 18px;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+.v-ig {
+  font-size: 9.5px;
+  color: rgba(255,255,255,0.35);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+/* ── MONOGRAMA T (assinatura TumTu no verso) ── */
+.tumtu-mono {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.tumtu-mono__t {
+  font-size: 18px;
+  font-weight: 900;
+  color: #D4AF37;
+  line-height: 1;
+  padding-bottom: 2px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.tumtu-mono__risco {
+  width: 100%;
+  height: 1.5px;
+  background: #7c2d12; /* terracota — assinatura da Márcia */
+  border-radius: 1px;
+}
+
+/* Os blocos .escola-X que existiam aqui (Jacarezinho, Salgueiro, Portela,
+   Tijuca, Mangueira, Imperatriz, Grande Rio, Maricá, São Clemente, Botafogo,
+   Vila Isabel, TumTu Base) foram removidos em 14/jul/2026 — o sistema de cor
+   dinâmico no topo do arquivo (bloco .carteirinha) faz o mesmo trabalho
+   automaticamente a partir de --cor-1/2/3/4, sem precisar de CSS por escola.
+   Cores reais de referência (Grupo Especial + Série Ouro) continuam
+   documentadas em docs/design-guide-atualizacao-carteirinha.md. */
+
+/* ============================================================
+   MECÂNICA DE VIRAR O CARTÃO (frente ↔ verso)
+   Interação, não faz parte do design por escola — usa nomes de
+   classe diferentes de .carteirinha-verso (que já é o conteúdo do
+   verso em si) pra não colidir com ela.
+   ============================================================ */
+
+.carteirinha-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.c-hint {
+  font-size: 12px;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.carteirinha-wrap {
+  width: 300px;
+  height: 500px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.carteirinha-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(.4, 0, .2, 1);
+}
+
+.carteirinha-inner.virada {
+  transform: rotateY(180deg);
+}
+
+/* Container 3D da face — o visual (borda, sombra, overflow) já vem do
+   .carteirinha filho, que preenche 100% dele. */
+.carteirinha-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+}
+
+.face-verso {
+  transform: rotateY(180deg);
+}
+
+.c-botoes {
+  display: flex;
+  gap: 10px;
+  width: 300px;
+}
+
+.c-btn-salvar {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1.5px solid #D4AF37;
+  background: transparent;
+  color: #D4AF37;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+}
+
+.c-btn-salvar:hover { background: rgba(212, 175, 55, 0.08); }
+
+.c-btn-salvar:disabled {
+  border-color: rgba(212, 175, 55, 0.35);
+  color: rgba(212, 175, 55, 0.5);
+  cursor: not-allowed;
+}
+.c-btn-salvar:disabled:hover { background: transparent; }
+
+.c-btn-compartilhar {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  background: #D4AF37;
+  color: #12101a;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+}
+
+.c-btn-compartilhar:hover { background: #B8922A; }

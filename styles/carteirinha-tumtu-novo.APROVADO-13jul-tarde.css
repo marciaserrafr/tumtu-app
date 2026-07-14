@@ -1,0 +1,745 @@
+/* ============================================================
+   CARTEIRINHA TUMTU — Design System v2
+   Gerado em sessão Claude Chat — Julho 2026
+   Para implementação via Claude Code
+   ============================================================ */
+
+/* ── IMPORTS ── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap');
+
+/* ============================================================
+   ESTRUTURA BASE
+   ============================================================ */
+
+.carteirinha {
+  width: 300px;   /* largura real em produção */
+  height: 500px;  /* altura FIXA — tamanho do documento. Fonte/logo/degradê grandes couberam apertando só as margens internas, sem crescer o cartão. */
+  border-radius: 22px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.04),
+    0 8px 20px rgba(0,0,0,0.10),
+    0 20px 48px rgba(0,0,0,0.12),
+    0 0 0 0.5px rgba(0,0,0,0.05);
+}
+
+/* ============================================================
+   FRENTE
+   ============================================================ */
+
+.carteirinha-frente {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+/* Bloco central (foto + identidade + CPF) — centralizado no espaço entre
+   header e rodapé, em vez de colado no topo com um vão morto antes do rodapé. */
+.corpo-frente {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+}
+
+/* brilho radial no canto superior direito — cor da escola */
+.carteirinha-frente::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    var(--cor-brilho-header, rgba(18,16,26,0.07)) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── HEADER DA FRENTE ── */
+.c-header {
+  padding: 12px 18px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  background: var(--header-gradiente, linear-gradient(180deg, rgba(18,16,26,0.08) 0%, transparent 100%));
+}
+
+.c-header__escola {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a87a0;
+  margin-bottom: 3px;
+  line-height: 1;
+}
+
+.c-header__bateria {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--cor-primaria, #12101a);
+}
+
+/* Coluna direita do header: status pill + botão "Meu perfil" empilhados
+   (mesmo elemento que já existe em produção — carteirinha.html, #btnAbrirPerfil) */
+.c-header__acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.c-btn-perfil {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--cor-pill-bg, rgba(18,16,26,0.07));
+  border: 1px solid var(--cor-pill-borda, rgba(18,16,26,0.22));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.c-btn-perfil {
+  color: var(--cor-primaria, #12101a);
+}
+
+.c-btn-perfil:hover {
+  background: var(--cor-halo-foto, rgba(18,16,26,0.12));
+}
+
+/* ── STATUS PILL ── */
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--cor-pill-borda, rgba(18,16,26,0.22));
+  background: var(--cor-pill-bg, rgba(18,16,26,0.07));
+  color: var(--cor-primaria, #12101a);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.status-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 4px rgba(34,197,94,0.8);
+}
+
+/* ── FOTO ── */
+.foto-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 0;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.foto-halo {
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  padding: 3px;
+  background: var(--cor-halo-foto, rgba(212,175,55,0.10));
+}
+
+.foto-anel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  padding: 3px;
+  background: var(--cor-anel-gradiente, linear-gradient(135deg, #D4AF37, #B8922A, #D4AF37));
+}
+
+.foto-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--cor-foto-bg, #f4f4f4);
+}
+
+.foto-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.cargo-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #9490a8;
+  margin-top: 10px;
+}
+
+/* ── IDENTIDADE ── */
+.identidade {
+  text-align: center;
+  padding: 6px 16px 0;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.id-nome {
+  font-size: 19px;
+  font-weight: 900;
+  color: #0c0b14;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.id-apelido {
+  font-size: 13px;
+  font-weight: 500;
+  font-style: italic;
+  color: #D4AF37; /* dourado TumTu — sempre fixo */
+  margin-top: 4px;
+}
+
+.id-instrumento {
+  font-size: 12px;
+  color: #9490a8;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* ── DIVISOR ── */
+.divisor {
+  height: 0.5px;
+  margin: 10px 22px 10px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, transparent, #d8d5e8, transparent);
+}
+
+/* ── CPF ── */
+.cpf-block {
+  text-align: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.cpf-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #9490a8;
+  margin-bottom: 3px;
+}
+
+.cpf-valor {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2a2838;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── RODAPÉ FLUIDO (poolside) ── */
+/*
+  O rodapé não tem borda definida.
+  A cor emerge suavemente do fundo — como piscina sem borda.
+  O gradiente cobre os últimos 120px do card.
+  O conteúdo (membro desde + logo) flutua sobre o gradiente.
+  IMPORTANTE: padding-top do rodape-content deve ser <= (height do gradiente - altura do conteúdo)
+  para o conteúdo nunca ser cortado.
+*/
+.rodape-fluido {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  padding: 0 18px 16px;
+}
+
+.rodape-gradiente {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 165px;
+  pointer-events: none;
+  /* Rodapé de verdade colorido — escola de Carnaval, não pode parecer água com
+     corante. O topo do cartão continua branco, mas aqui embaixo é pra reconhecer
+     a cor da escola à primeira vista, quase tão forte quanto o verso. */
+  background: var(--rodape-gradiente,
+    linear-gradient(to top,
+      rgba(18,16,26,0.85) 0%,
+      rgba(18,16,26,0.5) 30%,
+      rgba(18,16,26,0.18) 60%,
+      transparent 90%
+    )
+  );
+}
+
+.rodape-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  /* padding-top garante que membro+logo ficam visíveis dentro da zona bem colorida */
+  padding-top: 68px;
+}
+
+.membro-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 2px;
+}
+
+.membro-ano {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--cor-ano, #fff);
+}
+
+/* ── LOGO DA ESCOLA (frente, canto inferior direito) ── */
+.logo-circulo {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 1px solid var(--cor-logo-borda, rgba(212,175,55,0.7));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.12);
+  overflow: hidden;
+}
+
+.logo-circulo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* ── FAIXA DOURADA (assinatura TumTu — sempre presente) ── */
+.faixa-ouro {
+  height: 3px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #9a7520, #D4AF37, #f5d778, #D4AF37, #9a7520);
+}
+
+/* ============================================================
+   VERSO
+   ============================================================ */
+
+.carteirinha-verso {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  /* A "dissipação": um véu claro que se esvai logo no topo, entrando na cor da
+     escola — dá continuidade com o branco da frente em vez de virar um bloco
+     de cor só, sem nenhuma variação (o efeito "chapado" que estava incomodando). */
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.10) 16%, transparent 32%),
+    var(--verso-bg, linear-gradient(150deg, #12101a 0%, #0a0814 40%, #060410 100%));
+}
+
+/* brilho radial dourado no canto superior esquerdo */
+.carteirinha-verso::before {
+  content: '';
+  position: absolute;
+  top: -50px; left: -50px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── HEADER DO VERSO ── */
+/* Gradiente suave no topo — sem linha de corte */
+.v-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 18px 14px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(0,0,0,0.22) 0%, transparent 100%);
+}
+
+.v-header__bateria {
+  font-size: 17px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.v-header__escola {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* ── LOGO DA BATERIA (verso, canto direito do header) ── */
+/* Se não houver logo da bateria: usa logo da escola */
+.v-logo {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 1px solid var(--cor-logo-borda, rgba(212,175,55,0.7));
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* ── CONTEÚDO DO VERSO ── */
+/* QR + Mestre(s) formam um bloco só, centralizado no espaço disponível —
+   em vez de QR colado no topo e Mestre empurrado pro fim com vão morto no meio. */
+.v-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 18px;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── QR CODE ── */
+.v-qr-box {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.22), 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.v-qr-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-top: 9px;
+}
+
+/* ── MESTRE(S) DE BATERIA ── */
+.v-mestre {
+  margin-top: 32px;
+  text-align: center;
+  width: 100%;
+}
+
+.v-mestre__label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 6px;
+}
+
+.v-mestre__nome {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+/* separador entre dois mestres */
+.v-mestre__sep {
+  height: 0.5px;
+  background: rgba(255,255,255,0.12);
+  margin: 5px 20px;
+}
+
+/* ── VALIDADE ── */
+.v-validade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 14px 0 8px;
+}
+
+.v-val-item {
+  text-align: center;
+}
+
+.v-val-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 3px;
+}
+
+.v-val-valor {
+  font-size: 15px;
+  font-weight: 700;
+  color: #D4AF37; /* dourado TumTu — sempre */
+  white-space: nowrap; /* "Carnaval 2027" sempre em uma linha */
+}
+
+.v-val-sep {
+  width: 0.5px;
+  height: 28px;
+  background: rgba(255,255,255,0.12);
+}
+
+/* ── RODAPÉ DO VERSO ── */
+.v-rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 18px 14px;
+  position: relative;
+  z-index: 2;
+}
+
+.v-rodape::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 18px; right: 18px;
+  height: 0.5px;
+  background: rgba(255,255,255,0.08);
+}
+
+.v-ig {
+  font-size: 9.5px;
+  color: rgba(255,255,255,0.35);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+/* ── MONOGRAMA T (assinatura TumTu no verso) ── */
+.tumtu-mono {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.tumtu-mono__t {
+  font-size: 18px;
+  font-weight: 900;
+  color: #D4AF37;
+  line-height: 1;
+  padding-bottom: 2px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.tumtu-mono__risco {
+  width: 100%;
+  height: 1.5px;
+  background: #7c2d12; /* terracota — assinatura da Márcia */
+  border-radius: 1px;
+}
+
+/* ============================================================
+   VARIÁVEIS CSS POR PADRÃO DE ESCOLA
+   Definidas via config-escola.js e aplicadas no elemento .carteirinha
+   ============================================================
+
+   PADRÃO A — 2 cores, uma é branco
+   Ex: Jacarezinho (rosa + branco), Salgueiro (vermelho + branco), Portela (azul + branco)
+   - --cor-primaria: cor principal
+   - --cor-anel-gradiente: gradiente da cor primária
+   - --cor-halo-foto: toque da cor primária
+   - --cor-foto-bg: fundo suave da cor primária
+   - --rodape-gradiente: gradiente da cor primária emergindo do fundo
+   - --cor-ano: #fff
+   - --cor-logo-borda: rgba(212,175,55,0.7) — dourado TumTu
+   - --verso-bg: gradiente escuro da cor primária
+
+   PADRÃO B — 2 cores sem branco
+   Ex: Tijuca (azul + amarelo), Mangueira (verde + rosa)
+   - --cor-primaria: cor principal (ex: azul)
+   - --cor-anel-gradiente: gradiente da cor SECUNDÁRIA (ex: amarelo)
+   - --cor-halo-foto: toque da cor secundária
+   - --cor-foto-bg: toque claro da cor primária
+   - --rodape-gradiente: gradiente da cor primária
+   - --cor-ano: cor secundária (ex: amarelo)
+   - --cor-logo-borda: rgba da cor secundária com 0.6
+
+   PADRÃO C — 3 cores (inclui terceira cor além do branco)
+   Ex: Imperatriz (verde + branco + dourado), Mocidade (verde + dourado + branco)
+   - --cor-primaria: cor principal (ex: verde)
+   - --cor-anel-gradiente: gradiente da TERCEIRA cor (ex: dourado) — protagonismo
+   - --cor-halo-foto: toque da terceira cor
+   - --cor-foto-bg: toque claro da cor primária
+   - --rodape-gradiente: gradiente da cor primária
+   - --cor-ano: terceira cor (ex: dourado)
+   - --cor-logo-borda: rgba da terceira cor com 0.7
+
+   ============================================================ */
+
+/* ── Jacarezinho — Padrão A ── */
+.escola-jacarezinho {
+  --cor-primaria: #E8427A;
+  --cor-brilho-header: rgba(232,66,122,0.07);
+  --header-gradiente: linear-gradient(180deg, rgba(232,66,122,0.08) 0%, transparent 100%);
+  --cor-pill-borda: rgba(232,66,122,0.22);
+  --cor-pill-bg: rgba(232,66,122,0.07);
+  --cor-anel-gradiente: linear-gradient(135deg, #E8427A, #c42860, #E8427A);
+  --cor-halo-foto: rgba(232,66,122,0.08);
+  --cor-foto-bg: #fdf0f5;
+  --rodape-gradiente: linear-gradient(to top, rgba(232,66,122,0.85) 0%, rgba(232,66,122,0.5) 30%, rgba(232,66,122,0.18) 60%, transparent 90%);
+  --cor-ano: #fff;
+  --cor-logo-borda: rgba(212,175,55,0.7);
+  --verso-bg: linear-gradient(150deg, #E8427A 0%, #c82860 40%, #a01848 100%);
+}
+
+/* ── Salgueiro — Padrão A ── */
+.escola-salgueiro {
+  --cor-primaria: #CC0000;
+  --cor-brilho-header: rgba(204,0,0,0.07);
+  --header-gradiente: linear-gradient(180deg, rgba(204,0,0,0.08) 0%, transparent 100%);
+  --cor-pill-borda: rgba(204,0,0,0.22);
+  --cor-pill-bg: rgba(204,0,0,0.07);
+  --cor-anel-gradiente: linear-gradient(135deg, #CC0000, #990000, #CC0000);
+  --cor-halo-foto: rgba(204,0,0,0.08);
+  --cor-foto-bg: #fff5f5;
+  --rodape-gradiente: linear-gradient(to top, rgba(204,0,0,0.85) 0%, rgba(204,0,0,0.5) 30%, rgba(204,0,0,0.18) 60%, transparent 90%);
+  --cor-ano: #fff;
+  --cor-logo-borda: rgba(212,175,55,0.7);
+  --verso-bg: linear-gradient(150deg, #CC0000 0%, #990000 40%, #660000 100%);
+}
+
+/* ── Portela — Padrão A ── */
+.escola-portela {
+  --cor-primaria: #003DA5;
+  --cor-brilho-header: rgba(0,61,165,0.07);
+  --header-gradiente: linear-gradient(180deg, rgba(0,61,165,0.08) 0%, transparent 100%);
+  --cor-pill-borda: rgba(0,61,165,0.22);
+  --cor-pill-bg: rgba(0,61,165,0.07);
+  --cor-anel-gradiente: linear-gradient(135deg, #003DA5, #002a75, #003DA5);
+  --cor-halo-foto: rgba(0,61,165,0.08);
+  --cor-foto-bg: #f0f4ff;
+  --rodape-gradiente: linear-gradient(to top, rgba(0,61,165,0.85) 0%, rgba(0,61,165,0.5) 30%, rgba(0,61,165,0.18) 60%, transparent 90%);
+  --cor-ano: #fff;
+  --cor-logo-borda: rgba(212,175,55,0.7);
+  --verso-bg: linear-gradient(150deg, #003DA5 0%, #002a75 40%, #001a50 100%);
+}
+
+/* ── Tijuca — Padrão B ── */
+.escola-tijuca {
+  --cor-primaria: #005BAA;
+  --cor-brilho-header: rgba(0,91,170,0.07);
+  --header-gradiente: linear-gradient(180deg, rgba(0,91,170,0.08) 0%, transparent 100%);
+  --cor-pill-borda: rgba(0,91,170,0.20);
+  --cor-pill-bg: rgba(0,91,170,0.07);
+  --cor-anel-gradiente: linear-gradient(135deg, #FFD700, #e6c200, #FFD700);
+  --cor-halo-foto: rgba(255,215,0,0.10);
+  --cor-foto-bg: #EBF3FF;
+  --rodape-gradiente: linear-gradient(to top, rgba(0,91,170,0.85) 0%, rgba(0,91,170,0.5) 30%, rgba(0,91,170,0.18) 60%, transparent 90%);
+  --cor-ano: #FFD700;
+  --cor-logo-borda: rgba(255,215,0,0.6);
+  --verso-bg: linear-gradient(150deg, #005BAA 0%, #004080 40%, #002d5e 100%);
+}
+
+/* ── Mangueira — Padrão B ── */
+.escola-mangueira {
+  --cor-primaria: #009B3A;
+  --cor-brilho-header: rgba(0,155,58,0.07);
+  --header-gradiente: linear-gradient(180deg, rgba(0,155,58,0.08) 0%, transparent 100%);
+  --cor-pill-borda: rgba(0,155,58,0.22);
+  --cor-pill-bg: rgba(0,155,58,0.07);
+  --cor-anel-gradiente: linear-gradient(135deg, #FF69B4, #e04090, #FF69B4);
+  --cor-halo-foto: rgba(255,105,180,0.10);
+  --cor-foto-bg: #f0fff4;
+  --rodape-gradiente: linear-gradient(to top, rgba(0,155,58,0.85) 0%, rgba(0,155,58,0.5) 30%, rgba(0,155,58,0.18) 60%, transparent 90%);
+  --cor-ano: #FF69B4;
+  --cor-logo-borda: rgba(255,105,180,0.6);
+  --verso-bg: linear-gradient(150deg, #009B3A 0%, #007028 40%, #004018 100%);
+}
+
+/* ── Imperatriz — Padrão C ── */
+.escola-imperatriz {
+  --cor-primaria: #007A3D;
+  --cor-brilho-header: rgba(0,122,61,0.07);
+  --header-gradiente: linear-gradient(180deg, rgba(0,122,61,0.08) 0%, transparent 100%);
+  --cor-pill-borda: rgba(0,122,61,0.22);
+  --cor-pill-bg: rgba(0,122,61,0.07);
+  --cor-anel-gradiente: linear-gradient(135deg, #D4AF37, #B8922A, #D4AF37);
+  --cor-halo-foto: rgba(212,175,55,0.12);
+  --cor-foto-bg: #f0faf4;
+  --rodape-gradiente: linear-gradient(to top, rgba(0,122,61,0.85) 0%, rgba(0,122,61,0.5) 30%, rgba(0,122,61,0.18) 60%, transparent 90%);
+  --cor-ano: #D4AF37;
+  --cor-logo-borda: rgba(212,175,55,0.7);
+  --verso-bg: linear-gradient(150deg, #007A3D 0%, #005c2d 40%, #003d1e 100%);
+}
+
+/* ── TumTu Base (sem escola cadastrada) ── */
+.escola-tumtu-base {
+  --cor-primaria: #12101a;
+  --cor-brilho-header: rgba(18,16,26,0.07);
+  --header-gradiente: linear-gradient(180deg, rgba(18,16,26,0.08) 0%, transparent 100%);
+  --cor-pill-borda: rgba(18,16,26,0.22);
+  --cor-pill-bg: rgba(18,16,26,0.07);
+  --cor-anel-gradiente: linear-gradient(135deg, #D4AF37, #B8922A, #D4AF37);
+  --cor-halo-foto: rgba(212,175,55,0.10);
+  --cor-foto-bg: #f4f4f4;
+  --rodape-gradiente: linear-gradient(to top, rgba(18,16,26,0.85) 0%, rgba(18,16,26,0.5) 30%, rgba(18,16,26,0.18) 60%, transparent 90%);
+  --cor-ano: #D4AF37;
+  --cor-logo-borda: rgba(212,175,55,0.7);
+  --verso-bg: linear-gradient(150deg, #12101a 0%, #0a0814 40%, #060410 100%);
+}
