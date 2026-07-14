@@ -20,6 +20,16 @@
     <div class="ficha-grid">
         <div class="ficha-campo full"><span>Nome</span><strong id="fp-nome"></strong><input id="fp-nome-edit" class="fc-input" type="text"></div>
         <div class="ficha-campo"><span>Apelido</span><strong id="fp-apelido"></strong><input id="fp-apelido-edit" class="fc-input" type="text"></div>
+        <div class="ficha-campo"><span>Gênero</span><strong id="fp-genero"></strong>
+            <select id="fp-genero-edit" class="fc-input">
+                <option value="">Selecione</option>
+                <option value="masculino">Masculino</option>
+                <option value="feminino">Feminino</option>
+                <option value="personalizado">Prefiro me identificar como...</option>
+                <option value="nao_informado">Prefiro não informar</option>
+            </select>
+        </div>
+        <div class="ficha-campo"><span>Como se identifica</span><strong id="fp-genero-personalizado"></strong><input id="fp-genero-personalizado-edit" class="fc-input" type="text" placeholder="Só se escolheu 'Prefiro me identificar como...' acima"></div>
         <div class="ficha-campo"><span>Nacionalidade</span><strong id="fp-nacionalidade"></strong><input id="fp-nacionalidade-edit" class="fc-input" type="text"></div>
         <div class="ficha-campo"><span>CPF</span><strong id="fp-cpf"></strong><input id="fp-cpf-edit" class="fc-input" type="text"></div>
         <div class="ficha-campo" id="fp-bloco-documento" style="display:none">

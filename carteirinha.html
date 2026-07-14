@@ -224,7 +224,7 @@
 
 <div class="c-toast" id="cToast"></div>
 
-<script src="ficha-perfil.js?v=4"></script>
+<script src="ficha-perfil.js?v=5"></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
@@ -238,10 +238,12 @@
     }
 
     function renderCarteirinha(ritmista) {
-        // Label de cargo
+        // Label de cargo — gênero só muda Mestre/Diretor (Mestra/Diretora); sem
+        // gênero informado cai no masculino como padrão neutro. Ritmista nunca varia.
         const perfil = ritmista.perfil || 'ritmista';
-        const labelCargo = perfil === 'mestre' ? 'Mestre de Bateria'
-            : perfil === 'diretor' ? 'Diretor'
+        const feminino = ritmista.genero === 'feminino';
+        const labelCargo = perfil === 'mestre' ? (feminino ? 'Mestra de Bateria' : 'Mestre de Bateria')
+            : perfil === 'diretor' ? (feminino ? 'Diretora' : 'Diretor')
             : 'Ritmista';
         document.getElementById('cRole').textContent = labelCargo;
 
@@ -316,7 +318,7 @@
         if (!bateriaId) return;
         try {
             const res = await fetch(
-                `${SUPABASE_URL}/rest/v1/mestres_publicos?bateria_id=eq.${bateriaId}&select=nome&order=nome.asc`,
+                `${SUPABASE_URL}/rest/v1/mestres_publicos?bateria_id=eq.${bateriaId}&select=nome,genero&order=nome.asc`,
                 { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
             );
             const mestres = await res.json();
@@ -326,7 +328,10 @@
             const container = document.getElementById('c-mestre-nomes');
             const label = document.getElementById('c-mestre-label');
 
-            label.textContent = mestres.length > 1 ? 'Mestres de Bateria' : 'Mestre de Bateria';
+            // "Mestres" no plural já é neutro em português — só o singular varia (Mestre/Mestra).
+            label.textContent = mestres.length > 1 ? 'Mestres de Bateria'
+                : mestres[0].genero === 'feminino' ? 'Mestra de Bateria'
+                : 'Mestre de Bateria';
             container.classList.toggle('varios', mestres.length > 1);
             container.innerHTML = mestres.map(m => `<div class="c-mestre-nome">${m.nome}</div>`).join('');
             bloco.style.display = 'flex';

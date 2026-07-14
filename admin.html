@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=4"></script>
+    <script src="ficha-perfil.js?v=5"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -1211,8 +1211,9 @@
         if (usuario.modo_piloto) { window.location.href = 'carteirinha.html'; return; }
         document.getElementById('headerNome').textContent = usuario.nome || 'Admin';
         const perfil = usuario.perfil || '';
-        const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria'
-            : perfil === 'diretor' ? 'Diretor' : '';
+        const femininoAdmin = usuario.genero === 'feminino';
+        const cargoLabel = perfil === 'mestre' ? (femininoAdmin ? 'Mestra de Bateria' : 'Mestre de Bateria')
+            : perfil === 'diretor' ? (femininoAdmin ? 'Diretora' : 'Diretor') : '';
         document.getElementById('headerCargo').textContent = cargoLabel;
         if (perfil === 'mestre') {
             renderizarLinkDiretor(usuario);

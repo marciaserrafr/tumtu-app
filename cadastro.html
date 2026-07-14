@@ -176,6 +176,18 @@
                 <input type="text" id="nacionalidade" placeholder="Qual é a sua nacionalidade?" style="display:none; margin-top:8px;">
             </div>
         </div>
+        <div class="auth-form-group oculto-pessoa-existente">
+            <label>Gênero <span class="label-dica">— opcional</span></label>
+            <select id="genero" onchange="toggleGeneroPersonalizado()">
+                <option value="">Selecione</option>
+                <option value="masculino">Masculino</option>
+                <option value="feminino">Feminino</option>
+                <option value="personalizado">Prefiro me identificar como...</option>
+                <option value="nao_informado">Prefiro não informar</option>
+            </select>
+            <input type="text" id="genero_personalizado" placeholder="Como você se identifica" style="display:none; margin-top:8px;">
+            <div class="label-dica" style="margin-top:6px;">Perguntamos isso só pra usar "Mestre/Mestra" e "Diretor/Diretora" certinho na sua carteirinha.</div>
+        </div>
         <div class="form-row">
             <div class="auth-form-group">
                 <label>CPF <span id="cpf-asterisco" class="obrigatorio">*</span></label>
@@ -536,6 +548,13 @@
         if (tipo === 'Brasileira') input.value = '';
     }
 
+    function toggleGeneroPersonalizado() {
+        const genero = document.getElementById('genero').value;
+        const input = document.getElementById('genero_personalizado');
+        input.style.display = genero === 'personalizado' ? 'block' : 'none';
+        if (genero !== 'personalizado') input.value = '';
+    }
+
 
     function mostrarMensagem(texto, tipo) {
         const el = document.getElementById('mensagem');
@@ -812,6 +831,10 @@
         const dados = {
             nome: document.getElementById('nome').value.trim(),
             apelido: document.getElementById('apelido').value.trim() || null,
+            genero: document.getElementById('genero').value || null,
+            genero_personalizado: document.getElementById('genero').value === 'personalizado'
+                ? (document.getElementById('genero_personalizado').value.trim() || null)
+                : null,
             nacionalidade: document.getElementById('nacionalidade_tipo').value === 'Estrangeira'
                 ? (document.getElementById('nacionalidade').value.trim() || 'Estrangeira')
                 : 'Brasileira',
@@ -933,7 +956,8 @@
             tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
             const dadosPessoa = {
                 auth_user_id: authData.user.id,
-                nome: dados.nome, apelido: dados.apelido, nacionalidade: dados.nacionalidade, cpf: dados.cpf,
+                nome: dados.nome, apelido: dados.apelido, genero: dados.genero, genero_personalizado: dados.genero_personalizado,
+                nacionalidade: dados.nacionalidade, cpf: dados.cpf,
                 tipo_documento: dados.tipo_documento, numero_documento: dados.numero_documento, nascimento: dados.nascimento,
                 celular: dados.celular, email: dados.email, endereco: dados.endereco, numero: dados.numero,
                 complemento: dados.complemento, bairro: dados.bairro, cidade: dados.cidade, estado: dados.estado,

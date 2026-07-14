@@ -275,11 +275,13 @@
 
         // Mais de uma bateria — mostra a telinha de escolha em vez de entrar direto.
         const nomesPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b.nome]));
-        const cargoLabel = { mestre: 'Mestre de Bateria', diretor: 'Diretor', ritmista: 'Ritmista' };
+        const cargoLabelVinculo = v => v.perfil === 'mestre' ? (v.genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria')
+            : v.perfil === 'diretor' ? (v.genero === 'feminino' ? 'Diretora' : 'Diretor')
+            : 'Ritmista';
 
         document.getElementById('listaBaterias').innerHTML = vinculos.map((v, i) => `
             <button type="button" class="btn-secundario" style="width:100%;margin-top:10px;text-align:left;" onclick="escolherVinculo(${i})">
-                ${nomesPorBateria[v.bateria_id] || 'Bateria'} <span class="label-dica">— ${cargoLabel[v.perfil] || v.perfil}</span>
+                ${nomesPorBateria[v.bateria_id] || 'Bateria'} <span class="label-dica">— ${cargoLabelVinculo(v)}</span>
             </button>`).join('');
         window.vinculosParaEscolher = vinculos;
         document.querySelector('.auth-container:not(#containerRecuperacao):not(#containerEscolherBateria)').style.display = 'none';

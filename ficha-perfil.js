@@ -9,6 +9,8 @@
 const FP_CAMPOS = [
     { id: 'fp-apelido',              col: 'apelido' },
     { id: 'fp-nome',                 col: 'nome' },
+    { id: 'fp-genero',               col: 'genero' },
+    { id: 'fp-genero-personalizado', col: 'genero_personalizado' },
     { id: 'fp-nacionalidade',        col: 'nacionalidade' },
     { id: 'fp-cpf',                  col: 'cpf' },
     { id: 'fp-nascimento',           col: 'nascimento', tipo: 'data' },
@@ -62,7 +64,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
     }
 
     if (autoedicao) {
-        const base = ['foto_url', 'apelido', 'celular', 'endereco', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'pais', 'emergencia_nome', 'emergencia_parentesco', 'emergencia_celular'];
+        const base = ['foto_url', 'nome', 'apelido', 'genero', 'genero_personalizado', 'celular', 'endereco', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'pais', 'emergencia_nome', 'emergencia_parentesco', 'emergencia_celular'];
         if (atorPerfil === 'diretor' || atorPerfil === 'mestre') {
             base.push('tamanho_camisa', 'tamanho_fantasia', 'tamanho_calca', 'tamanho_sapato');
         }
@@ -78,7 +80,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=2');
+        const res = await fetch('ficha-perfil.partial.html?v=3');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -90,6 +92,17 @@ function fpFormatarData(iso) {
     return new Date(iso + 'T00:00:00').toLocaleDateString('pt-BR');
 }
 
+const FP_GENERO_LABEL = { masculino: 'Masculino', feminino: 'Feminino', personalizado: 'Prefiro me identificar como...', nao_informado: 'Prefiro não informar' };
+
+// Gênero só muda o rótulo de Mestre/Diretor (Mestra/Diretora) — Ritmista nunca varia.
+// Sem gênero informado (personalizado/não informado/vazio) cai no masculino como padrão neutro.
+function fpCargoLabel(perfil, genero) {
+    if (perfil === 'mestre') return genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria';
+    if (perfil === 'diretor') return genero === 'feminino' ? 'Diretora' : 'Diretor';
+    if (perfil === 'super_admin') return 'Super Admin';
+    return 'Ritmista';
+}
+
 function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     opcoes = opcoes || {};
     const autoedicao = alvo.pessoa_id === minhaPessoaId;
@@ -97,7 +110,7 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, aoSalvar: opcoes.aoSalvar || null };
     fpFotoBase64 = null;
 
-    const cargo = alvo.perfil === 'mestre' ? 'Mestre de Bateria' : alvo.perfil === 'diretor' ? 'Diretor' : alvo.perfil === 'super_admin' ? 'Super Admin' : 'Ritmista';
+    const cargo = fpCargoLabel(alvo.perfil, alvo.genero);
     fpEl('fp-titulo').textContent = alvo.nome || '—';
     fpEl('fp-sub').textContent = [alvo.apelido ? `"${alvo.apelido}"` : '', cargo].filter(Boolean).join(' · ');
 
@@ -111,7 +124,9 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         const strong = fpEl(id);
         if (!strong) return;
         const valor = alvo[col];
-        strong.textContent = tipo === 'data' ? fpFormatarData(valor) : (valor || '—');
+        strong.textContent = tipo === 'data' ? fpFormatarData(valor)
+            : col === 'genero' ? (FP_GENERO_LABEL[valor] || '—')
+            : (valor || '—');
     });
 
     if (alvo.tipo_documento && alvo.numero_documento) {
