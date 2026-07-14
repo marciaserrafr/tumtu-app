@@ -687,6 +687,7 @@
 .carteirinha-wrap {
   width: 300px;
   height: 500px;
+  -webkit-perspective: 1000px;
   perspective: 1000px;
   cursor: pointer;
 }
@@ -695,6 +696,7 @@
   width: 100%;
   height: 100%;
   position: relative;
+  -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
   transition: transform 0.7s cubic-bezier(.4, 0, .2, 1);
 }
@@ -704,16 +706,35 @@
 }
 
 /* Container 3D da face — o visual (borda, sombra, overflow) já vem do
-   .carteirinha filho, que preenche 100% dele. */
+   .carteirinha filho, que preenche 100% dele.
+   backface-visibility sozinho é instável entre versões de WebKit/Safari
+   (bug reportado pela Márcia no iPhone 13 em 15/jul/2026: as duas faces
+   apareciam sobrepostas e espelhadas ao virar). Por isso a visibilidade
+   de cada face também é controlada por classe (abaixo), com um atraso de
+   metade da duração do giro — troca exatamente no instante em que o
+   cartão está de perfil (invisível de qualquer jeito), sem depender do
+   3D/backface do navegador pra esconder a face errada. */
 .carteirinha-face {
   position: absolute;
   width: 100%;
   height: 100%;
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  visibility: visible;
+  transition: visibility 0s linear 0.35s;
 }
 
 .face-verso {
   transform: rotateY(180deg);
+  visibility: hidden;
+}
+
+.carteirinha-inner.virada .carteirinha-face:not(.face-verso) {
+  visibility: hidden;
+}
+
+.carteirinha-inner.virada .face-verso {
+  visibility: visible;
 }
 
 .c-botoes {
