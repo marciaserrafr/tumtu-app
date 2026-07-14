@@ -27,9 +27,10 @@
             min-height: 100vh;
             min-height: 100dvh;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 12px 20px;
+            justify-content: flex-start;
+            padding: 54px 20px 12px;
         }
         .topo {
             position: fixed;
@@ -62,15 +63,16 @@
         }
         .link-meuperfil {
             background: transparent;
-            border: none;
-            color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.28);
+            border-radius: 20px;
+            color: rgba(255,255,255,0.8);
             font-size: 11px;
             letter-spacing: 0.5px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 5px;
-            padding: 0;
+            padding: 6px 14px;
         }
         .link-meuperfil:hover { color: #fff; }
         .btn-sair {
@@ -84,7 +86,11 @@
             letter-spacing: 1px;
         }
         .btn-sair:hover { background: rgba(212,175,55,0.08); }
-        .carteirinha-scene { margin-top: 44px; }
+        /* Antes tinha margin-top:44px pra escapar do cabeçalho fixo — agora
+           quem faz essa folga é o padding-top do body (topo colado no
+           cartão, sobra de espaço só embaixo, pedido da Márcia em
+           14/jul/2026). */
+        .carteirinha-scene { margin-top: 0; }
         .c-toast {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
             background: #1e1b2e; color: white; padding: 12px 20px; border-radius: 12px;
