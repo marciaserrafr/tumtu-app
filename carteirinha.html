@@ -19,6 +19,17 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
+        /* Desliga a transição suave nativa entre páginas (ligada globalmente
+           em styles/tokens.css) só nesta tela. Ela tenta fazer um cross-fade
+           entre a página antiga (login) e esta, mas como o cartão começa
+           invisível de propósito (opacity:0 até a cor real carregar, ver
+           .carteirinha-zoom em carteirinha-tumtu-novo.css), o resultado era
+           uma mistura feia — tela de login "fantasma" por cima do fundo
+           escuro por um tempo (reportado pela Márcia em 15/jul/2026, visível
+           num vídeo de tela real). Sem a transição, a troca é instantânea,
+           e o cartão só aparece quando estiver pronto, sem mistura visual. */
+        @view-transition { navigation: none; }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
         body {
