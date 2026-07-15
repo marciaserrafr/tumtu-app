@@ -398,12 +398,11 @@
 
 /* ── LOGO DA ESCOLA (frente, canto inferior direito) ── */
 .logo-circulo {
-  /* 76px -> 88px em 15/jul/2026: pedido da Márcia pra facilitar a
+  /* 76px -> 88px -> 96px em 15/jul/2026: pedido da Márcia pra facilitar a
      identificação rápida da escola na bilheteria/porta, sem competir
-     com a foto do ritmista (144px). Ela quer ir aos poucos — se não for
-     suficiente, sobe pra 96px depois. */
-  width: 88px;
-  height: 88px;
+     com a foto do ritmista (144px). Foi aos poucos até esse tamanho final. */
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   border: 1px solid var(--cor-logo-borda, rgba(212,175,55,0.7));
   display: flex;
@@ -489,10 +488,11 @@
 }
 
 /* ── LOGO DA BATERIA (verso, canto direito do header) ── */
-/* Se não houver logo da bateria: usa logo da escola */
+/* Se não houver logo da bateria: usa logo da escola.
+   76px -> 88px em 15/jul/2026, acompanhando o aumento da logo da frente. */
 .v-logo {
-  width: 76px;
-  height: 76px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   border: 1px solid var(--cor-logo-borda, rgba(212,175,55,0.7));
   background: rgba(255,255,255,0.06);
@@ -511,14 +511,16 @@
 }
 
 /* ── CONTEÚDO DO VERSO ── */
-/* QR fica mais perto do topo; Mestre(s) fica claramente separado dele,
-   não colado — o espaço sobrando vai pra essa separação, não pra cima do QR. */
+/* QR + Mestre(s) centralizados no espaço disponível (em vez de colados no
+   topo) — pedido da Márcia em 15/jul/2026, depois da logo da bateria
+   aumentar: desce o bloco inteiro proporcionalmente pro respiro que sobra
+   embaixo, sem precisar calcular um valor fixo. */
 .v-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   min-height: 0;
   padding: 14px 18px 0;
   position: relative;

@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=8">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=9">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
@@ -41,13 +41,19 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding: 54px 20px 12px;
+            padding: 20px 20px 12px;
         }
+        /* Sem position:fixed de propósito (era assim antes) — num monitor
+           de computador com a janela mais baixa que o conteúdo, o cabeçalho
+           ficava "grudado" no topo da tela enquanto o cartão rolava pra
+           baixo por baixo dele, como se fossem duas coisas separadas
+           (reportado pela Márcia em 15/jul/2026, com print de computador).
+           Agora ele rola junto com o resto — sobe e desce como parte da
+           mesma página, não como barra fixa do site. */
         .topo {
-            position: fixed;
-            top: 0; left: 0; right: 0;
             display: flex;
             justify-content: center;
+            width: 100%;
             padding: 10px 20px;
             z-index: 10;
         }
