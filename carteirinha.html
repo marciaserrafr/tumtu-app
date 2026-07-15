@@ -315,22 +315,30 @@
         });
     }
 
-    // Busca nome/logo/temporada/cores da escola e bateria no banco (substitui
-    // o antigo config-escola.js estático — cada bateria mostra os dados certos).
+    // Busca nome/temporada/cores da escola e bateria no banco (substitui o
+    // antigo config-escola.js estático — cada bateria mostra os dados certos).
+    // Logo fica de fora de propósito: agora que o logo é um arquivo de
+    // verdade (base64, pode passar de 200KB), embutir ele nessa mesma busca
+    // atrasava a cor certa aparecer — a tela mostrava a cor padrão do TumTu
+    // e só trocava pra cor da escola quando o logo pesado terminasse de
+    // chegar, um "flash" feio (reportado pela Márcia em 15/jul/2026). Agora
+    // cor/texto (leves) chegam e aparecem imediatos; o logo é buscado à
+    // parte por carregarLogosEscola() e só entra quando estiver pronto,
+    // como qualquer imagem de página carregando aos poucos.
     async function carregarConfigEscola(bateriaId, token) {
-        const cfgVazio = { nomeEscola: '', nomeBateria: '', logoEscola: null, logoBateria: null, instagramBateria: '', temporadaAtual: '', cores: [] };
+        const cfgVazio = { nomeEscola: '', nomeBateria: '', instagramBateria: '', temporadaAtual: '', cores: [], escolaId: null };
         if (!bateriaId) return cfgVazio;
         try {
             const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token || SUPABASE_KEY}` };
 
-            const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome,logo_url,instagram,escola_id`, { headers: hdrs });
+            const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome,instagram,escola_id`, { headers: hdrs });
             const baterias = await resBateria.json();
             const bateria = Array.isArray(baterias) && baterias[0] ? baterias[0] : null;
             if (!bateria) return cfgVazio;
 
             let escola = null;
             if (bateria.escola_id) {
-                const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,logo_url,temporada_atual,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria`, { headers: hdrs });
+                const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,temporada_atual,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria`, { headers: hdrs });
                 const escolas = await resEscola.json();
                 escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
             }
@@ -338,11 +346,10 @@
             return {
                 nomeEscola: escola ? (escola.nome || '') : '',
                 nomeBateria: bateria.nome || '',
-                logoEscola: (escola && escola.logo_url) || null,
-                logoBateria: bateria.logo_url || null,
                 instagramBateria: bateria.instagram || '',
                 temporadaAtual: (escola && escola.temporada_atual) || '',
                 cores: escola ? [escola.cor_primaria, escola.cor_secundaria, escola.cor_terciaria, escola.cor_quaternaria].filter(Boolean) : [],
+                escolaId: bateria.escola_id || null,
             };
         } catch (e) {
             return cfgVazio;
@@ -361,19 +368,43 @@
             ? (cfg.instagramBateria.startsWith('@') ? cfg.instagramBateria : '@' + cfg.instagramBateria)
             : '@tumtu.app';
 
+        // Cores injetadas no ancestral comum de frente e verso — herdam por CSS custom properties.
+        const inner = document.getElementById('carteirinhaInner');
+        (cfg.cores || []).forEach((cor, i) => inner.style.setProperty(`--cor-${i + 1}`, cor));
+    }
+
+    // Busca só os logos (escola + bateria) — separado de carregarConfigEscola
+    // pra não atrasar a cor/texto, que precisam aparecer na hora.
+    async function carregarLogosEscola(bateriaId, escolaId, token) {
+        try {
+            const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token || SUPABASE_KEY}` };
+            const [resBateria, resEscola] = await Promise.all([
+                fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=logo_url`, { headers: hdrs }),
+                escolaId
+                    ? fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${escolaId}&select=logo_url`, { headers: hdrs })
+                    : Promise.resolve(null),
+            ]);
+            const baterias = await resBateria.json();
+            const escolas = resEscola ? await resEscola.json() : [];
+            return {
+                logoBateria: (Array.isArray(baterias) && baterias[0] && baterias[0].logo_url) || null,
+                logoEscola: (Array.isArray(escolas) && escolas[0] && escolas[0].logo_url) || null,
+            };
+        } catch (e) {
+            return { logoBateria: null, logoEscola: null };
+        }
+    }
+
+    function aplicarLogosEscola(logos) {
         const logoFrente = document.getElementById('logoEscolaFrente');
-        if (cfg.logoEscola) { logoFrente.src = cfg.logoEscola; logoFrente.style.display = 'block'; }
+        if (logos.logoEscola) { logoFrente.src = logos.logoEscola; logoFrente.style.display = 'block'; }
         else logoFrente.style.display = 'none';
 
         // Logo do verso: prioriza a logo da bateria; se não houver, cai pra logo da escola.
         const logoVerso = document.getElementById('logoEscolaVerso');
-        const urlLogoVerso = cfg.logoBateria || cfg.logoEscola;
+        const urlLogoVerso = logos.logoBateria || logos.logoEscola;
         if (urlLogoVerso) { logoVerso.src = urlLogoVerso; logoVerso.style.display = 'block'; }
         else logoVerso.style.display = 'none';
-
-        // Cores injetadas no ancestral comum de frente e verso — herdam por CSS custom properties.
-        const inner = document.getElementById('carteirinhaInner');
-        (cfg.cores || []).forEach((cor, i) => inner.style.setProperty(`--cor-${i + 1}`, cor));
     }
 
     async function renderMestres(bateriaId) {
@@ -436,6 +467,7 @@
                 renderMestres(ritmista.bateria_id);
                 const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                 aplicarConfigEscola(cfg);
+                carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(aplicarLogosEscola);
             })
             .catch(() => { mostrarToast('Erro ao carregar carteirinha.', 'erro'); setTimeout(() => history.back(), 1200); });
         })();
@@ -453,6 +485,7 @@
                 const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
                 const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                 aplicarConfigEscola(cfg);
+                carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(aplicarLogosEscola);
             })();
         }
     }
