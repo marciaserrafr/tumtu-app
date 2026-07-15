@@ -15,9 +15,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=5">
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=6">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
@@ -252,11 +252,18 @@
 
 <div class="c-toast" id="cToast"></div>
 
-<script src="ficha-perfil.js?v=5"></script>
+<script src="ficha-perfil.js?v=5" defer></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Fica só declarado aqui — as duas bibliotecas de fora (Supabase e QR
+    // code) agora carregam com "defer" (não travam mais o resto da página
+    // enquanto baixam, resolve a tela preta demorada reportada pela Márcia
+    // em 15/jul/2026). Isso significa que "window.supabase" só existe
+    // depois do DOMContentLoaded — por isso a criação de verdade do
+    // cliente (sb = ...) e todo código que depende dele ficam dentro do
+    // listener de DOMContentLoaded lá embaixo, não aqui no topo.
+    let sb;
 
     function mostrarToast(msg, tipo = 'ok') {
         const t = document.getElementById('cToast');
@@ -439,6 +446,9 @@
         }
     }
 
+    document.addEventListener('DOMContentLoaded', () => {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     const params = new URLSearchParams(window.location.search);
     const idParam = params.get('id');
 
@@ -467,6 +477,7 @@
                 renderMestres(ritmista.bateria_id);
                 const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                 aplicarConfigEscola(cfg);
+                document.getElementById('carteirinhaZoom').classList.add('pronto');
                 carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(aplicarLogosEscola);
             })
             .catch(() => { mostrarToast('Erro ao carregar carteirinha.', 'erro'); setTimeout(() => history.back(), 1200); });
@@ -485,10 +496,12 @@
                 const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
                 const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                 aplicarConfigEscola(cfg);
+                document.getElementById('carteirinhaZoom').classList.add('pronto');
                 carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(aplicarLogosEscola);
             })();
         }
     }
+    }); // fecha o DOMContentLoaded
 
     async function abrirPerfil() {
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
