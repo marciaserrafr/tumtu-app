@@ -163,6 +163,15 @@
         return `tumtu_cfg_${bateriaId}`;
     }
 
+    function lerConfigCache(bateriaId) {
+        try {
+            const raw = localStorage.getItem(chaveCacheConfig(bateriaId));
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
     async function prefetchConfigEscola(bateriaId, token) {
         if (!bateriaId) return;
         try {
@@ -229,6 +238,19 @@
         document.getElementById('containerCarregando').style.display = 'none';
         document.getElementById('containerLogin').style.display = 'none';
         document.getElementById('containerEscolherBateria').style.display = 'block';
+
+        // Busca cor/logo de TODAS as baterias listadas, em segundo plano,
+        // enquanto a pessoa decide qual escolher — assim, quando ela clicar,
+        // o dado já está pronto e não precisa de um segundo spinner (pedido
+        // da Márcia em 16/jul/2026: "clica, spinner de novo... isso é
+        // sacanagem"). Não precisa esperar (sem await) nem tratar erro aqui
+        // — se falhar ou não terminar a tempo, continuarComVinculo() busca
+        // de novo do jeito de sempre.
+        const { data: { session: sessaoAtual } } = await sb.auth.getSession();
+        const bateriasUnicas = [...new Set(vinculos.map(v => v.bateria_id))];
+        bateriasUnicas.forEach(bateriaId => {
+            prefetchConfigEscola(bateriaId, sessaoAtual ? sessaoAtual.access_token : null);
+        });
     }
 
     async function tentarSessaoExistente() {
@@ -321,9 +343,15 @@
             return;
         }
 
-        // Vai pra carteirinha — troca pro spinner (sai do formulário/tela de
-        // escolher bateria) e busca cor/logo da escola ANTES de trocar de
-        // tela, pra ela já nascer pronta (ver prefetchConfigEscola acima).
+        // Vai pra carteirinha. Se a cor/logo dessa bateria já foi buscada em
+        // segundo plano enquanto a pessoa estava na telinha de escolher
+        // (ver buscarEEscolherVinculos), o cache já está pronto — troca de
+        // tela na hora, sem spinner novo. Só mostra o spinner de novo se
+        // esse cache ainda não tiver chegado a tempo (raro).
+        if (lerConfigCache(vinculo.bateria_id)) {
+            window.location.href = 'carteirinha.html';
+            return;
+        }
         document.getElementById('containerLogin').style.display = 'none';
         document.getElementById('containerEscolherBateria').style.display = 'none';
         document.getElementById('containerCarregando').style.display = 'block';
@@ -377,13 +405,20 @@
         }
     });
 
+    // Uma coisa esperando só, não duas: assim que envia o formulário, troca
+    // direto pro spinner (em vez de só desabilitar o botão com "Entrando...")
+    // — a pessoa vê uma experiência de carregamento só, do clique até a
+    // carteirinha aparecer (pedido da Márcia em 16/jul/2026, "seria só o
+    // spinner"). Em caso de erro, volta pro formulário com a mensagem.
+    function erroLogin(msg, tipo) {
+        mostrarFormularioLogin();
+        mostrarMensagem(msg, tipo);
+    }
+
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const btn = e.target.querySelector('button[type=submit]');
-        const textoOriginal = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = 'Entrando...';
-        try {
+        document.getElementById('containerLogin').style.display = 'none';
+        document.getElementById('containerCarregando').style.display = 'block';
 
         const identificador = document.getElementById('identificador').value.trim();
         const senha = document.getElementById('senha').value;
@@ -393,7 +428,7 @@
         if (!isEmail) {
             const { data: emailResolvido, error: erroResolucao } = await sb.rpc('resolve_login_email', { identificador });
             if (erroResolucao || !emailResolvido) {
-                mostrarMensagem('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
+                erroLogin('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
                 return;
             }
             authEmail = emailResolvido;
@@ -401,14 +436,14 @@
 
         const { data: authData, error: authError } = await sb.auth.signInWithPassword({ email: authEmail, password: senha });
         if (authError || !authData.user) {
-            mostrarMensagem('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
+            erroLogin('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
             return;
         }
 
         // Super Admin não tem vínculo com bateria nenhuma — checa isso primeiro, direto na tabela de pessoas.
         const { data: pessoa } = await sb.from('pessoas').select('id, nome, super_admin').eq('auth_user_id', authData.user.id).maybeSingle();
         if (!pessoa) {
-            mostrarMensagem('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
+            erroLogin('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
             return;
         }
         if (pessoa.super_admin) {
@@ -418,10 +453,6 @@
         }
 
         await buscarEEscolherVinculos(pessoa.id, false);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = textoOriginal;
-        }
     });
 </script>
 </body>
