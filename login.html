@@ -193,7 +193,48 @@
         }
     }
 
+    // Busca todos os vínculos da pessoa e decide: entra direto (só 1 vínculo
+    // e não é troca forçada) ou mostra a telinha de escolher bateria.
+    // Compartilhada entre o login manual e "Trocar de bateria" (reaproveita
+    // a sessão já aberta, sem pedir senha de novo).
+    async function buscarEEscolherVinculos(pessoaId, forcarEscolha) {
+        const { data: vinculos } = await sb.from('ritmistas_com_instrumento').select('*').eq('pessoa_id', pessoaId);
+        if (!vinculos || vinculos.length === 0) {
+            mostrarMensagem('Você ainda não tem vínculo com nenhuma bateria. Procure seu Mestre ou Diretor pra pedir o link de cadastro.', 'aviso');
+            mostrarFormularioLogin();
+            return;
+        }
+
+        // Busca o modo_piloto de cada bateria envolvida e anexa em cada vínculo — usado pra decidir admin.html x carteirinha.html.
+        const { data: baterias } = await sb.from('baterias').select('id, nome, modo_piloto').in('id', vinculos.map(v => v.bateria_id));
+        const infoPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b]));
+        vinculos.forEach(v => { v.modo_piloto = infoPorBateria[v.bateria_id]?.modo_piloto || false; v.totalVinculos = vinculos.length; });
+
+        if (vinculos.length === 1 && !forcarEscolha) {
+            continuarComVinculo(vinculos[0]);
+            return;
+        }
+
+        // Mais de uma bateria (ou troca forçada) — mostra a telinha de escolha em vez de entrar direto.
+        const nomesPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b.nome]));
+        const cargoLabelVinculo = v => v.perfil === 'mestre' ? (v.genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria')
+            : v.perfil === 'diretor' ? (v.genero === 'feminino' ? 'Diretora' : 'Diretor')
+            : 'Ritmista';
+
+        document.getElementById('listaBaterias').innerHTML = vinculos.map((v, i) => `
+            <button type="button" class="btn-secundario" style="width:100%;margin-top:10px;text-align:left;" onclick="escolherVinculo(${i})">
+                ${nomesPorBateria[v.bateria_id] || 'Bateria'} <span class="label-dica">— ${cargoLabelVinculo(v)}</span>
+            </button>`).join('');
+        window.vinculosParaEscolher = vinculos;
+        document.getElementById('containerCarregando').style.display = 'none';
+        document.getElementById('containerLogin').style.display = 'none';
+        document.getElementById('containerEscolherBateria').style.display = 'block';
+    }
+
     async function tentarSessaoExistente() {
+        const params = new URLSearchParams(window.location.search);
+        const forcarTroca = params.get('trocar') === '1';
+
         const cache = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!cache) { mostrarFormularioLogin(); return; }
 
@@ -204,6 +245,12 @@
             window.location.href = 'super-admin.html';
             return;
         }
+
+        if (forcarTroca) {
+            await buscarEEscolherVinculos(cache.pessoa_id, true);
+            return;
+        }
+
         const isAdmin = cache.perfil === 'mestre' || cache.perfil === 'diretor';
         if (isAdmin && !cache.modo_piloto) {
             window.location.href = 'admin.html';
@@ -367,35 +414,7 @@
             return;
         }
 
-        const { data: vinculos } = await sb.from('ritmistas_com_instrumento').select('*').eq('pessoa_id', pessoa.id);
-        if (!vinculos || vinculos.length === 0) {
-            mostrarMensagem('Você ainda não tem vínculo com nenhuma bateria. Procure seu Mestre ou Diretor pra pedir o link de cadastro.', 'aviso');
-            return;
-        }
-
-        // Busca o modo_piloto de cada bateria envolvida e anexa em cada vínculo — usado pra decidir admin.html x carteirinha.html.
-        const { data: baterias } = await sb.from('baterias').select('id, nome, modo_piloto').in('id', vinculos.map(v => v.bateria_id));
-        const infoPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b]));
-        vinculos.forEach(v => { v.modo_piloto = infoPorBateria[v.bateria_id]?.modo_piloto || false; });
-
-        if (vinculos.length === 1) {
-            continuarComVinculo(vinculos[0]);
-            return;
-        }
-
-        // Mais de uma bateria — mostra a telinha de escolha em vez de entrar direto.
-        const nomesPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b.nome]));
-        const cargoLabelVinculo = v => v.perfil === 'mestre' ? (v.genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria')
-            : v.perfil === 'diretor' ? (v.genero === 'feminino' ? 'Diretora' : 'Diretor')
-            : 'Ritmista';
-
-        document.getElementById('listaBaterias').innerHTML = vinculos.map((v, i) => `
-            <button type="button" class="btn-secundario" style="width:100%;margin-top:10px;text-align:left;" onclick="escolherVinculo(${i})">
-                ${nomesPorBateria[v.bateria_id] || 'Bateria'} <span class="label-dica">— ${cargoLabelVinculo(v)}</span>
-            </button>`).join('');
-        window.vinculosParaEscolher = vinculos;
-        document.getElementById('containerLogin').style.display = 'none';
-        document.getElementById('containerEscolherBateria').style.display = 'block';
+        await buscarEEscolherVinculos(pessoa.id, false);
         } finally {
             btn.disabled = false;
             btn.textContent = textoOriginal;

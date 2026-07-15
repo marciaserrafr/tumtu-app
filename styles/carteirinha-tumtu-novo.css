@@ -808,30 +808,10 @@
   width: var(--largura-cartao, 300px);
 }
 
-.c-btn-salvar {
-  flex: 1;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1.5px solid #D4AF37;
-  background: transparent;
-  color: #D4AF37;
-  font-size: 12px;
-  font-weight: 700;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  cursor: pointer;
-  letter-spacing: 0.08em;
-}
-
-.c-btn-salvar:hover { background: rgba(212, 175, 55, 0.08); }
-
-.c-btn-salvar:disabled {
-  border-color: rgba(212, 175, 55, 0.35);
-  color: rgba(212, 175, 55, 0.5);
-  cursor: not-allowed;
-}
-.c-btn-salvar:disabled:hover { background: transparent; }
-
-.c-btn-compartilhar {
+/* "Meu Perfil" é a ação principal (a carteirinha é sempre "a minha"),
+   por isso leva o dourado sólido — mesma hierarquia usada no resto do
+   app (destaque real = fundo sólido; secundário = só borda). */
+.c-btn-meuperfil {
   flex: 1;
   padding: 10px;
   border-radius: 12px;
@@ -845,4 +825,22 @@
   letter-spacing: 0.08em;
 }
 
-.c-btn-compartilhar:hover { background: #B8922A; }
+.c-btn-meuperfil:hover { background: #B8922A; }
+
+/* "Trocar de Bateria" só aparece pra quem tem 2+ vínculos — ação
+   secundária/utilidade, por isso só borda. */
+.c-btn-trocar {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1.5px solid #D4AF37;
+  background: transparent;
+  color: #D4AF37;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+}
+
+.c-btn-trocar:hover { background: rgba(212, 175, 55, 0.08); }

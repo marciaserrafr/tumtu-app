@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=10">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=11">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
@@ -78,20 +78,6 @@
             align-items: center;
             gap: 14px;
         }
-        .link-meuperfil {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.28);
-            border-radius: 20px;
-            color: rgba(255,255,255,0.8);
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 6px 14px;
-        }
-        .link-meuperfil:hover { color: #fff; }
         .btn-sair {
             background: transparent;
             border: 1px solid rgba(212,175,55,0.3);
@@ -124,10 +110,6 @@
     <div class="topo-conteudo">
         <span class="topo-nome tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
         <div class="topo-acoes">
-            <button class="link-meuperfil" id="btnAbrirPerfil" style="display:none;" onclick="abrirPerfil();" aria-label="Meu perfil">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                Meu perfil
-            </button>
             <button class="btn-sair" id="btnSairTopo" onclick="sair()">Sair</button>
         </div>
     </div>
@@ -251,8 +233,8 @@
     </div>
 
     <div class="c-botoes">
-        <button class="c-btn-salvar" disabled title="Em breve">Salvar (em breve)</button>
-        <button class="c-btn-compartilhar" onclick="compartilhar()">Compartilhar</button>
+        <button class="c-btn-meuperfil" id="btnMeuPerfilRodape" style="display:none;" onclick="abrirPerfil();">Meu Perfil</button>
+        <button class="c-btn-trocar" id="btnTrocarBateria" style="display:none;" onclick="trocarBateria();">Trocar de Bateria</button>
     </div>
 
 </div>
@@ -540,7 +522,12 @@
         } else {
             renderCarteirinha(ritmista);
             renderMestres(ritmista.bateria_id);
-            document.getElementById('btnAbrirPerfil').style.display = 'flex';
+            document.getElementById('btnMeuPerfilRodape').style.display = 'block';
+            // "Trocar de Bateria" só aparece pra quem tem 2+ vínculos (totalVinculos
+            // vem calculado no login.html, na hora de escolher/entrar direto).
+            if (ritmista.totalVinculos > 1) {
+                document.getElementById('btnTrocarBateria').style.display = 'block';
+            }
             const cacheado = lerConfigCache(ritmista.bateria_id);
             if (cacheado) { aplicarConfigEscola(cacheado); aplicarLogosEscola(cacheado); }
             (async () => {
@@ -621,16 +608,10 @@
         window.location.href = 'login.html';
     }
 
-    function compartilhar() {
-        const nome = document.getElementById('nomeRitmista').textContent;
-        if (navigator.share && nome) {
-            navigator.share({
-                title: 'Minha Carteirinha — TumTu',
-                text: `${nome} — Ritmista. Carnaval 2027!`
-            });
-        } else {
-            mostrarToast('Compartilhamento não disponível neste dispositivo.', 'erro');
-        }
+    // Reaproveita a sessão já aberta (sem pedir senha de novo) — login.html
+    // busca todos os vínculos e mostra a telinha de escolher, mesmo já logado.
+    function trocarBateria() {
+        window.location.href = 'login.html?trocar=1';
     }
 </script>
 </body>
