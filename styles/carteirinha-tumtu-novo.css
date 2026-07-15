@@ -511,20 +511,31 @@
 }
 
 /* ── CONTEÚDO DO VERSO ── */
-/* QR + Mestre(s) centralizados no espaço disponível (em vez de colados no
-   topo) — pedido da Márcia em 15/jul/2026, depois da logo da bateria
-   aumentar: desce o bloco inteiro proporcionalmente pro respiro que sobra
-   embaixo, sem precisar calcular um valor fixo. */
+/* QR + Mestre(s): nem colado no topo (flex-start original) nem centralizado
+   de vez (ficou baixo demais, segundo a Márcia em 15/jul/2026) — meio-termo
+   usando dois "espaçadores" flexíveis (::before/::after) com pesos
+   diferentes, em vez de uma margem fixa. Isso se adapta sozinho ao
+   tamanho do conteúdo — com 1 ou 2 Mestres, a proporção de espaço
+   acima/abaixo do bloco continua a mesma, nunca aperta embaixo. */
 .v-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   min-height: 0;
   padding: 14px 18px 0;
   position: relative;
   z-index: 2;
+}
+
+.v-content::before {
+  content: '';
+  flex: 1;
+}
+
+.v-content::after {
+  content: '';
+  flex: 1.8;
 }
 
 /* ── QR CODE ── */
