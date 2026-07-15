@@ -708,16 +708,14 @@
   position: relative;
   width: var(--largura-cartao, 300px);
   aspect-ratio: 300 / 540;
-  /* Some até a cor/logo real da escola estar pronta (aplicarConfigEscola
-     já ter rodado) — evita mostrar qualquer estado intermediário (cinza
-     neutro ou, antes, a marca TumTu) antes de virar a cor certa. Decisão
-     da Márcia em 15/jul/2026: já que não existe mais "cor de disfarce",
-     não faz sentido mostrar nada até ter a cor de verdade. */
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-.carteirinha-zoom.pronto {
-  opacity: 1;
+  /* Não escondemos mais o cartão enquanto carrega (tentativa de 15/jul/2026,
+     revertida no mesmo dia — a Márcia não quis nenhum tipo de fade/espera,
+     por menor que fosse). A solução de verdade agora é outra: carteirinha.html
+     guarda cor/logo da última vez em localStorage e aplica isso IMEDIATAMENTE,
+     antes de qualquer busca de rede — o cartão já nasce pintado certo pra
+     quem já abriu antes (a grande maioria dos casos). Só no primeiro acesso
+     de todos, num aparelho novo, é que ainda existe uma busca de rede real
+     antes da cor chegar — inevitável nesse caso específico, mas raro. */
 }
 
 .carteirinha-wrap {

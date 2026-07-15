@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-tema="tumtu">
+<html lang="pt-BR" data-tema="tumtu" style="background:#12101a;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=7">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=8">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
@@ -413,6 +413,35 @@
         }
     }
 
+    // Guarda cor/logo da última vez em localStorage — na próxima abertura,
+    // aplica isso ANTES de qualquer busca de rede, sem espera nenhuma. Só o
+    // primeiro acesso de todos (aparelho novo, sem nada salvo ainda) depende
+    // de rede antes da cor aparecer; depois disso, é sempre instantâneo.
+    function chaveCacheConfig(bateriaId) {
+        return `tumtu_cfg_${bateriaId}`;
+    }
+
+    function lerConfigCache(bateriaId) {
+        try {
+            const raw = localStorage.getItem(chaveCacheConfig(bateriaId));
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function salvarConfigCache(bateriaId, cfg, logos) {
+        // Nunca guarda um resultado vazio/falho (ex: sessão sem token válido,
+        // erro de rede) — isso "travaria" o cache num estado errado pra
+        // sempre. Só grava quando a busca realmente encontrou uma escola.
+        if (!cfg || !cfg.escolaId) return;
+        try {
+            localStorage.setItem(chaveCacheConfig(bateriaId), JSON.stringify(Object.assign({}, cfg, logos)));
+        } catch (e) {
+            // localStorage cheio/indisponível — sem cache não quebra nada, só perde a instantaneidade
+        }
+    }
+
     function aplicarLogosEscola(logos) {
         const logoFrente = document.getElementById('logoEscolaFrente');
         if (logos.logoEscola) { logoFrente.src = logos.logoEscola; logoFrente.style.display = 'block'; }
@@ -486,10 +515,14 @@
                 const ritmista = rows[0];
                 renderCarteirinha(ritmista);
                 renderMestres(ritmista.bateria_id);
+                const cacheado = lerConfigCache(ritmista.bateria_id);
+                if (cacheado) { aplicarConfigEscola(cacheado); aplicarLogosEscola(cacheado); }
                 const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                 aplicarConfigEscola(cfg);
-                document.getElementById('carteirinhaZoom').classList.add('pronto');
-                carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(aplicarLogosEscola);
+                carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(logos => {
+                    aplicarLogosEscola(logos);
+                    salvarConfigCache(ritmista.bateria_id, cfg, logos);
+                });
             })
             .catch(() => { mostrarToast('Erro ao carregar carteirinha.', 'erro'); setTimeout(() => history.back(), 1200); });
         })();
@@ -502,13 +535,17 @@
             renderCarteirinha(ritmista);
             renderMestres(ritmista.bateria_id);
             document.getElementById('btnAbrirPerfil').style.display = 'flex';
+            const cacheado = lerConfigCache(ritmista.bateria_id);
+            if (cacheado) { aplicarConfigEscola(cacheado); aplicarLogosEscola(cacheado); }
             (async () => {
                 const { data: sessionData } = await sb.auth.getSession();
                 const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
                 const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                 aplicarConfigEscola(cfg);
-                document.getElementById('carteirinhaZoom').classList.add('pronto');
-                carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(aplicarLogosEscola);
+                carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(logos => {
+                    aplicarLogosEscola(logos);
+                    salvarConfigCache(ritmista.bateria_id, cfg, logos);
+                });
             })();
         }
     }
