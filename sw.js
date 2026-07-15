@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tumtu-shell-v36';
+const CACHE_NAME = 'tumtu-shell-v37';
 
 // Arquivos com "?v=N" têm o número subido a cada mudança de conteúdo —
 // isso muda a URL inteira, então nem o cache do navegador nem caches de
@@ -47,24 +47,25 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return; // nunca cachear Supabase/CDNs
 
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request).catch(() => caches.match(request).then((cached) => cached || caches.match('./login.html')))
-    );
-    return;
-  }
-
-  // Stale-while-revalidate: responde na hora com o que já está em cache
-  // (rápido, funciona offline), mas busca uma versão fresca em segundo
-  // plano e atualiza o cache pra próxima visita — evita ficar preso numa
-  // versão antiga de CSS/JS por muito tempo depois de um deploy.
+  // Stale-while-revalidate pra tudo, inclusive abrir uma tela (navigate).
+  // Responde na hora com o que já está em cache (rápido, funciona offline,
+  // não depende da rede responder pra desenhar a tela), e busca uma versão
+  // fresca em segundo plano pra próxima visita.
+  //
+  // Antes, abrir uma tela esperava a rede responder ANTES de mostrar
+  // qualquer coisa (só caía pro cache se a rede falhasse de vez, tipo
+  // offline). Com conexão "fria" (celular parado um tempo, sem uso — não é
+  // bem offline, só lento pra reconectar), essa espera virava uma tela
+  // preta bem longa antes de aparecer qualquer coisa — reportado pela
+  // Márcia em 15/jul/2026 ("se eu ficar 10 minutos sem usar, o preto
+  // demorado aparece; se eu abrir de novo na hora, aparece rápido").
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) =>
       cache.match(request).then((cached) => {
         const fetchAtualizado = fetch(request).then((response) => {
           if (response && response.ok) cache.put(request, response.clone());
           return response;
-        }).catch(() => cached);
+        }).catch(() => cached || (request.mode === 'navigate' ? caches.match('./login.html') : undefined));
         return cached || fetchAtualizado;
       })
     )
