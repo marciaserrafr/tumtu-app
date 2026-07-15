@@ -398,8 +398,12 @@
 
 /* ── LOGO DA ESCOLA (frente, canto inferior direito) ── */
 .logo-circulo {
-  width: 76px;
-  height: 76px;
+  /* 76px -> 88px em 15/jul/2026: pedido da Márcia pra facilitar a
+     identificação rápida da escola na bilheteria/porta, sem competir
+     com a foto do ritmista (144px). Ela quer ir aos poucos — se não for
+     suficiente, sobe pra 96px depois. */
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   border: 1px solid var(--cor-logo-borda, rgba(212,175,55,0.7));
   display: flex;
