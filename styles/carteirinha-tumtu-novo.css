@@ -808,6 +808,18 @@
   width: var(--largura-cartao, 300px);
 }
 
+/* Quando só tem "Meu Perfil" (ninguém pra trocar), ele NÃO deve esticar
+   de ponta a ponta — vira um botão de tamanho normal, centralizado
+   (pedido da Márcia em 16/jul/2026: "ficou comprido demais, enorme"). */
+.c-botoes.botoes-solo {
+  justify-content: center;
+}
+.c-botoes.botoes-solo .c-btn-meuperfil {
+  flex: none;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
 /* "Meu Perfil" é a ação principal (a carteirinha é sempre "a minha"),
    por isso leva o dourado sólido — mesma hierarquia usada no resto do
    app (destaque real = fundo sólido; secundário = só borda). */

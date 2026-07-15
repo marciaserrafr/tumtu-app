@@ -246,8 +246,11 @@
             return;
         }
 
-        if (forcarTroca) {
-            await buscarEEscolherVinculos(cache.pessoa_id, true);
+        // Sessão salva antes do recurso "Trocar de Bateria" existir não tem
+        // totalVinculos guardado — busca de novo (com telinha de escolha se
+        // for o caso) pra se auto-corrigir, sem precisar deslogar.
+        if (forcarTroca || cache.totalVinculos === undefined) {
+            await buscarEEscolherVinculos(cache.pessoa_id, forcarTroca);
             return;
         }
 

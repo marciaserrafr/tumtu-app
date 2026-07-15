@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=1">
     <link rel="stylesheet" href="styles/components.css?v=1">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=11">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=12">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
@@ -525,8 +525,12 @@
             document.getElementById('btnMeuPerfilRodape').style.display = 'block';
             // "Trocar de Bateria" só aparece pra quem tem 2+ vínculos (totalVinculos
             // vem calculado no login.html, na hora de escolher/entrar direto).
+            // Sem ele, "Meu Perfil" fica sozinho e centralizado (classe
+            // botoes-solo), em vez de esticar de ponta a ponta.
             if (ritmista.totalVinculos > 1) {
                 document.getElementById('btnTrocarBateria').style.display = 'block';
+            } else {
+                document.querySelector('.c-botoes').classList.add('botoes-solo');
             }
             const cacheado = lerConfigCache(ritmista.bateria_id);
             if (cacheado) { aplicarConfigEscola(cacheado); aplicarLogosEscola(cacheado); }
