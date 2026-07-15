@@ -25,34 +25,41 @@
     0 20px 48px rgba(0,0,0,0.12),
     0 0 0 0.5px rgba(0,0,0,0.05);
 
-  /* ── SISTEMA DE COR DINÂMICO (14/jul/2026) ──────────────────────────────
+  /* ── SISTEMA DE COR DINÂMICO (14/jul/2026, ajustado 15/jul/2026) ────────
      Só --cor-1/--cor-2/--cor-3/--cor-4 precisam ser injetadas (via JS,
      carteirinha.style.setProperty, a partir de escolas.cor_primaria/
      secundaria/terciaria/quaternaria no banco). Tudo abaixo deriva sozinho,
      em cascata — escola nova NUNCA mais precisa de bloco de CSS escrito à
-     mão. --cor-1 é a única obrigatória; sem nenhuma cor, cai no TumTu
-     (escuro + dourado). Perfil TumTu deve injetar --cor-1:#12101a e
-     --cor-2:#D4AF37 (a marca É a "escola base", não um caso especial). */
-  --cor-primaria: var(--cor-1, #12101a);
+     mão. Sem cor real (enquanto a busca ao banco ainda não respondeu, ou
+     — por engano — se a Márcia ainda não cadastrou cor nenhuma pra escola),
+     cai num CINZA NEUTRO, nunca mais na marca TumTu (escuro+dourado). Antes
+     caía no visual do TumTu de propósito, mas isso fazia a carteirinha
+     "piscar" pra cara do TumTu por um instante e só depois virar a cor da
+     escola — Márcia decidiu que é melhor não ter identidade nenhuma nesse
+     meio-tempo do que parecer, mesmo que por um instante, outra marca. Ela
+     mesma cadastra a cor de cada escola no Super Admin antes do piloto
+     começar, então esse estado "sem cor" na prática só existe durante o
+     carregamento. */
+  --cor-primaria: var(--cor-1, #706c87);
   --cor-brilho-header: color-mix(in srgb, var(--cor-primaria) 7%, transparent);
   --header-gradiente: linear-gradient(180deg, color-mix(in srgb, var(--cor-primaria) 8%, transparent) 0%, transparent 100%);
   --cor-pill-borda: color-mix(in srgb, var(--cor-primaria) 22%, transparent);
   --cor-pill-bg: color-mix(in srgb, var(--cor-primaria) 7%, transparent);
   --cor-foto-bg: color-mix(in srgb, var(--cor-primaria) 6%, white);
 
-  /* Anel da foto e halo: cor 2, caindo pra cor 1 se não houver, caindo pro dourado TumTu se não houver nenhuma cor. */
+  /* Anel da foto e halo: cor 2, caindo pra cor 1 se não houver, caindo pro cinza neutro se não houver nenhuma cor. */
   --cor-anel-gradiente: linear-gradient(135deg,
-    var(--cor-2, var(--cor-1, #D4AF37)),
-    color-mix(in srgb, var(--cor-2, var(--cor-1, #D4AF37)) 75%, black),
-    var(--cor-2, var(--cor-1, #D4AF37))
+    var(--cor-2, var(--cor-1, #c0bdd0)),
+    color-mix(in srgb, var(--cor-2, var(--cor-1, #c0bdd0)) 75%, black),
+    var(--cor-2, var(--cor-1, #c0bdd0))
   );
-  --cor-halo-foto: color-mix(in srgb, var(--cor-2, var(--cor-1, #D4AF37)) 10%, transparent);
+  --cor-halo-foto: color-mix(in srgb, var(--cor-2, var(--cor-1, #c0bdd0)) 10%, transparent);
 
   /* Número do "ano": cor 3, senão cor 2, senão branco (escola só com 1 cor real, ex: Padrão A com branco embutido) */
   --cor-ano: var(--cor-3, var(--cor-2, #fff));
 
-  /* Borda da logo: cor 4, senão 3, senão 2 — NUNCA cai pra cor 1 (regra do Padrão A: logo é sempre dourado quando só há 1 cor real, não a cor da escola) */
-  --cor-logo-borda: color-mix(in srgb, var(--cor-4, var(--cor-3, var(--cor-2, #D4AF37))) 70%, transparent);
+  /* Borda da logo: cor 4, senão 3, senão 2 — NUNCA cai pra cor 1 (regra do Padrão A: logo é sempre neutro quando só há 1 cor real, não a cor da escola) */
+  --cor-logo-borda: color-mix(in srgb, var(--cor-4, var(--cor-3, var(--cor-2, #c0bdd0))) 70%, transparent);
 
   /* Verso: gradiente diagonal simples na cor primária (decisão de 13/jul: sem alto contraste, "como estava antes") */
   --verso-bg: linear-gradient(150deg,
