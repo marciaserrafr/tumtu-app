@@ -396,7 +396,7 @@
                         </div>
                         <div class="logo-hint">Clique no quadro para escolher a imagem do logo.<br>Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>
                     </div>
-                    <input type="file" id="nova-escola-logo-input" accept="image/*" style="display:none" onchange="previewLogoEscola(this,'nova')">
+                    <input type="file" id="nova-escola-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'escolaNova')">
                 </div>
                 <div class="campo campo-full"><label>Temporada Atual</label><input type="text" id="nova-escola-temporada" placeholder="Ex: Carnaval 2027"></div>
                 <div class="campo"><label>Cor Primária</label><input type="text" id="nova-escola-cor-primaria" value="" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
@@ -559,7 +559,7 @@
     let escolaAtualData = null;
     let bateriaAtualData = null;
     let escolasCache = [];
-    let logoPendente = { nova: null, edicao: null };
+    let logoPendente = { escolaNova: null, escolaEdicao: null, bateria: null };
     let bateriasCache = [];
 
     // ── NAVEGAÇÃO PRINCIPAL ──────────────────────────────────────────
@@ -684,8 +684,14 @@
         setTimeout(() => { t.className = 'toast'; }, 3500);
     }
 
-    // ── UPLOAD DE LOGO (escola) ─────────────────────────────────────
-    function previewLogoEscola(input, contexto) {
+    // ── UPLOAD DE LOGO (escola e bateria) ────────────────────────────
+    const LOGO_PREVIEW_IDS = {
+        escolaNova: 'nova-escola-logo-preview',
+        escolaEdicao: 'escola-logo-preview',
+        bateria: 'bat-logo-preview',
+    };
+
+    function previewLogo(input, contexto) {
         if (!input.files || !input.files[0]) return;
         const reader = new FileReader();
         reader.onload = function (e) {
@@ -703,8 +709,7 @@
                 canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                 const base64 = canvas.toDataURL('image/png');
                 logoPendente[contexto] = base64;
-                const previewId = contexto === 'nova' ? 'nova-escola-logo-preview' : 'escola-logo-preview';
-                document.getElementById(previewId).innerHTML = `<img src="${base64}">`;
+                document.getElementById(LOGO_PREVIEW_IDS[contexto]).innerHTML = `<img src="${base64}">`;
             };
             img.src = e.target.result;
         };
@@ -798,7 +803,7 @@
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
-        logoPendente.nova = null;
+        logoPendente.escolaNova = null;
         document.getElementById('nova-escola-logo-preview').innerHTML = '<span class="logo-box-vazio">Sem logo</span>';
         atualizarPreviewNovaEscola();
         // Sem aba ativa no nav principal
@@ -813,7 +818,7 @@
 
         const payload = {
             nome, sigla,
-            logo_url: logoPendente.nova || null,
+            logo_url: logoPendente.escolaNova || null,
             temporada_atual: document.getElementById('nova-escola-temporada').value.trim() || null,
             cor_primaria: document.getElementById('nova-escola-cor-primaria').value.trim() || null,
             cor_secundaria: document.getElementById('nova-escola-cor-secundaria').value.trim() || null,
@@ -875,7 +880,7 @@
                             </div>
                             ${modoEdicao ? `<div class="logo-hint">Clique no quadro para trocar o logo.<br>Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>` : ''}
                         </div>
-                        <input type="file" id="escola-logo-input" accept="image/*" style="display:none" onchange="previewLogoEscola(this,'edicao')">
+                        <input type="file" id="escola-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'escolaEdicao')">
                     </div>
                     <div class="campo campo-full"><label>Temporada Atual</label>
                         <input type="text" id="escola-cor-temporada" value="${e ? esc(e.temporada_atual) : ''}" ${modoEdicao ? 'placeholder="Ex: Carnaval 2027"' : ''} ${d}></div>
@@ -893,7 +898,7 @@
                 <input type="hidden" id="escola-cor-id" value="${e ? e.id : ''}">
                 ${rodape}
             </div>`;
-        logoPendente.edicao = null;
+        logoPendente.escolaEdicao = null;
         atualizarPreviewEscola();
     }
 
@@ -906,7 +911,7 @@
 
         const payload = {
             nome, sigla,
-            logo_url: logoPendente.edicao || (escolaAtualData ? escolaAtualData.logo_url : null) || null,
+            logo_url: logoPendente.escolaEdicao || (escolaAtualData ? escolaAtualData.logo_url : null) || null,
             temporada_atual: document.getElementById('escola-cor-temporada').value.trim() || null,
             cor_primaria: document.getElementById('escola-cor-primaria').value.trim() || null,
             cor_secundaria: document.getElementById('escola-cor-secundaria').value.trim() || null,
@@ -1029,16 +1034,25 @@
                         <input type="text" id="bat-mestre" value="${esc(b.mestre_de_bateria)}" ${d}></div>
                     <div class="campo campo-full"><label>Instagram</label>
                         <input type="text" id="bat-instagram" value="${esc(b.instagram)}" ${d}></div>
-                    <div class="campo campo-full"><label>URL do Logo</label>
-                        <input type="url" id="bat-logo" value="${esc(b.logo_url)}" ${d}></div>
+                    <div class="campo campo-full"><label>Logo da Bateria</label>
+                        <div class="logo-area">
+                            <div class="logo-box ${modoEdicao ? '' : 'desabilitado'}" id="bat-logo-preview" ${modoEdicao ? `onclick="document.getElementById('bat-logo-input').click()"` : ''}>
+                                ${b.logo_url ? `<img src="${esc(b.logo_url)}">` : '<span class="logo-box-vazio">Sem logo</span>'}
+                            </div>
+                            ${modoEdicao ? `<div class="logo-hint">Clique no quadro para trocar o logo.<br>Aparece no verso da carteirinha. Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>` : ''}
+                        </div>
+                        <input type="file" id="bat-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'bateria')">
+                    </div>
                 </div>
                 <input type="hidden" id="bat-id" value="${b.id}">
                 ${rodape}
             </div>`;
+        logoPendente.bateria = null;
     }
 
     function renderizarNovaBateriaInline() {
         bateriaAtualData = null;
+        logoPendente.bateria = null;
         document.getElementById('sub-painel-bateria').innerHTML = `
             <div class="card-form">
                 <div class="card-form-titulo">Nova Bateria</div>
@@ -1049,8 +1063,15 @@
                         <input type="text" id="bat-mestre" placeholder="Nome do mestre"></div>
                     <div class="campo campo-full"><label>Instagram</label>
                         <input type="text" id="bat-instagram" placeholder="@nomeDaBateria"></div>
-                    <div class="campo campo-full"><label>URL do Logo</label>
-                        <input type="url" id="bat-logo" placeholder="https://..."></div>
+                    <div class="campo campo-full"><label>Logo da Bateria</label>
+                        <div class="logo-area">
+                            <div class="logo-box" id="bat-logo-preview" onclick="document.getElementById('bat-logo-input').click()">
+                                <span class="logo-box-vazio">Sem logo</span>
+                            </div>
+                            <div class="logo-hint">Clique no quadro para escolher a imagem do logo.<br>Aparece no verso da carteirinha. Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>
+                        </div>
+                        <input type="file" id="bat-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'bateria')">
+                    </div>
                 </div>
                 <input type="hidden" id="bat-id" value="">
                 <div class="form-rodape">
@@ -1071,7 +1092,7 @@
             escola_id: escolaSelecionadaId,
             mestre_de_bateria: document.getElementById('bat-mestre').value.trim() || null,
             instagram: document.getElementById('bat-instagram').value.trim() || null,
-            logo_url: document.getElementById('bat-logo').value.trim() || null,
+            logo_url: logoPendente.bateria || (bateriaAtualData ? bateriaAtualData.logo_url : null) || null,
             ativa: true
         };
 
