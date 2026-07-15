@@ -48,10 +48,33 @@
             color: var(--cor-texto-secundario);
         }
         .link-cadastro a { color: #D4AF37; font-weight: bold; text-decoration: none; }
+        .spinner {
+            width: 32px; height: 32px; margin: 28px auto 8px;
+            border: 3px solid rgba(15,23,42,0.15);
+            border-top-color: #D4AF37;
+            border-radius: 50%;
+            animation: tt-girar 0.8s linear infinite;
+        }
+        @keyframes tt-girar { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .spinner { animation-duration: 1.6s; }
+        }
+        .texto-carregando { text-align: center; color: var(--cor-texto-secundario); font-size: 14px; }
     </style>
 </head>
 <body>
-<div class="auth-container">
+<!-- Enquanto confere se já existe sessão válida (ou enquanto monta a carteirinha
+     depois do login), mostra só isso — nunca o formulário nem a carteirinha
+     pela metade. Some assim que souber que precisa mesmo pedir usuário/senha. -->
+<div class="auth-container" id="containerCarregando">
+    <div class="logo">
+        <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
+    </div>
+    <div class="spinner" role="status" aria-label="Carregando"></div>
+    <p class="texto-carregando">Carregando...</p>
+</div>
+
+<div class="auth-container" id="containerLogin" style="display:none;">
     <div class="logo">
         <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
     </div>
@@ -116,19 +139,72 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Enquanto essa checagem roda, o spinner (#containerCarregando) já está
+    // visível por padrão no HTML — só troca pro formulário de login se
+    // descobrir que precisa mesmo pedir usuário/senha (sem sessão válida).
+    function mostrarFormularioLogin() {
+        document.getElementById('containerCarregando').style.display = 'none';
+        document.getElementById('containerLogin').style.display = 'block';
+    }
+
+    // Guarda cor/nome/logo da escola em localStorage — mesma chave que
+    // carteirinha.html já lê (lerConfigCache) — pra ela nascer pronta assim
+    // que a gente troca de tela, sem esperar rede nenhuma na própria tela
+    // da carteirinha. Roda ainda aqui no login, com o spinner na tela — a
+    // Márcia preferiu esperar mais tempo aqui (honesto, "carregando") do que
+    // ver a carteirinha aparecer incompleta (15/jul/2026).
+    function chaveCacheConfig(bateriaId) {
+        return `tumtu_cfg_${bateriaId}`;
+    }
+
+    async function prefetchConfigEscola(bateriaId, token) {
+        if (!bateriaId) return;
+        try {
+            const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token || SUPABASE_KEY}` };
+            const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome,instagram,escola_id,logo_url`, { headers: hdrs });
+            const baterias = await resBateria.json();
+            const bateria = Array.isArray(baterias) && baterias[0] ? baterias[0] : null;
+            if (!bateria || !bateria.escola_id) return;
+
+            const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,temporada_atual,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url`, { headers: hdrs });
+            const escolas = await resEscola.json();
+            const escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
+            if (!escola) return;
+
+            const cfg = {
+                nomeEscola: escola.nome || '',
+                nomeBateria: bateria.nome || '',
+                instagramBateria: bateria.instagram || '',
+                temporadaAtual: escola.temporada_atual || '',
+                cores: [escola.cor_primaria, escola.cor_secundaria, escola.cor_terciaria, escola.cor_quaternaria].filter(Boolean),
+                escolaId: bateria.escola_id,
+                logoEscola: escola.logo_url || null,
+                logoBateria: bateria.logo_url || null,
+            };
+            localStorage.setItem(chaveCacheConfig(bateriaId), JSON.stringify(cfg));
+        } catch (e) {
+            // Sem cache não quebra nada — carteirinha.html ainda busca sozinha se precisar.
+        }
+    }
+
     async function tentarSessaoExistente() {
         const cache = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        if (!cache) return;
+        if (!cache) { mostrarFormularioLogin(); return; }
 
         const { data: { session } } = await sb.auth.getSession();
-        if (!session) { localStorage.removeItem('ritmista'); return; }
+        if (!session) { localStorage.removeItem('ritmista'); mostrarFormularioLogin(); return; }
 
         if (cache.super_admin) {
             window.location.href = 'super-admin.html';
             return;
         }
         const isAdmin = cache.perfil === 'mestre' || cache.perfil === 'diretor';
-        window.location.href = (isAdmin && !cache.modo_piloto) ? 'admin.html' : 'carteirinha.html';
+        if (isAdmin && !cache.modo_piloto) {
+            window.location.href = 'admin.html';
+            return;
+        }
+        await prefetchConfigEscola(cache.bateria_id, session.access_token);
+        window.location.href = 'carteirinha.html';
     }
     tentarSessaoExistente();
 
@@ -162,7 +238,7 @@
         el.style.display = 'block';
     }
 
-    function continuarComVinculo(vinculo) {
+    async function continuarComVinculo(vinculo) {
         const perfil = vinculo.perfil || 'ritmista';
         const isAdmin = perfil === 'mestre' || perfil === 'diretor';
 
@@ -183,9 +259,18 @@
 
         if (isAdmin && !vinculo.modo_piloto) {
             window.location.href = 'admin.html';
-        } else {
-            window.location.href = 'carteirinha.html';
+            return;
         }
+
+        // Vai pra carteirinha — troca pro spinner (sai do formulário/tela de
+        // escolher bateria) e busca cor/logo da escola ANTES de trocar de
+        // tela, pra ela já nascer pronta (ver prefetchConfigEscola acima).
+        document.getElementById('containerLogin').style.display = 'none';
+        document.getElementById('containerEscolherBateria').style.display = 'none';
+        document.getElementById('containerCarregando').style.display = 'block';
+        const { data: { session } } = await sb.auth.getSession();
+        await prefetchConfigEscola(vinculo.bateria_id, session ? session.access_token : null);
+        window.location.href = 'carteirinha.html';
     }
 
     function escolherVinculo(indice) {
@@ -194,7 +279,7 @@
 
     function mostrarRecuperacao(e) {
         e.preventDefault();
-        const login = document.querySelector('.auth-container:not(#containerRecuperacao)');
+        const login = document.getElementById('containerLogin');
         const recuperacao = document.getElementById('containerRecuperacao');
         const abrindo = recuperacao.style.display === 'none';
         login.style.display = abrindo ? 'none' : 'block';
@@ -300,7 +385,7 @@
                 ${nomesPorBateria[v.bateria_id] || 'Bateria'} <span class="label-dica">— ${cargoLabelVinculo(v)}</span>
             </button>`).join('');
         window.vinculosParaEscolher = vinculos;
-        document.querySelector('.auth-container:not(#containerRecuperacao):not(#containerEscolherBateria)').style.display = 'none';
+        document.getElementById('containerLogin').style.display = 'none';
         document.getElementById('containerEscolherBateria').style.display = 'block';
         } finally {
             btn.disabled = false;
