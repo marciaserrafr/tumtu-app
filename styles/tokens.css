@@ -52,6 +52,12 @@ html {
      conteúdo não precisa dela — evita a página "pular" horizontalmente ao
      trocar de aba entre um conteúdo longo (com rolagem) e um curto (sem). */
   scrollbar-gutter: stable;
+  /* Impede o Safari/iOS de "inflar" o tamanho de texto automaticamente pra
+     legibilidade — esse ajuste automático pode fazer campos nativos (como
+     input type="date") renderizarem maiores que o CSS pede, estourando a
+     coluna onde estão (reportado pela Márcia em 16/jul/2026). */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {

@@ -174,18 +174,85 @@
   .ficha-grid { grid-template-columns: 1fr; }
 }
 
+/* "Meu Perfil" — usado só por carteirinha.html (confirmado: nenhuma outra
+   tela usa .ficha-modal-overlay; admin.html/super-admin.html usam wrappers
+   próprios — .modal-admin-overlay, aba inline — pro MESMO motor
+   ficha-perfil.js, então dá pra deixar esse wrapper escuro sem afetar as
+   outras telas). Convertido de modal/dialog flutuante pra tela cheia escura
+   em 16/jul/2026, seguindo o mesmo padrão de login/cadastro. As classes
+   internas compartilhadas com admin/super-admin (.ficha-secao, .fc-input,
+   .mp-foto-circle, .btn-ficha) são escurecidas só dentro do escopo
+   ".ficha-modal-overlay", pra não vazar pras outras telas. */
 .ficha-modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000;
-    display: flex; align-items: flex-start; justify-content: center;
-    padding: 24px 16px 40px; overflow-y: auto;
+    position: fixed; inset: 0; background: #12101a; z-index: 2000;
+    display: flex; flex-direction: column; align-items: center;
+    padding: max(6vh, 40px) 20px 40px; overflow-y: auto;
 }
 .ficha-modal-box {
-    background: #fff; border-radius: 20px; padding: 24px;
-    width: 100%; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+    background: transparent; border-radius: 0; padding: 0;
+    width: 100%; max-width: 480px; box-shadow: none;
 }
-.ficha-modal-titulo { font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 4px; }
-.ficha-modal-sub { font-size: 13px; color: #8b88a0; margin-bottom: 16px; }
-.ficha-modal-acoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #f0f0f0; padding-top: 16px; }
+.ficha-modal-titulo { font-size: 18px; font-weight: 800; color: #f7f6fb; margin-bottom: 4px; }
+.ficha-modal-sub { font-size: 13px; color: #a39fc0; margin-bottom: 16px; }
+.ficha-modal-acoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 16px; }
+
+/* Cartões por seção + marcação de cor alternando dourado/terracota (as duas
+   cores de destaque da marca) — resolve o visual "seco"/monocromático que a
+   Márcia apontou em 16/jul/2026 ("acho um formulário seco, poderia ter algo
+   mais colorido"). Ainda disciplinado: só as 2 cores de acento já existentes
+   na marca, sem inventar tom novo. */
+.ficha-modal-overlay .ficha-secao {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 14px 16px 16px;
+    margin-bottom: 12px;
+}
+.ficha-modal-overlay .ficha-secao-titulo {
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: none; padding-bottom: 0; margin-bottom: 12px;
+    color: #a39fc0;
+}
+.ficha-modal-overlay .ficha-secao-titulo::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    background: #D4AF37;
+}
+.ficha-modal-overlay #fp-secao-dados-pessoais .ficha-secao-titulo::before,
+.ficha-modal-overlay #fp-secao-endereco .ficha-secao-titulo::before,
+.ficha-modal-overlay #fp-secao-saude .ficha-secao-titulo::before,
+.ficha-modal-overlay #fp-secao-senha .ficha-secao-titulo::before {
+    background: #e2986e;
+}
+.ficha-modal-overlay .ficha-campo span { color: #8b88a0; }
+.ficha-modal-overlay .ficha-campo strong { color: #f7f6fb; }
+.ficha-modal-overlay .fc-input { background: var(--cor-fundo-medio); border-color: #D4AF37; color: #f7f6fb; }
+.ficha-modal-overlay .fc-input:focus { border-color: #f5d778; }
+.ficha-modal-overlay .mp-foto-circle { background: var(--cor-fundo-medio); }
+.ficha-modal-overlay .mp-foto-hint { color: #8b88a0; }
+.ficha-modal-overlay .btn-ficha { background: transparent; border-color: rgba(255,255,255,0.25); color: #d8d5e6; }
+.ficha-modal-overlay .btn-ficha:hover { background: rgba(255,255,255,0.06); }
+/* Os modificadores de cor (.btn-ficha-editar etc.) precisam ser reafirmados
+   aqui — a regra ".ficha-modal-overlay .btn-ficha" acima tem mais
+   especificidade que ".btn-ficha-editar" sozinho (2 classes vs 1) e por
+   isso apagava o dourado sem querer (bug real, reportado pela Márcia
+   16/jul/2026 — "os botões ficaram todos pretos"). */
+.ficha-modal-overlay .btn-ficha-editar,
+.ficha-modal-overlay .btn-ficha-salvar { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
+.ficha-modal-overlay .btn-ficha-editar:hover,
+.ficha-modal-overlay .btn-ficha-salvar:hover { background: #B8922A; }
+.ficha-modal-overlay .btn-ficha-ativar { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
+.ficha-modal-overlay .btn-ficha-rejeitar { border-color: #e2986e; color: #e2986e; }
+.ficha-modal-overlay .btn-ficha-suspender { border-color: #e0a252; color: #e0a252; }
+.ficha-modal-overlay .btn-ficha-desligar { border-color: #e08585; color: #e08585; }
+.ficha-modal-overlay .btn-ficha-reativar { border-color: rgba(255,255,255,0.25); color: #d8d5e6; }
+/* "Trocar foto" (dentro de #fp-foto-acao) tem estilo inline na partial
+   compartilhada — precisa de !important pra vencer aqui sem mudar a
+   aparência padrão (clara) que admin.html/super-admin.html continuam usando. */
+.ficha-modal-overlay #fp-foto-acao button {
+    background: var(--cor-fundo-medio) !important;
+    border-color: rgba(255,255,255,0.25) !important;
+    color: #d8d5e6 !important;
+}
 .fp-mensagem {
     border-radius: 8px; padding: 10px 14px; font-size: 12px;
     font-weight: 600; margin-bottom: 12px; display: none;
@@ -224,6 +291,14 @@
   background: white;
   transition: border-color 0.2s;
 }
+/* input type="date" no Safari/iOS pode renderizar mais largo que o CSS pede
+   (o controle nativo tem peso próprio) — menos padding lateral e fonte um
+   pouco menor dão folga real pro campo em colunas estreitas (16/jul/2026). */
+.auth-form-group input[type="date"] {
+  font-size: 14px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
 .auth-form-group input:focus,
 .auth-form-group select:focus { outline: none; border-color: var(--cor-destaque); }
 .auth-form-group label .obrigatorio { color: red; margin-left: 2px; }
@@ -243,7 +318,130 @@
 .mensagem.aviso { background: var(--cor-aviso-fundo); color: var(--cor-aviso); }
 .mensagem.sucesso { background: var(--cor-sucesso-fundo); color: var(--cor-sucesso); }
 
+/* ── Ícone (i) — explicação de por que perguntamos um campo, escondida por
+   padrão (clique pra ver). Usado em cadastro.html e na partial
+   ficha-perfil.partial.html (Meu Perfil / fichas de admin) — por isso mora
+   aqui, não local a uma tela só. Criado 16/jul/2026. ── */
+.btn-info-campo {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1.5px solid #c7c4d9; background: transparent;
+    color: #5a5770; font-size: 10px; font-weight: 700; font-style: italic;
+    font-family: Georgia, serif; cursor: pointer; padding: 0; vertical-align: middle;
+}
+.btn-info-campo:hover, .btn-info-campo[aria-expanded="true"] { border-color: #D4AF37; color: #D4AF37; }
+.info-campo-texto {
+    display: none; font-size: 12px; color: #5a5770; margin: 6px 0 8px;
+    background: rgba(0,0,0,0.035); border-radius: 8px; padding: 8px 10px;
+}
+.info-campo-texto.visivel { display: block; }
+body.tela-auth-escura .btn-info-campo,
+.ficha-modal-overlay .btn-info-campo { border-color: rgba(255,255,255,0.3); color: #a39fc0; }
+body.tela-auth-escura .info-campo-texto,
+.ficha-modal-overlay .info-campo-texto { color: #a39fc0; background: rgba(255,255,255,0.05); }
+
 /* ── Logotipo "TumTu" (padrão único, usado em todas as telas) — spec do handoff de design ── */
 .tt-logo { font-weight: 800; font-family: var(--fonte-principal); }
 .tt-logo .tt-t { color: #D4AF37; }
 .tt-logo .tt-m { border-bottom: 3px solid #7c2d12; padding-bottom: 2px; }
+
+/* ── Tela cheia escura — telas de "chegada" do app (login/cadastro/Meu Perfil/
+   carregando). Aplicar class="tela-auth-escura" no <body>. Substitui o
+   padrão antigo de caixa branca flutuando (.auth-container) por tela cheia
+   escura, campos de formulário também escuros com borda clara. Criado
+   16/jul/2026 em login.html, promovido pra cá ao ser estendido pra
+   cadastro.html no mesmo dia — um lugar só de verdade, em vez de duplicar a
+   regra em cada tela (mesmo princípio do resto do projeto). ── */
+body.tela-auth-escura {
+  background: #12101a;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  padding-top: max(15vh, 90px);
+  padding-top: max(15dvh, 90px);
+}
+body.tela-auth-escura .auth-container {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+body.tela-auth-escura .logo { text-align: center; margin-bottom: 48px; }
+body.tela-auth-escura .logo h1 { color: #f7f6fb; font-size: 36px; font-weight: bold; }
+body.tela-auth-escura .logo p { color: #a39fc0; font-size: 14px; margin-top: 22px; }
+body.tela-auth-escura .label-dica { color: #6e6a86; }
+body.tela-auth-escura .auth-form-group label { color: #a39fc0; }
+body.tela-auth-escura .auth-form-group input,
+body.tela-auth-escura .auth-form-group select {
+  background: var(--cor-fundo-medio);
+  border: 1.5px solid rgba(255,255,255,0.16);
+  color: #f7f6fb;
+}
+/* Safari/WebKit ignora background/color customizados em <select> sem isso —
+   ficava branco por cima do tema escuro (achado testando com WebKit de
+   verdade, 16/jul/2026). A setinha nativa some junto; desenhamos uma no
+   lugar (mesmo SVG usado nos outros ícones do app, só que cinza). */
+body.tela-auth-escura .auth-form-group select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a39fc0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 18px;
+  padding-right: 36px;
+}
+body.tela-auth-escura .auth-form-group input::placeholder { color: #605c78; }
+body.tela-auth-escura .auth-form-group input:focus,
+body.tela-auth-escura .auth-form-group select:focus { border-color: var(--cor-destaque); }
+/* Autopreenchimento do navegador (CPF/e-mail salvos etc.) pinta o campo com
+   a cor clara padrão dele, por cima de qualquer CSS de background comum —
+   só esse truque de sombra interna gigante consegue sobrescrever. Reportado
+   pela Márcia em 16/jul/2026 (campo de CPF ficava branco ao usar sugestão
+   do navegador). Mesmo problema pode acontecer no Meu Perfil (.fc-input). */
+body.tela-auth-escura .auth-form-group input:-webkit-autofill,
+body.tela-auth-escura .auth-form-group input:-webkit-autofill:hover,
+body.tela-auth-escura .auth-form-group input:-webkit-autofill:focus,
+.ficha-modal-overlay .fc-input:-webkit-autofill,
+.ficha-modal-overlay .fc-input:-webkit-autofill:hover,
+.ficha-modal-overlay .fc-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f7f6fb;
+  -webkit-box-shadow: 0 0 0px 1000px var(--cor-fundo-medio) inset;
+  box-shadow: 0 0 0px 1000px var(--cor-fundo-medio) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+.link-cadastro, .link-login {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--cor-texto-secundario);
+}
+.link-cadastro a, .link-login a { color: #D4AF37; font-weight: bold; text-decoration: none; }
+body.tela-auth-escura .link-cadastro,
+body.tela-auth-escura .link-login { color: #a39fc0; }
+body.tela-auth-escura .link-cadastro a,
+body.tela-auth-escura .link-login a { color: #D4AF37; font-weight: bold; text-decoration: none; }
+body.tela-auth-escura .link-secundario { color: #b3aecb !important; font-weight: 600 !important; text-decoration: underline !important; text-decoration-color: rgba(179,174,203,0.4); }
+
+/* Símbolo "eco/pulso" — dois surdos (1ª e 2ª) conversando em sequência, sem
+   sobrepor (opção 1g, criada 16/jul/2026 a partir das opções 1d/1f do
+   handoff de marca em docs/Conhecendo Design Assistant/.../TumTu - Revisão
+   de Marca.dc.html). Fica só nas telas de "chegada", não no resto do app. */
+.simbolo-marca { position: relative; width: 48px; height: 30px; margin: 0 auto 10px; }
+.simbolo-marca .big { width: 24px; height: 24px; border-radius: 50%; background: #D4AF37; position: absolute; left: 0; top: 0; }
+.simbolo-marca .small { width: 14px; height: 14px; border-radius: 50%; background: transparent; border: 2px solid #7c2d12; position: absolute; left: 34px; top: 12px; }
+
+/* Fundo decorativo — versão grande do mesmo símbolo, só em tela estreita/alta
+   (celular), onde sobra espaço vazio embaixo do formulário de verdade. Em
+   janela larga de computador fica escondido: o conteúdo já ocupa quase a
+   altura toda, dava sobreposição com os links (bug real, corrigido
+   16/jul/2026). */
+.fundo-decorativo { display: none; position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.fundo-decorativo .fd-big { position: absolute; width: 280px; height: 280px; border-radius: 50%; background: rgba(212,175,55,0.07); left: 50%; bottom: -110px; transform: translateX(-68%); }
+.fundo-decorativo .fd-small { position: absolute; width: 170px; height: 170px; border-radius: 50%; border: 3px solid rgba(124,45,18,0.14); background: transparent; left: 50%; bottom: -30px; transform: translateX(38%); }
+@media (max-width: 600px) {
+  .fundo-decorativo { display: block; }
+}

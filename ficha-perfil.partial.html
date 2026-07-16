@@ -15,12 +15,13 @@
     </div>
 </div>
 
-<div class="ficha-secao">
+<div class="ficha-secao" id="fp-secao-dados-pessoais">
     <div class="ficha-secao-titulo">Dados pessoais</div>
     <div class="ficha-grid">
         <div class="ficha-campo full"><span>Nome</span><strong id="fp-nome"></strong><input id="fp-nome-edit" class="fc-input" type="text"></div>
         <div class="ficha-campo"><span>Apelido</span><strong id="fp-apelido"></strong><input id="fp-apelido-edit" class="fc-input" type="text"></div>
-        <div class="ficha-campo"><span>Gênero</span><strong id="fp-genero"></strong>
+        <div class="ficha-campo"><span>Gênero <button type="button" class="btn-info-campo" onclick="toggleInfoCampo(this)" aria-label="Por que perguntamos isso">i</button></span><strong id="fp-genero"></strong>
+            <div class="info-campo-texto">Perguntamos isso só pra saber como tratar a pessoa certinho.</div>
             <select id="fp-genero-edit" class="fc-input">
                 <option value="">Selecione</option>
                 <option value="masculino">Masculino</option>
@@ -37,7 +38,7 @@
             <input id="fp-tipo-documento-edit" class="fc-input" type="text" placeholder="Tipo de documento">
             <input id="fp-numero-documento-edit" class="fc-input" type="text" placeholder="Número" style="margin-top:4px;">
         </div>
-        <div class="ficha-campo"><span>Data de nascimento</span><strong id="fp-nascimento"></strong><input id="fp-nascimento-edit" class="fc-input" type="date"></div>
+        <div class="ficha-campo"><span>Data de nascimento</span><strong id="fp-nascimento"></strong><input id="fp-nascimento-edit" class="fc-input" type="text" inputmode="numeric" placeholder="DD/MM/AAAA" maxlength="10" oninput="fpMascaraData(this)"></div>
         <div class="ficha-campo"><span>Celular</span><strong id="fp-celular"></strong><input id="fp-celular-edit" class="fc-input" type="tel"></div>
         <div class="ficha-campo"><span>E-mail</span><strong id="fp-email"></strong><input id="fp-email-edit" class="fc-input" type="email"></div>
         <div class="ficha-campo"><span>Membro desde</span><strong id="fp-membro-desde"></strong><input id="fp-membro-desde-edit" class="fc-input" type="text" placeholder="Ex: 2020"></div>
@@ -56,7 +57,7 @@
     </div>
 </div>
 
-<div class="ficha-secao">
+<div class="ficha-secao" id="fp-secao-endereco">
     <div class="ficha-secao-titulo">Endereço</div>
     <div class="ficha-grid">
         <div class="ficha-campo full"><span>Rua / Logradouro</span><strong id="fp-endereco"></strong><input id="fp-endereco-edit" class="fc-input" type="text"></div>
@@ -79,7 +80,7 @@
     </div>
 </div>
 
-<div class="ficha-secao">
+<div class="ficha-secao" id="fp-secao-saude">
     <div class="ficha-secao-titulo">Saúde</div>
     <div class="ficha-grid">
         <div class="ficha-campo"><span>Tipo sanguíneo</span><strong id="fp-tipo-sanguineo"></strong>
@@ -92,7 +93,7 @@
     </div>
 </div>
 
-<div class="ficha-secao">
+<div class="ficha-secao" id="fp-secao-emergencia">
     <div class="ficha-secao-titulo">Contato de emergência</div>
     <div class="ficha-grid">
         <div class="ficha-campo"><span>Nome</span><strong id="fp-emergencia-nome"></strong><input id="fp-emergencia-nome-edit" class="fc-input" type="text"></div>

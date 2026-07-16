@@ -47,13 +47,17 @@
   --cor-pill-bg: color-mix(in srgb, var(--cor-primaria) 7%, transparent);
   --cor-foto-bg: color-mix(in srgb, var(--cor-primaria) 6%, white);
 
-  /* Anel da foto e halo: cor 2, caindo pra cor 1 se não houver, caindo pro cinza neutro se não houver nenhuma cor. */
+  /* Anel da foto e halo: --cor-anel-base é calculada em JS (aplicarConfigEscola,
+     carteirinha.html) pulando qualquer cor branca — terciária > secundária >
+     primária — porque cor 2 (secundária) de várias escolas é branco, o que
+     ficava sem graça em cima do fundo branco do cartão (16/jul/2026). Sem
+     nenhuma cor não-branca disponível, cai no cinza neutro de sempre. */
   --cor-anel-gradiente: linear-gradient(135deg,
-    var(--cor-2, var(--cor-1, #c0bdd0)),
-    color-mix(in srgb, var(--cor-2, var(--cor-1, #c0bdd0)) 75%, black),
-    var(--cor-2, var(--cor-1, #c0bdd0))
+    var(--cor-anel-base, #c0bdd0),
+    color-mix(in srgb, var(--cor-anel-base, #c0bdd0) 75%, black),
+    var(--cor-anel-base, #c0bdd0)
   );
-  --cor-halo-foto: color-mix(in srgb, var(--cor-2, var(--cor-1, #c0bdd0)) 10%, transparent);
+  --cor-halo-foto: color-mix(in srgb, var(--cor-anel-base, #c0bdd0) 10%, transparent);
 
   /* Número do "ano": cor 3, senão cor 2, senão branco (escola só com 1 cor real, ex: Padrão A com branco embutido) */
   --cor-ano: var(--cor-3, var(--cor-2, #fff));
@@ -132,7 +136,7 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #8a87a0;
+  color: #5a5770; /* era #8a87a0 (3.5:1, abaixo do mínimo) — 16/jul/2026 */
   margin-bottom: 3px;
   line-height: 1.25;
   overflow-wrap: break-word;
@@ -261,7 +265,7 @@
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #9490a8;
+  color: #5a5770; /* era #9490a8 (3.1:1, abaixo do mínimo) — 16/jul/2026 */
   margin-top: 14px;
 }
 
@@ -289,16 +293,25 @@
 }
 
 .id-apelido {
-  font-size: 13px;
-  font-weight: 500;
+  /* Decisão final de verdade (16/jul/2026), depois de várias rodadas de
+     teste (dourado escurecido = "caganeira"; selo atrás = botão; contorno =
+     adesivo borrado; âmbar #A8790A = tecnicamente correto, mas ela achou
+     que destoava — nenhum outro elemento do cartão usa essa cor, quebra a
+     unidade visual). Márcia escolheu conscientemente manter o dourado
+     ORIGINAL da marca (#D4AF37, o mesmo usado em todo o resto do app),
+     abrindo mão do contraste técnico ideal em troca de coerência visual —
+     decisão dela, não reabrir sem ela pedir de novo. Fica só o tamanho
+     maior (19px) como reforço de legibilidade. */
+  font-size: 19px;
+  font-weight: 700;
   font-style: italic;
-  color: #D4AF37; /* dourado TumTu — sempre fixo */
+  color: #D4AF37;
   margin-top: 4px;
 }
 
 .id-instrumento {
   font-size: 12px;
-  color: #9490a8;
+  color: #5a5770; /* era #9490a8 (3.1:1, abaixo do mínimo) — 16/jul/2026 */
   font-weight: 500;
   margin-top: 4px;
 }
@@ -324,7 +337,7 @@
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #9490a8;
+  color: #5a5770; /* era #9490a8 (3.1:1, abaixo do mínimo) — 16/jul/2026 */
   margin-bottom: 3px;
 }
 
@@ -384,7 +397,7 @@
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.8);
+  color: var(--cor-rotulo-dinamico, rgba(255,255,255,0.8));
   margin-bottom: 2px;
 }
 
@@ -472,7 +485,7 @@
 .v-header__bateria {
   font-size: 17px;
   font-weight: 900;
-  color: #fff;
+  color: var(--cor-forte-dinamico, #fff);
   letter-spacing: -0.02em;
   line-height: 1.1;
   overflow-wrap: break-word;
@@ -481,7 +494,7 @@
 .v-header__escola {
   font-size: 9.5px;
   font-weight: 500;
-  color: rgba(255,255,255,0.5);
+  color: var(--cor-rotulo-dinamico, rgba(255,255,255,0.5));
   letter-spacing: 0.12em;
   text-transform: uppercase;
   margin-top: 3px;
@@ -560,7 +573,7 @@
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.4);
+  color: var(--cor-rotulo-dinamico, rgba(255,255,255,0.4));
   margin-top: 9px;
 }
 
@@ -576,14 +589,14 @@
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.45);
+  color: var(--cor-rotulo-dinamico, rgba(255,255,255,0.45));
   margin-bottom: 6px;
 }
 
 .v-mestre__nome {
   font-size: 16px;
   font-weight: 900;
-  color: #fff;
+  color: var(--cor-forte-dinamico, #fff);
   letter-spacing: -0.01em;
   line-height: 1.3;
   overflow-wrap: break-word;
@@ -614,14 +627,14 @@
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.45);
+  color: var(--cor-rotulo-dinamico, rgba(255,255,255,0.45));
   margin-bottom: 3px;
 }
 
 .v-val-valor {
   font-size: 15px;
   font-weight: 700;
-  color: #D4AF37; /* dourado TumTu — sempre */
+  color: var(--cor-valor-dinamico, #D4AF37); /* dourado — escurece em escola de cor clara, senão fica ilegível */
   white-space: nowrap; /* "Carnaval 2027" sempre em uma linha */
 }
 
@@ -651,7 +664,7 @@
 
 .v-ig {
   font-size: 9.5px;
-  color: rgba(255,255,255,0.35);
+  color: var(--cor-rotulo-dinamico, rgba(255,255,255,0.35));
   font-weight: 500;
   letter-spacing: 0.06em;
 }

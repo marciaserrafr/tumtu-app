@@ -12,10 +12,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TumTu">
     <script src="pwa-register.js" defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/tokens.css?v=1">
-    <link rel="stylesheet" href="styles/components.css?v=1">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=12">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/tokens.css?v=2">
+    <link rel="stylesheet" href="styles/components.css?v=4">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=18">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
@@ -31,6 +31,7 @@
         @view-transition { navigation: none; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { overflow-x: hidden; max-width: 100vw; }
         button { font-family: inherit; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -243,15 +244,12 @@
 <div class="ficha-modal-overlay" id="modalPerfilOverlay" style="display:none;" onclick="if(event.target===this) fecharPerfil()">
     <div class="ficha-modal-box">
         <div id="fp-container-perfil"></div>
-        <div style="text-align:right; margin-top:12px;">
-            <button class="btn-ficha" onclick="fecharPerfil()">Fechar</button>
-        </div>
     </div>
 </div>
 
 <div class="c-toast" id="cToast"></div>
 
-<script src="ficha-perfil.js?v=5" defer></script>
+<script src="ficha-perfil.js?v=7" defer></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
@@ -355,6 +353,9 @@
                 instagramBateria: bateria.instagram || '',
                 temporadaAtual: (escola && escola.temporada_atual) || '',
                 cores: escola ? [escola.cor_primaria, escola.cor_secundaria, escola.cor_terciaria, escola.cor_quaternaria].filter(Boolean) : [],
+                corPrimaria: escola ? escola.cor_primaria || null : null,
+                corSecundaria: escola ? escola.cor_secundaria || null : null,
+                corTerciaria: escola ? escola.cor_terciaria || null : null,
                 escolaId: bateria.escola_id || null,
             };
         } catch (e) {
@@ -377,6 +378,71 @@
         // Cores injetadas no ancestral comum de frente e verso — herdam por CSS custom properties.
         const inner = document.getElementById('carteirinhaInner');
         (cfg.cores || []).forEach((cor, i) => inner.style.setProperty(`--cor-${i + 1}`, cor));
+
+        // Cor do anel da foto: pula qualquer cor branca (fica sem graça em
+        // cima do fundo branco do cartão) — prioridade terciária > secundária
+        // > primária, pedido da Márcia em 16/jul/2026 depois de notar que a
+        // "cor 2" de várias escolas é branco. Sem nenhuma cor não-branca
+        // disponível, volta pro cinza neutro (--cor-anel-gradiente já cai lá
+        // sozinho quando --cor-anel-base não é setada).
+        const corAnel = escolherCorAnel(cfg.corTerciaria, cfg.corSecundaria, cfg.corPrimaria);
+        if (corAnel) inner.style.setProperty('--cor-anel-base', corAnel);
+        else inner.style.removeProperty('--cor-anel-base');
+
+        // Verso e rodapé da frente têm fundo que muda de cor por escola
+        // (--cor-primaria) — textos com transparência fixa (branco 35-45%)
+        // ficavam ilegíveis em escolas de cor clara, quase invisíveis em
+        // algumas (medido: chega a 1.0:1 de contraste, quando o mínimo
+        // legível é 4.5:1). Calcula se a cor de fundo é clara ou escura e
+        // ajusta rótulos/valores pra sempre ter contraste real, não só nas
+        // escolas de cor escura (achado da Márcia, 16/jul/2026).
+        const corFundoDinamico = cfg.corPrimaria || (cfg.cores && cfg.cores[0]) || '#706c87';
+        const escuro = !corEhClara(corFundoDinamico);
+        inner.style.setProperty('--cor-rotulo-dinamico', escuro ? 'rgba(255,255,255,0.75)' : 'rgba(18,16,26,0.68)');
+        inner.style.setProperty('--cor-forte-dinamico', escuro ? '#ffffff' : '#12101a');
+        // Dourado só sobrevive em fundo escuro — em escola de cor clara,
+        // dourado-sobre-dourado nunca dá contraste real (são a mesma
+        // família de matiz), então cai pro mesmo escuro sólido do resto do
+        // texto forte em vez de tentar salvar o tom dourado.
+        inner.style.setProperty('--cor-valor-dinamico', escuro ? '#D4AF37' : '#12101a');
+    }
+
+    // Considera "branca" qualquer tom bem próximo do branco puro — não só
+    // #ffffff exato, porque uma escola pode ter cadastrado um branco
+    // levemente off (#fefefe, #fdfdfd etc.) que teria o mesmo problema visual.
+    function corEhBranca(hex) {
+        if (!hex) return true;
+        const h = hex.replace('#', '');
+        const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+        if (full.length !== 6) return false;
+        const r = parseInt(full.slice(0, 2), 16);
+        const g = parseInt(full.slice(2, 4), 16);
+        const b = parseInt(full.slice(4, 6), 16);
+        return r > 240 && g > 240 && b > 240;
+    }
+
+    // Luminância relativa oficial (fórmula WCAG) — usada pra decidir se um
+    // fundo dinâmico (cor da escola) é claro ou escuro o suficiente pra
+    // precisar de texto escuro em vez de branco por cima. Mesmo critério
+    // usado no cálculo de contraste (16/jul/2026).
+    function corEhClara(hex) {
+        if (!hex) return false;
+        const h = hex.replace('#', '');
+        const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+        if (full.length !== 6) return false;
+        const canal = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+        const r = canal(parseInt(full.slice(0, 2), 16));
+        const g = canal(parseInt(full.slice(2, 4), 16));
+        const b = canal(parseInt(full.slice(4, 6), 16));
+        const luminancia = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        return luminancia > 0.42; // ponto de corte prático: acima disso, texto branco começa a perder contraste real
+    }
+
+    function escolherCorAnel(...candidatas) {
+        for (const cor of candidatas) {
+            if (cor && !corEhBranca(cor)) return cor;
+        }
+        return null;
     }
 
     // Busca só os logos (escola + bateria) — separado de carregarConfigEscola
@@ -564,6 +630,12 @@
                 }
             }
         });
+        // "Fechar" entra na mesma fileira de Editar/Salvar/Cancelar (hook
+        // #fp-acoes-extra, já existente na partial pra esse fim) — antes
+        // ficava numa div separada embaixo, o que a Márcia notou como
+        // "desalinhado" (16/jul/2026).
+        const acoesExtra = document.getElementById('fp-acoes-extra');
+        if (acoesExtra) acoesExtra.innerHTML = '<button class="btn-ficha" onclick="fecharPerfil()">Fechar</button>';
         document.getElementById('modalPerfilOverlay').style.display = 'flex';
     }
 

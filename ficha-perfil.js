@@ -80,7 +80,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=3');
+        const res = await fetch('ficha-perfil.partial.html?v=5');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -101,6 +101,43 @@ function fpCargoLabel(perfil, genero) {
     if (perfil === 'diretor') return genero === 'feminino' ? 'Diretora' : 'Diretor';
     if (perfil === 'super_admin') return 'Super Admin';
     return 'Ritmista';
+}
+
+// Data de nascimento como texto com máscara, no lugar do <input type="date">
+// nativo — mesma correção aplicada em cadastro.html (16/jul/2026): o nativo
+// estourava a margem em alguns navegadores/ambientes, e a Márcia preferiu de
+// qualquer forma (funções duplicadas aqui, não compartilhadas num arquivo
+// comum — mesmo critério já usado em outras funções pequenas de UI).
+function fpMascaraData(input) {
+    let v = input.value.replace(/\D/g, '');
+    if (v.length > 8) v = v.slice(0, 8);
+    v = v.replace(/^(\d{2})(\d)/, '$1/$2');
+    v = v.replace(/^(\d{2})\/(\d{2})(\d)/, '$1/$2/$3');
+    input.value = v;
+}
+
+function fpDataParaISO(str) {
+    const m = (str || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!m) return null;
+    const [, dia, mes, ano] = m;
+    const d = new Date(`${ano}-${mes}-${dia}T00:00:00`);
+    const valida = d.getFullYear() === Number(ano) && (d.getMonth() + 1) === Number(mes) && d.getDate() === Number(dia);
+    return valida ? `${ano}-${mes}-${dia}` : null;
+}
+
+function fpISOparaData(iso) {
+    const m = (iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+}
+
+// Ícone (i) de explicação — mesmo padrão usado em cadastro.html (duplicado
+// aqui, não compartilhado num arquivo comum, mesmo critério já usado em
+// outras funções pequenas de UI do projeto, ex: toggleSenha).
+function toggleInfoCampo(btn) {
+    const texto = btn.closest('.auth-form-group, .ficha-campo').querySelector('.info-campo-texto');
+    const abrindo = !texto.classList.contains('visivel');
+    texto.classList.toggle('visivel', abrindo);
+    btn.setAttribute('aria-expanded', String(abrindo));
 }
 
 function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
@@ -183,7 +220,7 @@ async function fpAtivarEdicao() {
         const strong = fpEl(id);
         const input = fpEl(id + '-edit');
         if (!strong || !input || !fpEstado.editaveis.has(col)) return;
-        input.value = tipo === 'data' ? (fpEstado.alvo[col] || '') : (fpEstado.alvo[col] || '');
+        input.value = tipo === 'data' ? fpISOparaData(fpEstado.alvo[col]) : (fpEstado.alvo[col] || '');
         strong.style.display = 'none';
         input.style.display = 'block';
     });
@@ -259,13 +296,31 @@ function fpPreviewFoto(input) {
 async function fpSalvar() {
     const payloadPessoa = {};
     const payloadVinculo = {};
-    FP_CAMPOS.forEach(({ id, col }) => {
+    let dataInvalida = false;
+    FP_CAMPOS.forEach(({ id, col, tipo }) => {
         if (!fpEstado.editaveis.has(col)) return;
         const input = fpEl(id + '-edit');
         if (!input) return;
         const alvoPayload = fpTabelaDoCampo(col) === 'vinculos' ? payloadVinculo : payloadPessoa;
+        if (tipo === 'data') {
+            const bruto = input.value.trim();
+            if (!bruto) { alvoPayload[col] = null; return; }
+            const iso = fpDataParaISO(bruto);
+            if (!iso) { dataInvalida = true; return; }
+            alvoPayload[col] = iso;
+            return;
+        }
         alvoPayload[col] = input.value.trim() || null;
     });
+    if (dataInvalida) {
+        const msg = fpEl('fp-mensagem');
+        if (msg) {
+            msg.className = 'fp-mensagem erro';
+            msg.textContent = 'Data de nascimento inválida — confira dia, mês e ano.';
+            msg.style.display = 'block';
+        }
+        return;
+    }
     if (fpEstado.editaveis.has('tipo_documento')) {
         payloadPessoa.tipo_documento = fpEl('fp-tipo-documento-edit').value.trim() || null;
         payloadPessoa.numero_documento = fpEl('fp-numero-documento-edit').value.trim() || null;
