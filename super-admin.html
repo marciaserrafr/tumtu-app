@@ -13,10 +13,10 @@
     <meta name="apple-mobile-web-app-title" content="TumTu">
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/tokens.css?v=2">
-    <link rel="stylesheet" href="styles/components.css?v=4">
+    <link rel="stylesheet" href="styles/tokens.css?v=3">
+    <link rel="stylesheet" href="styles/components.css?v=5">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=7"></script>
+    <script src="ficha-perfil.js?v=8"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -363,6 +363,10 @@
                 <span>Instrumentos</span>
                 <span class="config-item-seta">›</span>
             </div>
+            <div class="config-item" onclick="abrirConfigTelaSA('medidas')">
+                <span>Medidas</span>
+                <span class="config-item-seta">›</span>
+            </div>
         </div>
 
         <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
@@ -372,6 +376,15 @@
             <button class="btn-novo" onclick="abrirNovaCategoria()">+ Nova Categoria</button>
             <div id="sa-categoria-editor" style="display:none;"></div>
             <div id="sa-categorias-lista"></div>
+        </div>
+
+        <div id="sa-config-tela-medidas" class="config-subtela" style="display:none;">
+            <button class="btn-voltar" onclick="voltarConfigListaSA()">← Configurações</button>
+            <div class="painel-titulo">Medidas</div>
+            <div class="painel-sub">Biblioteca mestre de tamanhos — vale para todas as escolas. Cada bateria escolhe quais usar em "Configurações → Medidas" no painel dela.</div>
+            <button class="btn-novo" onclick="abrirNovoTamanho()">+ Novo Tamanho</button>
+            <div id="sa-tamanho-editor" style="display:none;"></div>
+            <div id="sa-tamanhos-lista"></div>
         </div>
 
     </div>
@@ -1438,10 +1451,14 @@
             fecharEditorCategoria();
             carregarCategorias().then(renderizarCategoriasLista);
         }
+        if (nome === 'medidas') {
+            fecharEditorTamanho();
+            carregarTamanhos().then(renderizarTamanhosLista);
+        }
     }
 
     function voltarConfigListaSA() {
-        document.getElementById('sa-config-tela-instrumentos').style.display = 'none';
+        document.querySelectorAll('#painel-configuracoes .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('sa-config-lista').style.display = 'block';
     }
 
@@ -1642,6 +1659,140 @@
         await carregarCategorias();
         renderizarEditorCategoria();
         renderizarCategoriasLista();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // CONFIGURAÇÕES → MEDIDAS (biblioteca mestre)
+    // ══════════════════════════════════════════════════════════════════
+    const TIPOS_MEDIDA = [['camisa', 'Camisa'], ['fantasia', 'Fantasia'], ['calca', 'Calça'], ['sapato', 'Sapato']];
+    let tamanhosCache = [];
+    let tamanhoEditando = null;
+    let salvandoTamanho = false;
+
+    async function carregarTamanhos() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers });
+        tamanhosCache = await res.json();
+    }
+
+    function renderizarTamanhosLista() {
+        const container = document.getElementById('sa-tamanhos-lista');
+        if (tamanhosCache.length === 0) {
+            container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum tamanho cadastrado ainda.</div>';
+            return;
+        }
+        container.innerHTML = TIPOS_MEDIDA.map(([chave, label]) => {
+            const itens = tamanhosCache.filter(t => t.tipo === chave).sort((a, b) => a.ordem - b.ordem);
+            if (itens.length === 0) return '';
+            return `<div class="config-grupo-titulo">${label}</div>` + itens.map(t => `
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-nome">${esc(t.nome)} ${t.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
+                    </div>
+                    <div class="item-acoes">
+                        <button class="btn-ficha" onclick="abrirEditarTamanho(${t.id})">Editar</button>
+                    </div>
+                </div>
+            `).join('');
+        }).join('');
+    }
+
+    function abrirNovoTamanho() {
+        tamanhoEditando = { id: null, tipo: 'camisa', nome: '', ativo: true };
+        renderizarEditorTamanho();
+    }
+
+    function abrirEditarTamanho(id) {
+        const t = tamanhosCache.find(x => x.id === id);
+        if (!t) return;
+        tamanhoEditando = { id: t.id, tipo: t.tipo, nome: t.nome, ativo: t.ativo !== false };
+        renderizarEditorTamanho();
+    }
+
+    function renderizarEditorTamanho() {
+        const te = tamanhoEditando;
+        const editor = document.getElementById('sa-tamanho-editor');
+        if (!te) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `
+            <div class="card-form">
+                <div class="card-form-titulo">${te.id ? 'Editar Tamanho' : 'Novo Tamanho'}</div>
+                <div class="form-grid">
+                    <div class="campo"><label>Tipo</label>
+                        <select id="tam-edit-tipo">
+                            ${TIPOS_MEDIDA.map(([chave, label]) => `<option value="${chave}" ${te.tipo === chave ? 'selected' : ''}>${label}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="campo"><label>Nome *</label>
+                        <input type="text" id="tam-edit-nome" value="${esc(te.nome)}" placeholder="Ex: GG"></div>
+                    <div class="campo"><label>Status</label>
+                        <select id="tam-edit-ativo">
+                            <option value="true" ${te.ativo ? 'selected' : ''}>Ativo</option>
+                            <option value="false" ${!te.ativo ? 'selected' : ''}>Inativo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-rodape">
+                    <div class="form-rodape-esq">
+                        <button id="tam-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarTamanho()">Salvar</button>
+                        ${te.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirTamanho(${te.id})">Excluir tamanho</button>` : ''}
+                    </div>
+                    <button class="btn-ficha" onclick="fecharEditorTamanho()">Cancelar</button>
+                </div>
+            </div>`;
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function fecharEditorTamanho() {
+        tamanhoEditando = null;
+        renderizarEditorTamanho();
+    }
+
+    async function salvarTamanho() {
+        if (salvandoTamanho) return;
+        const tipo = document.getElementById('tam-edit-tipo').value;
+        const nome = document.getElementById('tam-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do tamanho.', 'erro'); return; }
+        const ativo = document.getElementById('tam-edit-ativo').value === 'true';
+
+        salvandoTamanho = true;
+        const btnSalvar = document.getElementById('tam-btn-salvar');
+        if (btnSalvar) btnSalvar.disabled = true;
+
+        try {
+            if (tamanhoEditando.id) {
+                await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${tamanhoEditando.id}`, {
+                    method: 'PATCH', headers, body: JSON.stringify({ tipo, nome, ativo })
+                });
+            } else {
+                const ordem = Math.max(0, ...tamanhosCache.filter(t => t.tipo === tipo).map(t => t.ordem || 0)) + 1;
+                await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos`, {
+                    method: 'POST', headers, body: JSON.stringify({ tipo, nome, ativo, ordem })
+                });
+            }
+            mostrarToast(tamanhoEditando.id ? 'Tamanho atualizado!' : 'Tamanho criado!');
+            tamanhoEditando = null;
+            await carregarTamanhos();
+            renderizarEditorTamanho();
+            renderizarTamanhosLista();
+        } catch (e) {
+            mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro');
+        } finally {
+            salvandoTamanho = false;
+        }
+    }
+
+    async function excluirTamanho(id) {
+        if (!confirm('Excluir este tamanho? Se alguma bateria já usa, prefira marcar como "Inativo" em vez de excluir.')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${id}`, { method: 'DELETE', headers });
+        if (!res.ok) {
+            mostrarToast('Não foi possível excluir — provavelmente já está em uso por alguma bateria. Marque como "Inativo" em vez de excluir.', 'erro');
+            return;
+        }
+        mostrarToast('Tamanho excluído.');
+        tamanhoEditando = null;
+        await carregarTamanhos();
+        renderizarEditorTamanho();
+        renderizarTamanhosLista();
     }
 
     // ── ACESSAR COMO ADMIN ───────────────────────────────────────────

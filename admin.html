@@ -13,10 +13,10 @@
     <meta name="apple-mobile-web-app-title" content="TumTu">
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/tokens.css?v=2">
-    <link rel="stylesheet" href="styles/components.css?v=4">
+    <link rel="stylesheet" href="styles/tokens.css?v=3">
+    <link rel="stylesheet" href="styles/components.css?v=5">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=7"></script>
+    <script src="ficha-perfil.js?v=8"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -534,6 +534,10 @@
             <span>Vagas de Ritmistas</span>
             <span class="config-item-seta">›</span>
         </div>
+        <div class="config-item" onclick="abrirConfigTela('medidas')">
+            <span>Medidas</span>
+            <span class="config-item-seta">›</span>
+        </div>
     </div>
 
     <!-- Sub-tela: Instrumentos -->
@@ -550,6 +554,14 @@
         <div class="painel-titulo">Vagas de Ritmistas</div>
         <p class="config-sub-desc">Defina o limite de ritmistas por instrumento ativo. Use 0 para sem limite.</p>
         <div id="config-vagas-lista"><div class="vazio">Carregando...</div></div>
+    </div>
+
+    <!-- Sub-tela: Medidas -->
+    <div id="config-tela-medidas" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
+        <div class="painel-titulo">Medidas</div>
+        <p class="config-sub-desc">Ative os tamanhos que sua bateria usa em cada tipo. Só os tamanhos ativos aparecem no cadastro dos ritmistas.</p>
+        <div id="config-medidas-lista"><div class="vazio">Carregando...</div></div>
     </div>
 
 </div>
@@ -1149,6 +1161,8 @@
     let bibliotecaInstrumentos = []; // categorias da biblioteca mestre, cada uma com .nomenclaturas
     let bateriaInstrumentosCache = []; // linhas de bateria_instrumentos da bateria atual
     let filtroInstrumentosSelecionados = []; // agora guarda bateria_instrumento_id (número), não mais texto
+    let bibliotecaMedidas = []; // medida_tamanhos, biblioteca mestre
+    let bateriaMedidasCache = []; // linhas de bateria_medidas da bateria atual
 
     async function carregarBibliotecaInstrumentos() {
         const [resCat, resNom] = await Promise.all([
@@ -1301,16 +1315,15 @@
     // ── CONFIGURAÇÕES → INSTRUMENTOS ────────────────────────────────────
     function abrirConfigTela(nome) {
         document.getElementById('config-lista').style.display = 'none';
-        document.getElementById('config-tela-instrumentos').style.display = 'none';
-        document.getElementById('config-tela-vagas').style.display = 'none';
+        document.querySelectorAll('#painel-configuracoes .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('config-tela-' + nome).style.display = 'block';
         if (nome === 'instrumentos') renderizarConfigInstrumentos();
         if (nome === 'vagas') renderizarConfigVagas();
+        if (nome === 'medidas') renderizarConfigMedidas();
     }
 
     function voltarConfigLista() {
-        document.getElementById('config-tela-instrumentos').style.display = 'none';
-        document.getElementById('config-tela-vagas').style.display = 'none';
+        document.querySelectorAll('#painel-configuracoes .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('config-lista').style.display = 'block';
     }
 
@@ -1318,6 +1331,8 @@
         voltarConfigLista();
         if (bibliotecaInstrumentos.length === 0) await carregarBibliotecaInstrumentos();
         await carregarBateriaInstrumentos();
+        if (bibliotecaMedidas.length === 0) await carregarBibliotecaMedidas();
+        await carregarBateriaMedidas();
     }
 
     function renderizarConfigInstrumentos() {
@@ -1412,6 +1427,64 @@
         const item = bateriaInstrumentosCache.find(bi => bi.id === bateriaInstrumentoId);
         if (item) item.vagas = vagas;
         renderizarConfigVagas();
+    }
+
+    // ── CONFIGURAÇÕES → MEDIDAS ──────────────────────────────────────────
+    const TIPOS_MEDIDA = [['camisa', 'Camisa'], ['fantasia', 'Fantasia'], ['calca', 'Calça'], ['sapato', 'Sapato']];
+
+    async function carregarBibliotecaMedidas() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders });
+        bibliotecaMedidas = await res.json();
+    }
+
+    async function carregarBateriaMedidas() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { bateriaMedidasCache = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?bateria_id=eq.${bateriaId}`, { headers: authHeaders });
+        bateriaMedidasCache = await res.json();
+    }
+
+    function renderizarConfigMedidas() {
+        const container = document.getElementById('config-medidas-lista');
+        container.innerHTML = TIPOS_MEDIDA.map(([chave, label]) => {
+            const itens = bibliotecaMedidas.filter(t => t.tipo === chave).sort((a, b) => a.ordem - b.ordem);
+            if (itens.length === 0) return '';
+            return `<div class="config-grupo-titulo">${label}</div>${itens.map(t => renderizarLinhaMedida(t)).join('')}`;
+        }).join('');
+    }
+
+    function renderizarLinhaMedida(t) {
+        const existente = bateriaMedidasCache.find(bm => bm.tamanho_id === t.id);
+        const ativo = !!(existente && existente.ativo);
+        return `
+            <div class="config-instrumento-linha">
+                <label class="config-instrumento-check">
+                    <input type="checkbox" ${ativo ? 'checked' : ''} onchange="salvarMedidaBateria(${t.id}, this.checked)">
+                    <span>${t.nome}</span>
+                </label>
+            </div>`;
+    }
+
+    async function salvarMedidaBateria(tamanhoId, ativo) {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) return;
+        const existente = bateriaMedidasCache.find(bm => bm.tamanho_id === tamanhoId);
+
+        if (existente) {
+            await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?id=eq.${existente.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ ativo })
+            });
+        } else {
+            await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ bateria_id: bateriaId, tamanho_id: tamanhoId, ativo })
+            });
+        }
+        await carregarBateriaMedidas();
+        renderizarConfigMedidas();
     }
 
     // ── MODO SUPER ADMIN ─────────────────────────────────────────────

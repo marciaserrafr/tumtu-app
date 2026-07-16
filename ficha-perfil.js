@@ -80,7 +80,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=5');
+        const res = await fetch('ficha-perfil.partial.html?v=6');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -215,6 +215,33 @@ async function fpCarregarOpcoesInstrumento(bateriaId) {
     }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 }
 
+const FP_CAMPOS_MEDIDA = [
+    { col: 'tamanho_camisa', tipo: 'camisa', id: 'fp-camisa' },
+    { col: 'tamanho_fantasia', tipo: 'fantasia', id: 'fp-fantasia' },
+    { col: 'tamanho_calca', tipo: 'calca', id: 'fp-calca' },
+    { col: 'tamanho_sapato', tipo: 'sapato', id: 'fp-sapato' },
+];
+
+async function fpCarregarOpcoesMedidas(bateriaId) {
+    const vazio = { camisa: [], fantasia: [], calca: [], sapato: [] };
+    if (!bateriaId) return vazio;
+    const { data: sessionData } = await sb.auth.getSession();
+    const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
+    const authHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` };
+    const [resBM, resTam] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?bateria_id=eq.${bateriaId}&ativo=eq.true`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders }),
+    ]);
+    const bm = await resBM.json();
+    const tamanhos = await resTam.json();
+    const porTipo = { camisa: [], fantasia: [], calca: [], sapato: [] };
+    bm.map(item => tamanhos.find(t => t.id === item.tamanho_id)).filter(Boolean).forEach(t => {
+        if (porTipo[t.tipo]) porTipo[t.tipo].push(t);
+    });
+    Object.keys(porTipo).forEach(tipo => porTipo[tipo].sort((a, b) => a.ordem - b.ordem));
+    return porTipo;
+}
+
 async function fpAtivarEdicao() {
     FP_CAMPOS.forEach(({ id, col, tipo }) => {
         const strong = fpEl(id);
@@ -241,6 +268,19 @@ async function fpAtivarEdicao() {
         ).join('');
         fpEl('fp-instrumento').style.display = 'none';
         select.style.display = 'block';
+    }
+
+    if (FP_CAMPOS_MEDIDA.some(c => fpEstado.editaveis.has(c.col))) {
+        const opcoesMedidas = await fpCarregarOpcoesMedidas(fpEstado.alvo.bateria_id);
+        FP_CAMPOS_MEDIDA.forEach(({ col, tipo, id }) => {
+            if (!fpEstado.editaveis.has(col)) return;
+            const select = fpEl(id + '-edit');
+            if (!select) return;
+            const valorAtual = fpEstado.alvo[col];
+            select.innerHTML = '<option value="">Selecione</option>' + opcoesMedidas[tipo].map(t =>
+                `<option value="${t.nome}" ${t.nome === valorAtual ? 'selected' : ''}>${t.nome}</option>`
+            ).join('');
+        });
     }
 
     fpEl('fp-btn-editar').style.display = 'none';

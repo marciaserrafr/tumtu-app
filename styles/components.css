@@ -221,7 +221,7 @@
 .ficha-modal-overlay #fp-secao-endereco .ficha-secao-titulo::before,
 .ficha-modal-overlay #fp-secao-saude .ficha-secao-titulo::before,
 .ficha-modal-overlay #fp-secao-senha .ficha-secao-titulo::before {
-    background: #e2986e;
+    background: var(--cor-terracota);
 }
 .ficha-modal-overlay .ficha-campo span { color: #8b88a0; }
 .ficha-modal-overlay .ficha-campo strong { color: #f7f6fb; }
