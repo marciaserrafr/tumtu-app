@@ -6,6 +6,8 @@
 > e adicionar a seção 7.4 após a 7.3.
 > Todo o restante do documento permanece intacto.
 
+> 🚩 **Pendência encontrada em 16/jul/2026, ainda não corrigida:** este arquivo nunca foi de fato mesclado em `tumtu-design-guide.md` — a seção 7.3 de lá continua descrevendo a carteirinha antiga (logo única, "MESTRE DE BATERIA" sempre singular, wordmark "TumTu" no verso, sem sistema de N cores). Além disso, a própria seção 7.4 **abaixo** já está desatualizada: o "Padrão A/B/C" com receitas fixas por escola foi substituído por um sistema mais genérico de `--cor-1`/`--cor-2`/`--cor-3`/`--cor-4` + `color-mix()` em cascata (ver `styles/carteirinha-tumtu-novo.css` e `docs/tumtu-documentacao-tecnica.md` seção 24). Corrigi aqui só os pontos que mudaram nesta sessão (tamanho de logo, upload de arquivo) — uma revisão completa da seção 7.4 e a mesclagem de fato em `tumtu-design-guide.md` ainda estão pendentes, fora do escopo desta rodada de documentação.
+
 ---
 
 ## SUBSTITUIR: Seção 7.3 — Carteirinha digital
@@ -42,7 +44,7 @@ O verso tem fundo na cor primária da escola com gradiente escuro.
 | Rodapé fluido | Gradiente "poolside" — cor emerge do fundo sem caixa ou borda. Altura do gradiente: 120px. Ver nota abaixo |
 | "Membro desde" label | 7px, uppercase, rgba(255,255,255,0.8) |
 | Ano | 24px, peso 900 — cor definida pelo padrão da escola |
-| Logo da escola | Círculo 52px, border 1px, canto inferior direito — cor da borda definida pelo padrão |
+| Logo da escola | Círculo 96px, border 1px, canto inferior direito — cor da borda definida pelo padrão |
 | Faixa dourada | 3px, gradiente #9a7520→#D4AF37→#f5d778→#D4AF37→#9a7520 — sempre presente |
 
 **Nota sobre o rodapé fluido:**
@@ -59,7 +61,7 @@ NUNCA aumentar `padding-top` além de `altura-gradiente - 65px` ou o conteúdo s
 | Header | Gradiente rgba(0,0,0,0.22)→transparent — **sem linha de corte, sem borda** |
 | Nome da bateria | 15px, peso 900, branco |
 | Nome da escola | 7.5px, uppercase, rgba(255,255,255,0.5) |
-| Logo da bateria | Círculo 52px, canto direito do header. Se não houver logo da bateria: usa logo da escola. Borda 1px dourado |
+| Logo da bateria | Círculo 88px, canto direito do header. Se não houver logo da bateria: usa logo da escola. Borda 1px dourado |
 | QR code | Caixa branca 110×110px, border-radius 14px, sombra suave. Aponta para contato de emergência |
 | Label QR | "QR DE EMERGÊNCIA" — 7px, uppercase, rgba(255,255,255,0.45) |
 | Mestre(s) | Label "MESTRE DE BATERIA" ou "MESTRES DE BATERIA" (plural automático via JS) + nome(s). Separador 0.5px entre dois mestres |
@@ -72,7 +74,7 @@ NUNCA aumentar `padding-top` além de `altura-gradiente - 65px` ou o conteúdo s
 
 - **Frente:** logo da escola, canto inferior direito
 - **Verso:** logo da bateria, canto direito do header. Se não houver logo da bateria separada, usa logo da escola
-- Tamanho: 76px × 76px (revisado em 13/jul/2026 — 52px original ficava pequeno demais pra reconhecer a logo, testado com logos reais da Imperatriz e da Swing da Leopoldina), borda 1px solid, border-radius 50%
+- Tamanho: **frente (logo da escola) 96px × 96px, verso (logo da bateria) 88px × 88px** — tamanhos divergiram em 16/jul/2026 ao ajustar o equilíbrio visual de cada lado do cartão (histórico: 52px original ficava pequeno demais pra reconhecer a logo, ajustado pra 76px em 13/jul/2026, depois split em 96/88px em 16/jul/2026), borda 1px solid, border-radius 50%
 - Cor da borda: definida por `--cor-logo-borda` (ver padrões abaixo)
 - Sem logo cadastrada: círculo vazio com borda — nunca texto, nunca sigla, nunca ícone TumTu
 - Com logo cadastrada: `<img>` com object-fit: contain, border-radius: 50%
@@ -87,7 +89,7 @@ Testado com logo real (Imperatriz Leopoldinense) dentro do círculo de 76px — 
 3. **Formato quadrado** (largura = altura)
 4. **Mínimo recomendado: 300×300px**, pra não borrar ao ampliar
 
-**Pendência de UX (ainda não implementada):** a Márcia quer esse texto explicativo dentro do próprio TumTu, junto ao campo de upload de logo (super-admin.html, tela de configuração de escola/bateria — tela ainda não construída) — não só documentado aqui. Objetivo: ninguém esquece o padrão porque a instrução aparece exatamente na hora de mandar o arquivo, sem depender de lembrar de consultar este documento.
+**Pendência de UX (parcialmente resolvida):** o campo de upload de logo já existe de verdade em `super-admin.html` (upload de arquivo com preview, tela de configuração de escola/bateria — construído em 15/jul/2026, ver `docs/tumtu-documentacao-tecnica.md` seção 9). O que falta ainda é só o texto explicativo (o padrão PNG/recortado/quadrado/300px acima) aparecer junto ao campo, dentro do próprio TumTu — hoje só está documentado aqui. Objetivo: ninguém esquece o padrão porque a instrução aparece exatamente na hora de mandar o arquivo, sem depender de lembrar de consultar este documento.
 
 #### Assinatura TumTu no verso
 

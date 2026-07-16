@@ -174,19 +174,12 @@ Lêem `auth.uid()` (o usuário autenticado da requisição atual) e retornam dad
 - **Reset de senha pelo Super Admin removido em 05/jul/2026** (a tela de Acessos tinha um campo "Nova senha (opcional)" sem função real depois da migração para Supabase Auth) e **não foi reconstruído** — decisão explícita da Márcia em 06/jul/2026 de não devolver ao Super Admin a capacidade de ver/definir a senha de outra pessoa. Resolvido de outra forma: ver seção 15 ("Esqueci minha senha" nativo do Supabase Auth, sem nenhum admin no meio).
 - **Excluir usuário (LGPD):** ainda não existe nenhuma forma de apagar um cadastro, nem o Super Admin. Discutido em 06/jul/2026 e adiado de propósito — será construído só quando a primeira solicitação real de exclusão acontecer (Super Admin apenas, para pedidos sérios de exclusão de dados, não uma ação de rotina).
 - **CPF não é único** na tabela `ritmistas` — sem constraint, baixa prioridade.
-- **Domínio `tumtu.com.br`** já comprado pela Márcia, ainda não conectado ao deploy da Vercel — passo manual (painel Vercel + DNS do registrador), não é mudança de código.
+- **Aba "Bateria" do Super Admin tem um campo confuso** (reportado pela Márcia em 16/jul/2026): o campo "Mestre de Bateria" ali é texto livre antigo (`baterias.mestre_de_bateria`, já documentado como obsoleto na seção 10), desconectado do sistema real de vínculos — só mostra 1 nome, nunca foi feito pra ter mais de um. O lugar de verdade é a aba "Acessos" (vínculos reais de mestre/diretor). Ela pediu pra ajustar "daqui a pouco" — decidir com ela se tira o campo antigo da tela, vira somente-leitura, ou outra solução, antes de mexer.
+- **Domínio `tumtu.com.br` já está no ar** (DNS + certificado SSL configurados em 12/jul/2026) — esta linha ficou desatualizada por um tempo depois de já resolvida; corrigida em 16/jul/2026 pra não contradizer a seção "Estado atual" do `CLAUDE.md`.
 - **"Leaked Password Protection"** do Supabase Auth está desligada (checagem de senha vazada contra HaveIBeenPwned). **Descoberto em 09/jul/2026: só existe no plano Pro do Supabase (pago), não aparece no plano Free.** Rebaixado para o final da lista de propósito — a Márcia avalia que o projeto não deve precisar disso tão cedo e não quer gastar no Supabase agora; revisitar só se/quando houver receita real.
-- **Botões da carteirinha e fluxo de login pós-piloto — fluxo fechado em 14/jul/2026, nada disso construído ainda.** Conversa longa com a Márcia que evoluiu de "que botão colocar embaixo do cartão" pra desenhar o fluxo de login inteiro pós-piloto. Decisões fechadas:
-  - **Tirar "Salvar (em breve)" e "Compartilhar"** de `carteirinha.html` — nenhum dos dois faz algo real hoje ("Compartilhar" só dispara `navigator.share` com texto solto, não a carteirinha em si), e print/salvar imagem nativo do celular já resolve o que eles tentavam fazer. `html2canvas` foi cogitado pra gerar imagem da frente+verso pra compartilhar/salvar numa ação só, e descartado por não valer o esforço.
-  - **Ritmista com 1 vínculo:** embaixo do cartão, só **"Meu Perfil"** (editar dados próprios).
-  - **Admin (Mestre/Diretor) pós-piloto cai direto na Gestão (`admin.html`), não na carteirinha, e sem tela de decisão no meio.** Raciocínio: a função real do TumTu pro Admin é o sistema de gestão — ele não precisa da carteirinha pra entrar em lugar nenhum (geralmente é gente conhecida no meio do samba), então colocar uma tela perguntando "carteirinha ou sistema?" a cada login cria atrito no caminho mais usado por ele. Em vez disso, `admin.html` ganha um botão **"Ver minha carteirinha"** dentro da área "Meu Perfil" que já existe — reaproveitando a mesma mecânica que `verCarteirinhaAdmin()` já usa hoje pra abrir a carteirinha de um colega da Diretoria (`admin.html:1582`), só que apontando pro próprio vínculo em vez de pra quem foi clicado na lista.
-  - **"Trocar de bateria"** — um botão **sempre visível ao lado do "Sair"** (tanto em `carteirinha.html` quanto em `admin.html`), só aparece pra quem tem 2+ vínculos. Um clique leva direto pra tela de escolher outro vínculo, sem pedir senha de novo (a sessão do Supabase Auth continua válida — mesma ideia de trocar de perfil no Netflix, um login só, vários "perfis"/baterias pendurados nele). Resolve sozinho TODOS os cruzamentos possíveis, sem precisar desenhar cada caso separado: ritmista em 2+ baterias, Admin em 2+ baterias, Admin de uma escola que também é ritmista em outra — não importa a combinação, quem decide se a pessoa cai na carteirinha ou na Gestão é sempre o vínculo escolhido naquele momento, nunca a pessoa como um todo (mesmo princípio de `continuarComVinculo` em `login.html`, que já roteia por vínculo hoje). `carregarConfigEscola` já busca cor/logo/nome pelo `bateria_id` do vínculo ativo, então trocar entre escolas diferentes já troca a marca visual certinho, sem precisar de ajuste extra.
-  - **Ainda falta:** construir a lógica de reaproveitar a sessão sem pedir senha (hoje só existe dentro do formulário de `login.html`), decidir peso visual entre "Meu Perfil" e "Ver minha carteirinha"/"Gestão" quando os dois aparecem juntos, e ajustar o botão "Ver carteirinha ↗" da aba Diretoria (hoje mostra a de qualquer Mestre/Diretor da lista, não só a própria — não era a intenção original da Márcia, mas o ajuste fica pra quando essa tela de troca de vínculo for construída).
-  - **🆕 Ideia de visual pra tela de "escolher bateria" (14/jul/2026, a Márcia pediu explicitamente pra guardar):** hoje é só uma lista simples de botões em `login.html`. Ela quer um visual tipo "quem está assistindo?" da Netflix — grade de perfis com avatar/nome por bateria, em vez de lista de texto. Vale desenhar mockup antes de implementar, como fizemos com a carteirinha.
-- **🔴 PRIORIDADE URGENTE (elevada pela Márcia em 14/jul/2026): redesenho visual de `login.html` e `cadastro.html` pra "cara de app moderno".** Começou como uma percepção ("por que o app não parece de verdade?") e virou pedido direto e urgente: "quero um padrão moderno de site, bem essa cara de aplicativo mesmo. Tá com cara de sistema de gestão, arcaico e quadrado." Ela mesma diferenciou prioridade: login/cadastro são urgentes; o resto do sistema de gestão (admin.html, super-admin.html) fica pra depois, numa passada futura maior.
-  - **Causa raiz identificada:** login/cadastro usam o padrão "modal/dialog" — fundo escuro de página inteira + caixa branca centralizada, cantos arredondados, sombra pesada (`.auth-container`, `styles/components.css:197` — `box-shadow: 0 20px 60px rgba(0,0,0,0.6)`), sobrando fundo escuro visível em volta por todos os lados (mesmo esqueleto em `login.html` e no corpo de `carteirinha.html`: `body{background:#12101a;display:flex;align-items:center;justify-content:center}`). Isso lê como um pop-up de desktop, não como tela cheia de app nativo — abrir o app deveria já cair em tela cheia, sem essa moldura. `cadastro.html` provavelmente repete o padrão, ainda não auditado.
-  - **Distinção importante que a Márcia validou:** a carteirinha em si deve **continuar** parecendo um cartão (é literalmente uma carteirinha, de propósito) — o problema é só nas telas de formulário/utilidade.
-  - **Como atacar:** escopo grande (linguagem visual, não ajuste pontual) — mostrar mockup "como está" vs "tela cheia moderna" antes de mexer em código de verdade, seguindo a regra de sempre pedir aprovação em mudança visual. Primeira pergunta pra próxima sessão: que apps/sites ela usa como referência de "cara de app moderno" (ajuda a não ficar adivinhando o gosto dela do zero).
+- **✅ Botões da carteirinha — parte do ritmista RESOLVIDA e publicada (16/jul/2026, ver seção 25).** Fluxo desenhado em 14/jul, construído em 16/jul: "Salvar (em breve)"/"Compartilhar" removidos, "Meu Perfil" saiu do topo e foi pro rodapé do cartão, "Trocar de Bateria" funcionando de ponta a ponta (reaproveita sessão, sem pedir senha de novo). **Ainda não construído, de propósito — decisão explícita da Márcia em 16/jul ("o piloto é o piloto"):** a parte do Admin (cair direto em `admin.html` pós-piloto, botão "Ver minha carteirinha", ajuste do "Ver carteirinha ↗" da aba Diretoria). Fica pra quando o piloto estiver redondo — não é esquecimento, é sequência combinada com ela.
+  - **🆕 Visual "quem está assistindo?" da Netflix pra tela de escolher bateria** continua só como referência guardada, não implementado — hoje `login.html` mostra lista simples de botões de texto, funcional mas sem esse tratamento visual. Ela reforçou essa referência de novo em 16/jul (print da tela de perfis do Netflix), mesma ideia de 14/jul.
+- **🚧 Redesenho visual de `login.html`, `cadastro.html`, "Meu Perfil" e tela de carregando — descoberta feita em 16/jul/2026, desenho ainda não começado.** Ver seção 26 pro registro completo da entrevista de UX (referências, paleta, decisões de campo de formulário). Resumo: tirar o padrão "modal/dialog" (`.auth-container`, caixa branca flutuando em fundo escuro) das 4 telas, virar tela cheia de verdade no estilo Spotify/Netflix/Disney+ (referências dela). Admin/Super Admin ficam pra uma fase futura, a pedido dela — não expandir escopo sem ela pedir de novo. Carteirinha em si **continua** parecendo cartão, isso não muda.
 
 ---
 
@@ -525,3 +518,120 @@ Testado com sessão real via REST (login de verdade com conta fake Mestre, `cadu
 **Não incluído nesta leva:** a aplicação visual do rótulo Mestre/Mestra no CSS novo da carteirinha (ainda em teste local, não commitado — ver `docs/design-guide-atualizacao-carteirinha.md`) recebe essa mesma lógica quando o redesign for migrado pra produção.
 
 **Limitação de ambiente conhecida (não é bug do app):** screenshot do Playwright trava indefinidamente nesta máquina Windows em headless, mesmo via CDP direto — contornado testando por inspeção de DOM (`innerHTML`, `getBoundingClientRect`, `element.click()`) em vez de prints visuais.
+
+---
+
+## 24. Cor/logo da escola: da correção do formulário até a arquitetura final de cache (15-16/jul/2026)
+
+Sessão longa, várias causas raiz empilhadas — cada correção revelava a próxima. Registrado em ordem cronológica porque a ordem importa pra entender por que a solução final é a que é.
+
+### 24.1 Causa raiz #1 — faltavam campos no formulário (resolvida, ver seção 9)
+
+Já documentado na seção 9: `super-admin.html` só tinha campo pra 1 cor e "URL do Logo" era texto puro. Corrigido com upload de arquivo (base64) e os 4 campos de cor.
+
+### 24.2 Causa raiz #2 — logo pesado atrasava a cor aparecer
+
+Depois do upload virar arquivo de verdade, o logo passou a pesar 150-200KB+ (antes era um link de texto, quase zero). Como `carteirinha.html` buscava cor E logo na mesma consulta, a cor certa só aparecia depois do logo pesado terminar de baixar — nesse meio-tempo, a carteirinha mostrava o visual de fallback (ver 24.3). **Corrigido:** `carregarConfigEscola()` busca só cor/nome/temporada (leve, rápido); `carregarLogosEscola()` busca os logos à parte, aplicados quando chegarem — como qualquer imagem de site carregando aos poucos, sem atrasar o resto.
+
+### 24.3 Causa raiz #3 — fallback de "sem cor" caía na marca TumTu
+
+Antes de qualquer cor real chegar (ou se a escola genuinamente não tivesse cor cadastrada), o CSS caía de propósito no visual escuro+dourado do próprio TumTu (`styles/carteirinha-tumtu-novo.css`, decisão original de 14/jul: "sem nenhuma cor, cai no TumTu — a marca É a escola base"). Combinado com a causa #2, isso criava um "flash": a carteirinha parecia por um instante ser do TumTu e só depois "virava" a cor da escola de verdade.
+
+**Decisão da Márcia (16/jul/2026): tirar esse fallback de vez.** Ela cadastra a cor de toda escola pessoalmente no Super Admin antes do piloto começar ("eu não vou deixar uma escola ter carteirinha sem definição das cores") — então o estado "sem cor real" só existe durante o carregamento, nunca de verdade em produção. Trocado por um **cinza neutro** (`#706c87`/`#c0bdd0`) na cadeia de fallback de `--cor-1`/`--cor-2` — nunca mais mostra a marca TumTu como disfarce.
+
+### 24.4 Causa raiz #4 — scripts bloqueantes atrasavam a primeira pintura da tela
+
+`carteirinha.html` e `login.html` carregavam o script do Supabase (CDN externo) e outros arquivos locais sem `defer` no `<head>` — isso trava o navegador de desenhar qualquer coisa até baixar tudo, especialmente lento em rede ruim/fria. **Corrigido:** scripts externos com `defer`; como `defer` em `<script>` inline não tem efeito (só funciona com `src`), a criação do cliente Supabase e a lógica de inicialização foram movidas pra dentro de um listener de `DOMContentLoaded`.
+
+### 24.5 Causa raiz #5 — transição nativa entre páginas brigando com o carregamento
+
+`styles/tokens.css` liga `@view-transition { navigation: auto; }` globalmente (transição suave entre telas). Depois da correção #2/#3, a tentativa do navegador de fazer cross-fade entre a tela de login antiga e a carteirinha nova (que começava com pouco conteúdo visível) criava um "fantasma" da tela de login por cima do fundo escuro. **Corrigido:** `@view-transition { navigation: none; }` só em `carteirinha.html`, desligando a transição nessa tela específica (continua ligada normalmente nas outras).
+
+### 24.6 Causa raiz #6 (a de verdade, achada por sugestão da Márcia) — buscar antes de trocar de tela
+
+Mesmo depois de tudo acima, ainda sobrava um "flash" perceptível — porque a carteirinha só começava a buscar a cor DEPOIS de já estar na tela errada. A Márcia propôs a solução certa: **buscar tudo ainda na tela de login, com um spinner honesto, e só trocar de tela quando a carteirinha já estiver pronta de verdade.**
+
+**Arquitetura implementada:**
+- `login.html` ganhou `prefetchConfigEscola(bateriaId, token)` — busca cor/nome/logos da escola/bateria e grava em `localStorage` na chave `tumtu_cfg_<bateriaId>` (mesmo formato que `carteirinha.html` já lê via `lerConfigCache()`).
+- Chamado nos dois pontos que levam pra `carteirinha.html`: sessão já existente (reabrir o app) e login manual/escolha de vínculo — sempre ANTES de trocar de tela, com um container de spinner (`#containerCarregando`, visível por padrão) cobrindo essa espera.
+- `carteirinha.html` lê esse cache no carregamento e aplica na hora, de forma síncrona — a busca de rede continua rodando por trás só pra manter o cache atualizado pra próxima vez (`salvarConfigCache`, com guard: nunca grava um resultado vazio/falho, pra não travar o cache num estado errado).
+- **Rejeitado explicitamente pela Márcia:** qualquer versão de "esconder o cartão com opacity até ficar pronto" — ela não quer nenhum tipo de fade/transparência, só spinner honesto ou cartão 100% pronto, nunca um meio-termo visual.
+
+### 24.7 Causa raiz #7 (a última, e a mais funda) — o Service Worker escondia tudo isso
+
+Mesmo com a arquitetura de cache pronta, a Márcia ainda via "tela preta muito tempo" — mas só depois de ficar um tempo sem usar o app; se reabria na hora, era rápido. Essa pista (rede "fria" vs "quente") levou à causa raiz de verdade: o `sw.js` tratava **navegação** (abrir uma tela) como "network-first" — esperava a REDE responder antes de mostrar qualquer coisa, só caindo pro cache local se a rede falhasse por completo (offline de verdade). Com conexão fria (não offline, só lenta pra reconectar), isso virava uma espera longa antes de desenhar qualquer coisa, mesmo com a tela inteira já salva localmente.
+
+**Corrigido:** navegação passou a usar o mesmo "stale-while-revalidate" que o resto dos arquivos já usava — responde na hora com o cache local (instantâneo, não depende de rede pra pintar a tela), atualiza por trás em segundo plano. Testado com rede simulada extremamente ruim (3s de latência, 20KB/s): conteúdo aparece em ~70ms puxando do cache.
+
+### 24.8 Estado final e lição geral
+
+Depois dessas 7 causas corrigidas: a carteirinha nasce sempre pronta (cor, texto, logo — quando o cache já existe, o que é o caso normal depois da primeira visita), sem nenhuma fase intermediária visível, mesmo sob rede ruim.
+
+**Lição maior da sessão:** quando um sintoma parecido persiste depois de um fix bem confirmado e testado, é bem provável que seja uma causa DIFERENTE com sintoma parecido, não o mesmo bug "meio corrigido" — vale reproduzir de novo com o cenário real relatado (inclusive pedindo vídeo/print) antes de assumir que já era. E quando a pessoa dona do produto propõe a própria solução (mesmo insegura, "não sei se resolve"), vale considerar com seriedade real — nesse caso a arquitetura que resolveu de vez (24.6) foi ideia dela, não minha.
+
+---
+
+## 25. Botões da carteirinha e "Trocar de Bateria" — construído (16/jul/2026)
+
+Fecha a parte do ritmista do fluxo desenhado em 14/jul (seção 9) — a parte do Admin pós-piloto continua só desenhada, não construída, por decisão dela.
+
+### 25.1 O que mudou
+
+- **Removidos** "Salvar (em breve)" e "Compartilhar" (não faziam nada real) e a função `compartilhar()`.
+- **Topo do cartão:** voltou a ter só "Sair" — "Meu Perfil" saiu de lá (ela testou várias posições antes de decidir: "eu odeio o Meu Perfil lá em cima, por isso eu quero tirar").
+- **Rodapé do cartão** (`.c-botoes`, onde antes ficavam os botões mortos): "Meu Perfil" (`.c-btn-meuperfil`, dourado sólido — ação principal, universal) e "Trocar de Bateria" (`.c-btn-trocar`, só borda — secundário, só aparece com 2+ vínculos). Quando só "Meu Perfil" aparece (a maioria das pessoas, 1 vínculo só), ele não estica de ponta a ponta — classe `.botoes-solo` centraliza um botão de tamanho normal.
+
+### 25.2 "Trocar de Bateria" — como funciona
+
+- Botão manda pra `login.html?trocar=1`.
+- `login.html` ganhou `buscarEEscolherVinculos(pessoaId, forcarEscolha)` — função compartilhada entre o login manual e essa troca (busca todos os vínculos aprovados da pessoa, monta a telinha de escolha se houver 2+, ou entra direto se só 1).
+- Reaproveita a sessão do Supabase Auth já aberta — não pede senha de novo.
+- **Sem spinner duplicado:** enquanto a pessoa está decidindo na telinha de escolha, `buscarEEscolherVinculos` já dispara `prefetchConfigEscola` em segundo plano pra CADA bateria listada (não só a escolhida). Quando ela clica, `continuarComVinculo` confere se o cache daquela bateria já chegou — se sim, troca de tela na hora, sem spinner novo; só cai no spinner (caso raro) se o prefetch não tiver terminado a tempo.
+- **`ritmista.totalVinculos`:** calculado toda vez que `buscarEEscolherVinculos` roda, decide se "Trocar de Bateria" aparece. Sessões salvas de ANTES desse campo existir se autocorrigem sozinhas — `tentarSessaoExistente()` detecta `totalVinculos === undefined` e busca de novo, em vez de confiar cegamente no cache antigo.
+
+### 25.3 Login com espera única
+
+Bug de UX relacionado, corrigido na mesma leva: o formulário de login mostrava "Entrando..." no botão (com o formulário ainda visível) e DEPOIS o spinner de tela cheia — duas sensações de carregamento em sequência. Corrigido: o formulário troca pro spinner assim que é enviado, uma espera só, do clique até a carteirinha aparecer. Em caso de erro (senha errada etc.), volta pro formulário com a mensagem (`erroLogin()`).
+
+### 25.4 Dados de teste criados
+
+Pra testar 2 mestres numa bateria e um ritmista em 2 escolas ao mesmo tempo (banco fake, pode reverter): vínculo `id=94` (Vinícius/Vini, ritmista, "Trovão da Vila") e vínculo `id=54` (Fábio "Fabinho", mestre, "Trovão da Vila") mudados de `pendente` pra `aprovado`. Isabela/Bela não foi tocada, continua só em 1 escola. **Nota técnica:** editar `status` de vínculo `mestre`/`diretor` direto via SQL (fora do fluxo normal) é bloqueado pelo trigger `trg_matriz_edicao_vinculos` (só deixa Mestre da própria bateria aprovar outro Mestre/Diretor) — contornado com `ALTER TABLE ... DISABLE TRIGGER` + UPDATE + `ENABLE TRIGGER` de novo. Só usar esse contorno em dado de teste, nunca em dado real.
+
+### 25.5 Testes
+
+Testado ponta a ponta com Playwright: Vinícius (2 vínculos) vê os dois botões, troca de bateria sem repetir senha, sem spinner duplicado; Isabela (1 vínculo) só vê "Meu Perfil" centralizado, tamanho normal. Verso confirmado com 2 mestres reais (Beto + Fabinho) mostrando "MESTRES DE BATERIA" no plural.
+
+---
+
+## 26. Redesign visual "cara de app moderno" — descoberta de UX (16/jul/2026)
+
+Pedido elevado a urgente em 14/jul (seção 9), descoberta feita em 16/jul — desenho/implementação ainda não começou.
+
+### 26.1 Escopo
+
+**Piloto agora:** `login.html`, `cadastro.html`, "Meu Perfil" (`ficha-perfil.js`/`ficha-perfil.partial.html`) e a tela de carregando (`#containerCarregando`, ver seção 24.6) — tirar o padrão "modal/dialog" (`.auth-container`: fundo escuro + caixa branca centralizada, `styles/components.css:197`) e virar tela cheia de verdade.
+
+**Fora do escopo agora, de propósito:** `admin.html` e `super-admin.html`. A Márcia deixou claro que quer estender esse padrão pra lá também no futuro ("acho que tudo tem que ter esse padrão"), mas confirmou explicitamente "o piloto é o piloto" — não expandir escopo sem ela pedir de novo.
+
+**Não muda:** a carteirinha em si continua parecendo um cartão — distinção que ela mesma validou em 14/jul e reafirmou em 16/jul.
+
+### 26.2 Paleta (corrigida por ela — são 3 cores, não 2)
+
+Documentada em `docs/tumtu-visao-geral.md`: escuro `#12101a`, dourado `#D4AF37` (+ hover `#B8922A`), terracota `#7c2d12` (risco sob o "m" do logotipo, referência ao M dela) — mais os neutros de apoio (`--cor-fundo-claro: #f7f6fb`, `--cor-texto-secundario: #5a5770`, `--cor-borda: #e8e6f0`).
+
+### 26.3 Referências de app (entrevista de UX, resposta dela)
+
+Instagram, Disney+, Netflix, Spotify, Nubank, Google/Gmail, Uber. Prints de 3 anexados na sessão:
+- **Spotify** — barra de navegação fixa embaixo (bottom tab bar: ícone + texto). Ela apontou isso explicitamente como algo que gosta muito — bom candidato pro FUTURO `admin.html` (que já tem abas no topo — Dashboard/Ritmistas/Diretoria/Configurações), não pro piloto agora.
+- **Netflix "Escolha seu perfil"** — grade de avatares circulares + nome. Confirma a mesma referência "estilo Netflix" que ela já tinha pedido pra guardar em 14/jul pra tela de escolher vínculo/bateria (seção 9).
+- **Netflix home** — par de botões "Assistir" (sólido/branco, ação principal) + "Minha Lista" (contornado, secundário) — mesmo princípio de hierarquia já usado na carteirinha (Meu Perfil dourado sólido / Trocar de Bateria só borda, seção 25).
+
+### 26.4 Decisões de design já fechadas
+
+- **Fundo escuro de ponta a ponta**, não caixa clara boiando no meio — estilo Spotify/Netflix/Disney+.
+- **Campos de formulário também escuros**, não brancos: usar o token que já existe `--cor-fundo-medio: #1e1b2e` (mais claro que o fundo `#12101a`) com borda clara bem visível, texto branco ao digitar. Raciocínio: é o padrão que as referências dela (Spotify/Netflix/Disney+) já usam, e evita o "flash" de luz numa tela escura — a Márcia confirmou que o cenário de leitura em sol forte não se aplica (carteirinha é usada entrando numa escola de samba, ambiente coberto/noturno).
+- **Validação estratégica** (ela pediu explicitamente, não só visual): perguntou se o público (mestres, diretores, ritmistas, todas as idades) comporta tela escura. Resposta fundamentada: sim — a marca já é escura, o contexto de uso (samba/carnaval, eventos à noite) combina tematicamente, e modo escuro hoje é mainstream em todas as idades, não é mais nicho jovem/tech como era há uns anos.
+
+### 26.5 Próximo passo
+
+Começar o mockup/rascunho de `login.html` primeiro (ela concordou em ser o "piloto" desse novo padrão visual) — campos escuros com borda, sem caixa branca, botão de ação principal dourado sólido. Depois de aprovado, estender pro cadastro, Meu Perfil e tela de carregando, um de cada vez.
