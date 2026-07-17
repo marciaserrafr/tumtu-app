@@ -146,6 +146,7 @@
     // descobrir que precisa mesmo pedir usuário/senha (sem sessão válida).
     function mostrarFormularioLogin() {
         document.getElementById('containerCarregando').style.display = 'none';
+        document.getElementById('containerEscolherBateria').style.display = 'none';
         document.getElementById('containerLogin').style.display = 'block';
     }
 
@@ -353,12 +354,14 @@
         const isAdmin = perfil === 'mestre' || perfil === 'diretor';
 
         if (vinculo.status === 'pendente') {
+            mostrarFormularioLogin();
             mostrarMensagem(isAdmin
                 ? 'Seu cadastro está em análise. Você poderá acessar o painel assim que for aprovado.'
                 : 'Seu cadastro ainda está aguardando aprovação da diretoria.', 'aviso');
             return;
         }
         if (vinculo.status === 'rejeitado') {
+            mostrarFormularioLogin();
             mostrarMensagem(isAdmin
                 ? 'Seu cadastro foi recusado. Entre em contato com o Super Admin.'
                 : 'Seu cadastro foi recusado. Entre em contato com a diretoria.', 'erro');

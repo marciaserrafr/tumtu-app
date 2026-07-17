@@ -324,6 +324,7 @@
     <button type="button" class="aba" onclick="trocarAbaPrincipal('dashboard',this)">Dashboard</button>
     <button type="button" class="aba ativa" onclick="trocarAbaPrincipal('escolas',this)">Escolas</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('configuracoes',this)">Configurações</button>
+    <button type="button" class="aba" onclick="trocarAbaPrincipal('historico',this)">Histórico</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('meu-perfil',this)">Meu Perfil</button>
 </div>
 
@@ -335,6 +336,15 @@
         <div class="painel-titulo">Dashboard</div>
         <div class="painel-sub">Visão geral de todas as escolas e ritmistas.</div>
         <div id="dashboard-lista-baterias"></div>
+    </div>
+
+    <!-- ════ PAINEL: HISTÓRICO ════ -->
+    <div class="painel" id="painel-historico" style="display:none">
+        <div class="painel-titulo">Histórico</div>
+        <div class="painel-sub">Quem aprovou, rejeitou ou mudou o status de cada pessoa, e quando.</div>
+        <div id="lista-historico">
+            <div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Carregando...</div>
+        </div>
     </div>
 
     <!-- ════ PAINEL: ESCOLAS ════ -->
@@ -580,7 +590,7 @@
         window.scrollTo(0, 0);
         document.querySelectorAll('#nav-principal .aba').forEach(x => x.classList.remove('ativa'));
         if (el) el.classList.add('ativa');
-        ['dashboard','escolas','escola-contexto','nova-escola','meu-perfil','configuracoes'].forEach(p => {
+        ['dashboard','escolas','escola-contexto','nova-escola','meu-perfil','configuracoes','historico'].forEach(p => {
             const painel = document.getElementById('painel-' + p);
             if (painel) { painel.classList.remove('ativo'); painel.style.display = 'none'; }
         });
@@ -589,6 +599,50 @@
         if (aba === 'meu-perfil') iniciarMeuPerfilAba();
         if (aba === 'configuracoes') voltarConfigListaSA();
         if (aba === 'dashboard') carregarDashboard();
+        if (aba === 'historico') carregarHistorico();
+    }
+
+    // ── HISTÓRICO (log de aprovação/rejeição/mudança de status) ────────
+    const HIST_STATUS_LABEL = {
+        pendente: 'Pendente', aprovado: 'Aprovado', rejeitado: 'Rejeitado',
+        suspenso: 'Suspenso', desligado: 'Desligado', inativo: 'Inativo',
+    };
+    function histStatusLabel(s) { return HIST_STATUS_LABEL[s] || s || '—'; }
+    function histPerfilLabel(p) { return p === 'ritmista' ? 'Ritmista' : labelPerfil(p); }
+    function histDataHora(iso) {
+        return iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+    }
+
+    async function carregarHistorico() {
+        const container = document.getElementById('lista-historico');
+        const url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status`
+            + `?select=id,perfil,status_anterior,status_novo,motivo,criado_em,`
+            + `pessoa:pessoa_id(nome),decisor:decidido_por(nome),bateria:bateria_id(nome)`
+            + `&order=criado_em.desc&limit=200`;
+        const res = await fetch(url, { headers });
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Não foi possível carregar o histórico.</div>'; return; }
+        const eventos = await res.json();
+
+        if (!eventos.length) {
+            container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>';
+            return;
+        }
+
+        container.innerHTML = eventos.map(ev => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(ev.pessoa?.nome || '—')}
+                        <span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · ${histPerfilLabel(ev.perfil)}</span>
+                    </div>
+                    <div class="item-detalhe" style="margin-top:5px">
+                        ${histStatusLabel(ev.status_anterior)} → ${histStatusLabel(ev.status_novo)}
+                        · por ${esc(ev.decisor?.nome || '—')}
+                        · ${esc(ev.bateria?.nome || '—')}
+                        · ${histDataHora(ev.criado_em)}
+                        ${ev.motivo ? ` · "${esc(ev.motivo)}"` : ''}
+                    </div>
+                </div>
+            </div>`).join('');
     }
 
     // ── DASHBOARD ────────────────────────────────────────────────────
@@ -597,7 +651,7 @@
         const [resBaterias, resEscolas, resVinculos] = await Promise.all([
             fetch(`${SUPABASE_URL}/rest/v1/baterias?select=id,nome,escola_id&order=nome`, { headers }),
             fetch(`${SUPABASE_URL}/rest/v1/escolas?select=id,nome,temporada_atual`, { headers }),
-            fetch(`${SUPABASE_URL}/rest/v1/vinculos?perfil=eq.ritmista&select=bateria_id,status`, { headers })
+            fetch(`${SUPABASE_URL}/rest/v1/vinculos?select=bateria_id,status`, { headers })
         ]);
         const baterias = await resBaterias.json();
         const escolas = await resEscolas.json();
@@ -617,7 +671,7 @@
             const ativos = vinculos.filter(v => v.bateria_id === b.id && v.status === 'aprovado').length;
             const escola = escolaPorId[b.escola_id];
             const temporada = escola?.temporada_atual;
-            return `<div class="dashboard-bateria-linha">
+            return `<div class="dashboard-bateria-linha" style="cursor:pointer" onclick="irParaAcessosDaBateria(${b.escola_id})">
                 <div class="dashboard-bateria-nome">${b.nome}${escola?.nome ? ` <span class="dashboard-bateria-escola">(${escola.nome})</span>` : ''}</div>
                 <div class="dashboard-bateria-numeros">${pendentes} pendente${pendentes === 1 ? '' : 's'} · ${ativos} ativo${ativos === 1 ? '' : 's'}${temporada ? ` · temporada ${temporada}` : ''}</div>
             </div>`;
@@ -668,6 +722,18 @@
 
         // Carregar acessos
         carregarAcessos(id);
+    }
+
+    // Atalho do Dashboard: clicar em "X pendentes" de uma bateria já abre
+    // direto a aba Acessos daquela escola, sem precisar navegar por
+    // Cadastro/Bateria/Acessos manualmente (17/jul/2026, pedido da Márcia
+    // depois de não achar como aprovar um Mestre pendente).
+    async function irParaAcessosDaBateria(escolaId) {
+        const btnEscolas = Array.from(document.querySelectorAll('#nav-principal .aba')).find(b => b.textContent.trim() === 'Escolas');
+        trocarAbaPrincipal('escolas', btnEscolas);
+        await selecionarEscola(escolaId);
+        const btnAcessos = Array.from(document.querySelectorAll('.sub-aba')).find(b => b.textContent.trim() === 'Acessos');
+        trocarSubAba('acessos', btnAcessos);
     }
 
     function voltarParaEscolas() {
