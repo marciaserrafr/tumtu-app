@@ -196,11 +196,15 @@
 .ficha-modal-sub { font-size: 13px; color: #a39fc0; margin-bottom: 16px; }
 .ficha-modal-acoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 16px; }
 
-/* Cartões por seção + marcação de cor alternando dourado/terracota (as duas
-   cores de destaque da marca) — resolve o visual "seco"/monocromático que a
-   Márcia apontou em 16/jul/2026 ("acho um formulário seco, poderia ter algo
-   mais colorido"). Ainda disciplinado: só as 2 cores de acento já existentes
-   na marca, sem inventar tom novo. */
+/* Cartões por seção + marcação de cor alternando dourado/terracota clara (as
+   duas cores de destaque da marca) — resolve o visual "seco"/monocromático
+   que a Márcia apontou em 16/jul/2026 ("acho um formulário seco, poderia ter
+   algo mais colorido"). Ainda disciplinado: só cores de acento já existentes
+   na marca, sem inventar tom novo. Nota (17/jul/2026): o terracota "oficial"
+   original da marca é mais escuro (`--cor-terracota`, #7c2d12, usado no "m"
+   do logotipo e no símbolo da marca) — aqui dentro do Meu Perfil usa o tom
+   mais claro (`--cor-terracota-clara`, #e2986e) por contraste melhor nesse
+   fundo específico. Dois tons intencionais, não um erro. */
 .ficha-modal-overlay .ficha-secao {
     background: rgba(255,255,255,0.035);
     border: 1px solid rgba(255,255,255,0.07);
@@ -221,7 +225,7 @@
 .ficha-modal-overlay #fp-secao-endereco .ficha-secao-titulo::before,
 .ficha-modal-overlay #fp-secao-saude .ficha-secao-titulo::before,
 .ficha-modal-overlay #fp-secao-senha .ficha-secao-titulo::before {
-    background: var(--cor-terracota);
+    background: var(--cor-terracota-clara);
 }
 .ficha-modal-overlay .ficha-campo span { color: #8b88a0; }
 .ficha-modal-overlay .ficha-campo strong { color: #f7f6fb; }
