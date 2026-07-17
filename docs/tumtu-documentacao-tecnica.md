@@ -569,6 +569,24 @@ Depois dessas 7 causas corrigidas: a carteirinha nasce sempre pronta (cor, texto
 
 **Lição maior da sessão:** quando um sintoma parecido persiste depois de um fix bem confirmado e testado, é bem provável que seja uma causa DIFERENTE com sintoma parecido, não o mesmo bug "meio corrigido" — vale reproduzir de novo com o cenário real relatado (inclusive pedindo vídeo/print) antes de assumir que já era. E quando a pessoa dona do produto propõe a própria solução (mesmo insegura, "não sei se resolve"), vale considerar com seriedade real — nesse caso a arquitetura que resolveu de vez (24.6) foi ideia dela, não minha.
 
+### 24.9 Causa raiz #8 (17/jul/2026) — a foto do próprio ritmista, e decisão revertida sobre esconder o cartão
+
+Reportado no desktop especificamente: mesmo com tudo acima resolvido, a carteirinha ainda "se formava" visivelmente — o cartão aparecia e a FOTO do ritmista "estalava" um instante depois. Causa: `renderCarteirinha()` fazia `img.src = ritmista.foto_url` e seguia em frente sem esperar o navegador terminar de decodificar a imagem (um base64 grande) — no celular isso quase não aparecia (foto pequena), no desktop ficou perceptível.
+
+**Decisão revertida de propósito, com autorização explícita da Márcia:** o item 24.6 registrava "rejeitado explicitamente pela Márcia: qualquer versão de esconder o cartão com opacity até ficar pronto" (15/jul/2026). Em 17/jul/2026, depois de eu explicar em linguagem simples o que eu estava propondo ("toda vez que tiver espera, mostra a animação de carregando; eu só não quero nada aparecendo incompleto"), ela confirmou que era exatamente isso que queria — não uma rejeição de esconder-até-pronto em si, mas da versão com fade/transição lenta que foi testada em 15/jul.
+
+**Implementado:** `#carregandoCarteirinha` — camada cobrindo a tela inteira (`position:fixed;inset:0`), visível por padrão. `renderCarteirinha()` virou `async` e agora dá `await img.decode()` na foto antes de considerar o render terminado (com `try/catch` — nunca trava pra sempre se a foto falhar). A camada só esconde (`esconderCarregandoCarteirinha()`, troca instantânea de `display`, sem fade) depois que TUDO estiver pronto: nome/cargo/foto decodificada (via `renderCarteirinha` awaited) **e** cor da escola aplicada (do cache, se existir; senão espera a busca de rede de verdade, mesma regra de 24.6). O logo continua de fora dessa espera de propósito (mesma decisão de 24.4 — entra como qualquer imagem normal, "estalar" o logo é aceitável, a foto/cor não). O visual de dentro dessa camada (o que ela mostra enquanto espera) mudou depois no mesmo dia — ver 24.10.
+
+### 24.10 O visual de dentro do "carregando" — 3 iterações na mesma tarde (17/jul/2026)
+
+Depois de resolver a *mecânica* de esconder até estar pronto (24.9), sobrou decidir o *visual* de dentro dessa camada — tanto em `login.html` quanto em `carteirinha.html` (mesmo padrão nas duas telas, sempre).
+
+1. **Animação "Tum-Tu"** — dois círculos do símbolo da marca (bolinha dourada + aro terracota) "batendo" num ritmo de pancada de tambor, com rótulos de texto testados e descartados no caminho. Testada em preview real (Vercel + link com bypass de autenticação via `_vercel_share`, gerado pela ferramenta `get_access_to_vercel_url`, já que os previews da Vercel exigem login por padrão). **Revertida no mesmo dia:** no celular, a espera de verdade (principalmente com cache já pronto) era curta demais pro movimento comunicar o ritmo antes de sumir — a Márcia ficou triste em abandonar a ideia, mas concordou que não estava cumprindo o objetivo.
+2. **Spinner clássico de volta** (logo + anel giratório + "Carregando..." escrito) — como era antes, só que a Márcia reparou que esse padrão não estava em 100% das telas de carregando do app (inconsistência pré-existente, não investigada a fundo).
+3. **Decisão final:** spinner sozinho, sem logo, sem texto — maior (56px) e dourado, com brilho/glow ao redor (`filter: drop-shadow()` em duas camadas, a primeira tentativa de brilho foi sutil demais e imperceptível, teve que aumentar bem o raio e a opacidade). Referência dela: Netflix (vermelho) e Disney+ (azul) — o TumTu ganha a versão dourada do mesmo padrão. Resolve de quebra a inconsistência do item 2, porque não tem mais "logo em algumas telas, sem logo em outras" — é sempre só o spinner.
+
+**Lição pequena, mas real:** pedir uma "última avaliação" antes de subir (como aconteceu aqui) é uma boa prática — foi numa dessas perguntas de fechamento que ela notou a inconsistência do logo, que não tinha sido reportada antes.
+
 ---
 
 ## 25. Botões da carteirinha e "Trocar de Bateria" — construído (16/jul/2026)

@@ -734,14 +734,17 @@
   position: relative;
   width: var(--largura-cartao, 300px);
   aspect-ratio: 300 / 540;
-  /* Não escondemos mais o cartão enquanto carrega (tentativa de 15/jul/2026,
-     revertida no mesmo dia — a Márcia não quis nenhum tipo de fade/espera,
-     por menor que fosse). A solução de verdade agora é outra: carteirinha.html
-     guarda cor/logo da última vez em localStorage e aplica isso IMEDIATAMENTE,
-     antes de qualquer busca de rede — o cartão já nasce pintado certo pra
-     quem já abriu antes (a grande maioria dos casos). Só no primeiro acesso
-     de todos, num aparelho novo, é que ainda existe uma busca de rede real
-     antes da cor chegar — inevitável nesse caso específico, mas raro. */
+  /* Histórico: em 15/jul/2026 tentamos esconder o cartão enquanto carrega e
+     revertemos no mesmo dia (a Márcia não queria nenhum tipo de fade/espera).
+     A solução da época era carteirinha.html guardar cor/logo da última vez
+     em localStorage e aplicar isso IMEDIATAMENTE — funcionava bem pra cor,
+     mas não cobria a FOTO do próprio ritmista (decodificar uma imagem grande
+     ainda podia "estalar" depois do resto do cartão já visível, mais
+     perceptível no desktop, reportado 17/jul/2026). Decisão revista: agora
+     existe #carregandoCarteirinha (a mesma animação "Tum-Tu" de login.html)
+     cobrindo a tela inteira até nome+cargo+foto decodificada+cor da escola
+     estarem TODOS prontos — troca instantânea pro cartão, sem fade lento
+     (isso ela continua não querendo). Ver DOMContentLoaded em carteirinha.html. */
 }
 
 .carteirinha-wrap {

@@ -439,9 +439,11 @@ body.tela-auth-escura .link-secundario { color: #b3aecb !important; font-weight:
    janela larga de computador fica escondido: o conteúdo já ocupa quase a
    altura toda, dava sobreposição com os links (bug real, corrigido
    16/jul/2026). */
+/* Desligado a pedido da Márcia em 17/jul/2026 — no celular, os círculos
+   fantasmas grandes no rodapé ficavam "soltos, sem sentido" (palavras dela),
+   principalmente depois do novo símbolo animado de carregando ter deixado a
+   ideia de círculos mais em evidência na tela. Markup continua em login.html/
+   cadastro.html (inofensivo, sempre display:none), caso a decisão mude. */
 .fundo-decorativo { display: none; position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
 .fundo-decorativo .fd-big { position: absolute; width: 280px; height: 280px; border-radius: 50%; background: rgba(212,175,55,0.07); left: 50%; bottom: -110px; transform: translateX(-68%); }
 .fundo-decorativo .fd-small { position: absolute; width: 170px; height: 170px; border-radius: 50%; border: 3px solid rgba(124,45,18,0.14); background: transparent; left: 50%; bottom: -30px; transform: translateX(38%); }
-@media (max-width: 600px) {
-  .fundo-decorativo { display: block; }
-}

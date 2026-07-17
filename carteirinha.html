@@ -14,7 +14,7 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=3">
-    <link rel="stylesheet" href="styles/components.css?v=5">
+    <link rel="stylesheet" href="styles/components.css?v=6">
     <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=18">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -103,9 +103,40 @@
         }
         .c-toast.erro { border-left-color: #ef4444; }
         .c-toast.visivel { display: block; }
+
+        /* Carregando de verdade — cobre a tela inteira até a carteirinha estar
+           100% pronta (nome/cargo + foto decodificada + cor da escola aplicada),
+           pra nunca aparecer nada pela metade (pedido explícito da Márcia,
+           17/jul/2026 — ela não quer nenhum "estalo" de foto/cor depois do
+           cartão já estar visível). Troca instantânea pro cartão quando pronto,
+           sem fade (ela também já tinha rejeitado fade/espera lenta em 15/jul).
+           Visual: spinner dourado sozinho e maior, sem logo nem texto — mesma
+           decisão final de login.html (referência Disney+/Netflix; passou por
+           logo+spinner+texto e por uma animação dos círculos da marca antes
+           de chegar aqui). */
+        #carregandoCarteirinha {
+            position: fixed; inset: 0; z-index: 999; background: #12101a;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 56px; height: 56px;
+            border: 4px solid rgba(212,175,55,0.15);
+            border-top-color: #D4AF37;
+            border-radius: 50%;
+            animation: tt-girar 0.8s linear infinite;
+            filter: drop-shadow(0 0 10px rgba(212,175,55,0.9)) drop-shadow(0 0 20px rgba(212,175,55,0.5));
+        }
+        @keyframes tt-girar { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .spinner { animation-duration: 1.6s; }
+        }
     </style>
 </head>
 <body>
+
+<div id="carregandoCarteirinha">
+    <div class="spinner" role="status" aria-label="Carregando"></div>
+</div>
 
 <div class="topo">
     <div class="topo-conteudo">
@@ -269,7 +300,12 @@
         setTimeout(() => { t.className = 'c-toast'; }, 3500);
     }
 
-    function renderCarteirinha(ritmista) {
+    function esconderCarregandoCarteirinha() {
+        const el = document.getElementById('carregandoCarteirinha');
+        if (el) el.style.display = 'none';
+    }
+
+    async function renderCarteirinha(ritmista) {
         // Label de cargo — gênero só muda Mestre/Diretor (Mestra/Diretora); sem
         // gênero informado cai no masculino como padrão neutro. Ritmista nunca varia.
         const perfil = ritmista.perfil || 'ritmista';
@@ -303,6 +339,12 @@
             const box = document.getElementById('fotoRitmista');
             box.innerHTML = '';
             box.appendChild(img);
+            // Espera a foto estar de verdade pronta pra desenhar antes de
+            // considerar a carteirinha "pronta" — é isso que "estalava" depois
+            // do resto do cartão já estar na tela (reportado no desktop,
+            // 17/jul/2026). Nunca trava pra sempre: se decode() falhar (foto
+            // corrompida etc.), segue em frente do mesmo jeito.
+            try { await img.decode(); } catch (e) {}
         }
 
         document.getElementById('membroDesde').textContent = ritmista.membro_desde || '—';
@@ -567,12 +609,13 @@
                     return;
                 }
                 const ritmista = rows[0];
-                renderCarteirinha(ritmista);
+                await renderCarteirinha(ritmista);
                 renderMestres(ritmista.bateria_id);
                 const cacheado = lerConfigCache(ritmista.bateria_id);
                 if (cacheado) { aplicarConfigEscola(cacheado); aplicarLogosEscola(cacheado); }
                 const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                 aplicarConfigEscola(cfg);
+                esconderCarregandoCarteirinha();
                 carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(logos => {
                     aplicarLogosEscola(logos);
                     salvarConfigCache(ritmista.bateria_id, cfg, logos);
@@ -586,7 +629,6 @@
         if (!ritmista) {
             window.location.href = 'login.html';
         } else {
-            renderCarteirinha(ritmista);
             renderMestres(ritmista.bateria_id);
             document.getElementById('btnMeuPerfilRodape').style.display = 'block';
             // "Trocar de Bateria" só aparece pra quem tem 2+ vínculos (totalVinculos
@@ -599,16 +641,35 @@
                 document.querySelector('.c-botoes').classList.add('botoes-solo');
             }
             const cacheado = lerConfigCache(ritmista.bateria_id);
-            if (cacheado) { aplicarConfigEscola(cacheado); aplicarLogosEscola(cacheado); }
             (async () => {
+                await renderCarteirinha(ritmista);
                 const { data: sessionData } = await sb.auth.getSession();
                 const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
-                const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
-                aplicarConfigEscola(cfg);
-                carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(logos => {
-                    aplicarLogosEscola(logos);
-                    salvarConfigCache(ritmista.bateria_id, cfg, logos);
-                });
+                if (cacheado) {
+                    // Cor/logo já conhecidos de antes — carteirinha já pode
+                    // aparecer (a foto, esperada acima, era o único pedaço que
+                    // ainda faltava). Atualiza o cache por trás, sem segurar a tela.
+                    aplicarConfigEscola(cacheado);
+                    aplicarLogosEscola(cacheado);
+                    esconderCarregandoCarteirinha();
+                    const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
+                    aplicarConfigEscola(cfg);
+                    carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(logos => {
+                        aplicarLogosEscola(logos);
+                        salvarConfigCache(ritmista.bateria_id, cfg, logos);
+                    });
+                } else {
+                    // Primeiro acesso nesse aparelho — precisa mesmo buscar a
+                    // cor da escola antes de mostrar (senão volta o "flash"
+                    // já resolvido antes, 15/jul/2026).
+                    const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
+                    aplicarConfigEscola(cfg);
+                    esconderCarregandoCarteirinha();
+                    carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(logos => {
+                        aplicarLogosEscola(logos);
+                        salvarConfigCache(ritmista.bateria_id, cfg, logos);
+                    });
+                }
             })();
         }
     }
