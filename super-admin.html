@@ -321,8 +321,8 @@
 
 <!-- ABAS -->
 <div class="nav-abas" id="nav-principal">
-    <button type="button" class="aba" onclick="trocarAbaPrincipal('dashboard',this)">Dashboard</button>
-    <button type="button" class="aba ativa" onclick="trocarAbaPrincipal('escolas',this)">Escolas</button>
+    <button type="button" class="aba ativa" onclick="trocarAbaPrincipal('dashboard',this)">Dashboard</button>
+    <button type="button" class="aba" onclick="trocarAbaPrincipal('escolas',this)">Escolas</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('configuracoes',this)">Configurações</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('historico',this)">Histórico</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('meu-perfil',this)">Meu Perfil</button>
@@ -332,7 +332,7 @@
 <div class="main">
 
     <!-- ════ PAINEL: DASHBOARD ════ -->
-    <div class="painel" id="painel-dashboard" style="display:none">
+    <div class="painel ativo" id="painel-dashboard">
         <div class="painel-titulo">Dashboard</div>
         <div class="painel-sub">Visão geral de todas as escolas e ritmistas.</div>
         <div id="dashboard-lista-baterias"></div>
@@ -348,7 +348,7 @@
     </div>
 
     <!-- ════ PAINEL: ESCOLAS ════ -->
-    <div class="painel ativo" id="painel-escolas">
+    <div class="painel" id="painel-escolas" style="display:none">
         <div class="painel-titulo">Escolas</div>
         <div class="painel-sub">Selecione uma escola para gerenciar seu cadastro, bateria e acessos.</div>
         <button class="btn-novo" onclick="abrirNovaEscola()">+ Nova Escola</button>
@@ -1877,6 +1877,7 @@
         const { data: sessionData } = await sb.auth.getSession();
         if (sessionData.session) headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
         await carregarEscolas();
+        await carregarDashboard();
     }
 
     init();
