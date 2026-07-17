@@ -1043,8 +1043,6 @@
                 <div class="form-grid">
                     <div class="campo campo-full"><label>Nome da Bateria *</label>
                         <input type="text" id="bat-nome" value="${esc(b.nome)}" ${d}></div>
-                    <div class="campo campo-full"><label>Mestre de Bateria</label>
-                        <input type="text" id="bat-mestre" value="${esc(b.mestre_de_bateria)}" ${d}></div>
                     <div class="campo campo-full"><label>Instagram</label>
                         <input type="text" id="bat-instagram" value="${esc(b.instagram)}" ${d}></div>
                     <div class="campo campo-full"><label>Logo da Bateria</label>
@@ -1079,8 +1077,6 @@
                 <div class="form-grid">
                     <div class="campo campo-full"><label>Nome da Bateria *</label>
                         <input type="text" id="bat-nome" placeholder="Ex: Swing da Leopoldina"></div>
-                    <div class="campo campo-full"><label>Mestre de Bateria</label>
-                        <input type="text" id="bat-mestre" placeholder="Nome do mestre"></div>
                     <div class="campo campo-full"><label>Instagram</label>
                         <input type="text" id="bat-instagram" placeholder="@nomeDaBateria"></div>
                     <div class="campo campo-full"><label>Logo da Bateria</label>
@@ -1117,7 +1113,6 @@
         const payload = {
             nome,
             escola_id: escolaSelecionadaId,
-            mestre_de_bateria: document.getElementById('bat-mestre').value.trim() || null,
             instagram: document.getElementById('bat-instagram').value.trim() || null,
             logo_url: logoPendente.bateria || (bateriaAtualData ? bateriaAtualData.logo_url : null) || null,
             modo_piloto: document.getElementById('bat-modo-piloto').checked,

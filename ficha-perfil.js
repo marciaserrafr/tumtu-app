@@ -80,7 +80,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=6');
+        const res = await fetch('ficha-perfil.partial.html?v=7');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
