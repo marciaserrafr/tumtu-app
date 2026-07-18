@@ -314,13 +314,14 @@
             return;
         }
 
-        // O status salvo no celular pode estar desatualizado (a pessoa pode
-        // ter sido suspensa/desligada desde o último login neste aparelho) —
-        // nunca confiar cegamente nele pra decidir acesso. Reconfere rápido
-        // (consulta pequena, só o status) antes de liberar pelo atalho.
-        const { data: vinculoAtual } = await sb.from('vinculos').select('status')
+        // O status E o cargo salvos no celular podem estar desatualizados (a
+        // pessoa pode ter sido suspensa/desligada, ou trocado de cargo pelo
+        // Super Admin, desde o último login neste aparelho) — nunca confiar
+        // cegamente no cache pra decidir acesso. Reconfere rápido (consulta
+        // pequena) antes de liberar pelo atalho.
+        const { data: vinculoAtual } = await sb.from('vinculos').select('status, perfil')
             .eq('pessoa_id', cache.pessoa_id).eq('bateria_id', cache.bateria_id).maybeSingle();
-        if (!vinculoAtual || vinculoAtual.status !== 'aprovado') {
+        if (!vinculoAtual || vinculoAtual.status !== 'aprovado' || vinculoAtual.perfil !== cache.perfil) {
             await buscarEEscolherVinculos(cache.pessoa_id, false);
             return;
         }
