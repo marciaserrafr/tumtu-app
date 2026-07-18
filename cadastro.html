@@ -105,6 +105,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
+        .form-row.uma-coluna { grid-template-columns: 1fr; }
         .btn-cadastrar { width: 100%; margin-top: 8px; font-size: 16px; }
     </style>
 </head>
@@ -157,7 +158,7 @@
 
         <div class="auth-form-group oculto-pessoa-existente">
             <label>Nome completo <span class="obrigatorio">*</span></label>
-            <input type="text" id="nome" placeholder="Seu nome completo" required>
+            <input type="text" id="nome" placeholder="Seu nome completo" onblur="aplicarCapitalizacao(this)" required>
         </div>
         <div class="auth-form-group">
             <label>CPF <span id="cpf-asterisco" class="obrigatorio">*</span></label>
@@ -295,8 +296,8 @@
             <input type="email" id="email" placeholder="seu@email.com" required>
         </div>
 
-        <div class="form-row">
-            <div class="auth-form-group">
+        <div class="form-row" id="linha-instrumento-membro">
+            <div class="auth-form-group" id="grupo-instrumento">
                 <label>Instrumento <span class="obrigatorio">*</span></label>
                 <select id="instrumento" required>
                     <option value="">Selecione</option>
@@ -322,7 +323,7 @@
 
         <div class="auth-form-group">
             <label>Endereço <span class="obrigatorio">*</span></label>
-            <input type="text" id="endereco" placeholder="Rua, Avenida..." required>
+            <input type="text" id="endereco" placeholder="Rua, Avenida..." onblur="aplicarCapitalizacao(this)" required>
         </div>
         <div class="form-row">
             <div class="auth-form-group">
@@ -331,17 +332,17 @@
             </div>
             <div class="auth-form-group">
                 <label>Complemento</label>
-                <input type="text" id="complemento" placeholder="Apto, Bloco...">
+                <input type="text" id="complemento" placeholder="Apto, Bloco..." onblur="aplicarCapitalizacao(this)">
             </div>
         </div>
         <div class="auth-form-group">
             <label>Bairro</label>
-            <input type="text" id="bairro" placeholder="Bairro">
+            <input type="text" id="bairro" placeholder="Bairro" onblur="aplicarCapitalizacao(this)">
         </div>
         <div class="form-row">
             <div class="auth-form-group">
                 <label>Cidade <span class="obrigatorio">*</span></label>
-                <input type="text" id="cidade" placeholder="Cidade" required>
+                <input type="text" id="cidade" placeholder="Cidade" onblur="aplicarCapitalizacao(this)" required>
             </div>
             <div class="auth-form-group">
                 <label>Estado <span class="obrigatorio">*</span></label>
@@ -358,12 +359,73 @@
                     <option>SP</option><option>SE</option><option>TO</option>
                     <option value="Outro">Outro</option>
                 </select>
-                <input type="text" id="estado_outro" placeholder="Digite o estado/província" class="campo-revelavel">
+                <input type="text" id="estado_outro" placeholder="Digite o estado/província" class="campo-revelavel" onblur="aplicarCapitalizacao(this)">
             </div>
         </div>
         <div class="auth-form-group">
             <label>País <span class="obrigatorio">*</span></label>
-            <input type="text" id="pais" placeholder="Ex: Brasil, Portugal, Argentina..." value="Brasil" required>
+            <select id="pais" required>
+                <option value="África do Sul">África do Sul</option>
+                <option value="Alemanha">Alemanha</option>
+                <option value="Angola">Angola</option>
+                <option value="Argentina">Argentina</option>
+                <option value="Austrália">Austrália</option>
+                <option value="Áustria">Áustria</option>
+                <option value="Bélgica">Bélgica</option>
+                <option value="Bolívia">Bolívia</option>
+                <option value="Brasil" selected>Brasil</option>
+                <option value="Cabo Verde">Cabo Verde</option>
+                <option value="Canadá">Canadá</option>
+                <option value="Chile">Chile</option>
+                <option value="China">China</option>
+                <option value="Colômbia">Colômbia</option>
+                <option value="Coreia do Sul">Coreia do Sul</option>
+                <option value="Cuba">Cuba</option>
+                <option value="Dinamarca">Dinamarca</option>
+                <option value="Egito">Egito</option>
+                <option value="Equador">Equador</option>
+                <option value="Espanha">Espanha</option>
+                <option value="Estados Unidos">Estados Unidos</option>
+                <option value="Filipinas">Filipinas</option>
+                <option value="França">França</option>
+                <option value="Grécia">Grécia</option>
+                <option value="Guiné-Bissau">Guiné-Bissau</option>
+                <option value="Haiti">Haiti</option>
+                <option value="Holanda">Holanda</option>
+                <option value="Índia">Índia</option>
+                <option value="Irlanda">Irlanda</option>
+                <option value="Israel">Israel</option>
+                <option value="Itália">Itália</option>
+                <option value="Japão">Japão</option>
+                <option value="Líbano">Líbano</option>
+                <option value="Marrocos">Marrocos</option>
+                <option value="México">México</option>
+                <option value="Moçambique">Moçambique</option>
+                <option value="Nigéria">Nigéria</option>
+                <option value="Noruega">Noruega</option>
+                <option value="Nova Zelândia">Nova Zelândia</option>
+                <option value="Palestina">Palestina</option>
+                <option value="Paraguai">Paraguai</option>
+                <option value="Peru">Peru</option>
+                <option value="Polônia">Polônia</option>
+                <option value="Portugal">Portugal</option>
+                <option value="Reino Unido">Reino Unido</option>
+                <option value="República Democrática do Congo">República Democrática do Congo</option>
+                <option value="República Dominicana">República Dominicana</option>
+                <option value="Romênia">Romênia</option>
+                <option value="Rússia">Rússia</option>
+                <option value="Senegal">Senegal</option>
+                <option value="São Tomé e Príncipe">São Tomé e Príncipe</option>
+                <option value="Síria">Síria</option>
+                <option value="Suécia">Suécia</option>
+                <option value="Suíça">Suíça</option>
+                <option value="Taiwan">Taiwan</option>
+                <option value="Timor-Leste">Timor-Leste</option>
+                <option value="Ucrânia">Ucrânia</option>
+                <option value="Uruguai">Uruguai</option>
+                <option value="Venezuela">Venezuela</option>
+                <option value="Vietnã">Vietnã</option>
+            </select>
         </div>
 
         <div class="form-step-nav">
@@ -434,12 +496,25 @@
 
         <div class="auth-form-group">
             <label>Nome do contato <span class="obrigatorio">*</span></label>
-            <input type="text" id="emergencia_nome" placeholder="Nome completo" required>
+            <input type="text" id="emergencia_nome" placeholder="Nome completo" onblur="aplicarCapitalizacao(this)" required>
         </div>
         <div class="form-row">
             <div class="auth-form-group">
                 <label>Parentesco <span class="obrigatorio">*</span></label>
-                <input type="text" id="emergencia_parentesco" placeholder="Ex: mãe, pai, cônjuge" required>
+                <select id="emergencia_parentesco" required>
+                    <option value="">Selecione</option>
+                    <option value="Pai">Pai</option>
+                    <option value="Mãe">Mãe</option>
+                    <option value="Cônjuge/Companheiro(a)">Cônjuge/Companheiro(a)</option>
+                    <option value="Filho(a)">Filho(a)</option>
+                    <option value="Irmão(ã)">Irmão(ã)</option>
+                    <option value="Avô/Avó">Avô/Avó</option>
+                    <option value="Tio(a)">Tio(a)</option>
+                    <option value="Primo(a)">Primo(a)</option>
+                    <option value="Amigo(a)">Amigo(a)</option>
+                    <option value="Responsável legal">Responsável legal</option>
+                    <option value="Outro">Outro</option>
+                </select>
             </div>
             <div class="auth-form-group">
                 <label>Celular do contato <span class="obrigatorio">*</span></label>
@@ -645,6 +720,39 @@
         if (genero !== 'personalizado') input.value = '';
     }
 
+    // Admin (Mestre/Diretor) e Super Admin não tocam instrumento — o campo
+    // some inteiro da tela pra esses cargos, em vez de ficar desabilitado
+    // (decisão da Márcia, 17/jul/2026). Ritmista continua obrigatório.
+    function atualizarCampoInstrumento(cargo) {
+        const grupo = document.getElementById('grupo-instrumento');
+        const linha = document.getElementById('linha-instrumento-membro');
+        const select = document.getElementById('instrumento');
+        const ehAdmin = cargo === 'mestre' || cargo === 'diretor' || cargo === 'super_admin';
+        grupo.style.display = ehAdmin ? 'none' : '';
+        linha.classList.toggle('uma-coluna', ehAdmin);
+        select.required = !ehAdmin;
+        if (ehAdmin) select.value = '';
+    }
+
+
+    // Corrige maiúscula/minúscula sozinho ao sair do campo (não a cada tecla,
+    // pra não bagunçar o cursor enquanto digita) — só no cadastro novo, pedido
+    // da Márcia pra evitar nome/endereço digitado TUDO MAIÚSCULO ou tudo
+    // minúsculo (17/jul/2026). Preposições (de/da/do/dos/das) ficam minúsculas
+    // no meio do texto, como é convenção em nomes brasileiros.
+    const PREPOSICOES_MINUSCULAS = new Set(['de', 'da', 'do', 'dos', 'das']);
+
+    function corrigirCapitalizacao(texto) {
+        return texto.trim().toLowerCase().split(/\s+/).map((palavra, i) => {
+            if (i > 0 && PREPOSICOES_MINUSCULAS.has(palavra)) return palavra;
+            return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+        }).join(' ');
+    }
+
+    function aplicarCapitalizacao(campo) {
+        if (!campo.value.trim()) return;
+        campo.value = corrigirCapitalizacao(campo.value);
+    }
 
     function mostrarMensagem(texto, tipo) {
         const el = document.getElementById('mensagem');
@@ -715,6 +823,7 @@
 
         const perfil = cargoParam === 'mestre' ? 'mestre' : cargoParam === 'diretor' ? 'diretor' : 'ritmista';
         linkFixoAtual = { perfil, bateriaId: bateria.id };
+        atualizarCampoInstrumento(perfil);
         await carregarOpcoesInstrumento(bateria.id);
         await carregarOpcoesMedidas(bateria.id);
 
@@ -816,6 +925,7 @@
         const baterias = await resBat.json();
 
         modoManualAtual = { cargo, bateriaId: Number(bateriaId), criadoPorId: usuarioLogado.id };
+        atualizarCampoInstrumento(cargo);
         await carregarOpcoesInstrumento(Number(bateriaId));
         await carregarOpcoesMedidas(Number(bateriaId));
         const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor' : 'Ritmista';
