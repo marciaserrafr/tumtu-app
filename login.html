@@ -229,9 +229,20 @@
     // Compartilhada entre o login manual e "Trocar de bateria" (reaproveita
     // a sessão já aberta, sem pedir senha de novo).
     async function buscarEEscolherVinculos(pessoaId, forcarEscolha) {
-        const { data: vinculos } = await sb.from('ritmistas_com_instrumento').select('*').eq('pessoa_id', pessoaId);
-        if (!vinculos || vinculos.length === 0) {
+        const { data: todosVinculos } = await sb.from('ritmistas_com_instrumento').select('*').eq('pessoa_id', pessoaId);
+        if (!todosVinculos || todosVinculos.length === 0) {
             mostrarMensagem('Você ainda não tem vínculo com nenhuma bateria. Procure seu Mestre ou Diretor pra pedir o link de cadastro.', 'aviso');
+            mostrarFormularioLogin();
+            return;
+        }
+
+        // "Desligado" e "rejeitado" são estados finais, sem volta por ali —
+        // nunca aparecem na lista, nem travados (decisão da Márcia, 18/jul/2026:
+        // "é ruim oferecer um botão pra um beco sem saída"). "Pendente" e
+        // "suspenso" são temporários, então continuam aparecendo, só travados.
+        const vinculos = todosVinculos.filter(v => v.status !== 'desligado' && v.status !== 'rejeitado');
+        if (vinculos.length === 0) {
+            mostrarMensagem('Você não tem nenhum vínculo disponível no momento. Procure a diretoria da sua bateria.', 'aviso');
             mostrarFormularioLogin();
             return;
         }
@@ -246,16 +257,21 @@
             return;
         }
 
-        // Mais de uma bateria (ou troca forçada) — mostra a telinha de escolha em vez de entrar direto.
+        // Mais de uma bateria disponível (ou troca forçada) — mostra a telinha de escolha em vez de entrar direto.
         const nomesPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b.nome]));
         const cargoLabelVinculo = v => v.perfil === 'mestre' ? (v.genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria')
             : v.perfil === 'diretor' ? (v.genero === 'feminino' ? 'Diretora' : 'Diretor')
             : 'Ritmista';
+        const rotuloStatus = { pendente: 'Pendente', suspenso: 'Suspenso' };
 
-        document.getElementById('listaBaterias').innerHTML = vinculos.map((v, i) => `
-            <button type="button" class="btn-secundario" style="width:100%;margin-top:10px;text-align:left;" onclick="escolherVinculo(${i})">
-                ${nomesPorBateria[v.bateria_id] || 'Bateria'} <span class="label-dica">— ${cargoLabelVinculo(v)}</span>
-            </button>`).join('');
+        document.getElementById('listaBaterias').innerHTML = vinculos.map((v, i) => {
+            const travado = v.status !== 'aprovado';
+            const rotulo = rotuloStatus[v.status] ? ` · ${rotuloStatus[v.status]}` : '';
+            return `
+            <button type="button" class="btn-secundario" style="width:100%;margin-top:10px;text-align:left;${travado ? 'opacity:0.5;cursor:not-allowed;' : ''}" ${travado ? 'disabled' : `onclick="escolherVinculo(${i})"`}>
+                ${nomesPorBateria[v.bateria_id] || 'Bateria'} <span class="label-dica">— ${cargoLabelVinculo(v)}${rotulo}</span>
+            </button>`;
+        }).join('');
         window.vinculosParaEscolher = vinculos;
         document.getElementById('containerCarregando').style.display = 'none';
         document.getElementById('containerLogin').style.display = 'none';
@@ -295,6 +311,17 @@
         // for o caso) pra se auto-corrigir, sem precisar deslogar.
         if (forcarTroca || cache.totalVinculos === undefined) {
             await buscarEEscolherVinculos(cache.pessoa_id, forcarTroca);
+            return;
+        }
+
+        // O status salvo no celular pode estar desatualizado (a pessoa pode
+        // ter sido suspensa/desligada desde o último login neste aparelho) —
+        // nunca confiar cegamente nele pra decidir acesso. Reconfere rápido
+        // (consulta pequena, só o status) antes de liberar pelo atalho.
+        const { data: vinculoAtual } = await sb.from('vinculos').select('status')
+            .eq('pessoa_id', cache.pessoa_id).eq('bateria_id', cache.bateria_id).maybeSingle();
+        if (!vinculoAtual || vinculoAtual.status !== 'aprovado') {
+            await buscarEEscolherVinculos(cache.pessoa_id, false);
             return;
         }
 
@@ -365,6 +392,28 @@
             mostrarMensagem(isAdmin
                 ? 'Seu cadastro não foi aprovado. Entre em contato com o suporte do TumTu.'
                 : 'Seu cadastro não foi aprovado. Entre em contato com a diretoria.', 'erro');
+            return;
+        }
+        if (vinculo.status === 'suspenso') {
+            mostrarFormularioLogin();
+            mostrarMensagem(isAdmin
+                ? 'Seu acesso está suspenso. Entre em contato com o suporte do TumTu.'
+                : 'Seu acesso está suspenso. Entre em contato com a diretoria.', 'erro');
+            return;
+        }
+        if (vinculo.status === 'desligado') {
+            mostrarFormularioLogin();
+            mostrarMensagem(isAdmin
+                ? 'Você foi desligado desta bateria. Entre em contato com o suporte do TumTu.'
+                : 'Você foi desligado desta bateria. Entre em contato com a diretoria.', 'erro');
+            return;
+        }
+        // Nega por padrão: só "aprovado" segue em frente. Qualquer status que
+        // não seja um dos tratados acima (inclusive um valor novo que apareça
+        // no futuro) fica bloqueado, em vez de liberar acesso por engano.
+        if (vinculo.status !== 'aprovado') {
+            mostrarFormularioLogin();
+            mostrarMensagem('Seu acesso não está disponível no momento. Entre em contato com a diretoria.', 'erro');
             return;
         }
 

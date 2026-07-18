@@ -721,3 +721,27 @@ Márcia perguntou se dá pra ver a carteirinha sem internet. `carteirinha.html` 
 **Decisão da Márcia: reverter por enquanto** — prefere manter a atualização automática enquanto o TumTu está em desenvolvimento ativo, lançando versões constantemente. Todo o código foi desfeito (`git checkout`), nada foi commitado. Detalhe completo da decisão e como retomar: memória `project_offline_carteirinha_investigacao` (fora deste repositório, sessão do Claude Code).
 
 **Ideia relacionada, também registrada mas não iniciada:** um botão de atalho (inspirado no app Jaé) pra ir direto na última carteirinha vista, sem passar pelo login completo — e, numa visão maior, TumTu marcando presença em ensaio via QR, também offline. Ambas dependem da mesma correção acima quando forem retomadas.
+
+## 31. Revisão de segurança do fluxo completo de carteirinha (18/jul/2026) — vazamento crítico corrigido
+
+A pedido da Márcia, revisão de ponta a ponta do fluxo de escola→bateria→links de cadastro→aprovação→múltiplos vínculos, direto no banco (schema, RLS, triggers, funções) via Supabase MCP, não só nas telas.
+
+**🔴 Crítico, corrigido na hora — view `ritmistas_com_instrumento` vazava dado de todo mundo.** A view (usada em `login.html`, `carteirinha.html`, `admin.html`, `super-admin.html` pra buscar pessoa+vínculo+instrumento numa tacada) estava marcada `SECURITY DEFINER` — isso faz a consulta rodar com a permissão de quem *criou* a view, ignorando por completo a RLS de `pessoas`/`vinculos` — e além disso tinha `GRANT SELECT` liberado pro papel `anon` (qualquer um, sem login). Resultado real, confirmado por teste: **qualquer pessoa, sem senha nenhuma, usando só a chave pública que já fica visível no código de qualquer página do site, conseguia puxar CPF, endereço, telefone e contato de emergência de todo mundo cadastrado, de todas as escolas.**
+
+**Correção:** `ALTER VIEW ... SET (security_invoker = true)` — a view passa a rodar com a permissão de quem está perguntando, então a RLS que já existia em `pessoas`/`vinculos` (dono vê o próprio, admin vê a própria bateria, Super Admin vê tudo) volta a valer dentro da view também. `REVOKE ALL FROM anon` (sem login não vê nada) + `GRANT SELECT TO authenticated` (mantém o app funcionando pra quem está logado).
+
+**Testado com contas fake reais antes de considerar concluído** (login via API do Supabase Auth, requisição direta contra a view):
+- Sem login (chave anônima crua): `permission denied` — antes vazava tudo.
+- Ritmista (`vini.santos@teste.tutti`): só vê o próprio registro; tentativa de puxar outro `pessoa_id` volta vazio.
+- Mestre/Diretor (`fabinho.cardoso@teste.tutti`): vê os 14 membros da própria bateria; tentativa de puxar outra bateria volta vazio.
+- Super Admin: continua vendo todo mundo (28 de ~29 pessoas, número batendo).
+
+As outras 5 views `SECURITY DEFINER` do projeto (`baterias_publicas`, `mestres_publicos`, `bateria_instrumentos_publicos`, `bateria_medidas_publicas`, `ritmistas_emergencia`) foram checadas e **não precisam de correção** — são público de propósito (usadas antes do login, ex: validar link de cadastro, mostrar QR de emergência) e só expõem colunas mínimas sem CPF/endereço, ao contrário da `ritmistas_com_instrumento`.
+
+**Outros achados da mesma revisão, pendentes de correção (não são vazamento de dado, mas afetam o comportamento real do app):**
+- **Suspender/desligar alguém no painel Admin não bloqueia o acesso dela.** `login.html` (`continuarComVinculo`) só trata explicitamente os status `pendente` e `rejeitado` — qualquer outro status (inclusive `suspenso` e `desligado`, que Mestre/Diretor/Super Admin conseguem definir pela tela) cai no fluxo normal de acesso liberado.
+- **Não existe UI pra trocar o cargo de alguém** (ex: promover Ritmista pra Diretor da mesma bateria) — nem Super Admin tem essa opção na tela (`super-admin.html` mostra o campo "Perfil" desabilitado); só é possível hoje via SQL direto.
+- Tela de "escolher bateria" no login não distingue visualmente vínculo pendente de aprovado antes do clique.
+- Confirmado (não é bug): uma pessoa só pode ter 1 papel por bateria (`UNIQUE(pessoa_id, bateria_id)`) — não dá pra ser Diretor e Ritmista com instrumento na mesma bateria simultaneamente.
+
+**Confirmado como correto nessa revisão (não mexer):** regra "Mestre aprova Ritmista e Diretor; Diretor só aprova/edita Ritmista" reforçada tanto na tela (`admin.html`) quanto no trigger `aplicar_matriz_edicao_vinculos` — testado, sem brecha. Ninguém consegue se autoaprovar ou trocar o próprio cargo/bateria — travado no trigger pra todo mundo, sem exceção.
