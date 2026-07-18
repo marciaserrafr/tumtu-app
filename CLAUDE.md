@@ -135,6 +135,8 @@ Depois do domínio: 1) revisão de todas as telas (correções gerais) → 2) re
 
 **Próximo grande marco:** cadastrar a primeira escola/bateria real (hoje só existem 2 baterias de teste no banco) e ligar o Modo Piloto nela — aí sim o piloto começa de verdade. **Não é passo atual — depende de ela fechar a primeira parceria real primeiro** (confirmado por ela em 18/jul/2026: "ainda estou testando o sistema", sem cliente/escola real hoje). Não sugerir isso como próximo passo até ela sinalizar que fechou parceria.
 
+**Nova frente combinada em 18/jul/2026, depois dos gaps da carteirinha:** unificar `admin.html` e `super-admin.html` numa fachada só, com abas que aparecem/somem por permissão — ela vai operar sozinha no piloto e não quer "pular" de tela pra ver dado de uma bateria. O modelo de permissão de verdade (RLS) já está correto e não precisa mudar, só a camada visual/navegação. Não começar sem fechar antes os gaps da revisão de segurança (seção 31 da documentação técnica) e a feature de trocar cargo em andamento.
+
 ---
 
 ## Contas de teste

@@ -1340,15 +1340,21 @@
                 <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="acesso-nome" value="${esc(u.nome)}" disabled></div>
                 <div class="campo campo-full"><label>Apelido *</label><input type="text" id="acesso-apelido" value="${esc(u.apelido)}" disabled></div>
                 <div class="campo"><label>CPF *</label><input type="text" id="acesso-cpf" value="${esc(u.cpf)}" maxlength="14" disabled></div>
-                <div class="campo"><label>Perfil *</label><select id="acesso-perfil" disabled>
+                <div class="campo"><label>Perfil *</label><select id="acesso-perfil" disabled onchange="onTrocarPerfilAcesso()">
                     <option value="">Selecione...</option>
                     <option value="mestre"${u.perfil==='mestre'?' selected':''}>Mestre de Bateria</option>
                     <option value="diretor"${u.perfil==='diretor'?' selected':''}>Diretor</option>
+                    <option value="ritmista"${u.perfil==='ritmista'?' selected':''}>Ritmista</option>
                 </select></div>
                 <div class="campo"><label>Bateria Vinculada *</label><select id="acesso-bateria-id" disabled>${bateriasOpcoesHTML(u.bateria_id)}</select></div>
+                <div class="campo campo-full" id="acesso-campo-instrumento" style="display:none;">
+                    <label>Instrumento *</label>
+                    <select id="acesso-instrumento" disabled><option value="">Selecione...</option></select>
+                </div>
             </div>
             <input type="hidden" id="acesso-id" value="${u.id}">
-            <input type="hidden" id="acesso-pessoa-id" value="${u.pessoa_id}">`;
+            <input type="hidden" id="acesso-pessoa-id" value="${u.pessoa_id}">
+            <input type="hidden" id="acesso-bateria-id-original" value="${u.bateria_id}">`;
         document.getElementById('modal-acesso-rodape').innerHTML = `
             <div class="modal-sa-rodape-esq">
                 <button class="btn-ficha btn-ficha-editar" onclick="habilitarEdicaoAcesso()">Editar</button>
@@ -1366,11 +1372,38 @@
                 if (campo === 'acesso-cpf') el.oninput = () => mascaraCPF(el);
             }
         });
+        document.getElementById('acesso-bateria-id').onchange = onTrocarPerfilAcesso;
+        onTrocarPerfilAcesso();
         document.getElementById('modal-acesso-rodape').innerHTML = `
             <div class="modal-sa-rodape-esq">
                 <button class="btn-ficha btn-ficha-salvar" onclick="salvarAcesso()">Salvar</button>
             </div>
             <button class="btn-ficha" onclick="fecharFormAcesso()">Fechar</button>`;
+    }
+
+    // Instrumento só existe pra Ritmista — Mestre/Diretor nunca preencheram
+    // esse campo no cadastro (mudança de 17/jul/2026), então virar Ritmista
+    // precisa pedir o instrumento aqui mesmo, na hora da troca (decisão da
+    // Márcia, 18/jul/2026: evita cadastro incompleto, sem precisar de uma
+    // tela nova pedindo isso da pessoa depois).
+    async function onTrocarPerfilAcesso() {
+        const perfil = document.getElementById('acesso-perfil').value;
+        const campoInstrumento = document.getElementById('acesso-campo-instrumento');
+        const selectInstrumento = document.getElementById('acesso-instrumento');
+        if (perfil !== 'ritmista') {
+            campoInstrumento.style.display = 'none';
+            selectInstrumento.disabled = true;
+            return;
+        }
+        campoInstrumento.style.display = '';
+        selectInstrumento.disabled = false;
+        const bateriaId = document.getElementById('acesso-bateria-id').value;
+        if (!bateriaId) { selectInstrumento.innerHTML = '<option value="">Selecione a bateria primeiro</option>'; return; }
+        selectInstrumento.innerHTML = '<option value="">Carregando...</option>';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos_publicos?bateria_id=eq.${bateriaId}&order=grupo,ordem`, { headers });
+        const opcoes = res.ok ? await res.json() : [];
+        opcoes.sort((a, b) => a.nome_exibicao.localeCompare(b.nome_exibicao, 'pt-BR'));
+        selectInstrumento.innerHTML = '<option value="">Selecione...</option>' + opcoes.map(o => `<option value="${o.id}">${o.nome_exibicao}</option>`).join('');
     }
 
     async function toggleAcessoAtivo(id, statusAtual) {
@@ -1408,11 +1441,22 @@
         if (!perfil) { mostrarToast('Selecione o perfil.', 'erro'); return; }
         if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
 
+        // Instrumento só existe pra Ritmista — Mestre/Diretor nunca preenche esse
+        // campo (fica null), pra não deixar o cadastro incompleto quando alguém
+        // vira Ritmista aqui (ver onTrocarPerfilAcesso).
+        let bateriaInstrumentoId = null;
+        if (perfil === 'ritmista') {
+            bateriaInstrumentoId = document.getElementById('acesso-instrumento').value;
+            if (!bateriaInstrumentoId) { mostrarToast('Selecione o instrumento.', 'erro'); return; }
+        }
+        const nivelAcesso = perfil === 'ritmista' ? null : 'total';
+
         const resPessoa = await fetch(`${SUPABASE_URL}/rest/v1/pessoas?id=eq.${pessoaId}`, {
             method: 'PATCH', headers, body: JSON.stringify({ nome, apelido, cpf })
         });
         const resVinculo = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
-            method: 'PATCH', headers, body: JSON.stringify({ perfil, bateria_id: bateriaId })
+            method: 'PATCH', headers,
+            body: JSON.stringify({ perfil, bateria_id: bateriaId, bateria_instrumento_id: bateriaInstrumentoId, nivel_acesso: nivelAcesso })
         });
 
         if (resPessoa.ok && resVinculo.ok) {
