@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TumTu — Carteirinha Digital para sua Bateria</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --escuro: #12101a;
+  --dourado: #D4AF37;
+  --dourado-claro: #e8c84a;
+  --terracota: #7c2d12;
+  --creme: #faf7f0;
+  --fonte: 'Plus Jakarta Sans', sans-serif;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--fonte); background: var(--escuro); color: #fff; overflow-x: hidden; }
+
+/* ── NAV ── */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 14px 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(18,16,26,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(212,175,55,0.15);
+}
+
+/* WORDMARK "TumTu" — mesma spec usada em todo o resto do app. No menu do
+   topo aparece só o nome (igual ao cabeçalho do admin.html); o símbolo
+   completo (bolinhas) fica reservado pro rodapé, a pedido da Márcia. */
+.logo-nome {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+}
+.tt-t { color: var(--dourado); }
+.tt-m { border-bottom: 3px solid var(--terracota); padding-bottom: 2px; }
+
+/* Símbolo da marca — duas bolinhas em diagonal (grande dourada preenchida
+   + pequena com contorno terracota), mesmo desenho de login.html/cadastro.html,
+   só que reduzido na mesma proporção do nome pequeno (16px, igual ao menu do
+   topo) em vez do nome grande (36px) que a dupla oficial usa nas telas de
+   login. Escala: 16/36 ≈ 0,444 aplicada em cada medida do símbolo original. */
+.simbolo-marca { position: relative; width: 21px; height: 13px; margin: 0 auto 6px; }
+.simbolo-marca .big { width: 11px; height: 11px; border-radius: 50%; background: var(--dourado); position: absolute; left: 0; top: 0; }
+.simbolo-marca .small { width: 6px; height: 6px; border-radius: 50%; background: transparent; border: 1px solid var(--terracota); position: absolute; left: 15px; top: 5px; }
+
+.btn-nav {
+  background: var(--dourado); color: var(--escuro);
+  font-family: var(--fonte); font-size: 12px; font-weight: 800;
+  padding: 8px 16px; border-radius: 50px; text-decoration: none; transition: all 0.2s;
+}
+.btn-nav:hover { background: var(--dourado-claro); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100svh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 24px 100px; text-align: center;
+  position: relative; overflow: hidden;
+  background: var(--escuro);
+}
+.hero::before {
+  content: ''; position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 500px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.06) 40%, transparent 70%);
+  pointer-events: none;
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -80px; right: -80px;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(124,45,18,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-nome-frase {
+  font-size: 11px; font-style: italic; font-weight: 500;
+  color: rgba(212,175,55,0.7); letter-spacing: 0.06em; margin-bottom: 16px;
+  opacity: 0; animation: fadeUp 0.6s ease 0.2s forwards;
+}
+.hero-title {
+  font-size: clamp(28px, 7vw, 48px); font-weight: 900;
+  line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px;
+  opacity: 0; animation: fadeUp 0.6s ease 0.4s forwards;
+}
+.hero-title em { font-style: normal; color: var(--dourado); }
+.hero-sub {
+  font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.65;
+  max-width: 340px; margin: 0 auto 44px;
+  opacity: 0; animation: fadeUp 0.6s ease 0.6s forwards;
+}
+
+/* ── CARDS ── */
+.cards-duo {
+  display: flex; gap: 16px; align-items: flex-start; justify-content: center;
+  flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s ease 0.8s forwards; margin-bottom: 48px;
+}
+.face-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.face-lbl { font-size: 8px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+.card {
+  width: 200px; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 0 0 1px rgba(212,175,55,0.2), 0 8px 28px rgba(0,0,0,0.4), 0 24px 56px rgba(0,0,0,0.3);
+}
+
+/* FRENTE */
+.fb { background: #fff; display: flex; flex-direction: column; position: relative; overflow: hidden; min-height: 370px; }
+.fb::before { content: ''; position: absolute; top: -28px; right: -28px; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.09) 0%, transparent 70%); pointer-events: none; z-index: 1; }
+.fh { padding: 11px 13px 9px; display: flex; justify-content: space-between; align-items: flex-start; background: linear-gradient(180deg, rgba(18,16,26,0.07) 0%, transparent 100%); position: relative; z-index: 2; }
+.fe { font-size: 6.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #8a87a0; margin-bottom: 2px; }
+.fba { font-size: 11px; font-weight: 900; color: #12101a; letter-spacing: -0.02em; }
+.fp { display: flex; align-items: center; gap: 3px; padding: 3px 7px; border-radius: 20px; font-size: 6px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid rgba(18,16,26,0.18); background: rgba(18,16,26,0.05); color: #12101a; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+.fdot { width: 4px; height: 4px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 4px rgba(34,197,94,0.8); }
+.ff { display: flex; flex-direction: column; align-items: center; padding: 9px 0 4px; position: relative; z-index: 2; }
+.fha { width: 92px; height: 92px; border-radius: 50%; padding: 2px; background: rgba(212,175,55,0.1); }
+.fan { width: 100%; height: 100%; border-radius: 50%; padding: 3px; background: linear-gradient(135deg, #D4AF37, #B8922A, #D4AF37); }
+.fim { width: 100%; height: 100%; border-radius: 50%; background: #f9f0e8; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.fca { font-size: 6.5px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #9490a8; margin-top: 6px; }
+.fid { text-align: center; padding: 2px 10px 0; }
+.fn { font-size: 13px; font-weight: 900; color: #0c0b14; letter-spacing: -0.025em; line-height: 1.15; }
+.fa { font-size: 9px; font-weight: 700; font-style: italic; color: #D4AF37; margin-top: 2px; }
+.fi { font-size: 8.5px; color: #9490a8; font-weight: 500; margin-top: 2px; }
+.fdiv { height: 0.5px; margin: 7px 12px 5px; background: linear-gradient(90deg, transparent, #d8d5e8, transparent); }
+.fcpf { text-align: center; }
+.fcl { font-size: 6px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #9490a8; margin-bottom: 2px; }
+.fcv { font-size: 10px; font-weight: 600; color: #2a2838; letter-spacing: 0.06em; }
+.fro { margin-top: auto; padding: 0 13px 12px; position: relative; }
+.frg { position: absolute; bottom: 0; left: 0; right: 0; height: 100px; background: linear-gradient(to top, rgba(8,6,14,0.95) 0%, rgba(18,16,26,0.5) 45%, rgba(18,16,26,0.1) 70%, transparent 100%); pointer-events: none; }
+.frc { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 52px; }
+.fml { font-size: 6px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.8); margin-bottom: 1px; }
+.fma { font-size: 19px; font-weight: 900; color: #D4AF37; line-height: 1; letter-spacing: -0.03em; }
+.flo { width: 52px; height: 52px; border-radius: 50%; border: 1.5px dashed rgba(212,175,55,0.55); background: rgba(255,255,255,0.06); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.faixa { height: 3px; background: linear-gradient(90deg, #9a7520, #D4AF37, #f5d778, #D4AF37, #9a7520); flex-shrink: 0; }
+
+/* VERSO */
+.vb { display: flex; flex-direction: column; min-height: 370px; background: linear-gradient(150deg, #1e1b2e 0%, #16132a 40%, #0e0c1e 100%); position: relative; overflow: hidden; }
+.vb::before { content: ''; position: absolute; top: -50px; left: -50px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%); pointer-events: none; }
+.vh { display: flex; justify-content: space-between; align-items: center; padding: 13px 14px; background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, transparent 100%); position: relative; z-index: 2; }
+.vht { flex: 1; }
+.vba { font-size: 13px; font-weight: 900; color: #fff; letter-spacing: -0.02em; line-height: 1.1; text-align: left; }
+.ves { font-size: 6.5px; font-weight: 500; color: rgba(255,255,255,0.45); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 2px; text-align: left; }
+.vlo { width: 52px; height: 52px; border-radius: 50%; border: 1.5px dashed rgba(212,175,55,0.45); background: rgba(255,255,255,0.04); flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-left: 10px; }
+.vc { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 12px 14px; position: relative; z-index: 2; }
+.vqr { background: #fff; border-radius: 12px; padding: 10px; width: 96px; height: 96px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.2); flex-shrink: 0; }
+.vql { font-size: 6.5px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.38); margin-top: 7px; text-align: center; }
+.vm { text-align: center; width: 100%; padding: 0 14px; }
+.vml { font-size: 6.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.38); margin-bottom: 5px; }
+.vmn { font-size: 12px; font-weight: 900; color: #fff; letter-spacing: -0.01em; }
+.vval { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.vvi { text-align: center; }
+.vvl { font-size: 6.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.38); margin-bottom: 3px; }
+.vvv { font-size: 10px; font-weight: 700; color: #D4AF37; white-space: nowrap; }
+.vvs { width: 0.5px; height: 22px; background: rgba(255,255,255,0.1); }
+.vro { display: flex; justify-content: space-between; align-items: center; padding: 7px 14px 11px; position: relative; z-index: 2; }
+.vro::before { content: ''; position: absolute; top: 0; left: 14px; right: 14px; height: 0.5px; background: rgba(255,255,255,0.07); }
+.vig { font-size: 7px; color: rgba(255,255,255,0.28); font-weight: 500; }
+.ttl { display: inline-flex; flex-direction: column; align-items: center; }
+.ttt { font-size: 13px; font-weight: 900; color: #D4AF37; line-height: 1; padding-bottom: 2px; }
+.ttr { width: 100%; height: 1.5px; background: #7c2d12; border-radius: 1px; }
+
+.badge { display: flex; align-items: center; gap: 7px; background: rgba(30,27,46,0.9); border: 1px solid rgba(212,175,55,0.25); border-radius: 20px; padding: 5px 12px; font-size: 9px; font-weight: 600; color: var(--dourado); white-space: nowrap; margin-top: 6px; }
+.bdots { display: flex; gap: 3px; }
+.bdot { width: 8px; height: 8px; border-radius: 50%; }
+
+.hero-cta { opacity: 0; animation: fadeUp 0.6s ease 1.2s forwards; }
+.btn-pri { display: inline-block; background: var(--dourado); color: var(--escuro); font-family: var(--fonte); font-size: 14px; font-weight: 800; padding: 14px 30px; border-radius: 50px; text-decoration: none; letter-spacing: 0.02em; transition: all 0.2s; box-shadow: 0 4px 24px rgba(212,175,55,0.35); }
+.btn-pri:hover { background: var(--dourado-claro); transform: translateY(-2px); }
+
+/* ── SEÇÃO CREME ── */
+.s-creme { background: var(--creme); color: var(--escuro); }
+.sw { padding: 80px 24px; max-width: 480px; margin: 0 auto; }
+.ey { font-size: 9px; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; margin-bottom: 14px; }
+.st { font-size: clamp(22px, 6vw, 32px); font-weight: 900; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 20px; }
+.stx { font-size: 15px; line-height: 1.7; margin-bottom: 14px; }
+.btn-sec-wrap { margin-top: 32px; padding-top: 28px; border-top: 1px solid rgba(18,16,26,0.1); }
+.btn-wpp-small { display: inline-flex; align-items: center; gap: 9px; background: #25D366; color: #fff; font-family: var(--fonte); font-size: 13px; font-weight: 800; padding: 12px 22px; border-radius: 50px; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 20px rgba(37,211,102,0.25); }
+.btn-wpp-small:hover { transform: translateY(-2px); }
+
+/* ── FEATURES ── */
+.s-features { background: var(--escuro); padding: 80px 24px; }
+.features-inner { max-width: 480px; margin: 0 auto; }
+.feat-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
+.feat { background: rgba(255,255,255,0.04); border: 1px solid rgba(212,175,55,0.15); border-radius: 16px; padding: 17px; display: flex; gap: 14px; align-items: flex-start; transition: border-color 0.2s, background 0.2s; }
+.feat:hover { border-color: rgba(212,175,55,0.4); background: rgba(212,175,55,0.04); }
+.feat-ic { width: 38px; height: 38px; border-radius: 12px; background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 17px; }
+.feat-t { font-size: 13px; font-weight: 700; margin-bottom: 4px; color: #fff; }
+.feat-x { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+/* ── FUTURO ── */
+.s-futuro { background: var(--dourado); color: var(--escuro); padding: 80px 24px; }
+.futuro-inner { max-width: 480px; margin: 0 auto; text-align: center; }
+.futuro-icon { font-size: 36px; margin-bottom: 18px; }
+.futuro-t { font-size: 22px; font-weight: 900; color: var(--escuro); margin-bottom: 14px; letter-spacing: -0.02em; }
+.futuro-x { font-size: 15px; color: rgba(18,16,26,0.7); line-height: 1.65; }
+.futuro-sub { font-size: 13px; color: rgba(18,16,26,0.45); line-height: 1.6; margin-top: 14px; font-style: italic; }
+
+/* ── CTA FINAL ── */
+.s-cta { background: var(--creme); color: var(--escuro); padding: 80px 24px; text-align: center; }
+.cta-inner { max-width: 480px; margin: 0 auto; }
+.cta-t { font-size: clamp(20px, 5vw, 28px); font-weight: 900; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 14px; color: var(--escuro); }
+.cta-t em { font-style: normal; color: var(--terracota); }
+.cta-x { font-size: 14px; color: rgba(18,16,26,0.6); line-height: 1.6; margin-bottom: 28px; }
+.btn-wpp { display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: #fff; font-family: var(--fonte); font-size: 14px; font-weight: 800; padding: 14px 28px; border-radius: 50px; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 24px rgba(37,211,102,0.3); }
+.btn-wpp:hover { transform: translateY(-2px); }
+
+/* ── FOOTER ── */
+.footer { background: var(--escuro); padding: 32px 24px; text-align: center; border-top: 1px solid rgba(212,175,55,0.1); }
+.footer-sub { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+.reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo-nome"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
+  <a href="#conversa" class="btn-nav">Falar comigo</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-nome-frase">TumTu é o som da marcação da bateria — feito para quem faz parte dela.</p>
+  <h1 class="hero-title">A carteirinha digital<br>da sua <em>bateria</em></h1>
+  <p class="hero-sub">Cada ritmista com a carteirinha no celular —<br>com as cores e a identidade da sua escola.</p>
+
+  <div class="cards-duo">
+    <!-- FRENTE -->
+    <div class="face-wrap">
+      <div class="face-lbl">Frente</div>
+      <div class="card">
+        <div class="fb">
+          <div class="fh">
+            <div><div class="fe">Sua Escola de Samba</div><div class="fba">Sua Bateria</div></div>
+            <div class="fp"><div class="fdot"></div>Ativo</div>
+          </div>
+          <div class="ff">
+            <div class="fha"><div class="fan"><div class="fim">
+              <svg width="72" height="72" viewBox="0 0 80 80" fill="none">
+                <ellipse cx="40" cy="72" rx="22" ry="11" fill="#c8956c"/>
+                <rect x="36.5" y="48" width="7" height="9" rx="3.5" fill="#c8956c"/>
+                <ellipse cx="40" cy="35" rx="13.5" ry="15" fill="#c8956c"/>
+                <ellipse cx="40" cy="24" rx="16" ry="10" fill="#2a1a0e"/>
+                <circle cx="24" cy="30" r="6" fill="#2a1a0e"/><circle cx="22" cy="37" r="5.5" fill="#2a1a0e"/><circle cx="23" cy="44" r="5" fill="#2a1a0e"/>
+                <circle cx="56" cy="30" r="6" fill="#2a1a0e"/><circle cx="58" cy="37" r="5.5" fill="#2a1a0e"/><circle cx="57" cy="44" r="5" fill="#2a1a0e"/>
+                <circle cx="32" cy="18" r="6" fill="#2a1a0e"/><circle cx="40" cy="15" r="6.5" fill="#2a1a0e"/><circle cx="48" cy="18" r="6" fill="#2a1a0e"/>
+                <circle cx="26" cy="23" r="5.5" fill="#2a1a0e"/><circle cx="54" cy="23" r="5.5" fill="#2a1a0e"/>
+                <ellipse cx="35" cy="35" rx="2.5" ry="2.8" fill="#1a0e06"/><ellipse cx="45" cy="35" rx="2.5" ry="2.8" fill="#1a0e06"/>
+                <circle cx="36" cy="33.8" r="0.9" fill="white"/><circle cx="46" cy="33.8" r="0.9" fill="white"/>
+                <path d="M32 30.5 Q35 29 38 30" stroke="#1a0e06" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+                <path d="M42 30 Q45 29 48 30.5" stroke="#1a0e06" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+                <path d="M38.5 38.5 Q40 40.5 41.5 38.5" stroke="#a06840" stroke-width="1" stroke-linecap="round" fill="none"/>
+                <path d="M36 43.5 Q40 47 44 43.5" stroke="#8b3a2a" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+                <ellipse cx="32.5" cy="40" rx="3.5" ry="2" fill="rgba(180,80,60,0.18)"/>
+                <ellipse cx="47.5" cy="40" rx="3.5" ry="2" fill="rgba(180,80,60,0.18)"/>
+                <circle cx="25.5" cy="40" r="2.5" fill="#D4AF37"/><circle cx="54.5" cy="40" r="2.5" fill="#D4AF37"/>
+                <circle cx="25.5" cy="43" r="1.2" fill="#B8922A"/><circle cx="54.5" cy="43" r="1.2" fill="#B8922A"/>
+              </svg>
+            </div></div></div>
+            <div class="fca">Ritmista</div>
+          </div>
+          <div class="fid"><div class="fn">Maria Morena</div><div class="fa">"Morena"</div><div class="fi">Chocalho</div></div>
+          <div class="fdiv"></div>
+          <div class="fcpf"><div class="fcl">CPF</div><div class="fcv">123.456.789-00</div></div>
+          <div class="fro">
+            <div class="frg"></div>
+            <div class="frc">
+              <div><div class="fml">Membro desde</div><div class="fma">2019</div></div>
+              <div class="flo">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(212,175,55,0.7)" stroke-width="1.5" stroke-linecap="round" style="opacity:0.4">
+                  <circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="faixa"></div>
+      </div>
+      <div class="badge">
+        <div class="bdots">
+          <div class="bdot" style="background:#005BAA;"></div>
+          <div class="bdot" style="background:#CC0000;"></div>
+          <div class="bdot" style="background:#007A3D;"></div>
+          <div class="bdot" style="background:#E8427A;"></div>
+        </div>
+        Cores da sua escola
+      </div>
+    </div>
+
+    <!-- VERSO -->
+    <div class="face-wrap">
+      <div class="face-lbl">Verso</div>
+      <div class="card">
+        <div class="vb">
+          <div class="vh">
+            <div class="vht"><div class="vba">Sua Bateria</div><div class="ves">Sua Escola de Samba</div></div>
+            <div class="vlo">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(212,175,55,0.6)" stroke-width="1.5" stroke-linecap="round" style="opacity:0.4">
+                <circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>
+              </svg>
+            </div>
+          </div>
+          <div class="vc">
+            <div>
+              <div class="vqr">
+                <svg width="74" height="74" viewBox="0 0 74 74">
+                  <rect x="2" y="2" width="21" height="21" rx="3" fill="none" stroke="#12101a" stroke-width="2"/><rect x="7" y="7" width="11" height="11" fill="#12101a"/>
+                  <rect x="40" y="2" width="21" height="21" rx="3" fill="none" stroke="#12101a" stroke-width="2"/><rect x="45" y="7" width="11" height="11" fill="#12101a"/>
+                  <rect x="2" y="40" width="21" height="21" rx="3" fill="none" stroke="#12101a" stroke-width="2"/><rect x="7" y="45" width="11" height="11" fill="#12101a"/>
+                  <rect x="40" y="40" width="7" height="7" fill="#12101a"/><rect x="51" y="40" width="7" height="7" fill="#12101a"/>
+                  <rect x="40" y="51" width="7" height="7" fill="#12101a"/><rect x="51" y="51" width="7" height="7" fill="#12101a"/>
+                  <rect x="31" y="31" width="5" height="5" fill="#12101a"/><rect x="25" y="40" width="5" height="5" fill="#12101a"/><rect x="25" y="51" width="5" height="5" fill="#12101a"/>
+                </svg>
+              </div>
+              <div class="vql">QR de Emergência</div>
+            </div>
+            <div class="vm"><div class="vml">Mestre de Bateria</div><div class="vmn">Mestre da sua bateria</div></div>
+            <div class="vval">
+              <div class="vvi"><div class="vvl">Válida até</div><div class="vvv">31/07/2027</div></div>
+              <div class="vvs"></div>
+              <div class="vvi"><div class="vvl">Temporada</div><div class="vvv">Carnaval 2027</div></div>
+            </div>
+          </div>
+          <div class="vro">
+            <div class="vig">@suabateria</div>
+            <div class="ttl"><span class="ttt">T</span><div class="ttr"></div></div>
+          </div>
+        </div>
+        <div class="faixa"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-cta">
+    <a href="#conversa" class="btn-pri">Quero saber mais</a>
+  </div>
+</section>
+
+<!-- O QUE É — creme -->
+<section class="s-creme reveal">
+  <div class="sw">
+    <div class="ey" style="color:var(--terracota);">O que é o TumTu</div>
+    <h2 class="st" style="color:var(--escuro);">Feito por quem vive<br>dentro da <em style="color:var(--terracota);">bateria</em></h2>
+    <p class="stx" style="color:rgba(18,16,26,0.65);">Sou ritmista, e conheço esse universo por dentro.</p>
+    <p class="stx" style="color:rgba(18,16,26,0.65);">O TumTu nasceu da ideia simples de dar ao ritmista uma carteirinha digital — com a cara da escola, no celular, sempre disponível.</p>
+    <p class="stx" style="color:rgba(18,16,26,0.65);">No mundo do samba, carteirinha é identidade. Ela diz quem você é e de onde você vem — e abre portas. Inclusive as da portaria.</p>
+    <div class="btn-sec-wrap">
+      <a href="https://wa.me/5521997070101?text=Oi%20M%C3%A1rcia!%20Vi%20o%20TumTu%20e%20quero%20saber%20mais." class="btn-wpp-small">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Já quero conversar
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES — escuro -->
+<section class="s-features reveal">
+  <div class="features-inner">
+    <div class="ey" style="color:var(--dourado);text-align:center;">O que o ritmista ganha</div>
+    <h2 class="st" style="color:#fff;text-align:center;">Simples assim</h2>
+    <div class="feat-grid">
+      <div class="feat"><div class="feat-ic">📱</div><div><div class="feat-t">No celular, sempre</div><div class="feat-x">Sem plástico, sem gráfica. A carteirinha está sempre no bolso, pronta pra usar.</div></div></div>
+      <div class="feat"><div class="feat-ic">🎨</div><div><div class="feat-t">Com as cores da sua escola</div><div class="feat-x">Cada bateria tem sua própria identidade visual. Azul, vermelho, verde, rosa — as cores são da sua escola.</div></div></div>
+      <div class="feat"><div class="feat-ic">📛</div><div><div class="feat-t">Identificação completa</div><div class="feat-x">Nome, apelido, instrumento, CPF, QR code e contato de emergência — tudo no mesmo lugar.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FUTURO — dourado -->
+<section class="s-futuro reveal">
+  <div class="futuro-inner">
+    <div class="ey" style="color:rgba(18,16,26,0.45);text-align:center;">E isso é só o começo</div>
+    <div class="futuro-icon">🥁</div>
+    <h3 class="futuro-t">A carteirinha é a porta de entrada</h3>
+    <p class="futuro-x">Aos poucos, o TumTu vai crescer junto com a bateria — controle de entrega de camisas e fantasias, vagas por naipe, vitrine de artigos, gestão dos alunos das oficinas de percussão.</p>
+    <p class="futuro-sub">Mas antes de construir, quero ouvir. Cada bateria tem sua própria história.</p>
+  </div>
+</section>
+
+<!-- CTA — creme -->
+<section class="s-cta reveal" id="conversa">
+  <div class="cta-inner">
+    <h2 class="cta-t">Quer que sua bateria<br>seja <em>uma das primeiras?</em></h2>
+    <p class="cta-x">Não precisa de contrato nem de compromisso agora.<br>Me manda uma mensagem e a gente conversa.</p>
+    <a href="https://wa.me/5521997070101?text=Oi%20M%C3%A1rcia!%20Vi%20o%20TumTu%20e%20quero%20saber%20mais." class="btn-wpp">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Falar com a Márcia
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="simbolo-marca"><div class="big"></div><div class="small"></div></div>
+  <div class="logo-nome"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
+  <div class="footer-sub">Carteirinha digital para baterias de escola de samba</div>
+</footer>
+
+<script>
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
