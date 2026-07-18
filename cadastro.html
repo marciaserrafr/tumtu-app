@@ -38,6 +38,17 @@
         .progresso-segmento.feito { background: #D4AF37; }
         .form-step { display: none; }
         .form-step.ativo { display: block; }
+        /* Campos que aparecem/somem conforme a pessoa preenche (nacionalidade
+           estrangeira, "como se identifica", documento sem CPF, "outro"
+           estado) empurravam todo o resto do formulário de forma abrupta —
+           sensação de formulário "sambando" (pedido da Márcia, 17/jul/2026).
+           Transição suave no lugar de display:none/block resolve sem mudar
+           layout nenhum quando o campo está fechado (ocupa altura zero). */
+        .campo-revelavel {
+            overflow: hidden; max-height: 0; opacity: 0;
+            transition: max-height 0.25s ease, opacity 0.2s ease;
+        }
+        .campo-revelavel.aberto { max-height: 240px; opacity: 1; margin-top: 8px; }
         body.pessoa-existente .oculto-pessoa-existente { display: none !important; }
         .form-step-nav {
             display: flex; justify-content: space-between; gap: 10px; margin-top: 24px;
@@ -155,7 +166,7 @@
                 <input type="checkbox" id="sem_cpf" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="toggleSemCpf()">
                 <label for="sem_cpf" style="margin:0;font-size:12px;color:var(--cor-texto-secundario);cursor:pointer;font-weight:500;">Não tenho CPF</label>
             </div>
-            <div id="bloco-documento" style="display:none; margin-top:10px;">
+            <div id="bloco-documento" class="campo-revelavel">
                 <div class="auth-form-group" style="margin-bottom:10px;">
                     <label>Tipo de documento</label>
                     <select id="tipo_documento">
@@ -189,7 +200,7 @@
                     <option value="Brasileira">Brasileira</option>
                     <option value="Estrangeira">Estrangeira</option>
                 </select>
-                <select id="nacionalidade" style="display:none; margin-top:8px;">
+                <select id="nacionalidade" class="campo-revelavel">
                     <option value="">Selecione</option>
                     <option value="Portuguesa">Portuguesa</option>
                     <option value="Angolana">Angolana</option>
@@ -262,7 +273,7 @@
                     <option value="personalizado">Prefiro me identificar como...</option>
                     <option value="nao_informado">Prefiro não informar</option>
                 </select>
-                <input type="text" id="genero_personalizado" placeholder="Como você se identifica" style="display:none; margin-top:8px;">
+                <input type="text" id="genero_personalizado" placeholder="Como você se identifica" class="campo-revelavel">
             </div>
         </div>
         <div class="form-step-nav">
@@ -347,7 +358,7 @@
                     <option>SP</option><option>SE</option><option>TO</option>
                     <option value="Outro">Outro</option>
                 </select>
-                <input type="text" id="estado_outro" placeholder="Digite o estado/província" style="display:none; margin-top:8px;">
+                <input type="text" id="estado_outro" placeholder="Digite o estado/província" class="campo-revelavel">
             </div>
         </div>
         <div class="auth-form-group">
@@ -587,10 +598,10 @@
         const select = document.getElementById(campo);
         const outro = document.getElementById(campo + '_outro');
         if (select.value === 'Outro') {
-            outro.style.display = 'block';
+            outro.classList.add('aberto');
             outro.required = true;
         } else {
-            outro.style.display = 'none';
+            outro.classList.remove('aberto');
             outro.required = false;
             outro.value = '';
         }
@@ -622,7 +633,7 @@
     function toggleNacionalidade() {
         const tipo = document.getElementById('nacionalidade_tipo').value;
         const input = document.getElementById('nacionalidade');
-        input.style.display = tipo === 'Estrangeira' ? 'block' : 'none';
+        input.classList.toggle('aberto', tipo === 'Estrangeira');
         input.required = tipo === 'Estrangeira';
         if (tipo === 'Brasileira') input.value = '';
     }
@@ -630,7 +641,7 @@
     function toggleGeneroPersonalizado() {
         const genero = document.getElementById('genero').value;
         const input = document.getElementById('genero_personalizado');
-        input.style.display = genero === 'personalizado' ? 'block' : 'none';
+        input.classList.toggle('aberto', genero === 'personalizado');
         if (genero !== 'personalizado') input.value = '';
     }
 
