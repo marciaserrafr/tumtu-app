@@ -1260,7 +1260,10 @@
         if (info.existe_email) {
             const { data: authData, error: authError } = await sb.auth.signInWithPassword({ email, password: senha });
             if (authError || !authData.user) {
-                mostrarMensagem('Esse e-mail já tem cadastro no TumTu. Se não lembra a senha, clique em "Esqueci minha senha" no login.', 'erro');
+                const mensagemErro = pessoaExistente
+                    ? 'Senha incorreta. Se não lembra, clique em "Esqueci minha senha" no login.'
+                    : 'Esse e-mail já tem cadastro no TumTu. Se não lembra a senha, clique em "Esqueci minha senha" no login.';
+                mostrarMensagem(mensagemErro, 'erro');
                 if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
                 return;
             }
