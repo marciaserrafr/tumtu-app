@@ -1237,11 +1237,17 @@
         // tem conta no TumTu — se tiver, entra na conta existente e só cria o vínculo
         // novo com esta bateria, em vez de tentar criar uma conta duplicada (o que
         // sempre falhava quando a pessoa já tocava em outra bateria).
-        const { data: checagem, error: erroChecagem } = await sb.rpc('verificar_pessoa_existente', { p_email: email, p_cpf: cpf || '' });
-        const info = checagem && checagem[0] ? checagem[0] : { existe_email: false, existe_cpf: false, cpf_bate_email: false };
+        const { data: checagem, error: erroChecagem } = await sb.rpc('verificar_pessoa_existente', { p_email: email, p_cpf: cpf || '', p_numero_documento: dados.numero_documento || '' });
+        const info = checagem && checagem[0] ? checagem[0] : { existe_email: false, existe_cpf: false, cpf_bate_email: false, existe_documento: false, documento_bate_email: false };
 
         if (info.existe_cpf && !info.cpf_bate_email) {
             mostrarMensagem('Esse CPF já tem cadastro no TumTu com outro e-mail. Use o e-mail original ou clique em "Esqueci minha senha" no login.', 'erro');
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            return;
+        }
+
+        if (info.existe_documento && !info.documento_bate_email) {
+            mostrarMensagem('Esse documento já tem cadastro no TumTu com outro e-mail. Use o e-mail original ou clique em "Esqueci minha senha" no login.', 'erro');
             if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
             return;
         }
