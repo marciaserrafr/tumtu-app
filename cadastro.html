@@ -122,7 +122,10 @@
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
-        .form-row.uma-coluna { grid-template-columns: 1fr; }
+        /* gap:0 — cada .auth-form-group já tem margin-bottom próprio (components.css);
+           sem isso o gap da grade soma com essa margem e fica maior que o
+           espaçamento padrão entre seções do formulário. */
+        .form-row.uma-coluna { grid-template-columns: 1fr; gap: 0; }
         .btn-cadastrar { width: 100%; margin-top: 8px; font-size: 16px; }
     </style>
 </head>
@@ -200,7 +203,7 @@
                 </div>
             </div>
         </div>
-        <div class="form-row oculto-pessoa-existente">
+        <div class="form-row uma-coluna oculto-pessoa-existente">
             <div class="auth-form-group">
                 <label>Apelido</label>
                 <input type="text" id="apelido" placeholder="Como você é conhecido na bateria">
