@@ -80,7 +80,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=7');
+        const res = await fetch('ficha-perfil.partial.html?v=9');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -459,4 +459,21 @@ async function fpAlterarSenha() {
         fpEl('fp-senha-confirmar').value = '';
     }
     mensagem.style.display = 'block';
+}
+
+// E-mail de suporte (config-suporte.js) ainda não preenchido pela Márcia
+// em produção — enquanto estiver vazio, avisa em vez de abrir um link quebrado.
+function fpAbrirSuporte() {
+    const link = typeof linkSuporteEmail === 'function' ? linkSuporteEmail('Ajuda com o TumTu') : null;
+    if (link) {
+        window.location.href = link;
+    } else {
+        const mensagem = fpEl('fp-mensagem');
+        if (mensagem) {
+            mensagem.className = 'fp-mensagem aviso';
+            mensagem.textContent = 'O suporte ainda está sendo configurado — volte em breve.';
+            mensagem.style.display = 'block';
+        }
+    }
+    return false;
 }

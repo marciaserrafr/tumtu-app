@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=7">
     <script src="config-escola.js?v=1"></script>
+    <script src="config-suporte.js?v=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -38,6 +39,19 @@
         .progresso-segmento.feito { background: #D4AF37; }
         .form-step { display: none; }
         .form-step.ativo { display: block; }
+        /* Link de suporte fica visualmente quieto — não deve competir com
+           "Entrar"/"Cadastre-se", que são as ações comuns de verdade
+           (revisão de UX pedida pela Márcia, 18/jul/2026). */
+        .link-suporte-discreto {
+            color: #726d8c !important;
+            font-weight: 500 !important;
+            font-size: 12px !important;
+            text-decoration: none !important;
+        }
+        .link-suporte-discreto:hover, .link-suporte-discreto:focus-visible {
+            color: #a39fc0 !important;
+            text-decoration: underline !important;
+        }
         /* Campos que aparecem/somem conforme a pessoa preenche (nacionalidade
            estrangeira, "como se identifica", documento sem CPF, "outro"
            estado) empurravam todo o resto do formulário de forma abrupta —
@@ -549,12 +563,27 @@
             </div>
         </div>
 
+        <p style="font-size:12px; color:var(--cor-texto-secundario); line-height:1.6; margin:14px 2px 0;">
+            Seus dados serão usados para emissão da sua carteirinha digital e para a gestão da bateria.
+        </p>
+
+        <div id="bloco-politica-privacidade" style="margin-top:8px; margin-bottom:6px; background:#fff8e6; border:1.5px solid #D4AF37; border-radius:10px; padding:12px 14px;">
+            <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; font-weight:500; color:#5a5770; cursor:pointer; margin:0;">
+                <input type="checkbox" id="politica_aceita" style="margin-top:2px; width:15px; height:15px; accent-color:#D4AF37; cursor:pointer; flex-shrink:0;" required>
+                <span>Li e concordo com a <a href="politica-privacidade.html" target="_blank" style="color:#12101a; font-weight:700;">Política de Privacidade</a>.</span>
+            </label>
+        </div>
+
         <div id="bloco-consentimento" style="display:none; margin-top:6px; margin-bottom:14px; background:#fff8e6; border:1.5px solid #D4AF37; border-radius:10px; padding:12px 14px;">
             <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; font-weight:500; color:#5a5770; cursor:pointer;">
                 <input type="checkbox" id="consentimento_confirmado" style="margin-top:2px; width:15px; height:15px; accent-color:#D4AF37; cursor:pointer;">
                 Confirmo que a pessoa cadastrada está ciente deste cadastro e autorizou seus dados serem inseridos no TumTu.
             </label>
         </div>
+
+        <p style="font-size:11.5px; color:var(--cor-texto-secundario); text-align:center; margin-top:16px; margin-bottom:0;">
+            Não vendemos nem compartilhamos seus dados com ninguém.
+        </p>
 
         <div class="form-step-nav">
             <button type="button" class="btn-voltar-etapa" onclick="voltarEtapa(6)">Voltar</button>
@@ -566,6 +595,10 @@
 
     <div class="link-login">
         Já tem cadastro? <a href="login.html">Entrar</a>
+    </div>
+
+    <div class="link-login" style="margin-top:2px;">
+        <a href="#" class="link-suporte-discreto" onclick="return abrirSuporteCadastro()">Precisa de ajuda? Fale com o suporte</a>
     </div>
 </div>
 
@@ -762,6 +795,18 @@
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
+    // Número de suporte (config-suporte.js) ainda não preenchido pela Márcia
+    // em produção — enquanto estiver vazio, avisa em vez de abrir link quebrado.
+    function abrirSuporteCadastro() {
+        const link = typeof linkSuporteEmail === 'function' ? linkSuporteEmail('Dúvida sobre meu cadastro no TumTu') : null;
+        if (link) {
+            window.location.href = link;
+        } else {
+            mostrarMensagem('O suporte ainda está sendo configurado — volte em breve.', 'aviso');
+        }
+        return false;
+    }
+
     // ── OPÇÕES DE INSTRUMENTO (dinâmicas, dependem da bateria) ──────────────
     async function carregarOpcoesInstrumento(bateriaId) {
         const select = document.getElementById('instrumento');
@@ -933,6 +978,10 @@
         document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
         document.getElementById('convite-banner').style.display = 'block';
         document.getElementById('bloco-consentimento').style.display = 'block';
+        // Modo manual: quem confirma ciência é o admin (bloco-consentimento
+        // acima), não a própria pessoa — esconde o checkbox de "li e concordo",
+        // que não se aplica quando é outra pessoa preenchendo o formulário.
+        document.getElementById('bloco-politica-privacidade').style.display = 'none';
     }
 
     function mostrarErroCampo(campo, mensagem) {
@@ -1067,6 +1116,17 @@
         if (!pessoaExistente && senha !== confirmar) {
             mostrarErroCampo(document.getElementById('confirmar_senha'), 'As senhas não coincidem.');
             document.getElementById('confirmar_senha').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        // Checkbox HTML "required" não funciona aqui (form tem novalidate, e o
+        // checkbox nem seria pego certo pela validação genérica de texto) —
+        // checagem explícita, mesmo padrão já usado pro consentimento manual.
+        // Não se aplica no modo manual (bloco fica escondido — quem confirma
+        // ali é o admin, via bloco-consentimento).
+        if (!modoManualAtual && !document.getElementById('politica_aceita').checked) {
+            mostrarMensagem('Confirme que você leu e concorda com a Política de Privacidade antes de enviar.', 'erro');
+            document.getElementById('politica_aceita').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
             return;
         }
 
@@ -1231,6 +1291,7 @@
             membro_desde: dados.membro_desde,
             tamanho_camisa: dados.tamanho_camisa, tamanho_fantasia: dados.tamanho_fantasia,
             tamanho_calca: dados.tamanho_calca, tamanho_sapato: dados.tamanho_sapato,
+            politica_privacidade_aceita_em: new Date().toISOString(),
         };
         const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos`, {
             method: 'POST',

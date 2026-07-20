@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=7">
     <script src="config-escola.js?v=1" defer></script>
+    <script src="config-suporte.js?v=1" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,6 +24,19 @@
         button { font-family: inherit; }
         body.tela-auth-escura .auth-container { max-width: 380px; }
         .btn-entrar { width: 100%; margin-top: 8px; font-size: 16px; }
+        /* Link de suporte fica visualmente quieto — não deve competir com
+           "Esqueci minha senha"/"Cadastre-se", que são as ações comuns de
+           verdade (revisão de UX pedida pela Márcia, 18/jul/2026). */
+        .link-suporte-discreto {
+            color: #726d8c !important;
+            font-weight: 500 !important;
+            font-size: 12px !important;
+            text-decoration: none !important;
+        }
+        .link-suporte-discreto:hover, .link-suporte-discreto:focus-visible {
+            color: #a39fc0 !important;
+            text-decoration: underline !important;
+        }
         /* Spinner sozinho, maior, sem logo nem texto — pedido da Márcia em
            17/jul/2026, inspirado no padrão Disney+/Netflix (símbolo universal
            de espera, não precisa de mais nada junto). Container próprio fora
@@ -89,6 +103,10 @@
 
     <div class="link-cadastro">
         Ainda não tem cadastro? <a href="cadastro.html">Cadastre-se</a>
+    </div>
+
+    <div class="link-cadastro" style="margin-top:2px;">
+        <a href="#" class="link-suporte-discreto" onclick="return abrirSuporteLogin()">Precisa de ajuda? Fale com o suporte</a>
     </div>
 </div>
 
@@ -375,6 +393,18 @@
         el.textContent = texto;
         el.className = `mensagem ${tipo}`;
         el.style.display = 'block';
+    }
+
+    // Número de suporte (config-suporte.js) ainda não preenchido pela Márcia
+    // em produção — enquanto estiver vazio, avisa em vez de abrir link quebrado.
+    function abrirSuporteLogin() {
+        const link = typeof linkSuporteEmail === 'function' ? linkSuporteEmail('Ajuda com o TumTu') : null;
+        if (link) {
+            window.location.href = link;
+        } else {
+            mostrarMensagem('O suporte ainda está sendo configurado — volte em breve.', 'aviso');
+        }
+        return false;
     }
 
     async function continuarComVinculo(vinculo) {
