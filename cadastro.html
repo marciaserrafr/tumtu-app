@@ -619,9 +619,22 @@
     // de tocar, obrigando a rolar manualmente pra ver o que está digitando
     // (reportado pela Márcia em 16/jul/2026). O atraso dá tempo do teclado
     // abrir e a tela redimensionar antes de calcular a posição certa.
+    //
+    // Corrigido em 20/jul/2026: antes rolava sempre, mesmo no computador
+    // (sem teclado virtual nenhum cobrindo nada) — cada clique ou Tab entre
+    // campos fazia a tela "sambar" pra cima e pra baixo sem necessidade. Só
+    // rola de verdade quando o campo está perto da borda de baixo (onde um
+    // teclado de celular cobriria) ou fora da tela — no desktop, isso quase
+    // nunca acontece, então a rolagem só entra quando realmente precisa.
     document.addEventListener('focusin', (e) => {
         if (e.target.matches('input, select, textarea')) {
-            setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+            setTimeout(() => {
+                const retangulo = e.target.getBoundingClientRect();
+                const precisaRolar = retangulo.bottom > window.innerHeight * 0.6 || retangulo.top < 0;
+                if (precisaRolar) {
+                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
         }
     });
 

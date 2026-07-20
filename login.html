@@ -370,10 +370,19 @@
     }
 
     // Ao focar um campo, rola até ele ficar confortavelmente visível — evita
-    // o teclado do celular cobrir o campo recém-tocado (16/jul/2026).
+    // o teclado do celular cobrir o campo recém-tocado (16/jul/2026). Corrigido
+    // em 20/jul/2026: só rola quando o campo está perto da borda de baixo ou
+    // fora da tela — no desktop (sem teclado virtual) isso quase nunca
+    // acontece, então parou de "sambar" a cada clique/Tab.
     document.addEventListener('focusin', (e) => {
         if (e.target.matches('input, select, textarea')) {
-            setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+            setTimeout(() => {
+                const retangulo = e.target.getBoundingClientRect();
+                const precisaRolar = retangulo.bottom > window.innerHeight * 0.6 || retangulo.top < 0;
+                if (precisaRolar) {
+                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
         }
     });
 
