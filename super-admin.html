@@ -326,6 +326,7 @@
     <button type="button" class="aba" onclick="trocarAbaPrincipal('escolas',this)">Escolas</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('configuracoes',this)">Configurações</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('historico',this)">Histórico</button>
+    <button type="button" class="aba" onclick="trocarAbaPrincipal('privacidade',this)">Privacidade</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('meu-perfil',this)">Meu Perfil</button>
 </div>
 
@@ -355,6 +356,35 @@
         <button class="btn-novo" onclick="abrirNovaEscola()">+ Nova Escola</button>
         <div id="lista-escolas" class="lista-cards">
             <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
+        </div>
+    </div>
+
+    <!-- ════ PAINEL: PRIVACIDADE (exclusão de dados, LGPD) ════ -->
+    <div class="painel" id="painel-privacidade" style="display:none">
+        <div class="painel-titulo">Privacidade</div>
+        <div class="painel-sub">Exclusão de dados sob pedido (LGPD) — ações sem volta, com prova registrada abaixo.</div>
+
+        <div class="painel-secao-titulo" style="font-weight:700;margin:20px 0 8px;">Excluir dados de uma pessoa</div>
+        <div class="painel-sub" style="margin-bottom:10px;">Busca por nome, CPF ou e-mail — encontra até quem não tem vínculo com nenhuma bateria hoje.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input type="text" id="priv-busca-pessoa" placeholder="Nome, CPF ou e-mail..." style="flex:1;min-width:220px;padding:10px 14px;border-radius:8px;border:1px solid var(--cor-borda,#ddd);font-family:inherit;font-size:14px;" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarPessoaExclusao();}">
+            <button class="btn-novo" style="margin:0;" onclick="buscarPessoaExclusao()">Buscar</button>
+        </div>
+        <div id="priv-resultado-pessoa" style="margin-top:12px;"></div>
+
+        <div class="painel-secao-titulo" style="font-weight:700;margin:32px 0 8px;">Excluir uma escola inteira</div>
+        <div class="painel-sub" style="margin-bottom:10px;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select id="priv-select-escola" style="flex:1;min-width:220px;padding:10px 14px;border-radius:8px;border:1px solid var(--cor-borda,#ddd);font-family:inherit;font-size:14px;">
+                <option value="">Selecione a escola...</option>
+            </select>
+            <button class="btn-ficha btn-ficha-danger" style="margin:0;" onclick="prepararExclusaoEscola()">Excluir escola</button>
+        </div>
+
+        <div class="painel-secao-titulo" style="font-weight:700;margin:32px 0 8px;">Histórico de exclusões (prova)</div>
+        <div class="painel-sub" style="margin-bottom:10px;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
+        <div id="priv-lista-log">
+            <div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Carregando...</div>
         </div>
     </div>
 
@@ -494,6 +524,35 @@
 
 </div>
 
+<!-- MODAL CONFIRMAR EXCLUSÃO (LGPD) — reaproveitado pra pessoa e escola -->
+<div class="modal-overlay" id="modal-excluir-lgpd-overlay" onclick="fecharSeForaModal(event,'modal-excluir-lgpd-overlay','fecharConfirmacaoExclusao')">
+    <div class="modal-sa" style="max-width:440px;">
+        <div class="modal-sa-header">
+            <div class="modal-sa-titulo" id="excluir-lgpd-titulo">Excluir dados</div>
+            <button class="modal-sa-fechar" onclick="fecharConfirmacaoExclusao()">✕</button>
+        </div>
+        <div class="modal-sa-body">
+            <p id="excluir-lgpd-descricao" style="font-size:14px;color:#5a5770;margin-bottom:14px;"></p>
+            <div class="campo" style="margin-bottom:10px;">
+                <label>Motivo (opcional)</label>
+                <input type="text" id="excluir-lgpd-motivo" placeholder="Ex: pedido da própria pessoa">
+            </div>
+            <div class="campo" style="margin-bottom:10px;">
+                <label>Quem pediu (opcional)</label>
+                <input type="text" id="excluir-lgpd-solicitante" placeholder="Ex: a própria pessoa, por e-mail">
+            </div>
+            <div class="campo">
+                <label>Pra confirmar, digite <strong>EXCLUIR</strong> abaixo</label>
+                <input type="text" id="excluir-lgpd-confirmacao" placeholder="EXCLUIR" oninput="onDigitarConfirmacaoExclusao()" style="text-transform:uppercase;">
+            </div>
+        </div>
+        <div class="modal-sa-rodape">
+            <button class="btn-ficha" onclick="fecharConfirmacaoExclusao()">Cancelar</button>
+            <button class="btn-ficha btn-ficha-danger" id="excluir-lgpd-btn-confirmar" disabled onclick="executarExclusaoConfirmada()">Excluir de vez</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL ACESSO -->
 <div class="modal-overlay" id="modal-acesso-overlay" onclick="fecharSeForaModal(event,'modal-acesso-overlay','fecharFormAcesso')">
     <div class="modal-sa">
@@ -591,7 +650,7 @@
         window.scrollTo(0, 0);
         document.querySelectorAll('#nav-principal .aba').forEach(x => x.classList.remove('ativa'));
         if (el) el.classList.add('ativa');
-        ['dashboard','escolas','escola-contexto','nova-escola','meu-perfil','configuracoes','historico'].forEach(p => {
+        ['dashboard','escolas','escola-contexto','nova-escola','meu-perfil','configuracoes','historico','privacidade'].forEach(p => {
             const painel = document.getElementById('painel-' + p);
             if (painel) { painel.classList.remove('ativo'); painel.style.display = 'none'; }
         });
@@ -601,6 +660,7 @@
         if (aba === 'configuracoes') voltarConfigListaSA();
         if (aba === 'dashboard') carregarDashboard();
         if (aba === 'historico') carregarHistorico();
+        if (aba === 'privacidade') carregarPrivacidade();
     }
 
     // ── HISTÓRICO (log de aprovação/rejeição/mudança de status) ────────
@@ -641,6 +701,162 @@
                         · ${esc(ev.bateria?.nome || '—')}
                         · ${histDataHora(ev.criado_em)}
                         ${ev.motivo ? ` · "${esc(ev.motivo)}"` : ''}
+                    </div>
+                </div>
+            </div>`).join('');
+    }
+
+    // ── PRIVACIDADE (exclusão de dados sob pedido — LGPD) ───────────────
+    let exclusaoLgpdPendente = null; // { tipo: 'pessoa'|'escola', id, nome }
+
+    function carregarPrivacidade() {
+        const select = document.getElementById('priv-select-escola');
+        select.innerHTML = '<option value="">Selecione a escola...</option>'
+            + escolasCache.map(e => `<option value="${e.id}">${esc(e.nome)}</option>`).join('');
+        document.getElementById('priv-resultado-pessoa').innerHTML = '';
+        document.getElementById('priv-busca-pessoa').value = '';
+        carregarLogExclusoes();
+    }
+
+    // Busca em "pessoas" direto (não na view de sempre) — de propósito,
+    // pra achar até quem não tem vínculo com nenhuma bateria hoje (ex:
+    // ficha órfã de uma escola já excluída). Só funciona pra Super Admin,
+    // que já enxerga todo mundo via RLS.
+    async function buscarPessoaExclusao() {
+        const termo = document.getElementById('priv-busca-pessoa').value.trim();
+        const container = document.getElementById('priv-resultado-pessoa');
+        if (!termo) { container.innerHTML = ''; return; }
+        container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔎</div>Buscando...</div>';
+
+        const filtro = `or=(nome.ilike.*${encodeURIComponent(termo)}*,cpf.ilike.*${encodeURIComponent(termo)}*,email.ilike.*${encodeURIComponent(termo)}*)`;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/pessoas?${filtro}&select=id,nome,cpf,email,super_admin&order=nome&limit=20`, { headers });
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio">Não foi possível buscar.</div>'; return; }
+        const lista = await res.json();
+
+        if (!lista.length) {
+            container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse termo.</div>';
+            return;
+        }
+
+        container.innerHTML = lista.map(p => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(p.nome)}</div>
+                    <div class="item-detalhe" style="margin-top:5px">CPF ${esc(p.cpf) || '—'} · ${esc(p.email) || '—'}</div>
+                </div>
+                <div class="item-acoes">
+                    ${p.super_admin
+                        ? '<span style="font-size:12px;color:var(--cor-texto-muted)">Super Admin — protegida</span>'
+                        : `<button class="btn-ficha btn-ficha-danger" onclick='abrirConfirmacaoExclusaoPessoa(${p.id}, ${JSON.stringify(p.nome)})'>Excluir</button>`}
+                </div>
+            </div>`).join('');
+    }
+
+    function abrirConfirmacaoExclusaoPessoa(id, nome) {
+        exclusaoLgpdPendente = { tipo: 'pessoa', id, nome };
+        document.getElementById('excluir-lgpd-titulo').textContent = 'Excluir dados de ' + nome;
+        document.getElementById('excluir-lgpd-descricao').textContent =
+            'Isso apaga a ficha pessoal e a conta de login de ' + nome + ' por completo, de todas as baterias. Não tem volta.';
+        abrirModalExclusaoLgpd();
+    }
+
+    function prepararExclusaoEscola() {
+        const select = document.getElementById('priv-select-escola');
+        const id = select.value;
+        if (!id) { mostrarToast('Selecione uma escola primeiro.', 'erro'); return; }
+        const nome = select.options[select.selectedIndex].textContent;
+        exclusaoLgpdPendente = { tipo: 'escola', id: Number(id), nome };
+        document.getElementById('excluir-lgpd-titulo').textContent = 'Excluir a escola ' + nome;
+        document.getElementById('excluir-lgpd-descricao').textContent =
+            'Isso apaga a escola, todas as baterias dela e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas. Não tem volta.';
+        abrirModalExclusaoLgpd();
+    }
+
+    function abrirModalExclusaoLgpd() {
+        document.getElementById('excluir-lgpd-motivo').value = '';
+        document.getElementById('excluir-lgpd-solicitante').value = '';
+        document.getElementById('excluir-lgpd-confirmacao').value = '';
+        document.getElementById('excluir-lgpd-btn-confirmar').disabled = true;
+        document.getElementById('modal-excluir-lgpd-overlay').classList.add('aberto');
+    }
+
+    function fecharConfirmacaoExclusao() {
+        exclusaoLgpdPendente = null;
+        document.getElementById('modal-excluir-lgpd-overlay').classList.remove('aberto');
+    }
+
+    function onDigitarConfirmacaoExclusao() {
+        const valor = document.getElementById('excluir-lgpd-confirmacao').value.trim().toUpperCase();
+        document.getElementById('excluir-lgpd-btn-confirmar').disabled = valor !== 'EXCLUIR';
+    }
+
+    async function executarExclusaoConfirmada() {
+        if (!exclusaoLgpdPendente) return;
+        const btn = document.getElementById('excluir-lgpd-btn-confirmar');
+        btn.disabled = true;
+        btn.textContent = 'Excluindo...';
+
+        const motivo = document.getElementById('excluir-lgpd-motivo').value.trim() || null;
+        const solicitado_por = document.getElementById('excluir-lgpd-solicitante').value.trim() || null;
+        const funcao = exclusaoLgpdPendente.tipo === 'pessoa' ? 'admin-excluir-pessoa' : 'admin-excluir-escola';
+        const payload = exclusaoLgpdPendente.tipo === 'pessoa'
+            ? { pessoa_id: exclusaoLgpdPendente.id, motivo, solicitado_por }
+            : { escola_id: exclusaoLgpdPendente.id, motivo, solicitado_por };
+
+        try {
+            const res = await fetch(`${SUPABASE_URL}/functions/v1/${funcao}`, {
+                method: 'POST',
+                headers: { ...headers, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            const resultado = await res.json();
+            if (!res.ok || !resultado.ok) {
+                mostrarToast('Erro: ' + (resultado.error || 'não foi possível excluir.'), 'erro');
+                btn.disabled = false;
+                btn.textContent = 'Excluir de vez';
+                return;
+            }
+            mostrarToast(resultado.aviso || 'Excluído com sucesso.');
+            fecharConfirmacaoExclusao();
+            if (exclusaoLgpdPendente?.tipo === 'pessoa' || funcao === 'admin-excluir-pessoa') {
+                document.getElementById('priv-resultado-pessoa').innerHTML = '';
+                document.getElementById('priv-busca-pessoa').value = '';
+            } else {
+                await carregarEscolas();
+                carregarPrivacidade();
+            }
+            carregarLogExclusoes();
+        } catch (e) {
+            mostrarToast('Erro de conexão ao excluir.', 'erro');
+            btn.disabled = false;
+            btn.textContent = 'Excluir de vez';
+        }
+    }
+
+    async function carregarLogExclusoes() {
+        const container = document.getElementById('priv-lista-log');
+        const url = `${SUPABASE_URL}/rest/v1/exclusoes_lgpd?select=*,decisor:decidido_por(nome)&order=criado_em.desc&limit=100`;
+        const res = await fetch(url, { headers });
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio">Não foi possível carregar o histórico de exclusões.</div>'; return; }
+        const lista = await res.json();
+
+        if (!lista.length) {
+            container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Nenhuma exclusão registrada ainda.</div>';
+            return;
+        }
+
+        container.innerHTML = lista.map(ex => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(ex.alvo_nome)}
+                        <span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · ${ex.tipo === 'pessoa' ? 'Pessoa' : 'Escola'}</span>
+                    </div>
+                    <div class="item-detalhe" style="margin-top:5px">
+                        ${esc(ex.resumo)}
+                        · autorizado por ${esc(ex.decisor?.nome || '—')}
+                        · ${histDataHora(ex.criado_em)}
+                        ${ex.solicitado_por ? ` · pedido por ${esc(ex.solicitado_por)}` : ''}
+                        ${ex.motivo ? ` · "${esc(ex.motivo)}"` : ''}
                     </div>
                 </div>
             </div>`).join('');
