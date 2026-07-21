@@ -14,7 +14,7 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=7">
+    <link rel="stylesheet" href="styles/components.css?v=8">
     <script src="config-escola.js?v=1"></script>
     <script src="config-suporte.js?v=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1188,7 +1188,10 @@
         if (linkFixoAtual) {
             dados.perfil = linkFixoAtual.perfil;
             dados.bateria_id = linkFixoAtual.bateriaId;
-            if (linkFixoAtual.perfil !== 'ritmista') dados.nivel_acesso = 'total';
+            if (linkFixoAtual.perfil !== 'ritmista') {
+                const { data: nivelTotalId } = await sb.rpc('nivel_acesso_total_da_bateria', { p_bateria_id: linkFixoAtual.bateriaId });
+                dados.nivel_acesso_id = nivelTotalId || null;
+            }
         }
 
         // Cadastro só existe vinculado a uma escola/bateria (link fixo ou modo manual) —
@@ -1314,7 +1317,7 @@
             bateria_id: dados.bateria_id,
             perfil: dados.perfil,
             status: 'pendente',
-            nivel_acesso: dados.nivel_acesso || null,
+            nivel_acesso_id: dados.nivel_acesso_id || null,
             bateria_instrumento_id: dados.bateria_instrumento_id,
             membro_desde: dados.membro_desde,
             tamanho_camisa: dados.tamanho_camisa, tamanho_fantasia: dados.tamanho_fantasia,

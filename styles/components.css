@@ -192,9 +192,18 @@
     background: transparent; border-radius: 0; padding: 0;
     width: 100%; max-width: 480px; box-shadow: none;
 }
-.ficha-modal-titulo { font-size: 18px; font-weight: 800; color: #f7f6fb; margin-bottom: 4px; }
-.ficha-modal-sub { font-size: 13px; color: #a39fc0; margin-bottom: 16px; }
-.ficha-modal-acoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 16px; }
+/* Base (fundo claro — admin.html/super-admin.html): texto escuro legível.
+   Só dentro de .ficha-modal-overlay (fundo escuro, carteirinha.html) esses
+   3 elementos viram claros — ver regras logo abaixo. Bug real encontrado
+   20/jul/2026: as cores estavam declaradas sempre claras, sem esse escopo,
+   deixando título/subtítulo da ficha invisíveis (texto quase branco em
+   cima de fundo branco) em qualquer ficha aberta fora do carteirinha.html. */
+.ficha-modal-titulo { font-size: 18px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 4px; }
+.ficha-modal-sub { font-size: 13px; color: var(--cor-texto-secundario); margin-bottom: 16px; }
+.ficha-modal-acoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 20px; border-top: 1px solid var(--cor-borda); padding-top: 16px; }
+.ficha-modal-overlay .ficha-modal-titulo { color: #f7f6fb; }
+.ficha-modal-overlay .ficha-modal-sub { color: #a39fc0; }
+.ficha-modal-overlay .ficha-modal-acoes { border-top-color: rgba(255,255,255,0.12); }
 
 /* Cartões por seção + marcação de cor alternando dourado/terracota clara (as
    duas cores de destaque da marca) — resolve o visual "seco"/monocromático

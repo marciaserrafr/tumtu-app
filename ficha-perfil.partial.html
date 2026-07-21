@@ -169,8 +169,20 @@
 <div class="ficha-secao" id="fp-secao-senha" style="display:none;">
     <div class="ficha-secao-titulo">Alterar senha</div>
     <div class="ficha-grid">
-        <div class="ficha-campo"><span>Nova senha</span><input id="fp-senha-nova" class="fc-input" type="password" style="display:block;" placeholder="Mínimo 6 caracteres"></div>
-        <div class="ficha-campo"><span>Confirmar nova senha</span><input id="fp-senha-confirmar" class="fc-input" type="password" style="display:block;" placeholder="Repita a senha"></div>
+        <div class="ficha-campo">
+            <span>Nova senha</span>
+            <div style="position:relative;">
+                <input id="fp-senha-nova" class="fc-input" type="password" style="display:block;padding-right:40px;" placeholder="Mínimo 6 caracteres">
+                <button type="button" aria-label="Mostrar senha" aria-pressed="false" onclick="fpToggleSenha('fp-senha-nova',this)" style="position:absolute;right:0;top:0;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:10px;"><svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+        </div>
+        <div class="ficha-campo">
+            <span>Confirmar nova senha</span>
+            <div style="position:relative;">
+                <input id="fp-senha-confirmar" class="fc-input" type="password" style="display:block;padding-right:40px;" placeholder="Repita a senha">
+                <button type="button" aria-label="Mostrar senha" aria-pressed="false" onclick="fpToggleSenha('fp-senha-confirmar',this)" style="position:absolute;right:0;top:0;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:10px;"><svg width="18" height="18" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+        </div>
     </div>
     <button class="btn-ficha btn-ficha-editar" style="margin-top:8px;" onclick="fpAlterarSenha()">Alterar senha</button>
 </div>

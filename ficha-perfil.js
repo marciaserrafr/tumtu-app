@@ -6,6 +6,21 @@
 // SUPABASE_KEY e do client `sb` já existirem globalmente na página que o
 // incluir.
 
+// Botão de mostrar/ocultar senha — mesmo padrão (ícone, função) já usado em
+// login.html/cadastro.html/redefinir-senha.html, duplicado aqui pra não criar
+// dependência entre arquivos (mesmo critério já usado nesse projeto pra
+// funções pequenas de UI repetidas).
+const FP_ICONE_OLHO_ABERTO = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+const FP_ICONE_OLHO_FECHADO = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.13 9.13 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+function fpToggleSenha(id, btn) {
+    const input = fpEl(id);
+    const visivel = input.type === 'text';
+    input.type = visivel ? 'password' : 'text';
+    btn.setAttribute('aria-pressed', String(!visivel));
+    btn.setAttribute('aria-label', visivel ? 'Mostrar senha' : 'Ocultar senha');
+    btn.innerHTML = (visivel ? FP_ICONE_OLHO_ABERTO : FP_ICONE_OLHO_FECHADO).replace('<svg', '<svg aria-hidden="true"');
+}
+
 const FP_CAMPOS = [
     { id: 'fp-apelido',              col: 'apelido' },
     { id: 'fp-nome',                 col: 'nome' },
@@ -80,7 +95,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=9');
+        const res = await fetch('ficha-perfil.partial.html?v=10');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -435,30 +450,36 @@ async function fpAlterarSenha() {
     const confirmar = fpEl('fp-senha-confirmar').value;
     const mensagem = fpEl('fp-mensagem');
 
-    if (!nova || nova.length < 6) {
-        mensagem.className = 'fp-mensagem erro';
-        mensagem.textContent = 'A senha precisa ter no mínimo 6 caracteres.';
+    // Mensagem mora lá em cima (perto do título) mas "Alterar senha" fica lá
+    // embaixo, no fim da ficha — sem rolar até ela, a pessoa não tem como
+    // saber se a senha mudou ou não (achado 20/jul/2026, depois de a Márcia
+    // trocar a senha, não ver confirmação nenhuma e ficar sem saber se
+    // funcionou). Mesma correção de rolagem já aplicada em outras mensagens
+    // do projeto (ver cadastro.html, mostrarMensagem).
+    function mostrarMensagemSenha(texto, tipo) {
+        mensagem.className = 'fp-mensagem ' + tipo;
+        mensagem.textContent = texto;
         mensagem.style.display = 'block';
+        mensagem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    if (!nova || nova.length < 6) {
+        mostrarMensagemSenha('A senha precisa ter no mínimo 6 caracteres.', 'erro');
         return;
     }
     if (nova !== confirmar) {
-        mensagem.className = 'fp-mensagem erro';
-        mensagem.textContent = 'As senhas não coincidem.';
-        mensagem.style.display = 'block';
+        mostrarMensagemSenha('As senhas não coincidem.', 'erro');
         return;
     }
 
     const { error } = await sb.auth.updateUser({ password: nova });
     if (error) {
-        mensagem.className = 'fp-mensagem erro';
-        mensagem.textContent = 'Não foi possível alterar a senha. Tente novamente.';
+        mostrarMensagemSenha('Não foi possível alterar a senha. Tente novamente.', 'erro');
     } else {
-        mensagem.className = 'fp-mensagem sucesso';
-        mensagem.textContent = 'Senha alterada com sucesso!';
         fpEl('fp-senha-nova').value = '';
         fpEl('fp-senha-confirmar').value = '';
+        mostrarMensagemSenha('Senha alterada com sucesso!', 'sucesso');
     }
-    mensagem.style.display = 'block';
 }
 
 // E-mail de suporte (config-suporte.js) ainda não preenchido pela Márcia

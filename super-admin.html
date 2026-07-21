@@ -14,9 +14,9 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=7">
+    <link rel="stylesheet" href="styles/components.css?v=8">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=9"></script>
+    <script src="ficha-perfil.js?v=10"></script>
     <script src="config-suporte.js?v=1"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -96,8 +96,64 @@
         .badge-inativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fce4ec; color: #c62828; }
         .badge-pendente { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fff8e6; color: #9a6200; }
         .badge-rejeitado { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #f5f5f5; color: #757575; }
+        .badge-suspenso { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fff3e0; color: #e65100; }
+        .badge-desligado { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fde8e8; color: #b3261e; }
+        .badge-menor { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #1a5fa8; color: #ffffff; }
         .acessos-secao-titulo { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
         .acessos-secao-titulo:first-child { margin-top: 4px; }
+
+        /* ── CARDS DE RITMISTA (portado de admin.html, Fase 2) ── */
+        .cards { display: flex; flex-direction: column; gap: 10px; }
+        .card-ritmista {
+            background: white; border: 1px solid var(--cor-borda); border-radius: 14px;
+            padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s;
+        }
+        .card-ritmista:hover { box-shadow: 0 4px 16px rgba(15,23,42,0.10); transform: translateY(-1px); }
+        .card-esquerda { flex: 1; min-width: 0; }
+        .card-linha1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+        .card-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
+        .card-apelido-inline { font-size: 15px; font-weight: 700; color: #D4AF37; }
+        .card-linha2 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+        .pill-instrumento {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: #e8e6f0; color: #5a5770; padding: 3px 10px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+        }
+        .card-direita { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .btn-card-acao {
+            border: 1.5px solid; padding: 7px 14px; border-radius: 8px;
+            cursor: pointer; font-size: 12px; font-weight: 700;
+            background: transparent; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+        }
+        .btn-card-ativar { background: #12101a; border-color: #12101a; color: #ffffff; }
+        .btn-card-ativar:hover { background: #2a2740; border-color: #2a2740; }
+        .btn-card-rejeitar { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+        .btn-card-rejeitar:hover { background: #fef0eb; }
+        @media (max-width: 600px) {
+            .card-ritmista { padding: 12px 14px; gap: 10px; }
+            .card-nome { font-size: 14px; }
+            .btn-card-acao { font-size: 11px; padding: 6px 10px; }
+        }
+
+        /* ── FILTROS MULTI-SELECT (portado de admin.html, Fase 2) ── */
+        .multi-select { position: relative; display: inline-block; }
+        .multi-select-trigger {
+            padding: 6px 13px; border-radius: 6px;
+            border: 1px solid #e0e0e0; background: #fafafa;
+            color: #555; cursor: pointer; font-size: 13px; font-weight: normal;
+            display: inline-flex; align-items: center; gap: 8px; min-width: 140px;
+            justify-content: space-between; user-select: none;
+        }
+        .multi-select-trigger.ativo { background: var(--cor-fundo-escuro); color: white; border-color: var(--cor-fundo-escuro); }
+        .multi-select-dropdown {
+            position: absolute; top: calc(100% + 4px); left: 0; z-index: 200;
+            background: white; border: 1px solid #ddd; border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12); min-width: 200px; overflow: hidden;
+        }
+        .multi-select-option { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 13px; cursor: pointer; color: #333; }
+        .multi-select-option:hover { background: #f5f5f5; }
+        .multi-select-option input[type=checkbox] { accent-color: var(--cor-destaque); width: 15px; height: 15px; cursor: pointer; }
 
         /* ── FORMULÁRIOS INLINE ── */
         .card-form {
@@ -174,6 +230,16 @@
         .btn-ficha-salvar:hover { background: #B8922A; border-color: #B8922A; }
         .btn-ficha-danger { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
         .btn-ficha-danger:hover { background: #fef0eb; }
+        .btn-ficha-ativar { background: #12101a; border-color: #12101a; color: #ffffff; }
+        .btn-ficha-ativar:hover { background: #2a2740; border-color: #2a2740; }
+        .btn-ficha-rejeitar { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+        .btn-ficha-rejeitar:hover { background: #fef0eb; }
+        .btn-ficha-suspender { border-color: #d4720a; color: #d4720a; }
+        .btn-ficha-suspender:hover { background: #fff8f0; }
+        .btn-ficha-desligar { border-color: #c62828; color: #c62828; }
+        .btn-ficha-desligar:hover { background: #fff5f5; }
+        .btn-ficha-reativar { border-color: var(--cor-texto-principal); color: var(--cor-texto-principal); }
+        .btn-ficha-reativar:hover { background: #f0f0f0; }
 
         /* botão novo */
         .btn-novo {
@@ -239,6 +305,21 @@
         .sub-painel { display: none; }
         .sub-painel.ativo { display: block; }
 
+        /* ── SUB-SUB-ABAS (2º nível — dentro do módulo Bateria) — mesmo padrão,
+           levemente mais compacto pra marcar que é um nível mais fundo. ── */
+        .nav-sub-sub-abas { margin-bottom: 16px !important; }
+        .sub-sub-aba {
+            padding: 6px 14px; font-size: 12.5px; font-weight: 600;
+            color: #64748b; cursor: pointer; border-radius: 8px 8px 0 0;
+            background: none; border: none;
+            border-bottom: 2px solid transparent; margin-bottom: -2px;
+            font-family: inherit;
+        }
+        .sub-sub-aba:hover { color: #0f172a; background: #f8f8f8; }
+        .sub-sub-aba.ativa { color: #D4AF37; border-bottom-color: #D4AF37; }
+        .sub-sub-painel { display: none; }
+        .sub-sub-painel.ativo { display: block; }
+
         /* ── DASHBOARD PLACEHOLDER ── */
         .dashboard-placeholder { text-align: center; padding: 60px 20px; color: #64748b; }
 
@@ -274,6 +355,15 @@
         .config-item-seta { color: #ccc; font-size: 20px; font-weight: 300; }
         .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
+        .config-sub-desc { font-size: 13px; color: #8b88a0; margin: -10px 0 16px; }
+        .config-instrumento-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; flex-wrap: wrap; }
+        .config-instrumento-check { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--cor-texto-principal); cursor: pointer; }
+        .config-instrumento-check input { accent-color: var(--cor-destaque); width: 16px; height: 16px; cursor: pointer; }
+        .config-instrumento-nomenclatura { padding: 5px 8px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 12.5px; color: #333; }
+        .config-vaga-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; }
+        .config-vaga-nome { font-size: 13.5px; color: var(--cor-texto-principal); }
+        .config-vaga-contagem { color: #999; font-weight: 400; }
+        .config-vaga-input { width: 64px; padding: 6px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; text-align: center; }
         .cat-edit-nom-linha { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .cat-edit-nom-linha input { flex: 1; padding: 9px 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; }
         .cat-edit-nom-remover { background: none; border: none; color: #b3261e; font-size: 18px; cursor: pointer; padding: 0 6px; line-height: 1; }
@@ -315,7 +405,7 @@
         <div class="header-badge">Super Admin</div>
     </div>
     <div class="header-acoes">
-        <span class="header-user" id="headerUser"></span>
+        <span class="header-user" id="headerUser" onclick="abrirMeuPerfilSA()" style="cursor:pointer;" title="Meu Perfil"></span>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
@@ -325,9 +415,7 @@
     <button type="button" class="aba ativa" onclick="trocarAbaPrincipal('dashboard',this)">Dashboard</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('escolas',this)">Escolas</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('configuracoes',this)">Configurações</button>
-    <button type="button" class="aba" onclick="trocarAbaPrincipal('historico',this)">Histórico</button>
     <button type="button" class="aba" onclick="trocarAbaPrincipal('privacidade',this)">Privacidade</button>
-    <button type="button" class="aba" onclick="trocarAbaPrincipal('meu-perfil',this)">Meu Perfil</button>
 </div>
 
 <!-- MAIN -->
@@ -338,15 +426,6 @@
         <div class="painel-titulo">Dashboard</div>
         <div class="painel-sub">Visão geral de todas as escolas e ritmistas.</div>
         <div id="dashboard-lista-baterias"></div>
-    </div>
-
-    <!-- ════ PAINEL: HISTÓRICO ════ -->
-    <div class="painel" id="painel-historico" style="display:none">
-        <div class="painel-titulo">Histórico</div>
-        <div class="painel-sub">Quem aprovou, rejeitou ou mudou o status de cada pessoa, e quando.</div>
-        <div id="lista-historico">
-            <div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Carregando...</div>
-        </div>
     </div>
 
     <!-- ════ PAINEL: ESCOLAS ════ -->
@@ -388,8 +467,9 @@
         </div>
     </div>
 
-    <!-- ════ PAINEL: MEU PERFIL ════ -->
+    <!-- ════ PAINEL: MEU PERFIL (acessado clicando no nome, não é aba) ════ -->
     <div class="painel" id="painel-meu-perfil" style="display:none">
+        <button class="btn-voltar" onclick="fecharMeuPerfilSA()" style="margin-bottom:16px;">← Voltar</button>
         <div class="painel-titulo">Meu Perfil</div>
         <div id="fp-container-meuperfil"></div>
     </div>
@@ -406,6 +486,10 @@
             </div>
             <div class="config-item" onclick="abrirConfigTelaSA('medidas')">
                 <span>Medidas</span>
+                <span class="config-item-seta">›</span>
+            </div>
+            <div class="config-item" onclick="abrirConfigTelaSA('permissoes')">
+                <span>Perfis de Permissão</span>
                 <span class="config-item-seta">›</span>
             </div>
         </div>
@@ -426,6 +510,15 @@
             <button class="btn-novo" onclick="abrirNovoTamanho()">+ Novo Tamanho</button>
             <div id="sa-tamanho-editor" style="display:none;"></div>
             <div id="sa-tamanhos-lista"></div>
+        </div>
+
+        <div id="sa-config-tela-permissoes" class="config-subtela" style="display:none;">
+            <button class="btn-voltar" onclick="voltarConfigListaSA()">← Configurações</button>
+            <div class="painel-titulo">Perfis de Permissão</div>
+            <div class="painel-sub">Biblioteca mestre — modelos prontos que qualquer escola pode ativar (e ajustar) na própria aba "Permissões". Editar um modelo aqui não muda o que uma escola já ativou.</div>
+            <button class="btn-novo" onclick="abrirNovoNivel()">+ Novo Perfil</button>
+            <div id="sa-nivel-editor" style="display:none;"></div>
+            <div id="sa-niveis-lista"></div>
         </div>
 
     </div>
@@ -477,46 +570,171 @@
             <span class="escola-ctx-sigla" id="escola-ctx-sigla"></span>
         </div>
 
-        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
-            <div class="nav-sub-abas" style="margin-bottom:0;border-bottom:none;flex:1">
-                <button type="button" class="sub-aba ativa" onclick="trocarSubAba('cadastro',this)">Cadastro</button>
-                <button type="button" class="sub-aba" onclick="trocarSubAba('bateria',this)">Bateria</button>
-                <button type="button" class="sub-aba" onclick="trocarSubAba('acessos',this)">Acessos</button>
-            </div>
+        <div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
             <button onclick="acessarComoAdmin()" style="
                 display:inline-flex;align-items:center;gap:6px;
                 padding:7px 14px;background:#7c2d12;color:#ffffff;
                 border:none;border-radius:8px;cursor:pointer;
                 font-size:12px;font-weight:700;font-family:inherit;
-                white-space:nowrap;flex-shrink:0;margin-bottom:4px;
+                white-space:nowrap;flex-shrink:0;
             ">Acessar como Admin ↗</button>
         </div>
-        <div style="border-bottom:2px solid #f1f1f1;margin-top:-20px;margin-bottom:20px;"></div>
 
-        <!-- Cadastro (escola) -->
-        <div class="sub-painel ativo" id="sub-painel-cadastro">
+        <!-- Menu da Escola — lista vertical, funciona bem no celular (mesmo
+             padrão já usado em Configurações). Cada item leva pro seu painel;
+             cada painel tem "← Voltar" que volta pra essa lista. -->
+        <div id="escola-menu-lista">
+            <div class="config-item" onclick="trocarSubAba('cadastro')"><span>Dados da Escola</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="trocarSubAba('bateria-modulo')"><span>Bateria</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="trocarSubAba('permissoes-escola')"><span>Permissões</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="trocarSubAba('historico-escola')"><span>Histórico</span><span class="config-item-seta">›</span></div>
+        </div>
+
+        <!-- Dados da Escola -->
+        <div class="sub-painel" id="sub-painel-cadastro">
+            <button class="btn-voltar" onclick="voltarEscolaMenuSA()" style="margin-bottom:16px;">← Escola</button>
             <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
         </div>
 
-        <!-- Bateria -->
-        <div class="sub-painel" id="sub-painel-bateria" style="display:none">
-            <div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Carregando...</div>
+        <!-- Bateria (módulo — tem seu próprio menu de lista por dentro) -->
+        <div class="sub-painel" id="sub-painel-bateria-modulo" style="display:none">
+            <button class="btn-voltar" onclick="voltarEscolaMenuSA()" style="margin-bottom:16px;">← Escola</button>
+
+            <div id="bateria-menu-lista">
+                <div class="config-item" onclick="trocarSubSubAba('bateria')"><span>Dados da Bateria</span><span class="config-item-seta">›</span></div>
+                <div class="config-item" onclick="trocarSubSubAba('ritmistas')"><span>Ritmistas</span><span class="config-item-seta">›</span></div>
+                <div class="config-item" onclick="trocarSubSubAba('acessos')"><span>Diretoria</span><span class="config-item-seta">›</span></div>
+                <div class="config-item" onclick="trocarSubSubAba('convites-bateria')"><span>Convites</span><span class="config-item-seta">›</span></div>
+                <div class="config-item" onclick="trocarSubSubAba('config-bateria')"><span>Configurações</span><span class="config-item-seta">›</span></div>
+            </div>
+
+            <!-- Dados da Bateria -->
+            <div class="sub-sub-painel" id="sub-painel-bateria" style="display:none">
+                <button class="btn-voltar" onclick="voltarBateriaMenuSA()" style="margin-bottom:16px;">← Bateria</button>
+                <div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Carregando...</div>
+            </div>
+
+            <!-- Ritmistas -->
+            <div class="sub-sub-painel" id="sub-painel-ritmistas" style="display:none">
+                <button class="btn-voltar" onclick="voltarBateriaMenuSA()" style="margin-bottom:16px;">← Bateria</button>
+                <div style="margin-bottom:16px;">
+                    <input type="text" id="ri-busca" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltrosRitmistasSA()"
+                        style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;outline:none;">
+                </div>
+                <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                    <div class="multi-select" id="ri-multiSelectWrap">
+                        <div class="multi-select-trigger" id="ri-multiSelectTrigger" onclick="toggleMultiSelectSA()">
+                            <span id="ri-multiSelectLabel">Todos os instrumentos</span>
+                            <span id="ri-multiSelectArrow">▼</span>
+                        </div>
+                        <div class="multi-select-dropdown" id="ri-multiSelectDropdown" style="display:none"></div>
+                    </div>
+                    <div class="multi-select" id="ri-statusSelectWrap">
+                        <div class="multi-select-trigger" id="ri-statusSelectTrigger" onclick="toggleStatusSelectSA()">
+                            <span id="ri-statusSelectLabel">Todos os status</span>
+                            <span id="ri-statusSelectArrow">▼</span>
+                        </div>
+                        <div class="multi-select-dropdown" id="ri-statusSelectDropdown" style="display:none;">
+                            <label class="multi-select-option"><input type="checkbox" value="aprovado" onchange="onChangeStatusSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
+                            <label class="multi-select-option"><input type="checkbox" value="desligado" onchange="onChangeStatusSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
+                            <label class="multi-select-option"><input type="checkbox" value="menor" onchange="onChangeStatusSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#5b21b6;margin:0 4px;"></span>Menores</label>
+                            <label class="multi-select-option"><input type="checkbox" value="pendente" onchange="onChangeStatusSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
+                            <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatusSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
+                            <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatusSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
+                            <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
+                                <span onclick="limparFiltroStatusSA()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar filtro</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cards" id="lista-ritmistas-sa" style="min-height:200px;">
+                    <div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Diretoria (Mestre/Diretor) -->
+            <div class="sub-sub-painel" id="sub-painel-acessos" style="display:none">
+                <button class="btn-voltar" onclick="voltarBateriaMenuSA()" style="margin-bottom:16px;">← Bateria</button>
+                <div id="lista-acessos" class="lista-cards">
+                    <div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Convites (links de cadastro + cadastro manual, pra Ritmista ou Diretoria) -->
+            <div class="sub-sub-painel" id="sub-painel-convites-bateria" style="display:none">
+                <button class="btn-voltar" onclick="voltarBateriaMenuSA()" style="margin-bottom:16px;">← Bateria</button>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+                    <button class="btn-novo" onclick="irParaCadastroManualRitmistaSA()">+ Cadastrar Ritmista</button>
+                    <button class="btn-novo" onclick="abrirCadastrarUsuario()">+ Cadastrar Usuário</button>
+                </div>
+
+                <div class="card-form">
+                    <div class="card-form-titulo">Links de cadastro</div>
+                    <p style="font-size:12px;color:#5a5770;margin:-8px 0 14px;">Envie o link pelo WhatsApp da diretoria — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
+                    <div id="links-cadastro-lista"></div>
+                </div>
+            </div>
+
+            <!-- Configurações (por bateria) -->
+            <div class="sub-sub-painel" id="sub-painel-config-bateria" style="display:none">
+                <button class="btn-voltar" onclick="voltarBateriaMenuSA()" style="margin-bottom:16px;">← Bateria</button>
+                <div id="cb-config-lista">
+                    <div class="config-item" onclick="abrirConfigTelaBateriaSA('instrumentos')">
+                        <span>Instrumentos</span>
+                        <span class="config-item-seta">›</span>
+                    </div>
+                    <div class="config-item" onclick="abrirConfigTelaBateriaSA('vagas')">
+                        <span>Vagas de Ritmistas</span>
+                        <span class="config-item-seta">›</span>
+                    </div>
+                    <div class="config-item" onclick="abrirConfigTelaBateriaSA('medidas')">
+                        <span>Medidas</span>
+                        <span class="config-item-seta">›</span>
+                    </div>
+                </div>
+
+                <div id="cb-config-tela-instrumentos" class="config-subtela" style="display:none;">
+                    <button class="btn-voltar" onclick="voltarConfigBateriaListaSA()">← Configurações</button>
+                    <div class="painel-titulo">Instrumentos</div>
+                    <p class="config-sub-desc">Ative os instrumentos que esta bateria usa. Quando houver mais de um nome possível, escolha o que a bateria usa.</p>
+                    <div id="cb-instrumentos-lista"></div>
+                </div>
+
+                <div id="cb-config-tela-vagas" class="config-subtela" style="display:none;">
+                    <button class="btn-voltar" onclick="voltarConfigBateriaListaSA()">← Configurações</button>
+                    <div class="painel-titulo">Vagas de Ritmistas</div>
+                    <p class="config-sub-desc">Defina o limite de ritmistas por instrumento ativo. Use 0 para sem limite.</p>
+                    <div id="cb-vagas-lista"></div>
+                </div>
+
+                <div id="cb-config-tela-medidas" class="config-subtela" style="display:none;">
+                    <button class="btn-voltar" onclick="voltarConfigBateriaListaSA()">← Configurações</button>
+                    <div class="painel-titulo">Medidas</div>
+                    <p class="config-sub-desc">Ative os tamanhos que esta bateria usa em cada tipo. Só os tamanhos ativos aparecem no cadastro dos ritmistas.</p>
+                    <div id="cb-medidas-lista"></div>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Acessos -->
-        <div class="sub-painel" id="sub-painel-acessos" style="display:none">
+        <!-- Permissões (por escola) -->
+        <div class="sub-painel" id="sub-painel-permissoes-escola" style="display:none">
+            <button class="btn-voltar" onclick="voltarEscolaMenuSA()" style="margin-bottom:16px;">← Escola</button>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-                <button class="btn-novo" onclick="abrirCadastrarUsuario()">+ Cadastrar Usuário</button>
+                <button class="btn-novo" onclick="abrirAtivarPerfilEscolaSA()">+ Ativar Perfil da Biblioteca</button>
+                <button onclick="abrirNovoPerfilEscolaSA()" style="background:transparent;border:1.5px solid var(--cor-borda);color:var(--cor-texto-secundario);padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">+ Criar Perfil Exclusivo</button>
             </div>
+            <div id="pe-ativar-lista" style="display:none;margin-bottom:20px;"></div>
+            <div id="pe-editor" style="display:none;"></div>
+            <div id="pe-perfis-lista"></div>
+        </div>
 
-            <div class="card-form" style="margin-bottom:20px;">
-                <div class="card-form-titulo">Links de cadastro</div>
-                <p style="font-size:12px;color:#5a5770;margin:-8px 0 14px;">Envie o link pelo WhatsApp da diretoria — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
-                <div id="links-cadastro-lista"></div>
-            </div>
-
-            <div id="lista-acessos" class="lista-cards">
-                <div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Carregando...</div>
+        <!-- Histórico (por escola) -->
+        <div class="sub-painel" id="sub-painel-historico-escola" style="display:none">
+            <button class="btn-voltar" onclick="voltarEscolaMenuSA()" style="margin-bottom:16px;">← Escola</button>
+            <div class="painel-sub" style="margin-bottom:20px;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta escola, e quando.</div>
+            <div id="lista-historico-escola">
+                <div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Carregando...</div>
             </div>
         </div>
 
@@ -553,31 +771,35 @@
     </div>
 </div>
 
-<!-- MODAL ACESSO -->
-<div class="modal-overlay" id="modal-acesso-overlay" onclick="fecharSeForaModal(event,'modal-acesso-overlay','fecharFormAcesso')">
-    <div class="modal-sa">
-        <div class="modal-sa-header">
-            <div class="modal-sa-titulo" id="form-acesso-titulo">Novo Acesso</div>
-            <button class="modal-sa-fechar" onclick="fecharFormAcesso()">✕</button>
+<!-- TELA CHEIA: VER/EDITAR ACESSO (antes era modal "Novo Acesso") -->
+<div class="painel" id="painel-ver-acesso" style="display:none">
+    <div class="escola-ctx-header">
+        <button class="btn-voltar" onclick="fecharFormAcesso()">← Acessos</button>
+        <div class="escola-ctx-info">
+            <div class="escola-ctx-nome" id="form-acesso-titulo">Acesso</div>
         </div>
-        <div class="modal-sa-body" id="modal-acesso-body"></div>
-        <div class="modal-sa-rodape" id="modal-acesso-rodape"></div>
+    </div>
+    <div class="card-form">
+        <div id="modal-acesso-body"></div>
+        <div class="form-rodape" id="modal-acesso-rodape"></div>
     </div>
 </div>
 
-<!-- MODAL CADASTRAR USUÁRIO (pré-passo: bateria + cargo) -->
-<div class="modal-overlay" id="modal-cadastrar-usuario-overlay" onclick="fecharSeForaModal(event,'modal-cadastrar-usuario-overlay','fecharCadastrarUsuario')">
-    <div class="modal-sa" style="max-width:420px;">
-        <div class="modal-sa-header">
-            <div class="modal-sa-titulo">Cadastrar Usuário</div>
-            <button class="modal-sa-fechar" onclick="fecharCadastrarUsuario()">✕</button>
+<!-- TELA CHEIA: CADASTRAR USUÁRIO (pré-passo: bateria + cargo) -->
+<div class="painel" id="painel-cadastrar-usuario" style="display:none">
+    <div class="escola-ctx-header">
+        <button class="btn-voltar" onclick="fecharCadastrarUsuario()">← Acessos</button>
+        <div class="escola-ctx-info">
+            <div class="escola-ctx-nome">Cadastrar Usuário</div>
         </div>
-        <div class="modal-sa-body">
-            <div class="campo">
+    </div>
+    <div class="card-form">
+        <div class="form-grid">
+            <div class="campo campo-full">
                 <label>Bateria *</label>
                 <select id="cu-bateria-id"></select>
             </div>
-            <div class="campo" style="margin-bottom:0;">
+            <div class="campo campo-full">
                 <label>Cargo *</label>
                 <select id="cu-cargo">
                     <option value="ritmista">Ritmista</option>
@@ -586,33 +808,79 @@
                 </select>
             </div>
         </div>
-        <div class="modal-sa-rodape">
-            <div></div>
-            <button class="btn-ficha btn-ficha-salvar" onclick="continuarCadastrarUsuario()">Continuar</button>
+        <div class="form-rodape">
+            <div class="form-rodape-esq">
+                <button class="btn-ficha btn-ficha-salvar" onclick="continuarCadastrarUsuario()">Continuar</button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL MOTIVO DE DESATIVAÇÃO -->
-<div class="modal-overlay" id="modal-motivo-overlay" onclick="fecharSeForaModal(event,'modal-motivo-overlay','fecharModalMotivo')">
-    <div class="modal-sa" style="max-width:420px;">
-        <div class="modal-sa-header">
-            <div class="modal-sa-titulo">Desativar Escola</div>
-            <button class="modal-sa-fechar" onclick="fecharModalMotivo()">✕</button>
+<!-- TELA CHEIA: DESATIVAR ESCOLA (antes era modal de motivo) -->
+<div class="painel" id="painel-desativar-escola" style="display:none">
+    <div class="escola-ctx-header">
+        <button class="btn-voltar" onclick="fecharModalMotivo()">← Voltar</button>
+        <div class="escola-ctx-info">
+            <div class="escola-ctx-nome">Desativar Escola</div>
         </div>
-        <div class="modal-sa-body">
-            <div class="campo" style="margin-bottom:0;">
+    </div>
+    <div class="card-form">
+        <div class="form-grid">
+            <div class="campo campo-full">
                 <label>Motivo da desativação *</label>
                 <textarea id="motivo-textarea" rows="3" placeholder="Ex: temporada encerrada, escola solicitou pausa..."></textarea>
             </div>
         </div>
-        <div class="modal-sa-rodape">
-            <div></div>
-            <button class="btn-ficha btn-ficha-danger" onclick="confirmarMotivoDesativar()">Desativar</button>
+        <div class="form-rodape">
+            <div class="form-rodape-esq">
+                <button class="btn-ficha btn-ficha-danger" onclick="confirmarMotivoDesativar()">Desativar</button>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- TELA CHEIA: FICHA DO RITMISTA (motor único ficha-perfil.js) -->
+<div class="painel" id="painel-ficha-ritmista" style="display:none">
+    <div class="escola-ctx-header">
+        <button class="btn-voltar" onclick="fecharFichaRitmistaSA()">← Ritmistas</button>
+        <div class="escola-ctx-info">
+            <div class="escola-ctx-nome" id="ri-status-badge-sa"></div>
+        </div>
+    </div>
+    <div class="card-form">
+        <div id="fp-container-ritmista-sa"></div>
+        <div id="ri-secao-menor-sa" style="display:none;margin-top:16px;">
+            <div class="card-form-titulo">Declaração do Responsável</div>
+            <div id="ri-declaracao-area-sa"></div>
+        </div>
+        <div class="form-rodape">
+            <div class="form-rodape-esq" id="ri-acoes-status-sa"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TELA CHEIA: MOTIVO (Suspender/Desligar ritmista) -->
+<div class="painel" id="painel-motivo-ritmista" style="display:none">
+    <div class="escola-ctx-header">
+        <button class="btn-voltar" onclick="fecharMotivoRitmistaSA()">← Voltar</button>
+        <div class="escola-ctx-info">
+            <div class="escola-ctx-nome" id="ri-motivo-titulo-sa">Motivo</div>
+        </div>
+    </div>
+    <div class="card-form">
+        <div class="form-grid">
+            <div class="campo campo-full">
+                <label>Motivo (opcional)</label>
+                <textarea id="ri-motivo-textarea-sa" rows="3" placeholder="Ex: pediu afastamento temporário..."></textarea>
+            </div>
+        </div>
+        <div class="form-rodape">
+            <div class="form-rodape-esq">
+                <button class="btn-ficha btn-ficha-danger" id="ri-motivo-btn-sa" onclick="confirmarMotivoRitmistaSA()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -650,7 +918,7 @@
         window.scrollTo(0, 0);
         document.querySelectorAll('#nav-principal .aba').forEach(x => x.classList.remove('ativa'));
         if (el) el.classList.add('ativa');
-        ['dashboard','escolas','escola-contexto','nova-escola','meu-perfil','configuracoes','historico','privacidade'].forEach(p => {
+        ['dashboard','escolas','escola-contexto','nova-escola','meu-perfil','configuracoes','privacidade','ver-acesso','cadastrar-usuario','desativar-escola','ficha-ritmista','motivo-ritmista'].forEach(p => {
             const painel = document.getElementById('painel-' + p);
             if (painel) { painel.classList.remove('ativo'); painel.style.display = 'none'; }
         });
@@ -659,7 +927,6 @@
         if (aba === 'meu-perfil') iniciarMeuPerfilAba();
         if (aba === 'configuracoes') voltarConfigListaSA();
         if (aba === 'dashboard') carregarDashboard();
-        if (aba === 'historico') carregarHistorico();
         if (aba === 'privacidade') carregarPrivacidade();
     }
 
@@ -674,11 +941,17 @@
         return iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
     }
 
-    async function carregarHistorico() {
-        const container = document.getElementById('lista-historico');
+    async function carregarHistoricoEscolaSA() {
+        const container = document.getElementById('lista-historico-escola');
+        const idsBaterias = bateriasCache.map(b => b.id);
+        if (idsBaterias.length === 0) {
+            container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>';
+            return;
+        }
         const url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status`
             + `?select=id,perfil,status_anterior,status_novo,motivo,criado_em,`
             + `pessoa:pessoa_id(nome),decisor:decidido_por(nome),bateria:bateria_id(nome)`
+            + `&bateria_id=in.(${idsBaterias.join(',')})`
             + `&order=criado_em.desc&limit=200`;
         const res = await fetch(url, { headers });
         if (!res.ok) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Não foi possível carregar o histórico.</div>'; return; }
@@ -903,6 +1176,22 @@
         fpIniciar(u, u.perfil, u.pessoa_id);
     }
 
+    // Meu Perfil não é mais aba — abre clicando no nome no cabeçalho, com
+    // "← Voltar" restaurando a aba principal que estava ativa antes.
+    let paginaAntesDoMeuPerfilSA = 'dashboard';
+    const NAV_PRINCIPAL_LABEL_SA = { dashboard: 'Dashboard', escolas: 'Escolas', configuracoes: 'Configurações', privacidade: 'Privacidade' };
+    function abrirMeuPerfilSA() {
+        const painelAtivo = document.querySelector('.main > .painel.ativo');
+        paginaAntesDoMeuPerfilSA = painelAtivo ? painelAtivo.id.replace('painel-', '') : 'dashboard';
+        if (!NAV_PRINCIPAL_LABEL_SA[paginaAntesDoMeuPerfilSA]) paginaAntesDoMeuPerfilSA = 'dashboard';
+        trocarAbaPrincipal('meu-perfil', null);
+    }
+    function fecharMeuPerfilSA() {
+        const label = NAV_PRINCIPAL_LABEL_SA[paginaAntesDoMeuPerfilSA] || 'Dashboard';
+        const btn = Array.from(document.querySelectorAll('#nav-principal .aba')).find(b => b.textContent.trim() === label);
+        trocarAbaPrincipal(paginaAntesDoMeuPerfilSA, btn);
+    }
+
     async function selecionarEscola(id) {
         window.scrollTo(0, 0);
         escolaSelecionadaId = id;
@@ -923,8 +1212,8 @@
         const ctx = document.getElementById('painel-escola-contexto');
         ctx.style.display = 'block'; ctx.classList.add('ativo');
 
-        // Mostrar sub-aba Cadastro primeiro
-        trocarSubAba('cadastro', document.querySelector('.sub-aba'));
+        // Mostrar a lista de opções da escola primeiro (mesmo padrão do menu de Configurações)
+        voltarEscolaMenuSA();
 
         // Carregar baterias antes de acessos (acessos filtra por bateria_id)
         await carregarBaterias(id);
@@ -939,6 +1228,9 @@
 
         // Carregar acessos
         carregarAcessos(id);
+
+        // Carregar ritmistas (depende de bateriaAtualData já estar definido acima)
+        carregarRitmistasSA();
     }
 
     // Atalho do Dashboard: clicar em "X pendentes" de uma bateria já abre
@@ -949,8 +1241,8 @@
         const btnEscolas = Array.from(document.querySelectorAll('#nav-principal .aba')).find(b => b.textContent.trim() === 'Escolas');
         trocarAbaPrincipal('escolas', btnEscolas);
         await selecionarEscola(escolaId);
-        const btnAcessos = Array.from(document.querySelectorAll('.sub-aba')).find(b => b.textContent.trim() === 'Acessos');
-        trocarSubAba('acessos', btnAcessos);
+        trocarSubAba('bateria-modulo');
+        trocarSubSubAba('acessos');
     }
 
     function voltarParaEscolas() {
@@ -964,12 +1256,37 @@
         esc.style.display = 'block'; esc.classList.add('ativo');
     }
 
-    function trocarSubAba(aba, el) {
-        document.querySelectorAll('.sub-aba').forEach(x => x.classList.remove('ativa'));
-        document.querySelectorAll('.sub-painel').forEach(x => { x.style.display = 'none'; x.classList.remove('ativo'); });
-        if (el) el.classList.add('ativa');
+    function trocarSubAba(aba) {
+        document.getElementById('escola-menu-lista').style.display = 'none';
+        document.querySelectorAll('#painel-escola-contexto > .sub-painel').forEach(x => { x.style.display = 'none'; x.classList.remove('ativo'); });
         const painel = document.getElementById('sub-painel-' + aba);
         if (painel) { painel.style.display = 'block'; painel.classList.add('ativo'); }
+        if (aba === 'bateria-modulo') voltarBateriaMenuSA();
+        if (aba === 'permissoes-escola') iniciarPermissoesEscolaSA();
+        if (aba === 'historico-escola') carregarHistoricoEscolaSA();
+    }
+
+    // Volta pra lista de opções da Escola (Dados da Escola/Bateria/Permissões/Histórico).
+    function voltarEscolaMenuSA() {
+        document.querySelectorAll('#painel-escola-contexto > .sub-painel').forEach(x => { x.style.display = 'none'; x.classList.remove('ativo'); });
+        document.getElementById('escola-menu-lista').style.display = 'block';
+    }
+
+    // 2º nível — só dentro do módulo Bateria. Escopado às classes
+    // .sub-sub-aba/.sub-sub-painel pra não colidir com trocarSubAba (que
+    // gerencia só o nível de fora).
+    function trocarSubSubAba(aba) {
+        document.getElementById('bateria-menu-lista').style.display = 'none';
+        document.querySelectorAll('#sub-painel-bateria-modulo > .sub-sub-painel').forEach(x => { x.style.display = 'none'; x.classList.remove('ativo'); });
+        const painel = document.getElementById('sub-painel-' + aba);
+        if (painel) { painel.style.display = 'block'; painel.classList.add('ativo'); }
+        if (aba === 'config-bateria') iniciarConfigBateriaSA();
+    }
+
+    // Volta pra lista de opções da Bateria (Dados/Ritmistas/Diretoria/Convites/Configurações).
+    function voltarBateriaMenuSA() {
+        document.querySelectorAll('#sub-painel-bateria-modulo > .sub-sub-painel').forEach(x => { x.style.display = 'none'; x.classList.remove('ativo'); });
+        document.getElementById('bateria-menu-lista').style.display = 'block';
     }
 
     // ── TOAST ─────────────────────────────────────────────────────────
@@ -1128,6 +1445,18 @@
         });
 
         if (res.ok) {
+            const [escolaCriada] = await res.json();
+            // Toda escola nasce com o perfil "Total" clonado da biblioteca mestre —
+            // sem isso, não haveria nenhum nível de acesso pra atribuir a um
+            // Mestre/Diretor recém-aprovado nessa escola.
+            if (niveisAcessoCache.length === 0) await carregarNiveisAcesso();
+            const total = niveisAcessoCache.find(n => n.nome === 'Total');
+            if (total) {
+                await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso`, {
+                    method: 'POST', headers,
+                    body: JSON.stringify({ escola_id: escolaCriada.id, origem_nivel_id: total.id, nome: total.nome, capacidades: total.capacidades, ativo: true })
+                });
+            }
             mostrarToast('Escola cadastrada!');
             await carregarEscolas();
             trocarAbaPrincipal('escolas', document.querySelector('#nav-principal .aba:nth-child(2)'));
@@ -1237,18 +1566,38 @@
 
     let motivoEscolaIdAtual = null;
 
+    // Telas cheias que abrem por cima do contexto da escola (Acesso, Cadastrar
+    // Usuário, Desativar Escola) — substituem os modais antigos (padrão que a
+    // Márcia não gosta). Mesma técnica de mostrar/esconder painel já usada em
+    // selecionarEscola()/abrirNovaEscola(), só que "voltando" pro contexto da
+    // escola em vez de pra lista de escolas.
+    function trocarParaPainelCheio(idMostrar) {
+        const ctx = document.getElementById('painel-escola-contexto');
+        ctx.style.display = 'none'; ctx.classList.remove('ativo');
+        const p = document.getElementById(idMostrar);
+        p.style.display = 'block'; p.classList.add('ativo');
+        window.scrollTo(0, 0);
+    }
+    function voltarDoPainelCheio(idEsconder) {
+        const p = document.getElementById(idEsconder);
+        p.style.display = 'none'; p.classList.remove('ativo');
+        const ctx = document.getElementById('painel-escola-contexto');
+        ctx.style.display = 'block'; ctx.classList.add('ativo');
+        window.scrollTo(0, 0);
+    }
+
     async function confirmarToggleEscola(id, ativaAtual) {
         if (ativaAtual) {
             motivoEscolaIdAtual = id;
             document.getElementById('motivo-textarea').value = '';
-            document.getElementById('modal-motivo-overlay').classList.add('aberto');
+            trocarParaPainelCheio('painel-desativar-escola');
             return;
         }
         await aplicarToggleEscola(id, false, null);
     }
 
     function fecharModalMotivo() {
-        document.getElementById('modal-motivo-overlay').classList.remove('aberto');
+        voltarDoPainelCheio('painel-desativar-escola');
         motivoEscolaIdAtual = null;
     }
 
@@ -1421,6 +1770,7 @@
             else { bateriasCache.push(bateriaAtualData); }
             renderizarBateriaInline(bateriaAtualData);
             renderizarLinksCadastro();
+            carregarRitmistasSA();
             mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
         } else {
             const err = await res.json();
@@ -1537,20 +1887,29 @@
         return `<option value="">Selecione uma bateria...</option>${opts}`;
     }
 
+    function niveisAcessoOpcoesHTML(selecionadoId = '') {
+        if (perfisEscolaCacheSA.length === 0) {
+            return '<option value="">Nenhum perfil ativado — ative um na aba Permissões</option>';
+        }
+        const opts = perfisEscolaCacheSA.map(n => `<option value="${n.id}"${n.id === selecionadoId ? ' selected' : ''}>${esc(n.nome)}</option>`).join('');
+        return `<option value="">Selecione...</option>${opts}`;
+    }
+
     function fecharFormAcesso() {
-        document.getElementById('modal-acesso-overlay').classList.remove('aberto');
+        voltarDoPainelCheio('painel-ver-acesso');
     }
 
     async function verAcesso(id) { await editarAcesso(id); }
     async function editarAcesso(id) {
         const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?id=eq.${id}&select=id,pessoa_id,nome,apelido,cpf,perfil,bateria_id,status`,
+            `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?id=eq.${id}&select=id,pessoa_id,nome,apelido,cpf,perfil,bateria_id,status,nivel_acesso_id`,
             { headers }
         );
         const dados = await res.json();
         if (!dados.length) return;
         const u = dados[0];
         const ativo = u.status !== 'inativo';
+        if (perfisEscolaCacheSA.length === 0) await carregarPerfisEscolaSA();
         document.getElementById('form-acesso-titulo').textContent = u.apelido || u.nome;
         document.getElementById('modal-acesso-body').innerHTML = `
             <div class="form-grid">
@@ -1568,21 +1927,25 @@
                     <label>Instrumento *</label>
                     <select id="acesso-instrumento" disabled><option value="">Selecione...</option></select>
                 </div>
+                <div class="campo campo-full" id="acesso-campo-nivel" style="display:${u.perfil === 'ritmista' ? 'none' : ''};">
+                    <label>Nível de Acesso *</label>
+                    <select id="acesso-nivel-acesso" disabled>${niveisAcessoOpcoesHTML(u.nivel_acesso_id)}</select>
+                </div>
             </div>
             <input type="hidden" id="acesso-id" value="${u.id}">
             <input type="hidden" id="acesso-pessoa-id" value="${u.pessoa_id}">
             <input type="hidden" id="acesso-bateria-id-original" value="${u.bateria_id}">`;
         document.getElementById('modal-acesso-rodape').innerHTML = `
-            <div class="modal-sa-rodape-esq">
+            <div class="form-rodape-esq">
                 <button class="btn-ficha btn-ficha-editar" onclick="habilitarEdicaoAcesso()">Editar</button>
                 <button class="btn-ficha btn-ficha-danger" onclick="fecharFormAcesso();toggleAcessoAtivo('${u.id}','${u.status}')">${ativo ? 'Desativar' : 'Ativar'}</button>
             </div>
-            <button class="btn-ficha" onclick="fecharFormAcesso()">Fechar</button>`;
-        document.getElementById('modal-acesso-overlay').classList.add('aberto');
+            <button class="btn-ficha" onclick="fecharFormAcesso()">Voltar</button>`;
+        trocarParaPainelCheio('painel-ver-acesso');
     }
 
     function habilitarEdicaoAcesso() {
-        ['acesso-nome','acesso-apelido','acesso-cpf','acesso-perfil','acesso-bateria-id'].forEach(campo => {
+        ['acesso-nome','acesso-apelido','acesso-cpf','acesso-perfil','acesso-bateria-id','acesso-nivel-acesso'].forEach(campo => {
             const el = document.getElementById(campo);
             if (el) {
                 el.disabled = false;
@@ -1592,10 +1955,10 @@
         document.getElementById('acesso-bateria-id').onchange = onTrocarPerfilAcesso;
         onTrocarPerfilAcesso();
         document.getElementById('modal-acesso-rodape').innerHTML = `
-            <div class="modal-sa-rodape-esq">
+            <div class="form-rodape-esq">
                 <button class="btn-ficha btn-ficha-salvar" onclick="salvarAcesso()">Salvar</button>
             </div>
-            <button class="btn-ficha" onclick="fecharFormAcesso()">Fechar</button>`;
+            <button class="btn-ficha" onclick="fecharFormAcesso()">Cancelar</button>`;
     }
 
     // Instrumento só existe pra Ritmista — Mestre/Diretor nunca preencheram
@@ -1607,13 +1970,19 @@
         const perfil = document.getElementById('acesso-perfil').value;
         const campoInstrumento = document.getElementById('acesso-campo-instrumento');
         const selectInstrumento = document.getElementById('acesso-instrumento');
+        const campoNivel = document.getElementById('acesso-campo-nivel');
+        const selectNivel = document.getElementById('acesso-nivel-acesso');
         if (perfil !== 'ritmista') {
             campoInstrumento.style.display = 'none';
             selectInstrumento.disabled = true;
+            campoNivel.style.display = '';
+            selectNivel.disabled = false;
             return;
         }
         campoInstrumento.style.display = '';
         selectInstrumento.disabled = false;
+        campoNivel.style.display = 'none';
+        selectNivel.disabled = true;
         const bateriaId = document.getElementById('acesso-bateria-id').value;
         if (!bateriaId) { selectInstrumento.innerHTML = '<option value="">Selecione a bateria primeiro</option>'; return; }
         selectInstrumento.innerHTML = '<option value="">Carregando...</option>';
@@ -1662,18 +2031,21 @@
         // campo (fica null), pra não deixar o cadastro incompleto quando alguém
         // vira Ritmista aqui (ver onTrocarPerfilAcesso).
         let bateriaInstrumentoId = null;
+        let nivelAcessoId = null;
         if (perfil === 'ritmista') {
             bateriaInstrumentoId = document.getElementById('acesso-instrumento').value;
             if (!bateriaInstrumentoId) { mostrarToast('Selecione o instrumento.', 'erro'); return; }
+        } else {
+            nivelAcessoId = document.getElementById('acesso-nivel-acesso').value;
+            if (!nivelAcessoId) { mostrarToast('Selecione o nível de acesso.', 'erro'); return; }
         }
-        const nivelAcesso = perfil === 'ritmista' ? null : 'total';
 
         const resPessoa = await fetch(`${SUPABASE_URL}/rest/v1/pessoas?id=eq.${pessoaId}`, {
             method: 'PATCH', headers, body: JSON.stringify({ nome, apelido, cpf })
         });
         const resVinculo = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
             method: 'PATCH', headers,
-            body: JSON.stringify({ perfil, bateria_id: bateriaId, bateria_instrumento_id: bateriaInstrumentoId, nivel_acesso: nivelAcesso })
+            body: JSON.stringify({ perfil, bateria_id: bateriaId, bateria_instrumento_id: bateriaInstrumentoId, nivel_acesso_id: nivelAcessoId ? Number(nivelAcessoId) : null })
         });
 
         if (resPessoa.ok && resVinculo.ok) {
@@ -1702,11 +2074,11 @@
             return `<option value="${b.id}"${selecionado}>${esc(label)}</option>`;
         }).join('');
         document.getElementById('cu-cargo').value = 'ritmista';
-        document.getElementById('modal-cadastrar-usuario-overlay').classList.add('aberto');
+        trocarParaPainelCheio('painel-cadastrar-usuario');
     }
 
     function fecharCadastrarUsuario() {
-        document.getElementById('modal-cadastrar-usuario-overlay').classList.remove('aberto');
+        voltarDoPainelCheio('painel-cadastrar-usuario');
     }
 
     function continuarCadastrarUsuario() {
@@ -1776,6 +2148,10 @@
         if (nome === 'medidas') {
             fecharEditorTamanho();
             carregarTamanhos().then(renderizarTamanhosLista);
+        }
+        if (nome === 'permissoes') {
+            fecharEditorNivel();
+            carregarNiveisAcesso();
         }
     }
 
@@ -1981,6 +2357,775 @@
         await carregarCategorias();
         renderizarEditorCategoria();
         renderizarCategoriasLista();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // RITMISTAS (dentro do contexto de bateria — Fase 2 da unificação).
+    // Portado de admin.html (mesma lógica de busca/filtros/card/ficha),
+    // adaptado pra usar bateriaAtualData.id (contexto de Escolas) em vez
+    // de bateriaIdContexto() (sessão do próprio Admin logado).
+    // ══════════════════════════════════════════════════════════════════
+    let todosRitmistasSA = [];
+    let filtroStatusSelecionadosSA = [];
+    let filtroInstrumentosSelecionadosSA = [];
+    let fichaRitmistaIdSA = null;
+    let acaoRitmistaIdSA = null;
+    let acaoRitmistaTipoSA = null; // 'suspenso' | 'desligado'
+    let bateriaInstrumentosCacheSA = [];
+    const semAcentoSA = s => (s || '').toLowerCase().normalize('NFD').split('').filter(c => c.charCodeAt(0) < 768 || c.charCodeAt(0) > 879).join('').trim();
+
+    function calcularIdadeSA(nascimento) {
+        if (!nascimento) return null;
+        const hoje = new Date();
+        const nasc = new Date(nascimento);
+        let idade = hoje.getFullYear() - nasc.getFullYear();
+        const m = hoje.getMonth() - nasc.getMonth();
+        if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+        return idade;
+    }
+
+    async function carregarRitmistasSA() {
+        const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!bateriaId) { todosRitmistasSA = []; aplicarFiltrosRitmistasSA(); return; }
+        const [resRit, resBI] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=*&order=created_at.desc`, { headers }),
+            fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?bateria_id=eq.${bateriaId}`, { headers }),
+        ]);
+        todosRitmistasSA = resRit.ok ? await resRit.json() : [];
+        bateriaInstrumentosCacheSA = resBI.ok ? await resBI.json() : [];
+        construirMultiSelectInstrumentoSA();
+        aplicarFiltrosRitmistasSA();
+    }
+
+    function instrumentosAtivosDaBateriaSA() {
+        return bateriaInstrumentosCacheSA
+            .filter(bi => bi.ativo)
+            .map(bi => ({ id: bi.id, nome: (todosRitmistasSA.find(r => r.bateria_instrumento_id === bi.id) || {}).instrumento_nome || '—' }))
+            .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    }
+
+    function construirMultiSelectInstrumentoSA() {
+        const dropdown = document.getElementById('ri-multiSelectDropdown');
+        if (!dropdown) return;
+        const ativos = instrumentosAtivosDaBateriaSA();
+        dropdown.innerHTML = ativos.map(inst => `
+            <label class="multi-select-option"><input type="checkbox" value="${inst.id}" onchange="onCheckInstrumentoSA()"> ${esc(inst.nome)}</label>
+        `).join('') + `
+            <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
+                <span onclick="limparFiltroInstrumentoSA()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar filtro</span>
+            </div>`;
+    }
+
+    function toggleMultiSelectSA() {
+        const dd = document.getElementById('ri-multiSelectDropdown');
+        const aberto = dd.style.display !== 'none';
+        dd.style.display = aberto ? 'none' : 'block';
+        document.getElementById('ri-multiSelectArrow').textContent = aberto ? '▼' : '▲';
+    }
+    function limparFiltroInstrumentoSA() {
+        document.querySelectorAll('#ri-multiSelectDropdown input[type=checkbox]').forEach(c => c.checked = false);
+        onCheckInstrumentoSA();
+    }
+    function onCheckInstrumentoSA() {
+        const checks = document.querySelectorAll('#ri-multiSelectDropdown input[type=checkbox]:checked');
+        filtroInstrumentosSelecionadosSA = Array.from(checks).map(c => Number(c.value));
+        const ativos = instrumentosAtivosDaBateriaSA();
+        document.getElementById('ri-multiSelectLabel').textContent = filtroInstrumentosSelecionadosSA.length === 0
+            ? 'Todos os instrumentos'
+            : filtroInstrumentosSelecionadosSA.map(id => (ativos.find(a => a.id === id) || {}).nome || '?').join(', ');
+        document.getElementById('ri-multiSelectTrigger').classList.toggle('ativo', filtroInstrumentosSelecionadosSA.length > 0);
+        aplicarFiltrosRitmistasSA();
+    }
+
+    function toggleStatusSelectSA() {
+        const dd = document.getElementById('ri-statusSelectDropdown');
+        const aberto = dd.style.display !== 'none';
+        dd.style.display = aberto ? 'none' : 'block';
+        document.getElementById('ri-statusSelectArrow').textContent = aberto ? '▼' : '▲';
+    }
+    function limparFiltroStatusSA() {
+        document.querySelectorAll('#ri-statusSelectDropdown input[type=checkbox]').forEach(c => c.checked = false);
+        onChangeStatusSA();
+    }
+    function onChangeStatusSA() {
+        const checks = document.querySelectorAll('#ri-statusSelectDropdown input[type=checkbox]:checked');
+        filtroStatusSelecionadosSA = Array.from(checks).map(c => c.value);
+        const labels = { pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', desligado: 'Desligados', rejeitado: 'Rejeitados', menor: 'Menores' };
+        document.getElementById('ri-statusSelectLabel').textContent = filtroStatusSelecionadosSA.length === 0
+            ? 'Todos os status'
+            : filtroStatusSelecionadosSA.map(v => labels[v]).join(', ');
+        document.getElementById('ri-statusSelectTrigger').classList.toggle('ativo', filtroStatusSelecionadosSA.length > 0);
+        aplicarFiltrosRitmistasSA();
+    }
+
+    document.addEventListener('click', function (e) {
+        if (!document.getElementById('ri-multiSelectWrap')?.contains(e.target)) {
+            const dd = document.getElementById('ri-multiSelectDropdown');
+            if (dd) { dd.style.display = 'none'; document.getElementById('ri-multiSelectArrow').textContent = '▼'; }
+        }
+        if (!document.getElementById('ri-statusSelectWrap')?.contains(e.target)) {
+            const dd = document.getElementById('ri-statusSelectDropdown');
+            if (dd) { dd.style.display = 'none'; document.getElementById('ri-statusSelectArrow').textContent = '▼'; }
+        }
+    });
+
+    function aplicarFiltrosRitmistasSA() {
+        let lista = todosRitmistasSA;
+        if (filtroStatusSelecionadosSA.length > 0) {
+            lista = lista.filter(r => {
+                const idade = calcularIdadeSA(r.nascimento);
+                return filtroStatusSelecionadosSA.some(f => f === 'menor' ? (idade !== null && idade < 18) : r.status === f);
+            });
+        }
+        if (filtroInstrumentosSelecionadosSA.length > 0) {
+            lista = lista.filter(r => filtroInstrumentosSelecionadosSA.includes(r.bateria_instrumento_id));
+        }
+        const busca = semAcentoSA(document.getElementById('ri-busca')?.value || '');
+        if (busca) {
+            const buscaCpf = busca.replace(/\D/g, '');
+            lista = lista.filter(r =>
+                semAcentoSA(r.nome).includes(busca) ||
+                semAcentoSA(r.apelido).includes(busca) ||
+                (buscaCpf.length > 0 && (r.cpf || '').replace(/\D/g, '').includes(buscaCpf))
+            );
+        }
+        const ordemStatus = { pendente: 0, aprovado: 1, suspenso: 2, rejeitado: 3, desligado: 4 };
+        lista.sort((a, b) => {
+            const sa = ordemStatus[a.status] ?? 5, sb = ordemStatus[b.status] ?? 5;
+            return sa !== sb ? sa - sb : (a.nome || '').localeCompare(b.nome || '', 'pt-BR');
+        });
+        renderizarRitmistasSA(lista);
+    }
+
+    function renderizarRitmistasSA(lista) {
+        const container = document.getElementById('lista-ritmistas-sa');
+        if (lista.length === 0) {
+            container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Nenhum ritmista encontrado.</div>';
+            return;
+        }
+        container.innerHTML = lista.map(r => {
+            const idade = calcularIdadeSA(r.nascimento);
+            const menor = idade !== null && idade < 18;
+            const status = r.status || 'pendente';
+            const nascDate = r.nascimento ? new Date(r.nascimento + 'T00:00:00') : null;
+            const aniversarioMes = nascDate && (nascDate.getMonth() + 1) === (new Date().getMonth() + 1);
+            const badgeStatus = {
+                pendente: `<span class="badge-pendente">Pendente</span>`,
+                aprovado: `<span class="badge-ativo">Ativo</span>`,
+                suspenso: `<span class="badge-suspenso">Suspenso</span>`,
+                desligado: `<span class="badge-desligado">Desligado</span>`,
+                rejeitado: `<span class="badge-rejeitado">Rejeitado</span>`,
+            }[status] || '';
+            const direita = status === 'pendente'
+                ? `${badgeStatus}
+                   <button class="btn-card-acao btn-card-ativar" onclick="event.stopPropagation();atualizarStatusRitmistaSA(${r.id},'aprovado')">Ativar</button>
+                   <button class="btn-card-acao btn-card-rejeitar" onclick="event.stopPropagation();atualizarStatusRitmistaSA(${r.id},'rejeitado')">Rejeitar</button>`
+                : `${badgeStatus}<span class="config-item-seta">›</span>`;
+            return `
+            <div class="card-ritmista ${status}" onclick="abrirFichaRitmistaSA(${r.id})">
+                <div class="card-esquerda">
+                    <div class="card-linha1">
+                        <span class="card-nome">${esc(r.nome)}</span>
+                        ${r.apelido ? `<span class="card-apelido-inline">"${esc(r.apelido)}"</span>` : ''}
+                        ${menor ? `<span class="badge-menor">Menor · ${idade} anos</span>` : ''}
+                        ${r.nacionalidade && r.nacionalidade !== 'Brasileira' ? `<span title="${esc(r.nacionalidade)}" style="font-size:14px;">🌍</span>` : ''}
+                        ${aniversarioMes ? '<span title="Aniversário este mês">🎂</span>' : ''}
+                    </div>
+                    <div class="card-linha2"><span class="pill-instrumento">🥁 ${esc(r.instrumento_nome || '—')}</span></div>
+                </div>
+                <div class="card-direita">${direita}</div>
+            </div>`;
+        }).join('');
+    }
+
+    async function atualizarStatusRitmistaSA(id, status, motivo = null) {
+        const body = { status };
+        if (motivo !== null) body.motivo_status = motivo;
+        if (status === 'aprovado') body.motivo_status = null;
+        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, { method: 'PATCH', headers, body: JSON.stringify(body) });
+        await carregarRitmistasSA();
+    }
+
+    function irParaCadastroManualRitmistaSA() {
+        const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!bateriaId) { mostrarToast('Selecione uma bateria primeiro.', 'erro'); return; }
+        window.open(`${window.location.origin}/cadastro.html?modo=manual&cargo=ritmista&bateria_id=${bateriaId}`, '_blank');
+    }
+
+    function renderToggleDeclaracaoSA(id, entregue) {
+        const area = document.getElementById('ri-declaracao-area-sa');
+        if (!area) return;
+        const trackBg = entregue ? '#1f4d1f' : '#c62828';
+        const thumbPos = entregue ? '21px' : '3px';
+        area.innerHTML = `
+            <div onclick="alternarDeclaracaoSA(${id},${!entregue})" style="display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+                <div style="width:44px;height:24px;border-radius:12px;background:${trackBg};position:relative;transition:background 0.2s;flex-shrink:0;">
+                    <div style="position:absolute;top:3px;left:${thumbPos};width:16px;height:16px;border-radius:50%;background:white;box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:left 0.2s;"></div>
+                </div>
+                <span style="font-size:13px;font-weight:500;color:${entregue ? '#1f4d1f' : '#c62828'};">${entregue ? 'Entregue' : 'Não entregue'}</span>
+            </div>`;
+    }
+    async function alternarDeclaracaoSA(id, entregue) {
+        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, { method: 'PATCH', headers, body: JSON.stringify({ declaracao_responsavel: entregue }) });
+        await carregarRitmistasSA();
+        abrirFichaRitmistaSA(id);
+    }
+
+    async function abrirFichaRitmistaSA(id) {
+        const r = todosRitmistasSA.find(x => x.id === id);
+        if (!r) return;
+        fichaRitmistaIdSA = id;
+        const idade = calcularIdadeSA(r.nascimento);
+        const status = r.status || 'pendente';
+        const badgeHTML = {
+            pendente: `<span class="badge-pendente">Pendente</span>`, aprovado: `<span class="badge-ativo">Ativo</span>`,
+            suspenso: `<span class="badge-suspenso">Suspenso</span>`, desligado: `<span class="badge-desligado">Desligado</span>`,
+            rejeitado: `<span class="badge-rejeitado">Rejeitado</span>`,
+        }[status] || '';
+        document.getElementById('ri-status-badge-sa').innerHTML = (r.apelido ? `"${esc(r.apelido)}" ` : esc(r.nome) + ' ') + badgeHTML;
+
+        const usuarioLogadoAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        await fpMontar(document.getElementById('fp-container-ritmista-sa'));
+        fpIniciar(r, usuarioLogadoAtual ? usuarioLogadoAtual.perfil : null, usuarioLogadoAtual ? usuarioLogadoAtual.pessoa_id : null, { aoSalvar: () => carregarRitmistasSA() });
+
+        const menor = idade !== null && idade < 18;
+        const secaoMenor = document.getElementById('ri-secao-menor-sa');
+        if (menor) { secaoMenor.style.display = 'block'; renderToggleDeclaracaoSA(r.id, r.declaracao_responsavel); }
+        else { secaoMenor.style.display = 'none'; }
+
+        const nomeEsc = esc(r.nome).replace(/'/g, "\\'");
+        let btns = '';
+        if (status === 'pendente') {
+            btns = `<button class="btn-ficha btn-ficha-ativar" onclick="atualizarStatusRitmistaSA(${r.id},'aprovado');fecharFichaRitmistaSA()">Ativar</button>
+                    <button class="btn-ficha btn-ficha-rejeitar" onclick="atualizarStatusRitmistaSA(${r.id},'rejeitado');fecharFichaRitmistaSA()">Rejeitar</button>`;
+        } else if (status === 'aprovado') {
+            btns = `<button class="btn-ficha btn-ficha-suspender" onclick="abrirMotivoRitmistaSA(${r.id},'suspenso','${nomeEsc}')">Suspender</button>
+                    <button class="btn-ficha btn-ficha-desligar" onclick="abrirMotivoRitmistaSA(${r.id},'desligado','${nomeEsc}')">Desligar</button>`;
+        } else if (status === 'suspenso') {
+            btns = `<button class="btn-ficha btn-ficha-reativar" onclick="atualizarStatusRitmistaSA(${r.id},'aprovado');fecharFichaRitmistaSA()">Reativar</button>
+                    <button class="btn-ficha btn-ficha-desligar" onclick="abrirMotivoRitmistaSA(${r.id},'desligado','${nomeEsc}')">Desligar</button>`;
+        } else {
+            btns = `<button class="btn-ficha btn-ficha-reativar" onclick="atualizarStatusRitmistaSA(${r.id},'aprovado');fecharFichaRitmistaSA()">Reativar</button>`;
+        }
+        document.getElementById('ri-acoes-status-sa').innerHTML = btns;
+        if (status !== 'aprovado' && status !== 'suspenso') {
+            const btnEditar = document.getElementById('fp-container-ritmista-sa').querySelector('#fp-btn-editar');
+            if (btnEditar) btnEditar.style.display = 'none';
+        }
+        trocarParaPainelCheio('painel-ficha-ritmista');
+    }
+
+    function fecharFichaRitmistaSA() {
+        voltarDoPainelCheio('painel-ficha-ritmista');
+    }
+
+    function abrirMotivoRitmistaSA(id, tipo, nome) {
+        acaoRitmistaIdSA = id;
+        acaoRitmistaTipoSA = tipo;
+        document.getElementById('ri-motivo-titulo-sa').textContent = (tipo === 'suspenso' ? 'Suspender' : 'Desligar') + ': ' + nome;
+        document.getElementById('ri-motivo-textarea-sa').value = '';
+        document.getElementById('ri-motivo-btn-sa').textContent = tipo === 'suspenso' ? 'Suspender' : 'Desligar';
+        trocarParaPainelCheio('painel-motivo-ritmista');
+    }
+    function fecharMotivoRitmistaSA() {
+        voltarDoPainelCheio('painel-motivo-ritmista');
+        acaoRitmistaIdSA = null;
+    }
+    async function confirmarMotivoRitmistaSA() {
+        const motivo = document.getElementById('ri-motivo-textarea-sa').value.trim() || null;
+        await atualizarStatusRitmistaSA(acaoRitmistaIdSA, acaoRitmistaTipoSA, motivo);
+        fecharMotivoRitmistaSA();
+        fecharFichaRitmistaSA();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // PERMISSÕES POR ESCOLA — ativa modelos da biblioteca mestre (niveis_acesso)
+    // ou cria perfis exclusivos da escola (escola_niveis_acesso). Editar um
+    // modelo global depois de ativado NÃO afeta o que a escola já ativou —
+    // ativar é uma cópia (clone), não uma referência viva.
+    // ══════════════════════════════════════════════════════════════════
+    let perfisEscolaCacheSA = [];
+    let perfilEscolaEditando = null;
+
+    async function iniciarPermissoesEscolaSA() {
+        document.getElementById('pe-ativar-lista').style.display = 'none';
+        perfilEscolaEditando = null;
+        renderizarEditorPerfilEscolaSA();
+        if (niveisAcessoCache.length === 0) await carregarNiveisAcesso();
+        await carregarPerfisEscolaSA();
+    }
+
+    async function carregarPerfisEscolaSA() {
+        if (!escolaSelecionadaId) { perfisEscolaCacheSA = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso?escola_id=eq.${escolaSelecionadaId}&order=nome`, { headers });
+        perfisEscolaCacheSA = res.ok ? await res.json() : [];
+        renderizarPerfisEscolaListaSA();
+    }
+
+    function renderizarPerfisEscolaListaSA() {
+        const container = document.getElementById('pe-perfis-lista');
+        if (perfisEscolaCacheSA.length === 0) {
+            container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum perfil de permissão ativado ainda nesta escola.</div>';
+            return;
+        }
+        container.innerHTML = perfisEscolaCacheSA.map(n => {
+            const capsLigadas = CAPACIDADES_NIVEL_ACESSO.filter(c => n.capacidades && n.capacidades[c.chave]);
+            return `
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-nome">${esc(n.nome)} ${n.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
+                        <div class="item-detalhe">${capsLigadas.length > 0 ? esc(capsLigadas.map(c => c.label).join(', ')) : 'Nenhuma capacidade ligada'}</div>
+                    </div>
+                    <div class="item-acoes">
+                        <button class="btn-ficha" onclick="abrirEditarPerfilEscolaSA(${n.id})">Editar</button>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function abrirAtivarPerfilEscolaSA() {
+        document.getElementById('pe-editor').style.display = 'none';
+        const container = document.getElementById('pe-ativar-lista');
+        const jaAtivos = new Set(perfisEscolaCacheSA.map(n => n.origem_nivel_id).filter(Boolean));
+        const disponiveis = niveisAcessoCache.filter(n => !jaAtivos.has(n.id));
+        if (disponiveis.length === 0) {
+            container.innerHTML = '<div class="estado-vazio">Todos os perfis da biblioteca já foram ativados nesta escola.</div>';
+        } else {
+            container.innerHTML = `
+                <div class="card-form">
+                    <div class="card-form-titulo">Ativar da biblioteca</div>
+                    ${disponiveis.map(n => `
+                        <div class="item-card" style="margin-bottom:8px;">
+                            <div class="item-info"><div class="item-nome">${esc(n.nome)}</div></div>
+                            <div class="item-acoes"><button class="btn-ficha btn-ficha-editar" onclick="ativarPerfilGlobalSA(${n.id})">Ativar</button></div>
+                        </div>
+                    `).join('')}
+                </div>`;
+        }
+        container.style.display = 'block';
+    }
+
+    async function ativarPerfilGlobalSA(nivelGlobalId) {
+        const nivel = niveisAcessoCache.find(n => n.id === nivelGlobalId);
+        if (!nivel || !escolaSelecionadaId) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso`, {
+            method: 'POST', headers,
+            body: JSON.stringify({ escola_id: escolaSelecionadaId, origem_nivel_id: nivel.id, nome: nivel.nome, capacidades: nivel.capacidades, ativo: true })
+        });
+        if (res.ok) {
+            mostrarToast('Perfil ativado nesta escola!');
+            document.getElementById('pe-ativar-lista').style.display = 'none';
+            await carregarPerfisEscolaSA();
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
+    }
+
+    function abrirNovoPerfilEscolaSA() {
+        document.getElementById('pe-ativar-lista').style.display = 'none';
+        perfilEscolaEditando = { id: null, nome: '', capacidades: {} };
+        renderizarEditorPerfilEscolaSA();
+    }
+
+    function abrirEditarPerfilEscolaSA(id) {
+        document.getElementById('pe-ativar-lista').style.display = 'none';
+        const n = perfisEscolaCacheSA.find(x => x.id === id);
+        if (!n) return;
+        perfilEscolaEditando = { id: n.id, nome: n.nome, capacidades: { ...(n.capacidades || {}) } };
+        renderizarEditorPerfilEscolaSA();
+    }
+
+    function renderizarEditorPerfilEscolaSA() {
+        const pe = perfilEscolaEditando;
+        const editor = document.getElementById('pe-editor');
+        if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `
+            <div class="card-form">
+                <div class="card-form-titulo">${pe.id ? 'Editar Perfil' : 'Novo Perfil Exclusivo'}</div>
+                <div class="form-grid">
+                    <div class="campo campo-full"><label>Nome *</label>
+                        <input type="text" id="pe-edit-nome" value="${esc(pe.nome)}" placeholder="Ex: Diretora das Baianas"></div>
+                    <div class="campo campo-full">
+                        <label>O que esse perfil pode ver/fazer</label>
+                        ${CAPACIDADES_NIVEL_ACESSO.map(c => `
+                            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                                <input type="checkbox" id="pe-cap-${c.chave}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
+                                <label for="pe-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="form-rodape">
+                    <div class="form-rodape-esq">
+                        <button class="btn-ficha btn-ficha-salvar" onclick="salvarPerfilEscolaSA()">Salvar</button>
+                        ${pe.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirPerfilEscolaSA(${pe.id})">Excluir</button>` : ''}
+                    </div>
+                    <button class="btn-ficha" onclick="fecharEditorPerfilEscolaSA()">Cancelar</button>
+                </div>
+            </div>`;
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function fecharEditorPerfilEscolaSA() {
+        perfilEscolaEditando = null;
+        renderizarEditorPerfilEscolaSA();
+    }
+
+    async function salvarPerfilEscolaSA() {
+        const nome = document.getElementById('pe-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do perfil.', 'erro'); return; }
+        const capacidades = {};
+        CAPACIDADES_NIVEL_ACESSO.forEach(c => { capacidades[c.chave] = document.getElementById('pe-cap-' + c.chave).checked; });
+
+        let res;
+        if (perfilEscolaEditando.id) {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso?id=eq.${perfilEscolaEditando.id}`, {
+                method: 'PATCH', headers, body: JSON.stringify({ nome, capacidades })
+            });
+        } else {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso`, {
+                method: 'POST', headers, body: JSON.stringify({ escola_id: escolaSelecionadaId, nome, capacidades, ativo: true })
+            });
+        }
+        if (res.ok) {
+            mostrarToast(perfilEscolaEditando.id ? 'Perfil atualizado!' : 'Perfil criado!');
+            perfilEscolaEditando = null;
+            await carregarPerfisEscolaSA();
+            renderizarEditorPerfilEscolaSA();
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
+    }
+
+    async function excluirPerfilEscolaSA(id) {
+        if (!confirm('Excluir este perfil? Quem já tiver esse perfil atribuído fica sem nível definido — atribua outro na aba Acessos.')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso?id=eq.${id}`, { method: 'DELETE', headers });
+        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
+        mostrarToast('Perfil excluído.');
+        perfilEscolaEditando = null;
+        await carregarPerfisEscolaSA();
+        renderizarEditorPerfilEscolaSA();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // CONFIGURAÇÕES POR BATERIA (Instrumentos ativos, Vagas, Medidas ativas)
+    // Portado de admin.html, adaptado pra bateriaAtualData.id (contexto de
+    // Escolas) em vez de bateriaIdContexto(). Reaproveita
+    // bateriaInstrumentosCacheSA já carregado por carregarRitmistasSA().
+    // ══════════════════════════════════════════════════════════════════
+    let bibliotecaInstrumentosSA = [];
+    let bibliotecaMedidasSA = [];
+    let bateriaMedidasCacheSA = [];
+    const TIPOS_MEDIDA_SA = [['camisa', 'Camisa'], ['fantasia', 'Fantasia'], ['calca', 'Calça'], ['sapato', 'Sapato']];
+
+    async function carregarBibliotecaInstrumentosSA() {
+        const [resCat, resNom] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?order=ordem`, { headers }),
+            fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?order=ordem`, { headers }),
+        ]);
+        const categorias = resCat.ok ? await resCat.json() : [];
+        const nomenclaturas = resNom.ok ? await resNom.json() : [];
+        bibliotecaInstrumentosSA = categorias.map(c => ({ ...c, nomenclaturas: nomenclaturas.filter(n => n.categoria_id === c.id) }));
+    }
+
+    async function carregarBibliotecaMedidasSA() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers });
+        bibliotecaMedidasSA = res.ok ? await res.json() : [];
+    }
+
+    async function carregarBateriaMedidasSA() {
+        const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!bateriaId) { bateriaMedidasCacheSA = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?bateria_id=eq.${bateriaId}`, { headers });
+        bateriaMedidasCacheSA = res.ok ? await res.json() : [];
+    }
+
+    function nomeExibicaoBateriaInstrumentoSA(bi) {
+        const cat = bibliotecaInstrumentosSA.find(c => c.id === bi.categoria_id);
+        const nom = cat ? cat.nomenclaturas.find(n => n.id === bi.nomenclatura_id) : null;
+        return (nom && nom.nome) || (cat && cat.nome) || '—';
+    }
+
+    async function iniciarConfigBateriaSA() {
+        if (bibliotecaInstrumentosSA.length === 0) await carregarBibliotecaInstrumentosSA();
+        if (bibliotecaMedidasSA.length === 0) await carregarBibliotecaMedidasSA();
+        await carregarBateriaMedidasSA();
+        voltarConfigBateriaListaSA();
+    }
+
+    function abrirConfigTelaBateriaSA(nome) {
+        document.getElementById('cb-config-lista').style.display = 'none';
+        document.querySelectorAll('#sub-painel-config-bateria .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('cb-config-tela-' + nome).style.display = 'block';
+        if (nome === 'instrumentos') renderizarConfigInstrumentosSA();
+        if (nome === 'vagas') renderizarConfigVagasSA();
+        if (nome === 'medidas') renderizarConfigMedidasSA();
+    }
+    function voltarConfigBateriaListaSA() {
+        document.querySelectorAll('#sub-painel-config-bateria .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('cb-config-lista').style.display = 'block';
+    }
+
+    function renderizarConfigInstrumentosSA() {
+        const container = document.getElementById('cb-instrumentos-lista');
+        const grupos = [['tradicional', 'Tradicionais'], ['especial', 'Especiais']];
+        container.innerHTML = grupos.map(([chave, label]) => {
+            const itens = bibliotecaInstrumentosSA.filter(c => c.grupo === chave).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+            if (itens.length === 0) return '';
+            return `<div class="config-grupo-titulo">${label}</div>${itens.map(c => renderizarLinhaInstrumentoSA(c)).join('')}`;
+        }).join('');
+    }
+
+    function renderizarLinhaInstrumentoSA(c) {
+        const existente = bateriaInstrumentosCacheSA.find(bi => bi.categoria_id === c.id);
+        const ativo = !!(existente && existente.ativo);
+        let nomenclaturaHtml = '';
+        if (ativo && c.nomenclaturas.length > 0) {
+            nomenclaturaHtml = `
+                <select class="config-instrumento-nomenclatura" onchange="salvarInstrumentoBateriaSA(${c.id}, true, this.value)">
+                    ${[...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => `<option value="${n.id}" ${existente && existente.nomenclatura_id === n.id ? 'selected' : ''}>${esc(n.nome)}</option>`).join('')}
+                </select>`;
+        }
+        return `
+            <div class="config-instrumento-linha">
+                <label class="config-instrumento-check">
+                    <input type="checkbox" ${ativo ? 'checked' : ''} onchange="salvarInstrumentoBateriaSA(${c.id}, this.checked)">
+                    <span>${esc(c.nome)}</span>
+                </label>
+                ${nomenclaturaHtml}
+            </div>`;
+    }
+
+    async function salvarInstrumentoBateriaSA(categoriaId, ativo, nomenclaturaId) {
+        const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!bateriaId) return;
+        const existente = bateriaInstrumentosCacheSA.find(bi => bi.categoria_id === categoriaId);
+        if (existente) {
+            const payload = { ativo };
+            if (nomenclaturaId !== undefined) payload.nomenclatura_id = nomenclaturaId ? Number(nomenclaturaId) : null;
+            await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${existente.id}`, { method: 'PATCH', headers, body: JSON.stringify(payload) });
+        } else {
+            const cat = bibliotecaInstrumentosSA.find(c => c.id === categoriaId);
+            const nomenclaturaPadrao = cat && cat.nomenclaturas.length > 0 ? cat.nomenclaturas[0].id : null;
+            await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos`, {
+                method: 'POST', headers,
+                body: JSON.stringify({ bateria_id: bateriaId, categoria_id: categoriaId, nomenclatura_id: nomenclaturaPadrao, ativo, vagas: 0 })
+            });
+        }
+        await carregarRitmistasSA(); // já recarrega bateriaInstrumentosCacheSA junto
+        renderizarConfigInstrumentosSA();
+    }
+
+    function renderizarConfigVagasSA() {
+        const container = document.getElementById('cb-vagas-lista');
+        const ativos = bateriaInstrumentosCacheSA.filter(bi => bi.ativo);
+        if (ativos.length === 0) {
+            container.innerHTML = '<div class="estado-vazio">Nenhum instrumento ativo ainda. Ative instrumentos em "Instrumentos" primeiro.</div>';
+            return;
+        }
+        const contagem = {};
+        todosRitmistasSA.filter(r => r.status === 'aprovado').forEach(r => {
+            if (r.bateria_instrumento_id) contagem[r.bateria_instrumento_id] = (contagem[r.bateria_instrumento_id] || 0) + 1;
+        });
+        container.innerHTML = ativos
+            .slice()
+            .sort((a, b) => nomeExibicaoBateriaInstrumentoSA(a).localeCompare(nomeExibicaoBateriaInstrumentoSA(b), 'pt-BR'))
+            .map(bi => {
+                const atual = contagem[bi.id] || 0;
+                return `
+                <div class="config-vaga-linha">
+                    <span class="config-vaga-nome">${esc(nomeExibicaoBateriaInstrumentoSA(bi))} <span class="config-vaga-contagem">(${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''})</span></span>
+                    <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVagaSA(${bi.id}, this.value)">
+                </div>`;
+            }).join('');
+    }
+
+    async function salvarVagaSA(bateriaInstrumentoId, valor) {
+        const vagas = parseInt(valor) || 0;
+        await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${bateriaInstrumentoId}`, { method: 'PATCH', headers, body: JSON.stringify({ vagas }) });
+        const item = bateriaInstrumentosCacheSA.find(bi => bi.id === bateriaInstrumentoId);
+        if (item) item.vagas = vagas;
+        renderizarConfigVagasSA();
+    }
+
+    function renderizarConfigMedidasSA() {
+        const container = document.getElementById('cb-medidas-lista');
+        container.innerHTML = TIPOS_MEDIDA_SA.map(([chave, label]) => {
+            const itens = bibliotecaMedidasSA.filter(t => t.tipo === chave).sort((a, b) => a.ordem - b.ordem);
+            if (itens.length === 0) return '';
+            return `<div class="config-grupo-titulo">${label}</div>${itens.map(t => renderizarLinhaMedidaSA(t)).join('')}`;
+        }).join('');
+    }
+
+    function renderizarLinhaMedidaSA(t) {
+        const existente = bateriaMedidasCacheSA.find(bm => bm.tamanho_id === t.id);
+        const ativo = !!(existente && existente.ativo);
+        return `
+            <div class="config-instrumento-linha">
+                <label class="config-instrumento-check">
+                    <input type="checkbox" ${ativo ? 'checked' : ''} onchange="salvarMedidaBateriaSA(${t.id}, this.checked)">
+                    <span>${esc(t.nome)}</span>
+                </label>
+            </div>`;
+    }
+
+    async function salvarMedidaBateriaSA(tamanhoId, ativo) {
+        const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!bateriaId) return;
+        const existente = bateriaMedidasCacheSA.find(bm => bm.tamanho_id === tamanhoId);
+        if (existente) {
+            await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?id=eq.${existente.id}`, { method: 'PATCH', headers, body: JSON.stringify({ ativo }) });
+        } else {
+            await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas`, { method: 'POST', headers, body: JSON.stringify({ bateria_id: bateriaId, tamanho_id: tamanhoId, ativo }) });
+        }
+        await carregarBateriaMedidasSA();
+        renderizarConfigMedidasSA();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // PERMISSÕES (níveis de acesso — biblioteca mestre, mesmo padrão de
+    // Instrumentos/Medidas). Controla o que um Mestre/Diretor vê e pode
+    // fazer dentro do contexto da própria bateria — não muda RLS, é
+    // checagem de tela por cima da fronteira de segurança que já existe.
+    // ══════════════════════════════════════════════════════════════════
+    const CAPACIDADES_NIVEL_ACESSO = [
+        { chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' },
+        { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar ritmistas' },
+        { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas dos ritmistas' },
+        { chave: 'ver_acessos', label: 'Ver Mestres e Diretores da bateria' },
+        { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar Diretores' },
+        { chave: 'ver_configuracoes', label: 'Ver Configurações da bateria' },
+        { chave: 'editar_configuracoes', label: 'Editar Configurações da bateria' },
+    ];
+
+    let niveisAcessoCache = [];
+    let nivelEditando = null;
+    let salvandoNivel = false;
+
+    async function carregarNiveisAcesso() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso?order=nome`, { headers });
+        niveisAcessoCache = res.ok ? await res.json() : [];
+        renderizarNiveisAcessoLista();
+    }
+
+    function renderizarNiveisAcessoLista() {
+        const container = document.getElementById('sa-niveis-lista');
+        if (niveisAcessoCache.length === 0) {
+            container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum nível de acesso cadastrado ainda.</div>';
+            return;
+        }
+        container.innerHTML = niveisAcessoCache.map(n => {
+            const capsLigadas = CAPACIDADES_NIVEL_ACESSO.filter(c => n.capacidades && n.capacidades[c.chave]);
+            return `
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-nome">${esc(n.nome)}</div>
+                        <div class="item-detalhe">${capsLigadas.length > 0 ? esc(capsLigadas.map(c => c.label).join(', ')) : 'Nenhuma capacidade ligada'}</div>
+                    </div>
+                    <div class="item-acoes">
+                        <button class="btn-ficha" onclick="abrirEditarNivel(${n.id})">Editar</button>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function abrirNovoNivel() {
+        nivelEditando = { id: null, nome: '', capacidades: {} };
+        renderizarEditorNivel();
+    }
+
+    function abrirEditarNivel(id) {
+        const n = niveisAcessoCache.find(x => x.id === id);
+        if (!n) return;
+        nivelEditando = { id: n.id, nome: n.nome, capacidades: { ...(n.capacidades || {}) } };
+        renderizarEditorNivel();
+    }
+
+    function renderizarEditorNivel() {
+        const ne = nivelEditando;
+        const editor = document.getElementById('sa-nivel-editor');
+        if (!ne) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `
+            <div class="card-form">
+                <div class="card-form-titulo">${ne.id ? 'Editar Nível de Acesso' : 'Novo Nível de Acesso'}</div>
+                <div class="form-grid">
+                    <div class="campo campo-full"><label>Nome *</label>
+                        <input type="text" id="nivel-edit-nome" value="${esc(ne.nome)}" placeholder="Ex: Diretor Admin"></div>
+                    <div class="campo campo-full">
+                        <label>O que esse nível pode ver/fazer</label>
+                        ${CAPACIDADES_NIVEL_ACESSO.map(c => `
+                            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                                <input type="checkbox" id="nivel-cap-${c.chave}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ne.capacidades[c.chave] ? 'checked' : ''}>
+                                <label for="nivel-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="form-rodape">
+                    <div class="form-rodape-esq">
+                        <button id="nivel-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarNivel()">Salvar</button>
+                        ${ne.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirNivel(${ne.id})">Excluir nível</button>` : ''}
+                    </div>
+                    <button class="btn-ficha" onclick="fecharEditorNivel()">Cancelar</button>
+                </div>
+            </div>`;
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function fecharEditorNivel() {
+        nivelEditando = null;
+        renderizarEditorNivel();
+    }
+
+    async function salvarNivel() {
+        if (salvandoNivel) return;
+        const nome = document.getElementById('nivel-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do nível de acesso.', 'erro'); return; }
+        const capacidades = {};
+        CAPACIDADES_NIVEL_ACESSO.forEach(c => {
+            capacidades[c.chave] = document.getElementById('nivel-cap-' + c.chave).checked;
+        });
+
+        salvandoNivel = true;
+        const btnSalvar = document.getElementById('nivel-btn-salvar');
+        if (btnSalvar) btnSalvar.disabled = true;
+
+        try {
+            if (nivelEditando.id) {
+                await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso?id=eq.${nivelEditando.id}`, {
+                    method: 'PATCH', headers, body: JSON.stringify({ nome, capacidades })
+                });
+            } else {
+                await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso`, {
+                    method: 'POST', headers, body: JSON.stringify({ nome, capacidades })
+                });
+            }
+            mostrarToast(nivelEditando.id ? 'Nível de acesso atualizado!' : 'Nível de acesso criado!');
+            nivelEditando = null;
+            await carregarNiveisAcesso();
+            renderizarEditorNivel();
+        } catch (e) {
+            mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro');
+        } finally {
+            salvandoNivel = false;
+        }
+    }
+
+    async function excluirNivel(id) {
+        if (!confirm('Excluir este nível de acesso? Quem já tiver esse nível atribuído fica sem nível definido — atribua outro nível a essas pessoas na aba Acessos.')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso?id=eq.${id}`, { method: 'DELETE', headers });
+        if (!res.ok) {
+            mostrarToast('Não foi possível excluir.', 'erro');
+            return;
+        }
+        mostrarToast('Nível de acesso excluído.');
+        nivelEditando = null;
+        await carregarNiveisAcesso();
+        renderizarEditorNivel();
     }
 
     // ══════════════════════════════════════════════════════════════════
