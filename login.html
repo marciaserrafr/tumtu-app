@@ -27,15 +27,21 @@
         /* Link de suporte fica visualmente quieto — não deve competir com
            "Esqueci minha senha"/"Cadastre-se", que são as ações comuns de
            verdade (revisão de UX pedida pela Márcia, 18/jul/2026). */
-        .link-suporte-discreto {
-            color: #726d8c !important;
-            font-weight: 500 !important;
-            font-size: 12px !important;
-            text-decoration: none !important;
+        /* 21/jul/2026: deixou de ficar sempre visível — pesquisa de UX
+           confirmou que "fale com o suporte" funciona melhor aparecendo só
+           quando algo dá errado (login recusado, cadastro suspenso etc.),
+           não espalhado na tela antes de qualquer problema acontecer.
+           "Esqueci minha senha" continua sempre visível (é autosserviço,
+           não depende de erro). Ver mostrarMensagem(). */
+        .rodape-suporte {
+            display: none;
+            position: fixed; left: 0; right: 0; bottom: 14px; text-align: center;
+            color: #55506e; font-weight: 500; font-size: 11.5px; text-decoration: none;
+            z-index: 5;
         }
-        .link-suporte-discreto:hover, .link-suporte-discreto:focus-visible {
-            color: #a39fc0 !important;
-            text-decoration: underline !important;
+        .rodape-suporte.visivel { display: block; }
+        .rodape-suporte:hover, .rodape-suporte:focus-visible {
+            color: #a39fc0; text-decoration: underline;
         }
         /* Spinner sozinho, maior, sem logo nem texto — pedido da Márcia em
            17/jul/2026, inspirado no padrão Disney+/Netflix (símbolo universal
@@ -104,10 +110,6 @@
     <div class="link-cadastro">
         Ainda não tem cadastro? <a href="cadastro.html">Cadastre-se</a>
     </div>
-
-    <div class="link-cadastro" style="margin-top:2px;">
-        <a href="#" class="link-suporte-discreto" onclick="return abrirSuporteLogin()">Precisa de ajuda? Fale com o suporte</a>
-    </div>
 </div>
 
 <div class="auth-container" id="containerEscolherBateria" style="display:none;">
@@ -147,6 +149,13 @@
         <a href="#" onclick="mostrarRecuperacao(event)">Voltar ao login</a>
     </div>
 </div>
+
+<!-- Rodapé de suporte — fora do cartão de login de propósito (21/jul/2026,
+     pedido da Márcia): antes ficava empilhado junto com os botões
+     principais, logo abaixo de "Entrar", dando a impressão de que o sistema
+     já esperava dar problema. Continua a um clique de distância, só não
+     compete mais com a ação principal da tela. -->
+<a href="#" class="rodape-suporte" onclick="return abrirSuporteLogin()">Fale com o suporte</a>
 
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
@@ -402,6 +411,10 @@
         el.textContent = texto;
         el.className = `mensagem ${tipo}`;
         el.style.display = 'block';
+        // Suporte só entra em cena junto de um erro de verdade — ver nota
+        // na CSS de .rodape-suporte.
+        const rodapeSuporte = document.querySelector('.rodape-suporte');
+        if (rodapeSuporte) rodapeSuporte.classList.toggle('visivel', tipo === 'erro');
     }
 
     // Número de suporte (config-suporte.js) ainda não preenchido pela Márcia

@@ -21,6 +21,19 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
+        /* CORREÇÃO 21/jul/2026: a primeira tentativa desligava
+           scrollbar-gutter:stable pra tirar a faixa branca — só que essa
+           propriedade existe justamente pra evitar a tela "pular" de
+           largura ao trocar de uma tela sem rolagem pra uma com rolagem
+           (a Márcia sentiu esse pulo depois da 1ª correção). Solução
+           certa: manter a reserva de espaço (herda de tokens.css), só
+           estilizar a barra de rolagem em si pra não parecer um corte
+           cru sem estilo. */
+        html { scrollbar-width: thin; scrollbar-color: var(--cor-borda-forte) var(--cor-fundo-claro); }
+        ::-webkit-scrollbar { width: 14px; }
+        ::-webkit-scrollbar-track { background: var(--cor-fundo-claro); }
+        ::-webkit-scrollbar-thumb { background: var(--cor-borda-forte); border-radius: 8px; border: 3px solid var(--cor-fundo-claro); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--cor-texto-muted); }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: var(--cor-fundo-claro);
@@ -54,29 +67,51 @@
         }
         .btn-sair:hover { background: rgba(255,255,255,0.08); }
 
-        /* ── NAV ABAS ── */
+        /* ── NAV PRINCIPAL — reformulação 21/jul/2026 (aprovada via
+           protótipo). Vira barra lateral fixa no computador — mais espaço
+           pra tabela/lista, menos "telas empilhadas". No celular, mesmo
+           elemento vira barra fixa embaixo, ícone + palavra, padrão de
+           app que todo mundo já reconhece (ver breakpoint mobile mais
+           abaixo). Não duplica marcação nem função — é só CSS que muda
+           por tamanho de tela. */
         .nav-abas {
-            background: var(--cor-fundo-escuro);
-            padding: 0 24px;
+            background: var(--cor-fundo-medio);
             display: flex;
-            gap: 4px;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-direction: column;
+            gap: 2px;
+            padding: 16px 12px;
+            position: fixed;
+            top: var(--altura-header-sa, 56px);
+            left: 0; bottom: 0;
+            width: 220px;
+            overflow-y: auto;
+            z-index: 90;
         }
         .aba {
-            padding: 12px 18px; font-size: 13px; font-weight: 600;
-            color: rgba(255,255,255,0.45); cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 10px;
+            font-size: 13.5px; font-weight: 600; text-align: left;
+            color: rgba(255,255,255,0.7); cursor: pointer;
             background: none; border: none;
-            border-bottom: 2px solid transparent;
             font-family: inherit;
-            transition: color 0.2s, border-color 0.2s; white-space: nowrap;
+            transition: color 0.15s, background 0.15s; white-space: nowrap;
         }
-        .aba:hover { color: rgba(255,255,255,0.75); }
-        .aba.ativa { color: #D4AF37; border-bottom-color: #D4AF37; }
+        .aba .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
+        .aba:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
+        .aba.ativa { color: var(--cor-destaque); background: rgba(212,175,55,0.16); font-weight: 700; }
 
-        /* ── CONTAINER PRINCIPAL ── */
-        .main { flex: 1; padding: 32px 24px; max-width: 720px; width: 100%; margin: 0 auto; }
+        /* ── CONTAINER PRINCIPAL — largura toda ao lado da barra lateral
+           (deixou de ser centralizado em coluna estreita: essa é uma tela
+           de gestão, precisa de espaço pra lista/tabela). ── */
+        .main { flex: 1; padding: 28px 32px; margin-left: 220px; max-width: none; width: auto; }
 
         /* ── PAINÉIS ── */
+        /* Tentativa de transição suave (21/jul/2026) revertida no mesmo dia —
+           como vários níveis (escola > bateria > aba) podem ficar "ativo" ao
+           mesmo tempo, a animação empilhava e ficava estranha em vez de
+           suave (a Márcia sentiu como "movimento esquisito" ao clicar em
+           qualquer botão/campo). Voltou a ser corte direto — estabilidade
+           primeiro, efeito visual depois. */
         .painel { display: none; }
         .painel.ativo { display: block; }
         .painel-titulo { font-size: 20px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 6px; }
@@ -155,37 +190,72 @@
         .multi-select-option:hover { background: #f5f5f5; }
         .multi-select-option input[type=checkbox] { accent-color: var(--cor-destaque); width: 15px; height: 15px; cursor: pointer; }
 
-        /* ── FORMULÁRIOS INLINE ── */
-        .card-form {
-            background: white; border: 1px solid var(--cor-borda); border-radius: 16px;
-            padding: 28px; margin-bottom: 24px;
-        }
+        /* ── FORMULÁRIOS INLINE ──
+           Igualado à .ficha-secao/.ficha-secao-titulo (achado 21/jul/2026):
+           antes era uma caixa branca com borda e título preto grande —
+           mais um padrão de container diferente convivendo com o resto do
+           site. Redefinindo aqui em vez de editar cada tela que usa
+           .card-form (14 lugares) já resolve todos de uma vez. */
+        .card-form { background: none; border: none; border-radius: 0; padding: 0; margin-bottom: 14px; }
         .card-form-titulo {
-            font-size: 15px; font-weight: 700; color: var(--cor-texto-principal);
-            margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--cor-borda);
+            font-size: 10px; font-weight: bold; color: #999;
+            text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 12px; padding-bottom: 3px; border-bottom: 1px solid #D4AF37;
         }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-grid .campo-full { grid-column: 1 / -1; }
-        .campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-        .campo label { font-size: 13px; font-weight: 700; color: #333; }
+        /* Rótulo e campo alinhados com o mesmo padrão visual da Ficha do
+           Ritmista/Meu Perfil (.mp-campo em styles/components.css) —
+           antes esse formulário (Escola/Bateria/Acesso) tinha rótulo
+           maiúsculo grande e preto, borda mais grossa; a ficha tinha
+           rótulo pequeno em caixa alta e cinza. Duas fontes/pesos
+           diferentes na mesma tela era a queixa mais visível da Márcia
+           (achado 21/jul/2026, padronização geral). */
+        /* ".campo" já existe em styles/components.css com outro propósito
+           (estiliza um input direto, usado no login/cadastro) — como aqui
+           é uma div "wrapper" (rótulo + campo dentro), sem querer isso
+           herdava padding/borda/fundo daquela outra classe por baixo,
+           porque as duas regras não se sobrepõem em propriedade nenhuma, só
+           se somam. Zerando explicitamente (achado 21/jul/2026). */
+        .campo {
+            display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px;
+            width: auto; padding: 0; border: none; border-radius: 0; background: none;
+        }
+        .campo > label {
+            font-size: 11px; font-weight: 600; color: var(--cor-texto-secundario);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
         .campo input,
         .campo select,
         .campo textarea {
-            padding: 11px; border: 2px solid #e0e0e0; border-radius: 8px;
-            font-size: 14px; color: var(--cor-texto-principal);
-            background: white; transition: border-color 0.2s; outline: none;
+            padding: 7px 10px; border: 1.5px solid #D4AF37; border-radius: 8px;
+            font-size: 13px; color: #0f172a; font-family: inherit;
+            background: #fffdf4; transition: border-color 0.2s; outline: none;
         }
         .campo input:focus,
         .campo select:focus,
-        .campo textarea:focus { border-color: #D4AF37; }
+        .campo textarea:focus { border-color: #b8922a; }
+        /* Campo desabilitado = modo visualização — sem caixa nenhuma, só
+           texto puro (mesmo efeito visual do "strong" da Ficha do Ritmista/
+           Meu Perfil), em vez da caixinha cinza de antes. Único sistema de
+           campo no site inteiro agora: editável sempre com borda dourada,
+           travado sempre como texto solto (achado 21/jul/2026, padronização
+           geral — decisão de manter a lógica de habilitar/desabilitar já
+           existente em cada tela, só trocando a aparência via CSS). */
         .campo input:disabled,
         .campo select:disabled,
         .campo textarea:disabled {
-            background: #f5f5f5 !important;
-            color: #555;
+            background: none !important;
+            border: none !important;
+            padding: 0 !important;
+            color: var(--cor-texto-principal);
+            font-size: 13px; font-weight: 700;
+            -webkit-text-fill-color: var(--cor-texto-principal);
+            opacity: 1;
             cursor: default;
-            border-color: #e0e0e0;
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
         }
+        .campo select:disabled { background-image: none !important; }
         .campo textarea { resize: vertical; min-height: 80px; }
 
         /* preview de cor */
@@ -249,6 +319,18 @@
             font-size: 14px; font-weight: 700; margin-bottom: 20px;
         }
         .btn-novo:hover { background: #B8922A; }
+        /* Par do .btn-novo pra ação secundária ao lado da principal — mesma
+           altura/peso de fonte, só troca preenchido por contorno (regra de
+           hierarquia visual do guia de marca). Achado 21/jul/2026: o botão
+           "Criar Perfil Exclusivo" tinha um estilo solto, com padding e
+           fonte diferentes do "Ativar Perfil da Biblioteca" ao lado. */
+        .btn-secundario {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 20px; background: transparent; color: var(--cor-texto-secundario);
+            border: 1.5px solid var(--cor-borda); border-radius: 10px; cursor: pointer;
+            font-size: 14px; font-weight: 700; font-family: inherit; margin-bottom: 20px;
+        }
+        .btn-secundario:hover { border-color: var(--cor-borda-forte); color: var(--cor-texto-principal); }
 
         /* ── MODAL OVERLAY ── */
         .modal-overlay {
@@ -288,6 +370,11 @@
         .escola-ctx-nome { font-size: 13px; font-weight: 700; color: #0f172a; }
         .escola-ctx-sigla { display: none; }
 
+        /* ── TRILHA (breadcrumb) — mostra em que nível da Escola/Bateria a
+           pessoa está, já que a navegação pode chegar a 4-5 telas de
+           profundidade (Escola > Bateria > Configurações > Instrumentos).
+           Some quando só a lista de nível 1 está visível (nada a mostrar). ── */
+
         /* ── SUB-ABAS ── */
         .nav-sub-abas {
             display: flex; gap: 4px; margin-bottom: 20px;
@@ -301,7 +388,7 @@
             font-family: inherit;
         }
         .sub-aba:hover { color: #0f172a; background: #f8f8f8; }
-        .sub-aba.ativa { color: #D4AF37; border-bottom-color: #D4AF37; }
+        .sub-aba.ativa { color: #12101a; border-bottom-color: #12101a; }
         .sub-painel { display: none; }
         .sub-painel.ativo { display: block; }
 
@@ -316,19 +403,50 @@
             font-family: inherit;
         }
         .sub-sub-aba:hover { color: #0f172a; background: #f8f8f8; }
-        .sub-sub-aba.ativa { color: #D4AF37; border-bottom-color: #D4AF37; }
+        .sub-sub-aba.ativa { color: #12101a; border-bottom-color: #12101a; }
         .sub-sub-painel { display: none; }
         .sub-sub-painel.ativo { display: block; }
 
         /* ── DASHBOARD PLACEHOLDER ── */
         .dashboard-placeholder { text-align: center; padding: 60px 20px; color: #64748b; }
 
-        /* ── DASHBOARD: LISTA DE BATERIAS ── */
-        .dashboard-bateria-linha { padding: 14px 0; border-bottom: 1px solid #e5e7eb; }
-        .dashboard-bateria-linha:last-child { border-bottom: none; }
-        .dashboard-bateria-nome { font-size: 14px; font-weight: 700; color: #0f172a; }
-        .dashboard-bateria-nome .dashboard-bateria-escola { font-weight: 400; color: #64748b; }
-        .dashboard-bateria-numeros { font-size: 13px; color: #64748b; margin-top: 2px; }
+        /* ── DASHBOARD: RESUMO (reformulação 21/jul/2026) — números grandes
+           respondem "está tudo bem?" antes de qualquer clique, no lugar da
+           lista de texto plana que existia antes. ── */
+        .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+        .kpi { background: white; border: 1px solid var(--cor-borda); border-radius: 14px; padding: 16px 18px; }
+        .kpi .n { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--cor-texto-principal); }
+        .kpi .l { font-size: 12px; color: var(--cor-texto-secundario); font-weight: 600; margin-top: 2px; }
+        /* --cor-sucesso (#1f4d1f) foi pensado pra texto dentro de um selo com
+           fundo verde-clarinho — nesse fundo branco, número grande, ele fica
+           quase preto (achado real, 21/jul/2026); por isso um verde mais
+           vivo aqui, pensado só pra esse uso. */
+        .kpi.ok .n { color: #2e7d32; }
+        .kpi.atencao .n { color: var(--cor-terracota); }
+        .kpi.atencao { border-color: var(--cor-terracota-clara); }
+
+        .dash-secao-titulo { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cor-texto-muted); margin: 4px 0 12px; }
+
+        /* "Precisa de você" — cartão branco com listra terracota, cor só
+           como destaque na lateral, nunca preenchendo o fundo (mistura de
+           dourado+terracota já foi rejeitada antes por lembrar cor de
+           "caganeira" numa tela anterior — ver docs). */
+        .atencao-box { background: white; border: 1px solid var(--cor-borda); border-left: 4px solid var(--cor-terracota); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
+        .atencao-titulo { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--cor-terracota); margin-bottom: 10px; }
+        .atencao-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 13.5px; color: var(--cor-texto-principal); border-bottom: 1px solid var(--cor-borda); cursor: pointer; }
+        .atencao-item:last-child { border-bottom: none; }
+        .atencao-item .seta { color: var(--cor-terracota); font-weight: 700; white-space: nowrap; }
+
+        /* ── DASHBOARD: CARDS DE BATERIA (antes era lista de texto plana) ── */
+        .baterias-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .bateria-card { background: white; border: 1px solid var(--cor-borda); border-radius: 14px; padding: 16px 18px; cursor: pointer; transition: border-color 0.15s; }
+        .bateria-card:hover { border-color: var(--cor-borda-forte); }
+        .bc-nome { font-size: 14.5px; font-weight: 700; color: var(--cor-texto-principal); margin-bottom: 2px; }
+        .bc-escola { font-size: 12px; color: var(--cor-texto-muted); margin-bottom: 12px; }
+        .bc-stats { display: flex; gap: 16px; }
+        .bc-stat .n { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--cor-texto-principal); }
+        .bc-stat .n.aviso { color: var(--cor-terracota); }
+        .bc-stat .l { font-size: 10.5px; color: var(--cor-texto-muted); font-weight: 600; text-transform: uppercase; }
 
         /* ── ALERTA / TOAST ── */
         .toast {
@@ -341,21 +459,50 @@
         .toast.erro { border-left: 4px solid #ef4444; }
         .toast.visivel { display: flex; }
 
+        /* ".ficha-secao-titulo" vem de styles/components.css com
+           margin-bottom:6px — pouco espaço quando logo abaixo vem um texto
+           explicativo solto (sem campo/foto pra dar respiro sozinho). Ficava
+           "colado" na risca dourada em várias telas (achado 21/jul/2026).
+           Aumentando só aqui, sem mexer no arquivo compartilhado. */
+        .ficha-secao-titulo { margin-bottom: 12px; }
+
         /* ── ESTADO VAZIO ── */
         .estado-vazio { text-align: center; padding: 40px 20px; color: var(--cor-texto-muted); font-size: 14px; }
         .estado-vazio-icone { font-size: 36px; margin-bottom: 10px; }
 
         /* ── CONFIGURAÇÕES (lista estilo Google + sub-tela) ── */
+        /* Fundo sutil sempre visível (não só no hover) — antes o item só
+           tinha uma linha embaixo, sem nenhuma pista de que era clicável
+           sem passar o mouse, o que no celular (sem hover) não existe de
+           jeito nenhum (achado 21/jul/2026). Continua simples, cor só como
+           indício de clique — não virou card com sombra/borda grossa. */
         .config-item {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 4px; border-bottom: 1px solid #f0f0f0;
+            padding: 14px 16px; margin-bottom: 6px; border-radius: 10px;
+            background: var(--cor-superficie); border: 1px solid var(--cor-borda);
             cursor: pointer; font-size: 14px; font-weight: 600; color: var(--cor-texto-principal);
+            transition: background 0.15s, border-color 0.15s;
         }
-        .config-item:hover { background: #faf9fb; }
+        .config-item:hover, .config-item:active { background: var(--cor-fundo-claro); border-color: var(--cor-borda-forte); }
         .config-item-seta { color: #ccc; font-size: 20px; font-weight: 300; }
+
+        /* ── MENU DE ESCOLA/BATERIA EM PÍLULAS (reformulação 21/jul/2026) —
+           antes era uma lista vertical que sumia ao escolher um item (você
+           "entrava" numa tela nova e precisava de "← Voltar" pra sair).
+           Agora fica sempre visível em cima do conteúdo, como abas —
+           trocar de seção é um clique direto, não uma navegação. ── */
+        .pill-menu { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+        .pill-item {
+            padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
+            cursor: pointer; border: 1.5px solid var(--cor-borda); background: white;
+            color: var(--cor-texto-secundario); font-family: inherit; white-space: nowrap;
+        }
+        .pill-item:hover { border-color: var(--cor-borda-forte); }
+        .pill-item.ativa { background: var(--cor-fundo-medio); border-color: var(--cor-fundo-medio); color: #fff; }
+        .pill-menu.pill-menu-sub { margin: -8px 0 20px; }
         .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
-        .config-sub-desc { font-size: 13px; color: #8b88a0; margin: -10px 0 16px; }
+        .config-sub-desc { font-size: 13px; color: #8b88a0; margin: 0 0 16px; }
         .config-instrumento-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; flex-wrap: wrap; }
         .config-instrumento-check { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--cor-texto-principal); cursor: pointer; }
         .config-instrumento-check input { accent-color: var(--cor-destaque); width: 16px; height: 16px; cursor: pointer; }
@@ -384,9 +531,21 @@
             .header-badge { font-size: 9px; }
             .header-user { display: none; }
             .btn-sair { font-size: 11px; padding: 5px 10px; }
-            .nav-abas { padding: 0 16px; overflow-x: auto; }
-            .aba { font-size: 12px; padding: 10px 14px; }
-            .main { padding: 16px 12px; }
+            /* No celular a barra lateral vira barra fixa embaixo, ícone +
+               palavra — só 4 itens, cabem todos de uma vez, sem precisar
+               rolar (por isso o degradê de "tem mais coisa" saiu daqui). */
+            .nav-abas {
+                flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+                position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: 100%;
+                background: var(--cor-fundo-escuro); justify-content: space-around;
+                -webkit-mask-image: none; mask-image: none;
+            }
+            .aba { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
+            .aba .aba-ic { font-size: 18px; width: auto; }
+            .aba.ativa { background: none; }
+            .main { margin-left: 0; padding: 16px 12px 82px; }
+            .kpi-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .baterias-grid { grid-template-columns: 1fr; }
             .form-grid { grid-template-columns: 1fr; }
             .form-grid .campo-full { grid-column: 1; }
             .item-card { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -409,13 +568,25 @@
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
+<script>
+    // Mede a altura de verdade do cabeçalho em vez de supor um número fixo
+    // (achado 21/jul/2026: 56px copiado do admin.html cortava o topo do menu
+    // quando o nome da pessoa logada era mais comprido e o cabeçalho ficava
+    // mais alto que isso). Roda de novo se a janela for redimensionada.
+    function ajustarAlturaHeaderSA() {
+        const header = document.querySelector('.header');
+        if (header) document.documentElement.style.setProperty('--altura-header-sa', header.offsetHeight + 'px');
+    }
+    ajustarAlturaHeaderSA();
+    window.addEventListener('resize', ajustarAlturaHeaderSA);
+</script>
 
-<!-- ABAS -->
+<!-- NAV PRINCIPAL — barra lateral no computador, barra fixa embaixo no celular (mesma marcação, só CSS muda) -->
 <div class="nav-abas" id="nav-principal">
-    <button type="button" class="aba ativa" onclick="trocarAbaPrincipal('dashboard',this)">Dashboard</button>
-    <button type="button" class="aba" onclick="trocarAbaPrincipal('escolas',this)">Escolas</button>
-    <button type="button" class="aba" onclick="trocarAbaPrincipal('configuracoes',this)">Configurações</button>
-    <button type="button" class="aba" onclick="trocarAbaPrincipal('privacidade',this)">Privacidade</button>
+    <button type="button" class="aba ativa" data-aba="dashboard" onclick="trocarAbaPrincipal('dashboard',this)"><span class="aba-ic">📊</span><span>Dashboard</span></button>
+    <button type="button" class="aba" data-aba="escolas" onclick="trocarAbaPrincipal('escolas',this)"><span class="aba-ic">🏫</span><span>Escolas</span></button>
+    <button type="button" class="aba" data-aba="configuracoes" onclick="trocarAbaPrincipal('configuracoes',this)"><span class="aba-ic">⚙️</span><span>Configurações</span></button>
+    <button type="button" class="aba" data-aba="privacidade" onclick="trocarAbaPrincipal('privacidade',this)"><span class="aba-ic">🔒</span><span>Privacidade</span></button>
 </div>
 
 <!-- MAIN -->
@@ -425,7 +596,10 @@
     <div class="painel ativo" id="painel-dashboard">
         <div class="painel-titulo">Dashboard</div>
         <div class="painel-sub">Visão geral de todas as escolas e ritmistas.</div>
-        <div id="dashboard-lista-baterias"></div>
+        <div class="kpi-row" id="dashboard-kpis"></div>
+        <div id="dashboard-atencao"></div>
+        <div class="dash-secao-titulo">Baterias</div>
+        <div class="baterias-grid" id="dashboard-lista-baterias"></div>
     </div>
 
     <!-- ════ PAINEL: ESCOLAS ════ -->
@@ -443,24 +617,24 @@
         <div class="painel-titulo">Privacidade</div>
         <div class="painel-sub">Exclusão de dados sob pedido (LGPD) — ações sem volta, com prova registrada abaixo.</div>
 
-        <div class="painel-secao-titulo" style="font-weight:700;margin:20px 0 8px;">Excluir dados de uma pessoa</div>
+        <div class="ficha-secao-titulo" style="margin-top:20px;">Excluir dados de uma pessoa</div>
         <div class="painel-sub" style="margin-bottom:10px;">Busca por nome, CPF ou e-mail — encontra até quem não tem vínculo com nenhuma bateria hoje.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <input type="text" id="priv-busca-pessoa" placeholder="Nome, CPF ou e-mail..." style="flex:1;min-width:220px;padding:10px 14px;border-radius:8px;border:1px solid var(--cor-borda,#ddd);font-family:inherit;font-size:14px;" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarPessoaExclusao();}">
+            <input type="text" id="priv-busca-pessoa" class="fc-input" style="display:block;flex:1;min-width:220px;" placeholder="Nome, CPF ou e-mail..." onkeydown="if(event.key==='Enter'){event.preventDefault();buscarPessoaExclusao();}">
             <button class="btn-novo" style="margin:0;" onclick="buscarPessoaExclusao()">Buscar</button>
         </div>
         <div id="priv-resultado-pessoa" style="margin-top:12px;"></div>
 
-        <div class="painel-secao-titulo" style="font-weight:700;margin:32px 0 8px;">Excluir uma escola inteira</div>
+        <div class="ficha-secao-titulo" style="margin-top:28px;">Excluir uma escola inteira</div>
         <div class="painel-sub" style="margin-bottom:10px;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <select id="priv-select-escola" style="flex:1;min-width:220px;padding:10px 14px;border-radius:8px;border:1px solid var(--cor-borda,#ddd);font-family:inherit;font-size:14px;">
+            <select id="priv-select-escola" class="fc-input" style="display:block;flex:1;min-width:220px;">
                 <option value="">Selecione a escola...</option>
             </select>
             <button class="btn-ficha btn-ficha-danger" style="margin:0;" onclick="prepararExclusaoEscola()">Excluir escola</button>
         </div>
 
-        <div class="painel-secao-titulo" style="font-weight:700;margin:32px 0 8px;">Histórico de exclusões (prova)</div>
+        <div class="ficha-secao-titulo" style="margin-top:28px;">Histórico de exclusões (prova)</div>
         <div class="painel-sub" style="margin-bottom:10px;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
         <div id="priv-lista-log">
             <div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Carregando...</div>
@@ -570,53 +744,43 @@
             <span class="escola-ctx-sigla" id="escola-ctx-sigla"></span>
         </div>
 
-        <div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
-            <button onclick="acessarComoAdmin()" style="
-                display:inline-flex;align-items:center;gap:6px;
-                padding:7px 14px;background:#7c2d12;color:#ffffff;
-                border:none;border-radius:8px;cursor:pointer;
-                font-size:12px;font-weight:700;font-family:inherit;
-                white-space:nowrap;flex-shrink:0;
-            ">Acessar como Admin ↗</button>
-        </div>
-
-        <!-- Menu da Escola — lista vertical, funciona bem no celular (mesmo
-             padrão já usado em Configurações). Cada item leva pro seu painel;
-             cada painel tem "← Voltar" que volta pra essa lista. -->
-        <div id="escola-menu-lista">
-            <div class="config-item" onclick="trocarSubAba('cadastro')"><span>Dados da Escola</span><span class="config-item-seta">›</span></div>
-            <div class="config-item" onclick="trocarSubAba('bateria-modulo')"><span>Bateria</span><span class="config-item-seta">›</span></div>
-            <div class="config-item" onclick="trocarSubAba('permissoes-escola')"><span>Permissões</span><span class="config-item-seta">›</span></div>
-            <div class="config-item" onclick="trocarSubAba('historico-escola')"><span>Histórico</span><span class="config-item-seta">›</span></div>
+        <!-- Menu da Escola — pílulas sempre visíveis (deixou de ser uma lista
+             que "engole" a tela e exige ← Voltar pra sair). -->
+        <div id="escola-menu-lista" class="pill-menu">
+            <button type="button" class="pill-item" data-sub="cadastro" onclick="trocarSubAba('cadastro')">Dados da Escola</button>
+            <button type="button" class="pill-item" data-sub="bateria-modulo" onclick="trocarSubAba('bateria-modulo')">Bateria</button>
+            <button type="button" class="pill-item" data-sub="permissoes-escola" onclick="trocarSubAba('permissoes-escola')">Permissões</button>
+            <button type="button" class="pill-item" data-sub="historico-escola" onclick="trocarSubAba('historico-escola')">Histórico</button>
         </div>
 
         <!-- Dados da Escola -->
         <div class="sub-painel" id="sub-painel-cadastro">
-            <button class="btn-voltar" onclick="voltarEscolaMenuSA()" style="margin-bottom:16px;">← Escola</button>
-            <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
+            <div id="escola-cadastro-conteudo">
+                <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
+            </div>
         </div>
 
-        <!-- Bateria (módulo — tem seu próprio menu de lista por dentro) -->
+        <!-- Bateria (módulo — tem sua própria fileira de pílulas por dentro) -->
         <div class="sub-painel" id="sub-painel-bateria-modulo" style="display:none">
-            <button class="btn-voltar" onclick="voltarEscolaMenuSA()" style="margin-bottom:16px;">← Escola</button>
 
-            <div id="bateria-menu-lista">
-                <div class="config-item" onclick="trocarSubSubAba('bateria')"><span>Dados da Bateria</span><span class="config-item-seta">›</span></div>
-                <div class="config-item" onclick="trocarSubSubAba('ritmistas')"><span>Ritmistas</span><span class="config-item-seta">›</span></div>
-                <div class="config-item" onclick="trocarSubSubAba('acessos')"><span>Diretoria</span><span class="config-item-seta">›</span></div>
-                <div class="config-item" onclick="trocarSubSubAba('convites-bateria')"><span>Convites</span><span class="config-item-seta">›</span></div>
-                <div class="config-item" onclick="trocarSubSubAba('config-bateria')"><span>Configurações</span><span class="config-item-seta">›</span></div>
+            <div id="bateria-menu-lista" class="pill-menu pill-menu-sub">
+                <button type="button" class="pill-item" data-subsub="bateria" onclick="trocarSubSubAba('bateria')">Dados da Bateria</button>
+                <button type="button" class="pill-item" data-subsub="ritmistas" onclick="trocarSubSubAba('ritmistas')">Ritmistas</button>
+                <button type="button" class="pill-item" data-subsub="acessos" onclick="trocarSubSubAba('acessos')">Diretoria</button>
+                <button type="button" class="pill-item" data-subsub="convites-bateria" onclick="trocarSubSubAba('convites-bateria')">Convites</button>
+                <button type="button" class="pill-item" data-subsub="relatorios-bateria" onclick="trocarSubSubAba('relatorios-bateria')">Relatórios</button>
+                <button type="button" class="pill-item" data-subsub="config-bateria" onclick="trocarSubSubAba('config-bateria')">Configurações</button>
             </div>
 
             <!-- Dados da Bateria -->
             <div class="sub-sub-painel" id="sub-painel-bateria" style="display:none">
-                <button class="btn-voltar" onclick="voltarBateriaMenuSA()" style="margin-bottom:16px;">← Bateria</button>
-                <div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Carregando...</div>
+                <div id="bateria-cadastro-conteudo">
+                    <div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Carregando...</div>
+                </div>
             </div>
 
             <!-- Ritmistas -->
             <div class="sub-sub-painel" id="sub-painel-ritmistas" style="display:none">
-                <button class="btn-voltar" onclick="voltarBateriaMenuSA()" style="margin-bottom:16px;">← Bateria</button>
                 <div style="margin-bottom:16px;">
                     <input type="text" id="ri-busca" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltrosRitmistasSA()"
                         style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;outline:none;">
@@ -652,9 +816,30 @@
                 </div>
             </div>
 
-            <!-- Diretoria (Mestre/Diretor) -->
+            <!-- Diretoria (Mestre/Diretor) — mesmo padrão de busca/filtro de Ritmistas -->
             <div class="sub-sub-painel" id="sub-painel-acessos" style="display:none">
-                <button class="btn-voltar" onclick="voltarBateriaMenuSA()" style="margin-bottom:16px;">← Bateria</button>
+                <div style="margin-bottom:16px;">
+                    <input type="text" id="ac-busca" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltrosAcessosSA()"
+                        style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;outline:none;">
+                </div>
+                <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                    <div class="multi-select" id="ac-statusSelectWrap">
+                        <div class="multi-select-trigger" id="ac-statusSelectTrigger" onclick="toggleStatusSelectAcSA()">
+                            <span id="ac-statusSelectLabel">Todos os status</span>
+                            <span id="ac-statusSelectArrow">▼</span>
+                        </div>
+                        <div class="multi-select-dropdown" id="ac-statusSelectDropdown" style="display:none;">
+                            <label class="multi-select-option"><input type="checkbox" value="aprovado" onchange="onChangeStatusAcSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
+                            <label class="multi-select-option"><input type="checkbox" value="pendente" onchange="onChangeStatusAcSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
+                            <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatusAcSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
+                            <label class="multi-select-option"><input type="checkbox" value="desligado" onchange="onChangeStatusAcSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
+                            <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatusAcSA()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
+                            <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
+                                <span onclick="limparFiltroStatusAcSA()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar filtro</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="lista-acessos" class="lista-cards">
                     <div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Carregando...</div>
                 </div>
@@ -662,22 +847,34 @@
 
             <!-- Convites (links de cadastro + cadastro manual, pra Ritmista ou Diretoria) -->
             <div class="sub-sub-painel" id="sub-painel-convites-bateria" style="display:none">
-                <button class="btn-voltar" onclick="voltarBateriaMenuSA()" style="margin-bottom:16px;">← Bateria</button>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-                    <button class="btn-novo" onclick="irParaCadastroManualRitmistaSA()">+ Cadastrar Ritmista</button>
                     <button class="btn-novo" onclick="abrirCadastrarUsuario()">+ Cadastrar Usuário</button>
                 </div>
 
                 <div class="card-form">
                     <div class="card-form-titulo">Links de cadastro</div>
-                    <p style="font-size:12px;color:#5a5770;margin:-8px 0 14px;">Envie o link pelo WhatsApp da diretoria — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
+                    <p style="font-size:12px;color:#5a5770;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
                     <div id="links-cadastro-lista"></div>
+                </div>
+            </div>
+
+            <!-- Relatórios (por bateria) — lugar único pra exportar, cobre
+                 Ritmistas e Diretoria (antes só existia dentro de Ritmistas,
+                 achado 21/jul/2026: Diretoria ficava de fora, e duplicar o
+                 botão nos dois lugares foi descartado pela Márcia). -->
+            <div class="sub-sub-painel" id="sub-painel-relatorios-bateria" style="display:none">
+                <div class="card-form">
+                    <div class="card-form-titulo">Exportar para Excel</div>
+                    <p style="font-size:13px;color:var(--cor-texto-secundario);margin:0 0 16px;">Escolha o que exportar — cada um abre sua própria lista de campos.</p>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn-novo" style="margin-bottom:0;" onclick="abrirExportarExcelSA('ritmistas')">⬇ Exportar Ritmistas</button>
+                        <button class="btn-secundario" style="margin-bottom:0;" onclick="abrirExportarExcelSA('diretoria')">⬇ Exportar Diretoria</button>
+                    </div>
                 </div>
             </div>
 
             <!-- Configurações (por bateria) -->
             <div class="sub-sub-painel" id="sub-painel-config-bateria" style="display:none">
-                <button class="btn-voltar" onclick="voltarBateriaMenuSA()" style="margin-bottom:16px;">← Bateria</button>
                 <div id="cb-config-lista">
                     <div class="config-item" onclick="abrirConfigTelaBateriaSA('instrumentos')">
                         <span>Instrumentos</span>
@@ -719,10 +916,9 @@
 
         <!-- Permissões (por escola) -->
         <div class="sub-painel" id="sub-painel-permissoes-escola" style="display:none">
-            <button class="btn-voltar" onclick="voltarEscolaMenuSA()" style="margin-bottom:16px;">← Escola</button>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
                 <button class="btn-novo" onclick="abrirAtivarPerfilEscolaSA()">+ Ativar Perfil da Biblioteca</button>
-                <button onclick="abrirNovoPerfilEscolaSA()" style="background:transparent;border:1.5px solid var(--cor-borda);color:var(--cor-texto-secundario);padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">+ Criar Perfil Exclusivo</button>
+                <button class="btn-secundario" onclick="abrirNovoPerfilEscolaSA()">+ Criar Perfil Exclusivo</button>
             </div>
             <div id="pe-ativar-lista" style="display:none;margin-bottom:20px;"></div>
             <div id="pe-editor" style="display:none;"></div>
@@ -731,7 +927,6 @@
 
         <!-- Histórico (por escola) -->
         <div class="sub-painel" id="sub-painel-historico-escola" style="display:none">
-            <button class="btn-voltar" onclick="voltarEscolaMenuSA()" style="margin-bottom:16px;">← Escola</button>
             <div class="painel-sub" style="margin-bottom:20px;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta escola, e quando.</div>
             <div id="lista-historico-escola">
                 <div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Carregando...</div>
@@ -739,8 +934,6 @@
         </div>
 
     </div>
-
-</div>
 
 <!-- MODAL CONFIRMAR EXCLUSÃO (LGPD) — reaproveitado pra pessoa e escola -->
 <div class="modal-overlay" id="modal-excluir-lgpd-overlay" onclick="fecharSeForaModal(event,'modal-excluir-lgpd-overlay','fecharConfirmacaoExclusao')">
@@ -775,11 +968,10 @@
 <div class="painel" id="painel-ver-acesso" style="display:none">
     <div class="escola-ctx-header">
         <button class="btn-voltar" onclick="fecharFormAcesso()">← Acessos</button>
-        <div class="escola-ctx-info">
-            <div class="escola-ctx-nome" id="form-acesso-titulo">Acesso</div>
-        </div>
     </div>
     <div class="card-form">
+        <div class="ficha-modal-titulo" id="acesso-titulo-nome"></div>
+        <div class="ficha-modal-sub" id="acesso-titulo-sub"></div>
         <div id="modal-acesso-body"></div>
         <div class="form-rodape" id="modal-acesso-rodape"></div>
     </div>
@@ -794,14 +986,14 @@
         </div>
     </div>
     <div class="card-form">
-        <div class="form-grid">
-            <div class="campo campo-full">
-                <label>Bateria *</label>
-                <select id="cu-bateria-id"></select>
+        <div class="ficha-grid">
+            <div class="ficha-campo full">
+                <span>Bateria</span>
+                <strong id="cu-bateria-nome"></strong>
             </div>
-            <div class="campo campo-full">
-                <label>Cargo *</label>
-                <select id="cu-cargo">
+            <div class="ficha-campo full">
+                <span>Cargo *</span>
+                <select id="cu-cargo" class="fc-input" style="display:block;">
                     <option value="ritmista">Ritmista</option>
                     <option value="mestre">Mestre de Bateria</option>
                     <option value="diretor">Diretor</option>
@@ -811,6 +1003,32 @@
         <div class="form-rodape">
             <div class="form-rodape-esq">
                 <button class="btn-ficha btn-ficha-salvar" onclick="continuarCadastrarUsuario()">Continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TELA CHEIA: EXPORTAR EXCEL (portado do admin.html 21/jul/2026, que
+     tinha ficado de fora do Fase 2; era modal lá, virou tela cheia aqui —
+     decisão da Márcia de não ter mais modal nenhum no sistema) -->
+<div class="painel" id="painel-exportar-excel" style="display:none">
+    <div class="escola-ctx-header">
+        <button class="btn-voltar" onclick="fecharExportarExcelSA()">← Relatórios</button>
+        <div class="escola-ctx-info">
+            <div class="escola-ctx-nome">Exportar Excel</div>
+        </div>
+    </div>
+    <div class="card-form">
+        <p id="export-resumo-lista-sa" style="font-size:13.5px;color:var(--cor-texto-secundario);margin-bottom:16px;"></p>
+        <div style="text-align:right;margin-bottom:8px;">
+            <span onclick="exportSelecionarTodosSA(true)" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Marcar todos</span>
+            <span style="color:#ccc;margin:0 6px;">|</span>
+            <span onclick="exportSelecionarTodosSA(false)" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar seleção</span>
+        </div>
+        <div id="export-campos-container-sa" style="margin-bottom:16px;"></div>
+        <div class="form-rodape">
+            <div class="form-rodape-esq">
+                <button class="btn-ficha btn-ficha-salvar" onclick="confirmarExportarExcelSA()">Exportar</button>
             </div>
         </div>
     </div>
@@ -855,6 +1073,7 @@
         </div>
         <div class="form-rodape">
             <div class="form-rodape-esq" id="ri-acoes-status-sa"></div>
+            <button class="btn-ficha" onclick="fecharFichaRitmistaSA()">Voltar</button>
         </div>
     </div>
 </div>
@@ -882,6 +1101,15 @@
     </div>
 </div>
 
+</div><!-- /.main — fechamento correto, movido 21/jul/2026: antes fechava logo
+          depois de painel-escola-contexto, deixando painel-ver-acesso,
+          painel-cadastrar-usuario, painel-desativar-escola,
+          painel-ficha-ritmista e painel-motivo-ritmista (+ o modal de
+          exclusão LGPD) como filhos soltos de <body>. Passava despercebido
+          porque, com .main centralizado antigo, ficar dentro ou fora dela
+          dava a mesma aparência visual — só ficou visível depois da barra
+          lateral, que .main respeita mas esses painéis soltos não. -->
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -903,6 +1131,10 @@
         window.location.href = 'login.html';
     } else {
         document.getElementById('headerUser').textContent = usuarioLogado.nome;
+        // Remedir agora — antes o nome ainda não tinha sido colocado no
+        // cabeçalho, então a primeira medição (logo depois do HTML do
+        // cabeçalho) não contava com nomes compridos que quebram linha.
+        ajustarAlturaHeaderSA();
     }
 
     // ── GLOBALS ──────────────────────────────────────────────────────
@@ -912,6 +1144,19 @@
     let escolasCache = [];
     let logoPendente = { escolaNova: null, escolaEdicao: null, bateria: null };
     let bateriasCache = [];
+
+    // Guarda em que sub-nível a pessoa está — usado por trocarSubAba,
+    // trocarSubSubAba e abrirConfigTelaBateriaSA (nível mais fundo, dentro
+    // de "Configurações" da Bateria).
+    let subAbaAtualSA = null;
+    let subSubAbaAtualSA = null;
+    let configBateriaTelaAtualSA = null;
+
+    // A trilha (breadcrumb) foi removida em 21/jul/2026 — só mostrava o
+    // nome da tela atual (ex: "Instrumentos"), repetindo o título que já
+    // está logo abaixo. Função mantida como no-op pra não precisar tirar
+    // as chamadas espalhadas em trocarSubAba/trocarSubSubAba/etc.
+    function atualizarBreadcrumbSA() {}
 
     // ── NAVEGAÇÃO PRINCIPAL ──────────────────────────────────────────
     function trocarAbaPrincipal(aba, el) {
@@ -1137,6 +1382,8 @@
 
     // ── DASHBOARD ────────────────────────────────────────────────────
     async function carregarDashboard() {
+        const kpisEl = document.getElementById('dashboard-kpis');
+        const atencaoEl = document.getElementById('dashboard-atencao');
         const container = document.getElementById('dashboard-lista-baterias');
         const [resBaterias, resEscolas, resVinculos] = await Promise.all([
             fetch(`${SUPABASE_URL}/rest/v1/baterias?select=id,nome,escola_id&order=nome`, { headers }),
@@ -1149,6 +1396,7 @@
         const escolaPorId = Object.fromEntries((escolas || []).map(e => [e.id, e]));
 
         if (!baterias || baterias.length === 0) {
+            kpisEl.innerHTML = ''; atencaoEl.innerHTML = '';
             container.innerHTML = `<div class="dashboard-placeholder">
                 <div style="font-size:36px;margin-bottom:12px">📊</div>
                 <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px">Nenhuma bateria cadastrada ainda</div>
@@ -1156,14 +1404,43 @@
             return;
         }
 
+        // Resumo — responde "está tudo bem?" antes de qualquer clique.
+        const totalAtivos = vinculos.filter(v => v.status === 'aprovado').length;
+        const totalPendentes = vinculos.filter(v => v.status === 'pendente').length;
+        kpisEl.innerHTML = `
+            <div class="kpi"><div class="n">${(escolas || []).length}</div><div class="l">Escolas</div></div>
+            <div class="kpi"><div class="n">${baterias.length}</div><div class="l">Baterias</div></div>
+            <div class="kpi ok"><div class="n">${totalAtivos}</div><div class="l">Pessoas ativas</div></div>
+            <div class="kpi${totalPendentes > 0 ? ' atencao' : ''}"><div class="n">${totalPendentes}</div><div class="l">Pendências</div></div>
+        `;
+
+        // "Precisa de você" — só aparece se houver pendência de verdade,
+        // aponta direto pra bateria certa (reaproveita irParaAcessosDaBateria).
+        const pendentesPorBateria = baterias
+            .map(b => ({ bateria: b, escola: escolaPorId[b.escola_id], pendentes: vinculos.filter(v => v.bateria_id === b.id && v.status === 'pendente').length }))
+            .filter(x => x.pendentes > 0);
+        atencaoEl.innerHTML = pendentesPorBateria.length === 0 ? '' : `
+            <div class="atencao-box">
+                <div class="atencao-titulo">Precisa de você</div>
+                ${pendentesPorBateria.map(x => `
+                    <div class="atencao-item" onclick="irParaAcessosDaBateria(${x.bateria.escola_id})">
+                        <span>${x.pendentes} pendente${x.pendentes === 1 ? '' : 's'} — ${x.escola?.nome || ''} (${x.bateria.nome})</span>
+                        <span class="seta">Revisar ›</span>
+                    </div>`).join('')}
+            </div>`;
+
         container.innerHTML = baterias.map(b => {
             const pendentes = vinculos.filter(v => v.bateria_id === b.id && v.status === 'pendente').length;
             const ativos = vinculos.filter(v => v.bateria_id === b.id && v.status === 'aprovado').length;
             const escola = escolaPorId[b.escola_id];
             const temporada = escola?.temporada_atual;
-            return `<div class="dashboard-bateria-linha" style="cursor:pointer" onclick="irParaAcessosDaBateria(${b.escola_id})">
-                <div class="dashboard-bateria-nome">${b.nome}${escola?.nome ? ` <span class="dashboard-bateria-escola">(${escola.nome})</span>` : ''}</div>
-                <div class="dashboard-bateria-numeros">${pendentes} pendente${pendentes === 1 ? '' : 's'} · ${ativos} ativo${ativos === 1 ? '' : 's'}${temporada ? ` · temporada ${temporada}` : ''}</div>
+            return `<div class="bateria-card" onclick="irParaAcessosDaBateria(${b.escola_id})">
+                <div class="bc-nome">${b.nome}</div>
+                <div class="bc-escola">${escola?.nome || ''}${temporada ? ` · ${temporada}` : ''}</div>
+                <div class="bc-stats">
+                    <div class="bc-stat"><div class="n">${ativos}</div><div class="l">Ativos</div></div>
+                    <div class="bc-stat"><div class="n${pendentes > 0 ? ' aviso' : ''}">${pendentes}</div><div class="l">Pendentes</div></div>
+                </div>
             </div>`;
         }).join('');
     }
@@ -1187,8 +1464,7 @@
         trocarAbaPrincipal('meu-perfil', null);
     }
     function fecharMeuPerfilSA() {
-        const label = NAV_PRINCIPAL_LABEL_SA[paginaAntesDoMeuPerfilSA] || 'Dashboard';
-        const btn = Array.from(document.querySelectorAll('#nav-principal .aba')).find(b => b.textContent.trim() === label);
+        const btn = document.querySelector('#nav-principal .aba[data-aba="' + paginaAntesDoMeuPerfilSA + '"]');
         trocarAbaPrincipal(paginaAntesDoMeuPerfilSA, btn);
     }
 
@@ -1212,8 +1488,9 @@
         const ctx = document.getElementById('painel-escola-contexto');
         ctx.style.display = 'block'; ctx.classList.add('ativo');
 
-        // Mostrar a lista de opções da escola primeiro (mesmo padrão do menu de Configurações)
-        voltarEscolaMenuSA();
+        // Abre já em "Dados da Escola" — as pílulas do menu ficam sempre
+        // visíveis, não existe mais um estado "em branco" de escolher primeiro.
+        trocarSubAba('cadastro');
 
         // Carregar baterias antes de acessos (acessos filtra por bateria_id)
         await carregarBaterias(id);
@@ -1238,7 +1515,7 @@
     // Cadastro/Bateria/Acessos manualmente (17/jul/2026, pedido da Márcia
     // depois de não achar como aprovar um Mestre pendente).
     async function irParaAcessosDaBateria(escolaId) {
-        const btnEscolas = Array.from(document.querySelectorAll('#nav-principal .aba')).find(b => b.textContent.trim() === 'Escolas');
+        const btnEscolas = document.querySelector('#nav-principal .aba[data-aba="escolas"]');
         trocarAbaPrincipal('escolas', btnEscolas);
         await selecionarEscola(escolaId);
         trocarSubAba('bateria-modulo');
@@ -1250,43 +1527,49 @@
         escolaSelecionadaId = null;
         escolaAtualData = null;
         bateriaAtualData = null;
+        subAbaAtualSA = null; subSubAbaAtualSA = null; configBateriaTelaAtualSA = null;
         const ctx = document.getElementById('painel-escola-contexto');
         ctx.style.display = 'none'; ctx.classList.remove('ativo');
         const esc = document.getElementById('painel-escolas');
         esc.style.display = 'block'; esc.classList.add('ativo');
     }
 
+    // O menu da Escola virou pílulas sempre visíveis (21/jul/2026) — trocar
+    // de seção não esconde mais o menu, só troca qual pílula fica marcada e
+    // qual conteúdo aparece embaixo.
     function trocarSubAba(aba) {
-        document.getElementById('escola-menu-lista').style.display = 'none';
+        document.querySelectorAll('#escola-menu-lista .pill-item').forEach(x => x.classList.remove('ativa'));
+        const pill = document.querySelector('#escola-menu-lista .pill-item[data-sub="' + aba + '"]');
+        if (pill) pill.classList.add('ativa');
         document.querySelectorAll('#painel-escola-contexto > .sub-painel').forEach(x => { x.style.display = 'none'; x.classList.remove('ativo'); });
         const painel = document.getElementById('sub-painel-' + aba);
         if (painel) { painel.style.display = 'block'; painel.classList.add('ativo'); }
+        subAbaAtualSA = aba; subSubAbaAtualSA = null; configBateriaTelaAtualSA = null;
         if (aba === 'bateria-modulo') voltarBateriaMenuSA();
         if (aba === 'permissoes-escola') iniciarPermissoesEscolaSA();
         if (aba === 'historico-escola') carregarHistoricoEscolaSA();
+        atualizarBreadcrumbSA();
     }
 
-    // Volta pra lista de opções da Escola (Dados da Escola/Bateria/Permissões/Histórico).
-    function voltarEscolaMenuSA() {
-        document.querySelectorAll('#painel-escola-contexto > .sub-painel').forEach(x => { x.style.display = 'none'; x.classList.remove('ativo'); });
-        document.getElementById('escola-menu-lista').style.display = 'block';
-    }
-
-    // 2º nível — só dentro do módulo Bateria. Escopado às classes
-    // .sub-sub-aba/.sub-sub-painel pra não colidir com trocarSubAba (que
-    // gerencia só o nível de fora).
+    // 2º nível — só dentro do módulo Bateria, mesma ideia (pílula sempre
+    // visível, escopada às classes .sub-sub-painel pra não colidir com
+    // trocarSubAba, que cuida do nível de fora).
     function trocarSubSubAba(aba) {
-        document.getElementById('bateria-menu-lista').style.display = 'none';
+        document.querySelectorAll('#bateria-menu-lista .pill-item').forEach(x => x.classList.remove('ativa'));
+        const pill = document.querySelector('#bateria-menu-lista .pill-item[data-subsub="' + aba + '"]');
+        if (pill) pill.classList.add('ativa');
         document.querySelectorAll('#sub-painel-bateria-modulo > .sub-sub-painel').forEach(x => { x.style.display = 'none'; x.classList.remove('ativo'); });
         const painel = document.getElementById('sub-painel-' + aba);
         if (painel) { painel.style.display = 'block'; painel.classList.add('ativo'); }
+        subSubAbaAtualSA = aba; configBateriaTelaAtualSA = null;
         if (aba === 'config-bateria') iniciarConfigBateriaSA();
+        atualizarBreadcrumbSA();
     }
 
-    // Volta pra lista de opções da Bateria (Dados/Ritmistas/Diretoria/Convites/Configurações).
+    // Chamada ao entrar no módulo Bateria — abre já em "Dados da Bateria",
+    // mesmo espírito do trocarSubAba('cadastro') em selecionarEscola.
     function voltarBateriaMenuSA() {
-        document.querySelectorAll('#sub-painel-bateria-modulo > .sub-sub-painel').forEach(x => { x.style.display = 'none'; x.classList.remove('ativo'); });
-        document.getElementById('bateria-menu-lista').style.display = 'block';
+        trocarSubSubAba('bateria');
     }
 
     // ── TOAST ─────────────────────────────────────────────────────────
@@ -1470,10 +1753,18 @@
     // CADASTRO ESCOLA — INLINE
     // ══════════════════════════════════════════════════════════════════
 
+    // Reescrita 21/jul/2026 pra usar exatamente a mesma estrutura da Ficha
+    // do Ritmista/Meu Perfil (.ficha-secao/.ficha-grid/.ficha-campo/.fc-input)
+    // em vez do sistema próprio de caixa cinza (.card-form/.campo) — a
+    // Márcia comparou lado a lado e apontou que "Dados da Escola" sempre
+    // parecia formulário (caixa com borda), mesmo só visualizando, enquanto
+    // Meu Perfil tem um modo de visualização de verdade (texto solto, sem
+    // caixa) que só vira campo editável depois de clicar em "Editar".
     function renderizarCadastroEscola(e, modoEdicao = false) {
         escolaAtualData = e;
-        const d = modoEdicao ? '' : 'disabled';
         const ativa = e && e.ativa !== false;
+        const visEdit = modoEdicao ? 'display:block' : 'display:none';
+        const visView = modoEdicao ? 'display:none' : '';
 
         const rodape = modoEdicao ? `
             <div class="form-rodape">
@@ -1489,40 +1780,45 @@
                 </div>
             </div>`;
 
-        const ph = modoEdicao ? 'placeholder' : 'data-ph';
-        document.getElementById('sub-painel-cadastro').innerHTML = `
-            <div class="card-form">
-                <div class="card-form-titulo">Dados da Escola</div>
-                <div class="form-grid">
-                    <div class="campo campo-full"><label>Nome Completo *</label>
-                        <input type="text" id="escola-cor-nome" value="${e ? esc(e.nome) : ''}" ${modoEdicao ? 'placeholder="Ex: Grêmio Recreativo..."' : ''} ${d}></div>
-                    <div class="campo campo-full"><label>Sigla *</label>
-                        <input type="text" id="escola-cor-sigla" value="${e ? esc(e.sigla) : ''}" ${modoEdicao ? 'placeholder="Ex: Imperatriz"' : ''} ${d}></div>
-                    <div class="campo campo-full"><label>Logo da Escola</label>
-                        <div class="logo-area">
-                            <div class="logo-box ${modoEdicao ? '' : 'desabilitado'}" id="escola-logo-preview" ${modoEdicao ? `onclick="document.getElementById('escola-logo-input').click()"` : ''}>
-                                ${e && e.logo_url ? `<img src="${esc(e.logo_url)}">` : '<span class="logo-box-vazio">Sem logo</span>'}
-                            </div>
-                            ${modoEdicao ? `<div class="logo-hint">Clique no quadro para trocar o logo.<br>Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>` : ''}
-                        </div>
-                        <input type="file" id="escola-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'escolaEdicao')">
-                    </div>
-                    <div class="campo campo-full"><label>Temporada Atual</label>
-                        <input type="text" id="escola-cor-temporada" value="${e ? esc(e.temporada_atual) : ''}" ${modoEdicao ? 'placeholder="Ex: Carnaval 2027"' : ''} ${d}></div>
-                    <div class="campo"><label>Cor Primária</label>
-                        <input type="text" id="escola-cor-primaria" value="${e ? esc(e.cor_primaria) : ''}" ${modoEdicao ? 'placeholder="#000000"' : ''} ${d} oninput="atualizarPreviewEscola()"></div>
-                    <div class="campo"><label>Cor Secundária</label>
-                        <input type="text" id="escola-cor-secundaria" value="${e ? esc(e.cor_secundaria) : ''}" ${modoEdicao ? 'placeholder="#000000"' : ''} ${d} oninput="atualizarPreviewEscola()"></div>
-                    <div class="campo"><label>Cor Terciária</label>
-                        <input type="text" id="escola-cor-terciaria" value="${e ? esc(e.cor_terciaria) : ''}" ${modoEdicao ? 'placeholder="#000000"' : ''} ${d} oninput="atualizarPreviewEscola()"></div>
-                    <div class="campo"><label>Cor Quaternária</label>
-                        <input type="text" id="escola-cor-quaternaria" value="${e ? esc(e.cor_quaternaria) : ''}" ${modoEdicao ? 'placeholder="#000000"' : ''} ${d} oninput="atualizarPreviewEscola()"></div>
-                    <div class="campo campo-full"><label>Preview</label>
-                        <div class="preview-cores" id="preview-escola"></div></div>
-                </div>
-                <input type="hidden" id="escola-cor-id" value="${e ? e.id : ''}">
-                ${rodape}
+        const campo = (label, id, valor, opts = {}) => `
+            <div class="ficha-campo${opts.full ? ' full' : ''}">
+                <span>${label}</span>
+                <strong style="${visView}">${valor ? esc(valor) : '—'}</strong>
+                <input type="text" id="${id}" class="fc-input" value="${e ? esc(valor || '') : ''}" style="${visEdit}"
+                    ${opts.placeholder ? `placeholder="${opts.placeholder}"` : ''} ${opts.extra || ''}>
             </div>`;
+
+        document.getElementById('escola-cadastro-conteudo').innerHTML = `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Dados da Escola</div>
+                <div class="ficha-grid">
+                    ${campo('Nome Completo *', 'escola-cor-nome', e && e.nome, { full: true, placeholder: 'Ex: Grêmio Recreativo...' })}
+                    ${campo('Sigla *', 'escola-cor-sigla', e && e.sigla, { full: true, placeholder: 'Ex: Imperatriz' })}
+                </div>
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Logo</div>
+                <div class="logo-area">
+                    <div class="logo-box ${modoEdicao ? '' : 'desabilitado'}" id="escola-logo-preview" ${modoEdicao ? `onclick="document.getElementById('escola-logo-input').click()"` : ''}>
+                        ${e && e.logo_url ? `<img src="${esc(e.logo_url)}">` : '<span class="logo-box-vazio">Sem logo</span>'}
+                    </div>
+                    ${modoEdicao ? `<div class="logo-hint">Clique no quadro para trocar o logo.<br>Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>` : ''}
+                </div>
+                <input type="file" id="escola-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'escolaEdicao')">
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Temporada e cores</div>
+                <div class="ficha-grid">
+                    ${campo('Temporada Atual', 'escola-cor-temporada', e && e.temporada_atual, { full: true, placeholder: 'Ex: Carnaval 2027' })}
+                    ${campo('Cor Primária', 'escola-cor-primaria', e && e.cor_primaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewEscola()"' })}
+                    ${campo('Cor Secundária', 'escola-cor-secundaria', e && e.cor_secundaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewEscola()"' })}
+                    ${campo('Cor Terciária', 'escola-cor-terciaria', e && e.cor_terciaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewEscola()"' })}
+                    ${campo('Cor Quaternária', 'escola-cor-quaternaria', e && e.cor_quaternaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewEscola()"' })}
+                </div>
+                <div class="preview-cores" id="preview-escola" style="margin-top:12px;"></div>
+            </div>
+            <input type="hidden" id="escola-cor-id" value="${e ? e.id : ''}">
+            ${rodape}`;
         logoPendente.escolaEdicao = null;
         atualizarPreviewEscola();
     }
@@ -1640,7 +1936,7 @@
 
     function renderizarBateriaInline(b, modoEdicao = false) {
         bateriaAtualData = b;
-        const div = document.getElementById('sub-painel-bateria');
+        const div = document.getElementById('bateria-cadastro-conteudo');
 
         if (!b) {
             div.innerHTML = `
@@ -1652,8 +1948,9 @@
             return;
         }
 
-        const d = modoEdicao ? '' : 'disabled';
         const ativa = b.ativa !== false;
+        const visEdit = modoEdicao ? 'display:block' : 'display:none';
+        const visView = modoEdicao ? 'display:none' : '';
 
         const rodape = modoEdicao ? `
             <div class="form-rodape">
@@ -1669,70 +1966,79 @@
                 </div>
             </div>`;
 
-        div.innerHTML = `
-            <div class="card-form">
-                <div class="card-form-titulo">Dados da Bateria</div>
-                <div class="form-grid">
-                    <div class="campo campo-full"><label>Nome da Bateria *</label>
-                        <input type="text" id="bat-nome" value="${esc(b.nome)}" ${d}></div>
-                    <div class="campo campo-full"><label>Instagram</label>
-                        <input type="text" id="bat-instagram" value="${esc(b.instagram)}" ${d}></div>
-                    <div class="campo campo-full"><label>Logo da Bateria</label>
-                        <div class="logo-area">
-                            <div class="logo-box ${modoEdicao ? '' : 'desabilitado'}" id="bat-logo-preview" ${modoEdicao ? `onclick="document.getElementById('bat-logo-input').click()"` : ''}>
-                                ${b.logo_url ? `<img src="${esc(b.logo_url)}">` : '<span class="logo-box-vazio">Sem logo</span>'}
-                            </div>
-                            ${modoEdicao ? `<div class="logo-hint">Clique no quadro para trocar o logo.<br>Aparece no verso da carteirinha. Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>` : ''}
-                        </div>
-                        <input type="file" id="bat-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'bateria')">
-                    </div>
-                    <div class="campo campo-full">
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <input type="checkbox" id="bat-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${b.modo_piloto ? 'checked' : ''} ${d}>
-                            <label for="bat-modo-piloto" style="margin:0;font-size:13px;font-weight:700;color:#333;cursor:pointer;">Modo Carteirinha</label>
-                        </div>
-                        <div style="font-size:12px;color:#64748b;margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de admin.</div>
-                    </div>
-                </div>
-                <input type="hidden" id="bat-id" value="${b.id}">
-                ${rodape}
+        const campo = (label, id, valor, opts = {}) => `
+            <div class="ficha-campo${opts.full ? ' full' : ''}">
+                <span>${label}</span>
+                <strong style="${visView}">${valor ? esc(valor) : '—'}</strong>
+                <input type="text" id="${id}" class="fc-input" value="${esc(valor || '')}" style="${visEdit}" ${opts.placeholder ? `placeholder="${opts.placeholder}"` : ''}>
             </div>`;
+
+        div.innerHTML = `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Dados da Bateria</div>
+                <div class="ficha-grid">
+                    ${campo('Nome da Bateria *', 'bat-nome', b.nome, { full: true })}
+                    ${campo('Instagram', 'bat-instagram', b.instagram, { full: true })}
+                </div>
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Logo</div>
+                <div class="logo-area">
+                    <div class="logo-box ${modoEdicao ? '' : 'desabilitado'}" id="bat-logo-preview" ${modoEdicao ? `onclick="document.getElementById('bat-logo-input').click()"` : ''}>
+                        ${b.logo_url ? `<img src="${esc(b.logo_url)}">` : '<span class="logo-box-vazio">Sem logo</span>'}
+                    </div>
+                    ${modoEdicao ? `<div class="logo-hint">Clique no quadro para trocar o logo.<br>Aparece no verso da carteirinha. Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>` : ''}
+                </div>
+                <input type="file" id="bat-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'bateria')">
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Modo Carteirinha</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="bat-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${b.modo_piloto ? 'checked' : ''} ${modoEdicao ? '' : 'disabled'}>
+                    <label for="bat-modo-piloto" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
+                </div>
+                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de admin.</div>
+            </div>
+            <input type="hidden" id="bat-id" value="${b.id}">
+            ${rodape}`;
         logoPendente.bateria = null;
     }
 
     function renderizarNovaBateriaInline() {
         bateriaAtualData = null;
         logoPendente.bateria = null;
-        document.getElementById('sub-painel-bateria').innerHTML = `
-            <div class="card-form">
-                <div class="card-form-titulo">Nova Bateria</div>
-                <div class="form-grid">
-                    <div class="campo campo-full"><label>Nome da Bateria *</label>
-                        <input type="text" id="bat-nome" placeholder="Ex: Swing da Leopoldina"></div>
-                    <div class="campo campo-full"><label>Instagram</label>
-                        <input type="text" id="bat-instagram" placeholder="@nomeDaBateria"></div>
-                    <div class="campo campo-full"><label>Logo da Bateria</label>
-                        <div class="logo-area">
-                            <div class="logo-box" id="bat-logo-preview" onclick="document.getElementById('bat-logo-input').click()">
-                                <span class="logo-box-vazio">Sem logo</span>
-                            </div>
-                            <div class="logo-hint">Clique no quadro para escolher a imagem do logo.<br>Aparece no verso da carteirinha. Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>
-                        </div>
-                        <input type="file" id="bat-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'bateria')">
-                    </div>
-                    <div class="campo campo-full">
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <input type="checkbox" id="bat-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;">
-                            <label for="bat-modo-piloto" style="margin:0;font-size:13px;font-weight:700;color:#333;cursor:pointer;">Modo Carteirinha</label>
-                        </div>
-                        <div style="font-size:12px;color:#64748b;margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de admin.</div>
-                    </div>
+        document.getElementById('bateria-cadastro-conteudo').innerHTML = `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Nova Bateria</div>
+                <div class="ficha-grid">
+                    <div class="ficha-campo full"><span>Nome da Bateria *</span>
+                        <input type="text" id="bat-nome" class="fc-input" style="display:block;" placeholder="Ex: Swing da Leopoldina"></div>
+                    <div class="ficha-campo full"><span>Instagram</span>
+                        <input type="text" id="bat-instagram" class="fc-input" style="display:block;" placeholder="@nomeDaBateria"></div>
                 </div>
-                <input type="hidden" id="bat-id" value="">
-                <div class="form-rodape">
-                    <div class="form-rodape-esq">
-                        <button class="btn-ficha btn-ficha-salvar" onclick="salvarBateriaInline()">Salvar Bateria</button>
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Logo</div>
+                <div class="logo-area">
+                    <div class="logo-box" id="bat-logo-preview" onclick="document.getElementById('bat-logo-input').click()">
+                        <span class="logo-box-vazio">Sem logo</span>
                     </div>
+                    <div class="logo-hint">Clique no quadro para escolher a imagem do logo.<br>Aparece no verso da carteirinha. Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>
+                </div>
+                <input type="file" id="bat-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'bateria')">
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Modo Carteirinha</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="bat-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;">
+                    <label for="bat-modo-piloto" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
+                </div>
+                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de admin.</div>
+            </div>
+            <input type="hidden" id="bat-id" value="">
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarBateriaInline()">Salvar Bateria</button>
                 </div>
             </div>`;
     }
@@ -1795,17 +2101,58 @@
     // ACESSOS (Mestre / Diretor)
     // ══════════════════════════════════════════════════════════════════
 
+    let todosAcessosSA = [];
+    let filtroStatusSelecionadosAcSA = [];
+
     async function carregarAcessos(escolaId) {
         let url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor)&order=nome&select=id,pessoa_id,nome,apelido,cpf,perfil,bateria_id,status`;
         if (escolaId) {
             const ids = bateriasCache.map(b => b.id);
-            if (!ids.length) { renderizarListaAcessos([]); return; }
+            if (!ids.length) { todosAcessosSA = []; renderizarListaAcessos([]); return; }
             url += `&bateria_id=in.(${ids.join(',')})`;
         }
         const res = await fetch(url, { headers });
-        if (!res.ok) { renderizarListaAcessos([]); return; }
-        const dados = await res.json();
-        renderizarListaAcessos(dados);
+        todosAcessosSA = res.ok ? await res.json() : [];
+        aplicarFiltrosAcessosSA();
+    }
+
+    let listaFiltradaAcessosSA = [];
+    function aplicarFiltrosAcessosSA() {
+        let lista = todosAcessosSA;
+        if (filtroStatusSelecionadosAcSA.length > 0) {
+            lista = lista.filter(u => filtroStatusSelecionadosAcSA.includes(u.status));
+        }
+        const busca = semAcentoSA(document.getElementById('ac-busca')?.value || '');
+        if (busca) {
+            const buscaCpf = busca.replace(/\D/g, '');
+            lista = lista.filter(u =>
+                semAcentoSA(u.nome).includes(busca) ||
+                semAcentoSA(u.apelido).includes(busca) ||
+                (buscaCpf.length > 0 && (u.cpf || '').replace(/\D/g, '').includes(buscaCpf))
+            );
+        }
+        listaFiltradaAcessosSA = lista;
+        renderizarListaAcessos(lista);
+    }
+    function toggleStatusSelectAcSA() {
+        const dd = document.getElementById('ac-statusSelectDropdown');
+        const aberto = dd.style.display !== 'none';
+        dd.style.display = aberto ? 'none' : 'block';
+        document.getElementById('ac-statusSelectArrow').textContent = aberto ? '▼' : '▲';
+    }
+    function limparFiltroStatusAcSA() {
+        document.querySelectorAll('#ac-statusSelectDropdown input[type=checkbox]').forEach(c => c.checked = false);
+        onChangeStatusAcSA();
+    }
+    function onChangeStatusAcSA() {
+        const checks = document.querySelectorAll('#ac-statusSelectDropdown input[type=checkbox]:checked');
+        filtroStatusSelecionadosAcSA = Array.from(checks).map(c => c.value);
+        const labels = { pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', desligado: 'Desligados', rejeitado: 'Rejeitados' };
+        document.getElementById('ac-statusSelectLabel').textContent = filtroStatusSelecionadosAcSA.length === 0
+            ? 'Todos os status'
+            : filtroStatusSelecionadosAcSA.map(v => labels[v]).join(', ');
+        document.getElementById('ac-statusSelectTrigger').classList.toggle('ativo', filtroStatusSelecionadosAcSA.length > 0);
+        aplicarFiltrosAcessosSA();
     }
 
     function nomeBateria(id) {
@@ -1828,7 +2175,7 @@
 
     function cardAcessoHTML(u) {
         const botoesPendente = u.status === 'pendente' ? `
-            <button class="btn-ficha btn-ficha-editar" onclick="event.stopPropagation();aprovarAcesso(${u.id})">Aprovar</button>
+            <button class="btn-ficha btn-ficha-ativar" onclick="event.stopPropagation();aprovarAcesso(${u.id})">Aprovar</button>
             <button class="btn-ficha btn-ficha-danger" onclick="event.stopPropagation();rejeitarAcesso(${u.id})">Rejeitar</button>` : '';
         return `
             <div class="item-card" style="cursor:pointer" onclick="verAcesso('${u.id}')">
@@ -1900,6 +2247,13 @@
     }
 
     async function verAcesso(id) { await editarAcesso(id); }
+    // Reescrita 21/jul/2026: trocou o mecanismo de "campo desabilitado" (que
+    // por baixo dos panos o Chromium ainda desenha com uma borda nativa,
+    // mesmo com CSS forçando "none" — não aparece nem inspecionando o estilo
+    // computado, só no resultado final da tela) por dois elementos de
+    // verdade, igual ficha-perfil.js: um "strong" pra visualização (sem
+    // caixa nenhuma) e um campo .fc-input pra edição, alternando com
+    // display none/block — mesma técnica, garantida funcionar.
     async function editarAcesso(id) {
         const res = await fetch(
             `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?id=eq.${id}&select=id,pessoa_id,nome,apelido,cpf,perfil,bateria_id,status,nivel_acesso_id`,
@@ -1910,26 +2264,45 @@
         const u = dados[0];
         const ativo = u.status !== 'inativo';
         if (perfisEscolaCacheSA.length === 0) await carregarPerfisEscolaSA();
-        document.getElementById('form-acesso-titulo').textContent = u.apelido || u.nome;
+
+        const labelPerfilVal = u.perfil === 'ritmista' ? 'Ritmista' : labelPerfil(u.perfil);
+        const bateriaNome = (bateriasCache.find(x => x.id === u.bateria_id) || {}).nome || '—';
+        const nivelNome = (perfisEscolaCacheSA.find(x => x.id === u.nivel_acesso_id) || {}).nome || '—';
+
+        document.getElementById('acesso-titulo-nome').textContent = u.nome || '—';
+        document.getElementById('acesso-titulo-sub').textContent = [u.apelido ? `"${u.apelido}"` : '', labelPerfilVal].filter(Boolean).join(' · ');
+
         document.getElementById('modal-acesso-body').innerHTML = `
-            <div class="form-grid">
-                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="acesso-nome" value="${esc(u.nome)}" disabled></div>
-                <div class="campo campo-full"><label>Apelido *</label><input type="text" id="acesso-apelido" value="${esc(u.apelido)}" disabled></div>
-                <div class="campo"><label>CPF *</label><input type="text" id="acesso-cpf" value="${esc(u.cpf)}" maxlength="14" disabled></div>
-                <div class="campo"><label>Perfil *</label><select id="acesso-perfil" disabled onchange="onTrocarPerfilAcesso()">
-                    <option value="">Selecione...</option>
-                    <option value="mestre"${u.perfil==='mestre'?' selected':''}>Mestre de Bateria</option>
-                    <option value="diretor"${u.perfil==='diretor'?' selected':''}>Diretor</option>
-                    <option value="ritmista"${u.perfil==='ritmista'?' selected':''}>Ritmista</option>
-                </select></div>
-                <div class="campo"><label>Bateria Vinculada *</label><select id="acesso-bateria-id" disabled>${bateriasOpcoesHTML(u.bateria_id)}</select></div>
-                <div class="campo campo-full" id="acesso-campo-instrumento" style="display:none;">
-                    <label>Instrumento *</label>
-                    <select id="acesso-instrumento" disabled><option value="">Selecione...</option></select>
+            <div class="ficha-grid">
+                <div class="ficha-campo full"><span>Nome Completo *</span>
+                    <strong id="acesso-nome-view">${esc(u.nome)}</strong>
+                    <input type="text" id="acesso-nome" class="fc-input" value="${esc(u.nome)}"></div>
+                <div class="ficha-campo full"><span>Apelido *</span>
+                    <strong id="acesso-apelido-view">${esc(u.apelido)}</strong>
+                    <input type="text" id="acesso-apelido" class="fc-input" value="${esc(u.apelido)}"></div>
+                <div class="ficha-campo"><span>CPF *</span>
+                    <strong id="acesso-cpf-view">${esc(u.cpf)}</strong>
+                    <input type="text" id="acesso-cpf" class="fc-input" value="${esc(u.cpf)}" maxlength="14"></div>
+                <div class="ficha-campo"><span>Perfil *</span>
+                    <strong id="acesso-perfil-view">${esc(labelPerfilVal)}</strong>
+                    <select id="acesso-perfil" class="fc-input" onchange="onTrocarPerfilAcesso()">
+                        <option value="">Selecione...</option>
+                        <option value="mestre"${u.perfil==='mestre'?' selected':''}>Mestre de Bateria</option>
+                        <option value="diretor"${u.perfil==='diretor'?' selected':''}>Diretor</option>
+                        <option value="ritmista"${u.perfil==='ritmista'?' selected':''}>Ritmista</option>
+                    </select></div>
+                <div class="ficha-campo"><span>Bateria Vinculada *</span>
+                    <strong id="acesso-bateria-id-view">${esc(bateriaNome)}</strong>
+                    <select id="acesso-bateria-id" class="fc-input">${bateriasOpcoesHTML(u.bateria_id)}</select></div>
+                <div class="ficha-campo full" id="acesso-campo-instrumento" style="display:none;">
+                    <span>Instrumento *</span>
+                    <strong id="acesso-instrumento-view">—</strong>
+                    <select id="acesso-instrumento"><option value="">Selecione...</option></select>
                 </div>
-                <div class="campo campo-full" id="acesso-campo-nivel" style="display:${u.perfil === 'ritmista' ? 'none' : ''};">
-                    <label>Nível de Acesso *</label>
-                    <select id="acesso-nivel-acesso" disabled>${niveisAcessoOpcoesHTML(u.nivel_acesso_id)}</select>
+                <div class="ficha-campo full" id="acesso-campo-nivel" style="${u.perfil === 'ritmista' ? 'display:none' : ''}">
+                    <span>Nível de Acesso *</span>
+                    <strong id="acesso-nivel-acesso-view">${esc(nivelNome)}</strong>
+                    <select id="acesso-nivel-acesso" class="fc-input">${niveisAcessoOpcoesHTML(u.nivel_acesso_id)}</select>
                 </div>
             </div>
             <input type="hidden" id="acesso-id" value="${u.id}">
@@ -1947,11 +2320,20 @@
     function habilitarEdicaoAcesso() {
         ['acesso-nome','acesso-apelido','acesso-cpf','acesso-perfil','acesso-bateria-id','acesso-nivel-acesso'].forEach(campo => {
             const el = document.getElementById(campo);
+            const view = document.getElementById(campo + '-view');
             if (el) {
-                el.disabled = false;
+                el.style.display = 'block';
                 if (campo === 'acesso-cpf') el.oninput = () => mascaraCPF(el);
             }
+            if (view) view.style.display = 'none';
         });
+        // Instrumento não entra no loop acima (fica escondido até o perfil
+        // virar Ritmista) — precisa da classe fc-input + display:block pra
+        // já estar pronto quando onTrocarPerfilAcesso() revelar o campo.
+        const selInstrumento = document.getElementById('acesso-instrumento');
+        selInstrumento.classList.add('fc-input');
+        selInstrumento.style.display = 'block';
+        document.getElementById('acesso-instrumento-view').style.display = 'none';
         document.getElementById('acesso-bateria-id').onchange = onTrocarPerfilAcesso;
         onTrocarPerfilAcesso();
         document.getElementById('modal-acesso-rodape').innerHTML = `
@@ -2063,16 +2445,12 @@
     // CADASTRAR USUÁRIO (manual — status já nasce ativo)
     // ══════════════════════════════════════════════════════════════════
 
-    async function abrirCadastrarUsuario() {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?select=id,nome,escola_id&order=nome`, { headers });
-        const todasBaterias = res.ok ? await res.json() : [];
-        const select = document.getElementById('cu-bateria-id');
-        select.innerHTML = todasBaterias.map(b => {
-            const escola = escolasCache.find(e => e.id === b.escola_id);
-            const label = escola ? `${b.nome} — ${escola.sigla || escola.nome}` : b.nome;
-            const selecionado = bateriaAtualData && b.id === bateriaAtualData.id ? ' selected' : '';
-            return `<option value="${b.id}"${selecionado}>${esc(label)}</option>`;
-        }).join('');
+    function abrirCadastrarUsuario() {
+        // A bateria já é a que está aberta no momento (Convites é uma aba
+        // de dentro de uma bateria específica) — mostrar um seletor pra
+        // qualquer bateria do sistema não fazia sentido nesse contexto
+        // (achado 21/jul/2026).
+        document.getElementById('cu-bateria-nome').textContent = bateriaAtualData ? bateriaAtualData.nome : '';
         document.getElementById('cu-cargo').value = 'ritmista';
         trocarParaPainelCheio('painel-cadastrar-usuario');
     }
@@ -2082,10 +2460,9 @@
     }
 
     function continuarCadastrarUsuario() {
-        const bateriaId = document.getElementById('cu-bateria-id').value;
+        if (!bateriaAtualData) { mostrarToast('Nenhuma bateria selecionada.', 'erro'); return; }
         const cargo = document.getElementById('cu-cargo').value;
-        if (!bateriaId) { mostrarToast('Selecione a bateria.', 'erro'); return; }
-        const url = `${window.location.origin}/cadastro.html?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}`;
+        const url = `${window.location.origin}/cadastro.html?modo=manual&cargo=${cargo}&bateria_id=${bateriaAtualData.id}`;
         window.open(url, '_blank');
         fecharCadastrarUsuario();
     }
@@ -2101,7 +2478,10 @@
             div.innerHTML = `<p style="font-size:13px;color:#999;">Cadastre a bateria para ver os links.</p>`;
             return;
         }
-        const base = `${window.location.origin}/cadastro.html?bateria=${bateriaAtualData.id}`;
+        // Código não sequencial em vez do ID (21/jul/2026) — link antigo com
+        // o ID ainda funciona (ver cadastro.html), mas todo link gerado daqui
+        // pra frente já nasce sem expor quantas baterias existem no sistema.
+        const base = `${window.location.origin}/cadastro.html?bateria=${bateriaAtualData.codigo_convite || bateriaAtualData.id}`;
         const linhas = [
             { label: 'Ritmista', url: base },
             { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },
@@ -2257,7 +2637,6 @@
                     <button class="btn-ficha" onclick="fecharEditorCategoria()">Cancelar</button>
                 </div>
             </div>`;
-        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function sincronizarNomenclaturasDoDOM() {
@@ -2467,6 +2846,10 @@
             const dd = document.getElementById('ri-statusSelectDropdown');
             if (dd) { dd.style.display = 'none'; document.getElementById('ri-statusSelectArrow').textContent = '▼'; }
         }
+        if (!document.getElementById('ac-statusSelectWrap')?.contains(e.target)) {
+            const dd = document.getElementById('ac-statusSelectDropdown');
+            if (dd) { dd.style.display = 'none'; document.getElementById('ac-statusSelectArrow').textContent = '▼'; }
+        }
     });
 
     function aplicarFiltrosRitmistasSA() {
@@ -2494,7 +2877,140 @@
             const sa = ordemStatus[a.status] ?? 5, sb = ordemStatus[b.status] ?? 5;
             return sa !== sb ? sa - sb : (a.nome || '').localeCompare(b.nome || '', 'pt-BR');
         });
+        listaFiltradaAtualSA = lista;
         renderizarRitmistasSA(lista);
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // EXPORTAR EXCEL — portado do admin.html, tela cheia em vez de modal
+    // ══════════════════════════════════════════════════════════════════
+    let listaFiltradaAtualSA = [];
+    const CAMPOS_EXPORTAVEIS_SA = [
+        { grupo: 'Dados pessoais', campos: [
+            { chave: 'nome', label: 'Nome' },
+            { chave: 'apelido', label: 'Apelido' },
+            { chave: 'cpf', label: 'CPF' },
+            { chave: 'nascimento', label: 'Data de nascimento' },
+            { chave: 'celular', label: 'Celular' },
+            { chave: 'email', label: 'E-mail' },
+            { chave: 'instrumento_nome', label: 'Instrumento' },
+            { chave: 'membro_desde', label: 'Membro desde' },
+            { chave: 'status', label: 'Status' },
+        ]},
+        { grupo: 'Contato de emergência', campos: [
+            { chave: 'emergencia_nome', label: 'Nome do contato de emergência' },
+            { chave: 'emergencia_parentesco', label: 'Parentesco do contato' },
+            { chave: 'emergencia_celular', label: 'Celular do contato' },
+        ]},
+        { grupo: 'Endereço', campos: [
+            { chave: 'endereco', label: 'Endereço' },
+            { chave: 'numero', label: 'Número' },
+            { chave: 'complemento', label: 'Complemento' },
+            { chave: 'bairro', label: 'Bairro' },
+            { chave: 'cidade', label: 'Cidade' },
+            { chave: 'estado', label: 'Estado' },
+        ]},
+        { grupo: 'Medidas', campos: [
+            { chave: 'tamanho_camisa', label: 'Tamanho da camisa' },
+            { chave: 'tamanho_fantasia', label: 'Tamanho da fantasia' },
+            { chave: 'tamanho_calca', label: 'Tamanho da calça' },
+            { chave: 'tamanho_sapato', label: 'Tamanho do sapato' },
+        ]},
+    ];
+    const CAMPOS_EXPORTAVEIS_ACESSOS_SA = [
+        { grupo: 'Diretoria', campos: [
+            { chave: 'nome', label: 'Nome' },
+            { chave: 'apelido', label: 'Apelido' },
+            { chave: 'cpf', label: 'CPF' },
+            { chave: 'perfil', label: 'Cargo' },
+            { chave: 'status', label: 'Status' },
+        ]},
+    ];
+    const LABELS_STATUS_EXPORT_SA = { pendente: 'Pendente', aprovado: 'Ativo', suspenso: 'Suspenso', rejeitado: 'Rejeitado', desligado: 'Desligado' };
+    const LABELS_PERFIL_EXPORT_SA = { mestre: 'Mestre de Bateria', diretor: 'Diretor' };
+    let tipoExportacaoAtualSA = 'ritmistas';
+    let sheetJSCarregadoSA = false;
+    function carregarSheetJSSA() {
+        return new Promise((resolve, reject) => {
+            if (sheetJSCarregadoSA || window.XLSX) { sheetJSCarregadoSA = true; resolve(); return; }
+            const script = document.createElement('script');
+            script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+            script.onload = () => { sheetJSCarregadoSA = true; resolve(); };
+            script.onerror = () => reject(new Error('Não foi possível carregar a biblioteca de exportação.'));
+            document.head.appendChild(script);
+        });
+    }
+    // tipo: 'ritmistas' | 'diretoria' — um lugar só (aba Relatórios) pros
+    // dois, em vez de duplicar o botão em cada lista (achado 21/jul/2026).
+    function abrirExportarExcelSA(tipo) {
+        tipoExportacaoAtualSA = tipo;
+        const ehRitmistas = tipo === 'ritmistas';
+        const lista = ehRitmistas ? listaFiltradaAtualSA : listaFiltradaAcessosSA;
+        const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS_SA : CAMPOS_EXPORTAVEIS_ACESSOS_SA;
+        const substantivo = ehRitmistas ? 'ritmista' : 'pessoa da diretoria';
+
+        const total = lista.length;
+        document.getElementById('export-resumo-lista-sa').textContent = total === 1
+            ? `1 ${substantivo} será exportado(a) (conforme os filtros aplicados na lista).`
+            : `${total} ${ehRitmistas ? 'ritmistas serão exportados' : 'pessoas da diretoria serão exportadas'} (conforme os filtros aplicados na lista).`;
+
+        const container = document.getElementById('export-campos-container-sa');
+        container.innerHTML = campos.map(grupo => `
+            <div style="margin-bottom:14px;">
+                <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">${grupo.grupo}</div>
+                ${grupo.campos.map(c => `
+                    <label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#333;cursor:pointer;">
+                        <input type="checkbox" class="export-campo-check-sa" value="${c.chave}">
+                        ${c.label}
+                    </label>
+                `).join('')}
+            </div>
+        `).join('');
+
+        trocarParaPainelCheio('painel-exportar-excel');
+    }
+    function fecharExportarExcelSA() {
+        voltarDoPainelCheio('painel-exportar-excel');
+    }
+    function exportSelecionarTodosSA(marcar) {
+        document.querySelectorAll('.export-campo-check-sa').forEach(c => c.checked = marcar);
+    }
+    async function confirmarExportarExcelSA() {
+        const ehRitmistas = tipoExportacaoAtualSA === 'ritmistas';
+        const lista = ehRitmistas ? listaFiltradaAtualSA : listaFiltradaAcessosSA;
+        const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS_SA : CAMPOS_EXPORTAVEIS_ACESSOS_SA;
+        const nomeAba = ehRitmistas ? 'Ritmistas' : 'Diretoria';
+
+        const marcados = Array.from(document.querySelectorAll('.export-campo-check-sa:checked')).map(c => c.value);
+        if (marcados.length === 0) { mostrarToast('Marque pelo menos um campo para exportar.', 'erro'); return; }
+        if (lista.length === 0) { mostrarToast('Não há registros para exportar com os filtros atuais.', 'erro'); return; }
+
+        const todosCampos = campos.flatMap(g => g.campos);
+        const linhas = lista.map(r => {
+            const linha = {};
+            marcados.forEach(chave => {
+                const campo = todosCampos.find(c => c.chave === chave);
+                let valor = r[chave] ?? '';
+                if (chave === 'status') valor = LABELS_STATUS_EXPORT_SA[valor] || valor;
+                if (chave === 'perfil') valor = LABELS_PERFIL_EXPORT_SA[valor] || valor;
+                linha[campo.label] = valor;
+            });
+            return linha;
+        });
+
+        try {
+            await carregarSheetJSSA();
+        } catch (e) {
+            mostrarToast('Não foi possível exportar agora — verifique sua conexão com a internet e tente de novo.', 'erro');
+            return;
+        }
+
+        const planilha = XLSX.utils.json_to_sheet(linhas);
+        const livro = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(livro, planilha, nomeAba);
+        const dataHoje = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(livro, `${tipoExportacaoAtualSA}-${dataHoje}.xlsx`);
+        fecharExportarExcelSA();
     }
 
     function renderizarRitmistasSA(lista) {
@@ -2544,12 +3060,6 @@
         if (status === 'aprovado') body.motivo_status = null;
         await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, { method: 'PATCH', headers, body: JSON.stringify(body) });
         await carregarRitmistasSA();
-    }
-
-    function irParaCadastroManualRitmistaSA() {
-        const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
-        if (!bateriaId) { mostrarToast('Selecione uma bateria primeiro.', 'erro'); return; }
-        window.open(`${window.location.origin}/cadastro.html?modo=manual&cargo=ritmista&bateria_id=${bateriaId}`, '_blank');
     }
 
     function renderToggleDeclaracaoSA(id, entregue) {
@@ -2765,7 +3275,6 @@
                     <button class="btn-ficha" onclick="fecharEditorPerfilEscolaSA()">Cancelar</button>
                 </div>
             </div>`;
-        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function fecharEditorPerfilEscolaSA() {
@@ -2860,13 +3369,17 @@
         document.getElementById('cb-config-lista').style.display = 'none';
         document.querySelectorAll('#sub-painel-config-bateria .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('cb-config-tela-' + nome).style.display = 'block';
+        configBateriaTelaAtualSA = nome;
         if (nome === 'instrumentos') renderizarConfigInstrumentosSA();
         if (nome === 'vagas') renderizarConfigVagasSA();
         if (nome === 'medidas') renderizarConfigMedidasSA();
+        atualizarBreadcrumbSA();
     }
     function voltarConfigBateriaListaSA() {
         document.querySelectorAll('#sub-painel-config-bateria .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('cb-config-lista').style.display = 'block';
+        configBateriaTelaAtualSA = null;
+        atualizarBreadcrumbSA();
     }
 
     function renderizarConfigInstrumentosSA() {
@@ -3073,7 +3586,6 @@
                     <button class="btn-ficha" onclick="fecharEditorNivel()">Cancelar</button>
                 </div>
             </div>`;
-        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function fecharEditorNivel() {
@@ -3206,7 +3718,6 @@
                     <button class="btn-ficha" onclick="fecharEditorTamanho()">Cancelar</button>
                 </div>
             </div>`;
-        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function fecharEditorTamanho() {
@@ -3263,14 +3774,6 @@
     }
 
     // ── ACESSAR COMO ADMIN ───────────────────────────────────────────
-    function acessarComoAdmin() {
-        if (!escolaSelecionadaId || !escolaAtualData) return;
-        if (!bateriaAtualData) { mostrarToast('Cadastre a bateria antes de acessar como Admin.', 'erro'); return; }
-        const nome = encodeURIComponent(escolaAtualData.nome || '');
-        const url = `admin.html?superadmin=true&escola_nome=${nome}&bateria_id=${bateriaAtualData.id}`;
-        window.open(url, '_blank');
-    }
-
     // ── SAIR ──────────────────────────────────────────────────────────
     async function sair() {
         await sb.auth.signOut();

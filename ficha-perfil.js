@@ -197,7 +197,12 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
 
     fpEl('fp-secao-instrumento').style.display = alvo.perfil === 'ritmista' ? '' : 'none';
     fpEl('fp-instrumento').textContent = alvo.instrumento_nome || '—';
-    fpEl('fp-secao-senha').style.display = autoedicao ? '' : 'none';
+    // Escondida por padrão mesmo em autoedição — só aparece dentro do modo
+    // "Editar" (ver fpAtivarEdicao/fpCancelarEdicao), pra ter o mesmo
+    // comportamento do resto da ficha (achado 21/jul/2026: antes ficava
+    // sempre visível e pronta pra uso, diferente de todo o resto da tela,
+    // que exige clicar em "Editar" primeiro — confundia).
+    fpEl('fp-secao-senha').style.display = 'none';
     fpEl('fp-senha-nova').value = '';
     fpEl('fp-senha-confirmar').value = '';
 
@@ -298,6 +303,8 @@ async function fpAtivarEdicao() {
         });
     }
 
+    if (fpEstado.autoedicao) fpEl('fp-secao-senha').style.display = '';
+
     fpEl('fp-btn-editar').style.display = 'none';
     fpEl('fp-btn-salvar').style.display = 'inline-flex';
     fpEl('fp-btn-cancelar').style.display = 'inline-flex';
@@ -320,6 +327,9 @@ function fpCancelarEdicao() {
         fpEl('fp-instrumento').style.display = '';
         fpEl('fp-instrumento-edit').style.display = 'none';
     }
+    fpEl('fp-secao-senha').style.display = 'none';
+    fpEl('fp-senha-nova').value = '';
+    fpEl('fp-senha-confirmar').value = '';
     fpFotoBase64 = null;
     fpEl('fp-btn-editar').style.display = 'inline-flex';
     fpEl('fp-btn-salvar').style.display = 'none';
@@ -476,9 +486,11 @@ async function fpAlterarSenha() {
     if (error) {
         mostrarMensagemSenha('Não foi possível alterar a senha. Tente novamente.', 'erro');
     } else {
-        fpEl('fp-senha-nova').value = '';
-        fpEl('fp-senha-confirmar').value = '';
         mostrarMensagemSenha('Senha alterada com sucesso!', 'sucesso');
+        // Volta a ficha inteira pro modo visualização (não só limpa os
+        // campos de senha) — mesmo comportamento de "Salvar" no resto da
+        // ficha, pra não deixar a seção de senha aberta depois de concluída.
+        fpCancelarEdicao();
     }
 }
 
