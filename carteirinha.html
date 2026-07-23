@@ -385,13 +385,13 @@
 
             let escola = null;
             if (bateria.escola_id) {
-                const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,temporada_atual,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria`, { headers: hdrs });
+                const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,temporada_atual,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria`, { headers: hdrs });
                 const escolas = await resEscola.json();
                 escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
             }
 
             return {
-                nomeEscola: escola ? (escola.nome || '') : '',
+                nomeEscola: escola ? (escola.sigla || escola.nome || '') : '',
                 nomeBateria: bateria.nome || '',
                 instagramBateria: bateria.instagram || '',
                 temporadaAtual: (escola && escola.temporada_atual) || '',

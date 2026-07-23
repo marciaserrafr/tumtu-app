@@ -944,9 +944,22 @@
         </div>
         <div class="modal-sa-body">
             <p id="excluir-lgpd-descricao" style="font-size:14px;color:#5a5770;margin-bottom:14px;"></p>
-            <div class="campo" style="margin-bottom:10px;">
-                <label>Motivo (opcional)</label>
-                <input type="text" id="excluir-lgpd-motivo" placeholder="Ex: pedido da própria pessoa">
+            <div class="campo" style="margin-bottom:10px;" id="excluir-lgpd-motivo-pessoa-wrap">
+                <label>Motivo *</label>
+                <select id="excluir-lgpd-motivo-select" onchange="onMudarMotivoExclusaoPessoa()">
+                    <option value="">Selecione...</option>
+                    <option value="pedido_pessoa">A pedido da própria pessoa</option>
+                    <option value="perda_acesso">Perda de acesso — vai se cadastrar de novo</option>
+                    <option value="outro">Outro</option>
+                </select>
+            </div>
+            <div class="campo" style="margin-bottom:10px;display:none;" id="excluir-lgpd-motivo-outro-wrap">
+                <label>Descreva o motivo *</label>
+                <input type="text" id="excluir-lgpd-motivo-outro" placeholder="Descreva o motivo" oninput="onDigitarConfirmacaoExclusao()">
+            </div>
+            <div class="campo" style="margin-bottom:10px;display:none;" id="excluir-lgpd-motivo-escola-wrap">
+                <label>Motivo *</label>
+                <input type="text" id="excluir-lgpd-motivo" placeholder="Ex: parceria encerrada, escola solicitou" oninput="onDigitarConfirmacaoExclusao()">
             </div>
             <div class="campo" style="margin-bottom:10px;">
                 <label>Quem pediu (opcional)</label>
@@ -1291,6 +1304,12 @@
     }
 
     function abrirModalExclusaoLgpd() {
+        const ehPessoa = exclusaoLgpdPendente && exclusaoLgpdPendente.tipo === 'pessoa';
+        document.getElementById('excluir-lgpd-motivo-pessoa-wrap').style.display = ehPessoa ? '' : 'none';
+        document.getElementById('excluir-lgpd-motivo-outro-wrap').style.display = 'none';
+        document.getElementById('excluir-lgpd-motivo-escola-wrap').style.display = ehPessoa ? 'none' : '';
+        document.getElementById('excluir-lgpd-motivo-select').value = '';
+        document.getElementById('excluir-lgpd-motivo-outro').value = '';
         document.getElementById('excluir-lgpd-motivo').value = '';
         document.getElementById('excluir-lgpd-solicitante').value = '';
         document.getElementById('excluir-lgpd-confirmacao').value = '';
@@ -1303,9 +1322,23 @@
         document.getElementById('modal-excluir-lgpd-overlay').classList.remove('aberto');
     }
 
+    function onMudarMotivoExclusaoPessoa() {
+        const select = document.getElementById('excluir-lgpd-motivo-select').value;
+        document.getElementById('excluir-lgpd-motivo-outro-wrap').style.display = select === 'outro' ? '' : 'none';
+        onDigitarConfirmacaoExclusao();
+    }
+
     function onDigitarConfirmacaoExclusao() {
-        const valor = document.getElementById('excluir-lgpd-confirmacao').value.trim().toUpperCase();
-        document.getElementById('excluir-lgpd-btn-confirmar').disabled = valor !== 'EXCLUIR';
+        const confirmacao = document.getElementById('excluir-lgpd-confirmacao').value.trim().toUpperCase();
+        const ehPessoa = exclusaoLgpdPendente && exclusaoLgpdPendente.tipo === 'pessoa';
+        let motivoOk;
+        if (ehPessoa) {
+            const select = document.getElementById('excluir-lgpd-motivo-select').value;
+            motivoOk = select !== '' && (select !== 'outro' || document.getElementById('excluir-lgpd-motivo-outro').value.trim() !== '');
+        } else {
+            motivoOk = document.getElementById('excluir-lgpd-motivo').value.trim() !== '';
+        }
+        document.getElementById('excluir-lgpd-btn-confirmar').disabled = !(motivoOk && confirmacao === 'EXCLUIR');
     }
 
     async function executarExclusaoConfirmada() {
@@ -1314,7 +1347,14 @@
         btn.disabled = true;
         btn.textContent = 'Excluindo...';
 
-        const motivo = document.getElementById('excluir-lgpd-motivo').value.trim() || null;
+        const LABELS_MOTIVO_PESSOA = { pedido_pessoa: 'A pedido da própria pessoa', perda_acesso: 'Perda de acesso — vai se cadastrar de novo' };
+        let motivo;
+        if (exclusaoLgpdPendente.tipo === 'pessoa') {
+            const select = document.getElementById('excluir-lgpd-motivo-select').value;
+            motivo = select === 'outro' ? document.getElementById('excluir-lgpd-motivo-outro').value.trim() : LABELS_MOTIVO_PESSOA[select];
+        } else {
+            motivo = document.getElementById('excluir-lgpd-motivo').value.trim();
+        }
         const solicitado_por = document.getElementById('excluir-lgpd-solicitante').value.trim() || null;
         const funcao = exclusaoLgpdPendente.tipo === 'pessoa' ? 'admin-excluir-pessoa' : 'admin-excluir-escola';
         const payload = exclusaoLgpdPendente.tipo === 'pessoa'

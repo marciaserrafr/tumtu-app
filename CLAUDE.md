@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 > Este arquivo é lido automaticamente pelo Claude Code toda vez que uma sessão começa nesta pasta. É a ficha de instruções fixas do projeto — diferente dos documentos em `docs/`, que são a documentação de produto/técnica para humanos. Atualizar sempre que uma decisão importante mudar o que está escrito aqui.
-> Última atualização: 17/jul/2026
+> Última atualização: 22/jul/2026
 
 ---
 
@@ -133,6 +133,10 @@ Tumtu/
 (Duas pendências antigas — "Validação Digital" e padding do "Membro desde" — **confirmadas obsoletas em 20/jul/2026**: já não existem mais no código, foram resolvidas por algum redesign anterior sem eu ter atualizado o registro.)
 
 ✅ **Bloqueio de cadastro duplicado por documento, sem CPF (20/jul/2026)** — a checagem de duplicidade em `cadastro.html` (função `verificar_pessoa_existente`) já impedia CPF repetido com e-mail diferente, mas não tinha equivalente pra estrangeiro sem CPF (usa Passaporte/RNE + número em vez de CPF) — essa pessoa podia se cadastrar de novo trocando só o e-mail, sem barreira nenhuma. Função SQL ganhou `p_numero_documento` + `existe_documento`/`documento_bate_email`, mesmo padrão do CPF; `cadastro.html` bloqueia com a mesma mensagem ("já tem cadastro com outro e-mail... Esqueci minha senha"). Cadastro comum com o mesmo e-mail duas vezes continua coberto (RLS + Supabase Auth), então esse ajuste fecha só a lacuna específica de documento alternativo.
+
+✅ **Três ajustes da carteirinha/cadastro (22/jul/2026)** — 1) Título do convite de cadastro (`cadastro.html`) não repete mais "bateria" duas vezes ("Cadastro de Diretor da bateria Bateria do Jacarezinho" → "Cadastro de Diretor da Bateria do Jacarezinho"). 2) Carteirinha e login (`carteirinha.html`, `login.html`) agora mostram a **sigla** da escola (`escolas.sigla`) em vez do nome completo. 3) Exclusão de pessoa/escola sob LGPD (`super-admin.html`, aba Privacidade) passou a **exigir motivo** pra confirmar — pra pessoa, um seletor fixo ("A pedido da própria pessoa" / "Perda de acesso — vai se cadastrar de novo" / "Outro" com texto livre); pra escola, texto livre continua, só que agora obrigatório.
+
+**Decisão importante sobre senha em cadastro feito por outra pessoa (22/jul/2026) — NÃO implementar reset de senha pelo Super Admin, mantém a regra ética intacta.** A Márcia cogitou 2 ideias (senha automática = CPF ao cadastrar alguém; Super Admin resetar senha de quem perdeu acesso) e decidiu não seguir nenhuma das duas depois de conversarmos sobre os riscos (CPF como senha é recuperável a partir do próprio banco; reset pelo Super Admin quebraria a regra "nunca define senha de outra pessoa"). Solução adotada, sem nenhuma mudança de código: **no cadastro manual, quem está cadastrando preenche tudo e entrega o aparelho pra própria pessoa digitar a senha no campo, sem ver**; **se a pessoa perder acesso total ao e-mail (não consegue nem recuperar senha), o caminho é excluir a ficha dela (aba Privacidade) e recadastrar do zero** — perde o histórico de aprovação/vínculo, mas é caso raro. O log `exclusoes_lgpd` prova que a exclusão aconteceu (nome + CPF em hash), mas não é backup — não existe "desfazer".
 
 📦 Backlog "só se o TumTu crescer muito" (itens rebaixados por decisão explícita da Márcia em 17/jul/2026 — não tratar como prioridade nem sugerir de novo sem o cenário mudar): "Leaked Password Protection" (trava de senha vazada, depende de plano pago do Supabase, que ela não pretende contratar por enquanto). Face ID/sessão persistente (não pedir senha toda vez) — rebaixado a pedido dela em 17/jul, mesma sessão.
 

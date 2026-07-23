@@ -223,13 +223,13 @@
             const bateria = Array.isArray(baterias) && baterias[0] ? baterias[0] : null;
             if (!bateria || !bateria.escola_id) return;
 
-            const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,temporada_atual,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url`, { headers: hdrs });
+            const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,temporada_atual,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url`, { headers: hdrs });
             const escolas = await resEscola.json();
             const escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
             if (!escola) return;
 
             const cfg = {
-                nomeEscola: escola.nome || '',
+                nomeEscola: escola.sigla || escola.nome || '',
                 nomeBateria: bateria.nome || '',
                 instagramBateria: bateria.instagram || '',
                 temporadaAtual: escola.temporada_atual || '',
