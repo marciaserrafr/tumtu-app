@@ -124,8 +124,14 @@
   background: var(--header-gradiente, linear-gradient(180deg, rgba(18,16,26,0.08) 0%, transparent 100%));
 }
 
-/* Bloco de texto (escola + bateria) — encolhe e quebra linha em vez de
-   espremer contra o selo "Ativo" quando o nome da escola é comprido. */
+/* Bloco de texto (escola + bateria) — antes dividia a largura do cabeçalho
+   com o selo "Ativo" (removido de vez em 11/ago/2026 — só aparece quem já
+   está aprovado nessa tela, então o selo não avisava nada de novo; se um
+   dia fizer sentido mostrar status, a ideia é morar no Meu Perfil, não
+   aqui, ver conversa do mesmo dia); agora usa a largura inteira do cartão,
+   então nome de bateria comprido tem bem mais espaço antes de precisar
+   quebrar linha (relato da Márcia, 11/ago/2026: "os nomes cortando não
+   fica legal"). */
 .c-header__info {
   min-width: 0;
   flex: 1;
@@ -151,64 +157,6 @@
   overflow-wrap: break-word;
 }
 
-/* Coluna direita do header: status pill + botão "Meu perfil" empilhados
-   (mesmo elemento que já existe em produção — carteirinha.html, #btnAbrirPerfil) */
-.c-header__acoes {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.c-btn-perfil {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--cor-pill-bg, rgba(18,16,26,0.07));
-  border: 1px solid var(--cor-pill-borda, rgba(18,16,26,0.22));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.c-btn-perfil {
-  color: var(--cor-primaria, #12101a);
-}
-
-.c-btn-perfil:hover {
-  background: var(--cor-halo-foto, rgba(18,16,26,0.12));
-}
-
-/* ── STATUS PILL ── */
-.status-pill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 1px solid var(--cor-pill-borda, rgba(18,16,26,0.22));
-  background: var(--cor-pill-bg, rgba(18,16,26,0.07));
-  color: var(--cor-primaria, #12101a);
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.status-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 4px rgba(34,197,94,0.8);
-}
-
 /* ── FOTO ── */
 .foto-section {
   display: flex;
@@ -227,7 +175,10 @@
      brilho desfocado (box-shadow), sem borda dura nenhuma pra competir com
      a borda do anel. */
   /* 144px — aumentada de 112px em 14/jul/2026 a pedido da Márcia (foto é o
-     elemento mais importante de uma carteirinha, precisava de mais peso). */
+     elemento mais importante de uma carteirinha, precisava de mais peso).
+     Tamanho mantido em 11/ago/2026 (já bem dominante pro cartão de 300px de
+     largura) — o ajuste pedido daquela vez foi só engrossar o anel, não
+     crescer a foto. */
   width: 144px;
   height: 144px;
   border-radius: 50%;
@@ -238,7 +189,9 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  padding: 3px;
+  /* 3px -> 5px em 11/ago/2026 — a Márcia relatou que a cor do anel passava
+     despercebida em escolas de cor mais clara/pastel. */
+  padding: 5px;
   background: var(--cor-anel-gradiente, linear-gradient(135deg, #D4AF37, #B8922A, #D4AF37));
 }
 
@@ -471,6 +424,15 @@
 
 /* ── HEADER DO VERSO ── */
 /* Gradiente suave no topo — sem linha de corte */
+/* 11/ago/2026: voltou a ser lado a lado (nome + logo, layout original) —
+   passou por uma versão empilhada no mesmo dia, revertida a pedido explícito
+   da Márcia ("deixa do jeito que está tudo"). O nome da escola (que dividia
+   linha com o nome da bateria, embaixo dele) saiu de vez — já aparece bem
+   na frente do cartão, então era informação repetida, não a causa da
+   disputa de espaço com a logo (essa é o próprio nome da bateria, que seria
+   preciso diminuir ou mover pra resolver de verdade — decisão consciente
+   dela de não mexer nisso agora, mesmo sabendo que nomes muito compridos
+   ainda podem apertar). */
 .v-header {
   display: flex;
   justify-content: space-between;
@@ -482,6 +444,10 @@
   background: linear-gradient(180deg, rgba(0,0,0,0.22) 0%, transparent 100%);
 }
 
+.v-header__info {
+  min-width: 0;
+}
+
 .v-header__bateria {
   font-size: 17px;
   font-weight: 900;
@@ -489,15 +455,6 @@
   letter-spacing: -0.02em;
   line-height: 1.1;
   overflow-wrap: break-word;
-}
-
-.v-header__escola {
-  font-size: 9.5px;
-  font-weight: 500;
-  color: var(--cor-rotulo-dinamico, rgba(255,255,255,0.5));
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-top: 3px;
 }
 
 /* ── LOGO DA BATERIA (verso, canto direito do header) ── */
