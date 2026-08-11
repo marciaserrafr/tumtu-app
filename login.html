@@ -14,7 +14,7 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=8">
+    <link rel="stylesheet" href="styles/components.css?v=9">
     <script src="config-escola.js?v=1" defer></script>
     <script src="config-suporte.js?v=1" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -33,11 +33,16 @@
            não espalhado na tela antes de qualquer problema acontecer.
            "Esqueci minha senha" continua sempre visível (é autosserviço,
            não depende de erro). Ver mostrarMensagem(). */
+        /* 11/ago/2026: era "position:fixed" grudado no rodapé da tela —
+           em telas baixas (alguns notebooks) isso fazia ele ficar por cima
+           de "Ainda não tem cadastro? Cadastre-se" em vez de abaixo (relato
+           da Márcia). Virou parte do fluxo normal da página, logo abaixo do
+           cartão de login (mesmo padrão já usado em cadastro.html) — nunca
+           mais sobrepõe nada, só empurra pra baixo. */
         .rodape-suporte {
             display: none;
-            position: fixed; left: 0; right: 0; bottom: 14px; text-align: center;
+            text-align: center; margin-top: 20px;
             color: #55506e; font-weight: 500; font-size: 11.5px; text-decoration: none;
-            z-index: 5;
         }
         .rodape-suporte.visivel { display: block; }
         .rodape-suporte:hover, .rodape-suporte:focus-visible {

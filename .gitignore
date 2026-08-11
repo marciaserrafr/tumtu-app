@@ -1,6 +1,9 @@
 # Material de referência visual pessoal (fotos, logos antigos) — não é código do app
 imagens/
 
+# Prints e gravações de teste/comparação de telas — rascunho, não é código do app
+testes/
+
 # Handoff de design recebido como .zip — fonte, não precisa versionar
 docs/Conhecendo Design Assistant.zip
 docs/Conhecendo Design Assistant/

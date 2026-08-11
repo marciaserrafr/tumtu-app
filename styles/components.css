@@ -164,11 +164,15 @@
 
 .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
 .ficha-secao { margin-bottom: 14px; }
-.ficha-secao-titulo { font-size: 10px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #D4AF37; padding-bottom: 3px; }
-.ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
-.ficha-campo { font-size: 12px; color: #333; }
-.ficha-campo span { display: block; font-size: 10px; color: #999; margin-bottom: 1px; }
-.ficha-campo strong { font-size: 13px; color: #0f172a; }
+/* Tamanhos alinhados à hierarquia tipográfica do guia de design (seção 4:
+   "Título de seção" 11px, "Corpo/labels" 13-14px) — eram 10/12/13px, menores
+   até do que o próprio guia já pedia (relato da Márcia, 11/ago/2026: "a
+   fonte está pequena demais", testando o Meu Perfil da carteirinha). */
+.ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #D4AF37; padding-bottom: 3px; }
+.ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+.ficha-campo { font-size: 14px; color: #333; }
+.ficha-campo span { display: block; font-size: 12px; color: #999; margin-bottom: 2px; }
+.ficha-campo strong { font-size: 15px; color: #0f172a; }
 .ficha-campo.full { grid-column: 1 / -1; }
 @media (max-width: 480px) {
   .ficha-grid { grid-template-columns: 1fr; }
@@ -236,7 +240,11 @@
 .ficha-modal-overlay #fp-secao-senha .ficha-secao-titulo::before {
     background: var(--cor-terracota-clara);
 }
-.ficha-modal-overlay .ficha-campo span { color: #8b88a0; }
+/* #8b88a0 tinha contraste tecnicamente aceitável, mas a Márcia relatou
+   dificuldade real de leitura (11/ago/2026) — trocado por #a39fc0, o mesmo
+   "cinza-lavanda" já usado pra texto secundário em fundo escuro em outras
+   partes do app (.ficha-modal-sub, .ficha-secao-titulo aqui mesmo). */
+.ficha-modal-overlay .ficha-campo span { color: #a39fc0; }
 .ficha-modal-overlay .ficha-campo strong { color: #f7f6fb; }
 .ficha-modal-overlay .fc-input { background: var(--cor-fundo-medio); border-color: #D4AF37; color: #f7f6fb; }
 .ficha-modal-overlay .fc-input:focus { border-color: #f5d778; }
@@ -266,6 +274,14 @@
     border-color: rgba(255,255,255,0.25) !important;
     color: #d8d5e6 !important;
 }
+/* Texto da seção "Suporte" — antes tinha cor inline fixa (var(--cor-texto-
+   secundario), #5a5770), pensada pro fundo claro de admin/super-admin.
+   Dentro do Meu Perfil escuro da carteirinha isso dava contraste ruim de
+   verdade (~2.7:1, abaixo do mínimo de acessibilidade) — a Márcia relatou
+   como "muito ruim de ler" em 11/ago/2026. Agora tem escopo próprio, igual
+   ao resto do .ficha-modal-overlay. */
+.fp-texto-suporte { font-size: 13.5px; color: var(--cor-texto-secundario); line-height: 1.6; margin: 0; }
+.ficha-modal-overlay .fp-texto-suporte { color: #a39fc0; }
 .fp-mensagem {
     border-radius: 8px; padding: 10px 14px; font-size: 12px;
     font-weight: 600; margin-bottom: 12px; display: none;
