@@ -99,11 +99,19 @@
 .mp-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .mp-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .mp-foto-area { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
+/* Borda tracejada dourada (convite pra clicar) só aparece com a classe
+   --editavel, adicionada/removida junto com o modo de edição (ver
+   fpAtivarEdicao/fpCancelarEdicao em ficha-perfil.js) — antes ficava
+   sempre dourada, mesmo fora do modo de edição, dando a entender que dava
+   pra trocar a foto a qualquer momento (não dava — bug relatado pela
+   Márcia, 12/ago/2026: parecia funcionar mas nunca salvava sem "Editar"
+   antes). Em modo de visualização, borda neutra e sem "mão" de clique. */
 .mp-foto-circle {
-    width: 80px; height: 80px; border-radius: 50%; border: 2px dashed #D4AF37;
-    overflow: hidden; cursor: pointer; display: flex; align-items: center;
+    width: 80px; height: 80px; border-radius: 50%; border: 2px solid #e8e6f0;
+    overflow: hidden; cursor: default; display: flex; align-items: center;
     justify-content: center; background: #f7f6fb; flex-shrink: 0;
 }
+.mp-foto-circle.mp-foto-circle--editavel { border: 2px dashed #D4AF37; cursor: pointer; }
 .mp-foto-circle img { width: 100%; height: 100%; object-fit: cover; }
 .mp-foto-hint { font-size: 11px; color: #8b88a0; }
 .mp-acoes { display: flex; gap: 10px; justify-content: flex-start; margin-top: 24px; }
@@ -248,7 +256,8 @@
 .ficha-modal-overlay .ficha-campo strong { color: #f7f6fb; }
 .ficha-modal-overlay .fc-input { background: var(--cor-fundo-medio); border-color: #D4AF37; color: #f7f6fb; }
 .ficha-modal-overlay .fc-input:focus { border-color: #f5d778; }
-.ficha-modal-overlay .mp-foto-circle { background: var(--cor-fundo-medio); }
+.ficha-modal-overlay .mp-foto-circle { background: var(--cor-fundo-medio); border-color: rgba(255,255,255,0.25); }
+.ficha-modal-overlay .mp-foto-circle.mp-foto-circle--editavel { border-color: #D4AF37; }
 .ficha-modal-overlay .mp-foto-hint { color: #8b88a0; }
 .ficha-modal-overlay .btn-ficha { background: transparent; border-color: rgba(255,255,255,0.25); color: #d8d5e6; }
 .ficha-modal-overlay .btn-ficha:hover { background: rgba(255,255,255,0.06); }

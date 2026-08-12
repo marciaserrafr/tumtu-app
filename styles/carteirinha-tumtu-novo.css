@@ -116,26 +116,23 @@
 }
 
 /* ── HEADER DA FRENTE ── */
-/* Linha fina na cor da escola em cima + divisor embaixo do nome — 11/ago/2026,
-   depois de testar (e descartar) bloco de cor sólido, degradê dourado e
-   brilho: a Márcia queria "algo ali" mas sem competir com o resto, então
-   ficou só nessas duas linhas simples. O divisor reaproveita o mesmo visual
-   do "divisor" já usado embaixo, entre identidade e CPF — não é elemento novo. */
+/* Linha fina na cor da escola em cima — 11/ago/2026. O divisor embaixo do
+   nome (testado no mesmo dia) foi removido de novo pouco depois: sem duas
+   informações distintas pra separar ali (só espaço vazio até a foto), a
+   Márcia achou que ele "cortava sem sentido". Nome também centralizado
+   agora, pra combinar com o resto do cartão (foto, identidade, CPF — tudo
+   já era centralizado; o cabeçalho era a única exceção). */
 .c-header {
   padding: 12px 18px 10px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   flex-shrink: 0;
   position: relative;
   z-index: 2;
   border-top: 4px solid var(--cor-primaria, #D4AF37);
   background: var(--header-gradiente, linear-gradient(180deg, rgba(18,16,26,0.08) 0%, transparent 100%));
-}
-
-.c-header__divisor {
-  height: 1px;
-  margin: 12px 4px 0;
-  background: linear-gradient(90deg, transparent, rgba(216,213,232,0.55), transparent);
 }
 
 /* Bloco de texto (escola + bateria) — antes dividia a largura do cabeçalho
@@ -369,7 +366,10 @@
 }
 
 .membro-ano {
-  font-size: 28px;
+  /* 28px -> 22px em 11/ago/2026 — era, sem querer, a maior fonte do cartão
+     inteiro (maior até que o nome do ritmista). Mantém o contraste com a
+     logo do lado (a Márcia gosta desse efeito), só sem exagerar. */
+  font-size: 22px;
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -450,9 +450,13 @@
    prêmio, um selo genérico não seria reconhecível; ideia registrada para o
    futuro, com Super Admin cadastrando quem já ganhou). Espaço à esquerda
    fica vazio de propósito. */
+/* Logo do lado esquerdo desde 11/ago/2026 — segue o mesmo padrão que a
+   marca "TumTu" já usa na barra do topo dessa mesma tela (identidade fica
+   à esquerda, ação "Sair" à direita); antes ficava à direita, sem motivo
+   além de "é onde tava". */
 .v-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: flex-start;
   padding: 14px 18px 14px;
   flex-shrink: 0;
@@ -461,12 +465,15 @@
   background: linear-gradient(180deg, rgba(0,0,0,0.22) 0%, transparent 100%);
 }
 
-/* ── LOGO DA BATERIA (verso, canto direito do header) ── */
+/* ── LOGO DA BATERIA (verso, canto esquerdo do header) ── */
 /* Se não houver logo da bateria: usa logo da escola.
-   76px -> 88px em 15/jul/2026, acompanhando o aumento da logo da frente. */
+   76px -> 88px em 15/jul/2026, acompanhando o aumento da logo da frente.
+   88px -> 96px em 11/ago/2026 — agora que ela está sozinha no cabeçalho
+   (sem nome ao lado disputando espaço), igualando o tamanho da logo da
+   escola na frente (mesmo peso visual pras duas únicas logos do conjunto). */
 .v-logo {
-  width: 88px;
-  height: 88px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   border: 1px solid var(--cor-logo-borda, rgba(212,175,55,0.7));
   background: rgba(255,255,255,0.06);

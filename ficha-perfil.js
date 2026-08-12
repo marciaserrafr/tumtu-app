@@ -95,7 +95,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=11');
+        const res = await fetch('ficha-perfil.partial.html?v=12');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -170,7 +170,13 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     circle.innerHTML = alvo.foto_url
         ? `<img src="${alvo.foto_url}" style="width:100%;height:100%;object-fit:cover;">`
         : `<svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
-    fpEl('fp-foto-acao').style.display = editaveis.has('foto_url') ? 'block' : 'none';
+    // Sempre escondido aqui (modo visualização) — só aparece dentro de
+    // fpAtivarEdicao(). Antes ficava visível de cara sempre que a foto era
+    // um campo editável (bug real reportado pela Márcia, 12/ago/2026: o
+    // círculo/botão pareciam clicáveis o tempo todo, mas trocar a foto sem
+    // clicar "Editar" antes não salvava nada — só parecia funcionar).
+    fpEl('fp-foto-acao').style.display = 'none';
+    circle.classList.remove('mp-foto-circle--editavel');
 
     FP_CAMPOS.forEach(({ id, col, tipo }) => {
         const strong = fpEl(id);
@@ -305,6 +311,11 @@ async function fpAtivarEdicao() {
 
     if (fpEstado.autoedicao) fpEl('fp-secao-senha').style.display = '';
 
+    if (fpEstado.editaveis.has('foto_url')) {
+        fpEl('fp-foto-acao').style.display = 'block';
+        fpEl('fp-foto-circle').classList.add('mp-foto-circle--editavel');
+    }
+
     fpEl('fp-btn-editar').style.display = 'none';
     fpEl('fp-btn-salvar').style.display = 'inline-flex';
     fpEl('fp-btn-cancelar').style.display = 'inline-flex';
@@ -331,9 +342,37 @@ function fpCancelarEdicao() {
     fpEl('fp-senha-nova').value = '';
     fpEl('fp-senha-confirmar').value = '';
     fpFotoBase64 = null;
+    // Some junto com o resto — se a pessoa trocou a foto e cancelou, a
+    // prévia (só visual, nunca tinha sido salva) volta pra foto de verdade.
+    const circleCancelar = fpEl('fp-foto-circle');
+    circleCancelar.innerHTML = fpEstado.alvo.foto_url
+        ? `<img src="${fpEstado.alvo.foto_url}" style="width:100%;height:100%;object-fit:cover;">`
+        : `<svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
+    circleCancelar.classList.remove('mp-foto-circle--editavel');
+    fpEl('fp-foto-acao').style.display = 'none';
     fpEl('fp-btn-editar').style.display = 'inline-flex';
     fpEl('fp-btn-salvar').style.display = 'none';
     fpEl('fp-btn-cancelar').style.display = 'none';
+}
+
+// Clicar na foto (ou no botão "Trocar foto") só abre o seletor de arquivo
+// depois de "Editar" — antes disso, escolher uma foto parecia funcionar
+// (mostrava prévia) mas nunca era salva de verdade, sem nenhum aviso pra
+// pessoa (bug relatado pela Márcia, 12/ago/2026). Fora do modo de edição,
+// mostra a mesma mensagem "Editar" já usada em outros campos travados.
+function fpAbrirSeletorFoto() {
+    if (fpEl('fp-btn-salvar').style.display === 'inline-flex') {
+        fpEl('fp-input-foto').click();
+    } else {
+        const mensagem = fpEl('fp-mensagem');
+        if (mensagem) {
+            mensagem.className = 'fp-mensagem aviso';
+            mensagem.textContent = 'Clique em "Editar" antes de trocar a foto.';
+            mensagem.style.display = 'block';
+            mensagem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    return false;
 }
 
 function fpPreviewFoto(input) {
