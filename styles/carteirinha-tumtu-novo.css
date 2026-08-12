@@ -65,11 +65,15 @@
   /* Borda da logo: cor 4, senão 3, senão 2 — NUNCA cai pra cor 1 (regra do Padrão A: logo é sempre neutro quando só há 1 cor real, não a cor da escola) */
   --cor-logo-borda: color-mix(in srgb, var(--cor-4, var(--cor-3, var(--cor-2, #c0bdd0))) 70%, transparent);
 
-  /* Verso: gradiente diagonal simples na cor primária (decisão de 13/jul: sem alto contraste, "como estava antes") */
+  /* Verso: gradiente diagonal na cor primária, escurecendo até quase preto
+     perto do rodapé — 11/ago/2026, decisão consciente que reverte a de
+     13/jul (que preferia um contraste mais sutil). Testado sem querer com
+     um degradê mais forte digitado à mão, e a Márcia amou o resultado. */
   --verso-bg: linear-gradient(150deg,
     var(--cor-primaria) 0%,
-    color-mix(in srgb, var(--cor-primaria) 80%, black) 40%,
-    color-mix(in srgb, var(--cor-primaria) 60%, black) 100%
+    color-mix(in srgb, var(--cor-primaria) 55%, black) 45%,
+    color-mix(in srgb, var(--cor-primaria) 20%, black) 75%,
+    color-mix(in srgb, var(--cor-primaria) 5%, black) 100%
   );
 }
 
@@ -112,16 +116,26 @@
 }
 
 /* ── HEADER DA FRENTE ── */
+/* Linha fina na cor da escola em cima + divisor embaixo do nome — 11/ago/2026,
+   depois de testar (e descartar) bloco de cor sólido, degradê dourado e
+   brilho: a Márcia queria "algo ali" mas sem competir com o resto, então
+   ficou só nessas duas linhas simples. O divisor reaproveita o mesmo visual
+   do "divisor" já usado embaixo, entre identidade e CPF — não é elemento novo. */
 .c-header {
   padding: 12px 18px 10px;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: column;
   flex-shrink: 0;
   position: relative;
   z-index: 2;
+  border-top: 4px solid var(--cor-primaria, #D4AF37);
   background: var(--header-gradiente, linear-gradient(180deg, rgba(18,16,26,0.08) 0%, transparent 100%));
+}
+
+.c-header__divisor {
+  height: 1px;
+  margin: 12px 4px 0;
+  background: linear-gradient(90deg, transparent, rgba(216,213,232,0.55), transparent);
 }
 
 /* Bloco de texto (escola + bateria) — antes dividia a largura do cabeçalho
@@ -424,37 +438,27 @@
 
 /* ── HEADER DO VERSO ── */
 /* Gradiente suave no topo — sem linha de corte */
-/* 11/ago/2026: voltou a ser lado a lado (nome + logo, layout original) —
-   passou por uma versão empilhada no mesmo dia, revertida a pedido explícito
-   da Márcia ("deixa do jeito que está tudo"). O nome da escola (que dividia
-   linha com o nome da bateria, embaixo dele) saiu de vez — já aparece bem
-   na frente do cartão, então era informação repetida, não a causa da
-   disputa de espaço com a logo (essa é o próprio nome da bateria, que seria
-   preciso diminuir ou mover pra resolver de verdade — decisão consciente
-   dela de não mexer nisso agora, mesmo sabendo que nomes muito compridos
-   ainda podem apertar). */
+/* 11/ago/2026: o nome da bateria saiu de vez do verso — a frente já mostra
+   escola E bateria (é a tela padrão, quem abre a carteirinha vê ela
+   primeiro, sem precisar virar), então repetir o nome aqui era redundância
+   pura. A logo continua exatamente onde sempre esteve (canto direito);
+   testamos centralizar e dar destaque extra a ela, mas a Márcia decidiu
+   manter simples — sem anel/brilho novo (quebraria a consistência com a
+   logo da escola na frente, que usa o mesmo estilo simples), sem elemento
+   novo do lado esquerdo (cogitamos o símbolo do TumTu e um selo de prêmio
+   "Estandarte de Ouro" — descartado por enquanto: sem a logo oficial do
+   prêmio, um selo genérico não seria reconhecível; ideia registrada para o
+   futuro, com Super Admin cadastrando quem já ganhou). Espaço à esquerda
+   fica vazio de propósito. */
 .v-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: flex-start;
   padding: 14px 18px 14px;
   flex-shrink: 0;
   position: relative;
   z-index: 2;
   background: linear-gradient(180deg, rgba(0,0,0,0.22) 0%, transparent 100%);
-}
-
-.v-header__info {
-  min-width: 0;
-}
-
-.v-header__bateria {
-  font-size: 17px;
-  font-weight: 900;
-  color: var(--cor-forte-dinamico, #fff);
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  overflow-wrap: break-word;
 }
 
 /* ── LOGO DA BATERIA (verso, canto direito do header) ── */

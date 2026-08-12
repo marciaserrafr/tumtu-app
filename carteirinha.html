@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=9">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=19">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=20">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
@@ -165,6 +165,7 @@
                                 <div class="c-header__escola" id="c-escola-nome"></div>
                                 <div class="c-header__bateria" id="c-bateria-nome"></div>
                             </div>
+                            <div class="c-header__divisor"></div>
                         </div>
 
                         <div class="corpo-frente">
@@ -217,9 +218,6 @@
                     <div class="carteirinha-verso">
 
                         <div class="v-header">
-                            <div class="v-header__info">
-                                <div class="v-header__bateria" id="c-verso-titulo">TumTu</div>
-                            </div>
                             <div class="v-logo">
                                 <img id="logoEscolaVerso" style="display:none;">
                             </div>
@@ -405,7 +403,6 @@
     function aplicarConfigEscola(cfg) {
         document.getElementById('c-escola-nome').textContent = cfg.nomeEscola || 'TumTu';
         document.getElementById('c-bateria-nome').textContent = cfg.nomeBateria || 'Time TumTu';
-        document.getElementById('c-verso-titulo').textContent = cfg.nomeBateria || 'Time TumTu';
         document.getElementById('c-temporada-valor').textContent = cfg.temporadaAtual || 'Carnaval 2027';
 
         const igEl = document.getElementById('c-rodape-instagram');
