@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=10">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=21">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=22">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
@@ -160,49 +160,35 @@
                 <div class="carteirinha">
                     <div class="carteirinha-frente">
 
-                        <div class="c-header">
-                            <div class="c-header__info">
-                                <div class="c-header__escola" id="c-escola-nome"></div>
-                                <div class="c-header__bateria" id="c-bateria-nome"></div>
+                        <div class="cf-topbar"></div>
+
+                        <div class="cf-photo">
+                            <div class="cf-foto-img" id="fotoRitmista">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="#5a5770"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+                            </div>
+                            <div class="cf-scrim"></div>
+                            <div class="cf-idblock">
+                                <div class="cf-cargo" id="cRole">Ritmista</div>
+                                <div class="cf-nome" id="nomeRitmista">—</div>
+                                <div class="cf-apelido" id="apelidoRitmista"></div>
                             </div>
                         </div>
 
-                        <div class="corpo-frente">
-                            <div class="foto-section">
-                                <div class="foto-halo">
-                                    <div class="foto-anel">
-                                        <div class="foto-img" id="fotoRitmista">
-                                            <svg width="72" height="72" viewBox="0 0 24 24" fill="#9490a8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="cargo-label" id="cRole">Ritmista</div>
+                        <div class="cf-mid">
+                            <div class="cf-header2">
+                                <div class="cf-escola" id="c-escola-nome"></div>
+                                <div class="cf-bateria" id="c-bateria-nome"></div>
                             </div>
-
-                            <div class="identidade">
-                                <div class="id-nome" id="nomeRitmista">—</div>
-                                <div class="id-apelido" id="apelidoRitmista"></div>
-                                <div class="id-instrumento" id="instrumentoRitmista" style="display:none;">—</div>
-                            </div>
-
-                            <div class="divisor"></div>
-
-                            <div class="cpf-block">
-                                <div class="cpf-label">CPF</div>
-                                <div class="cpf-valor" id="cpfRitmista">—</div>
-                            </div>
+                            <div class="cf-cpfline">CPF&nbsp;<span id="cpfRitmista">—</span></div>
                         </div>
 
-                        <div class="rodape-fluido">
-                            <div class="rodape-gradiente"></div>
-                            <div class="rodape-content">
-                                <div>
-                                    <div class="membro-label">Membro desde</div>
-                                    <div class="membro-ano" id="membroDesde">—</div>
-                                </div>
-                                <div class="logo-circulo">
-                                    <img id="logoEscolaFrente" style="display:none;">
-                                </div>
+                        <div class="cf-band">
+                            <div class="cf-membro">
+                                <div class="cf-membro-l">Membro desde</div>
+                                <div class="cf-membro-v" id="membroDesde">—</div>
+                            </div>
+                            <div class="cf-logo">
+                                <img id="logoEscolaFrente" style="display:none;">
                             </div>
                         </div>
 
@@ -307,22 +293,17 @@
         const labelCargo = perfil === 'mestre' ? (feminino ? 'Mestra de Bateria' : 'Mestre de Bateria')
             : perfil === 'diretor' ? (feminino ? 'Diretora' : 'Diretor')
             : 'Ritmista';
-        document.getElementById('cRole').textContent = labelCargo;
+        // Cargo e instrumento viraram uma linha só sobre a foto (ex: "Ritmista · Caixa") —
+        // Mestre/Diretor não têm instrumento, então ficam sozinhos, sem o "·" solto.
+        document.getElementById('cRole').textContent =
+            (perfil === 'ritmista' && ritmista.instrumento_nome)
+                ? labelCargo + ' · ' + ritmista.instrumento_nome
+                : labelCargo;
 
         document.getElementById('nomeRitmista').textContent = ritmista.nome;
 
         if (ritmista.apelido) {
             document.getElementById('apelidoRitmista').textContent = '"' + ritmista.apelido + '"';
-        }
-
-        // Mestre/Diretor não têm instrumento — a linha some por completo em vez
-        // de ficar vazia, pra não desalinhar o bloco central (que é centralizado).
-        const instEl = document.getElementById('instrumentoRitmista');
-        if (perfil === 'ritmista' && ritmista.instrumento_nome) {
-            instEl.textContent = ritmista.instrumento_nome;
-            instEl.style.display = '';
-        } else {
-            instEl.style.display = 'none';
         }
 
         document.getElementById('cpfRitmista').textContent = ritmista.cpf || '—';
@@ -345,10 +326,13 @@
 
         // QR code real apontando para a página de emergência
         const qrUrl = `${window.location.origin}/qr.html?id=${ritmista.id}`;
+        // 86px, não 110 — a moldura (.v-qr-box) já é 110px com 12px de respiro
+        // pra cada lado (110 - 12*2 = 86). Gerar o QR do mesmo tamanho da
+        // moldura inteira fazia ele estourar esse respiro.
         new QRCode(document.getElementById('qrcode'), {
             text: qrUrl,
-            width: 110,
-            height: 110,
+            width: 86,
+            height: 86,
             colorDark: '#111111',
             colorLight: '#ffffff',
             correctLevel: QRCode.CorrectLevel.M
@@ -413,15 +397,7 @@
         const inner = document.getElementById('carteirinhaInner');
         (cfg.cores || []).forEach((cor, i) => inner.style.setProperty(`--cor-${i + 1}`, cor));
 
-        // Cor do anel da foto: pula qualquer cor branca (fica sem graça em
-        // cima do fundo branco do cartão) — prioridade terciária > secundária
-        // > primária, pedido da Márcia em 16/jul/2026 depois de notar que a
-        // "cor 2" de várias escolas é branco. Sem nenhuma cor não-branca
-        // disponível, volta pro cinza neutro (--cor-anel-gradiente já cai lá
-        // sozinho quando --cor-anel-base não é setada).
-        const corAnel = escolherCorAnel(cfg.corTerciaria, cfg.corSecundaria, cfg.corPrimaria);
-        if (corAnel) inner.style.setProperty('--cor-anel-base', corAnel);
-        else inner.style.removeProperty('--cor-anel-base');
+        inner.style.setProperty('--cor-logo-borda-final', escolherCorBordaLogo(cfg.cores));
 
         // Verso e rodapé da frente têm fundo que muda de cor por escola
         // (--cor-primaria) — textos com transparência fixa (branco 35-45%)
@@ -472,11 +448,20 @@
         return luminancia > 0.42; // ponto de corte prático: acima disso, texto branco começa a perder contraste real
     }
 
-    function escolherCorAnel(...candidatas) {
-        for (const cor of candidatas) {
-            if (cor && !corEhBranca(cor)) return cor;
+    // Borda da logo (frente): a última cor cadastrada que não seja branca,
+    // nunca a cor principal (cores[0]) — pedido da Márcia em 13/ago/2026 com
+    // exemplos reais: Rocinha tem 3 cores e a 3ª é branca, então usa a 2ª
+    // (azul), senão a borda ficaria branca e "perderia a graça"; São
+    // Clemente tem só 2 cores (preto + amarelo), a 2ª (amarela) não é
+    // branca, então usa ela. Sem nenhuma cor não-branca disponível (ex: só
+    // 2 cores e a 2ª é branca), cai no dourado do TumTu — toda logo sempre
+    // tem alguma borda, nunca fica sem nenhuma.
+    function escolherCorBordaLogo(cores) {
+        if (!Array.isArray(cores)) return '#D4AF37';
+        for (let i = cores.length - 1; i >= 1; i--) {
+            if (cores[i] && !corEhBranca(cores[i])) return cores[i];
         }
-        return null;
+        return '#D4AF37';
     }
 
     // Busca só os logos (escola + bateria) — separado de carregarConfigEscola

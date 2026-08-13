@@ -47,23 +47,20 @@
   --cor-pill-bg: color-mix(in srgb, var(--cor-primaria) 7%, transparent);
   --cor-foto-bg: color-mix(in srgb, var(--cor-primaria) 6%, white);
 
-  /* Anel da foto e halo: --cor-anel-base é calculada em JS (aplicarConfigEscola,
-     carteirinha.html) pulando qualquer cor branca — terciária > secundária >
-     primária — porque cor 2 (secundária) de várias escolas é branco, o que
-     ficava sem graça em cima do fundo branco do cartão (16/jul/2026). Sem
-     nenhuma cor não-branca disponível, cai no cinza neutro de sempre. */
-  --cor-anel-gradiente: linear-gradient(135deg,
-    var(--cor-anel-base, #c0bdd0),
-    color-mix(in srgb, var(--cor-anel-base, #c0bdd0) 75%, black),
-    var(--cor-anel-base, #c0bdd0)
-  );
-  --cor-halo-foto: color-mix(in srgb, var(--cor-anel-base, #c0bdd0) 10%, transparent);
-
-  /* Número do "ano": cor 3, senão cor 2, senão branco (escola só com 1 cor real, ex: Padrão A com branco embutido) */
-  --cor-ano: var(--cor-3, var(--cor-2, #fff));
-
-  /* Borda da logo: cor 4, senão 3, senão 2 — NUNCA cai pra cor 1 (regra do Padrão A: logo é sempre neutro quando só há 1 cor real, não a cor da escola) */
-  --cor-logo-borda: color-mix(in srgb, var(--cor-4, var(--cor-3, var(--cor-2, #c0bdd0))) 70%, transparent);
+  /* Borda da logo (frente): calculada em JS (escolherCorBordaLogo,
+     carteirinha.html) — a última cor cadastrada que não seja branca, nunca
+     a cor principal. Precisa de JS (não só CSS var() fallback) porque tem
+     que PULAR branco onde quer que ele apareça na cadeia, não só usar a
+     próxima variável — CSS var() sozinho não pula, só cai pra frente
+     quando a anterior está indefinida.
+     NUNCA declarar aqui um valor "transparent" padrão — isso sobrescreveria
+     o que o JS define lá em cima em #carteirinhaInner pra todo mundo que
+     está dentro de .carteirinha (custom property, uma vez declarada aqui,
+     vence a herança do ancestral). O fallback correto já mora no var() de
+     .cf-logo (box-shadow: ... var(--cor-logo-borda-final, transparent)) —
+     só usado quando a variável não existe em lugar NENHUM da árvore. Bug
+     real encontrado e corrigido em 13/ago/2026 (a Márcia testou Tijuca e
+     Rocinha, a borda simplesmente não aparecia). */
 
   /* Verso: gradiente diagonal na cor primária, escurecendo até quase preto
      perto do rodapé — 11/ago/2026, decisão consciente que reverte a de
@@ -78,8 +75,20 @@
 }
 
 /* ============================================================
-   FRENTE
-   ============================================================ */
+   FRENTE — redesenho "9a", versão off-white refinada (13/ago/2026)
+   Substitui o layout anterior (foto circular 144px + texto empilhado
+   abaixo) por foto full-bleed no topo com nome/apelido sobrepostos —
+   elimina a briga por espaço vertical entre foto/nome/CPF/rodapé que
+   vinha se repetindo a cada nome grande de ritmista.
+
+   Fundo off-white (não escuro) — versão final depois de comparar as
+   duas ao vivo: a Márcia achou a escura bonita mas ficou insegura
+   ("qualquer coisa, menos uma carteirinha"); essa off-white, com o
+   bloco do meio levemente tingido pela cor da escola (não branco
+   chapado) e a foto emoldurada pelos cantos do próprio cartão, ficou
+   com cara de documento de identificação de novo. Aprovado depois de
+   teste real com o instrumento mais comprido do banco ("Surdo de
+   Marcação", 17 caracteres). */
 
 .carteirinha-frente {
   flex: 1;
@@ -87,168 +96,81 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  background: #ffffff;
+  background: #fdfcfb;
 }
 
-/* Bloco central (foto + identidade + CPF) — centralizado no espaço entre
-   header e rodapé, em vez de colado no topo com um vão morto antes do rodapé. */
-.corpo-frente {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 0;
+.cf-topbar {
+  height: 5px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, var(--cor-primaria, #D4AF37), var(--cor-2, var(--cor-primaria, #D4AF37)));
 }
 
-/* brilho radial no canto superior direito — cor da escola */
-.carteirinha-frente::before {
-  content: '';
+.cf-photo {
+  position: relative;
+  height: 278px;
+  flex-shrink: 0;
+  background: #17141d;
+}
+
+.cf-foto-img {
   position: absolute;
-  top: -40px; right: -40px;
-  width: 160px; height: 160px;
-  border-radius: 50%;
-  background: radial-gradient(circle,
-    var(--cor-brilho-header, rgba(18,16,26,0.07)) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* ── HEADER DA FRENTE ── */
-/* Linha fina na cor da escola em cima — 11/ago/2026. O divisor embaixo do
-   nome (testado no mesmo dia) foi removido de novo pouco depois: sem duas
-   informações distintas pra separar ali (só espaço vazio até a foto), a
-   Márcia achou que ele "cortava sem sentido". Nome também centralizado
-   agora, pra combinar com o resto do cartão (foto, identidade, CPF — tudo
-   já era centralizado; o cabeçalho era a única exceção). */
-.c-header {
-  padding: 12px 18px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 2;
-  border-top: 4px solid var(--cor-primaria, #D4AF37);
-  background: var(--header-gradiente, linear-gradient(180deg, rgba(18,16,26,0.08) 0%, transparent 100%));
-}
-
-/* Bloco de texto (escola + bateria) — antes dividia a largura do cabeçalho
-   com o selo "Ativo" (removido de vez em 11/ago/2026 — só aparece quem já
-   está aprovado nessa tela, então o selo não avisava nada de novo; se um
-   dia fizer sentido mostrar status, a ideia é morar no Meu Perfil, não
-   aqui, ver conversa do mesmo dia); agora usa a largura inteira do cartão,
-   então nome de bateria comprido tem bem mais espaço antes de precisar
-   quebrar linha (relato da Márcia, 11/ago/2026: "os nomes cortando não
-   fica legal"). */
-.c-header__info {
-  min-width: 0;
-  flex: 1;
-}
-
-.c-header__escola {
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #5a5770; /* era #8a87a0 (3.5:1, abaixo do mínimo) — 16/jul/2026 */
-  margin-bottom: 3px;
-  line-height: 1.25;
-  overflow-wrap: break-word;
-}
-
-.c-header__bateria {
-  font-size: 16px;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  color: var(--cor-primaria, #12101a);
-  overflow-wrap: break-word;
-}
-
-/* ── FOTO ── */
-.foto-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 6px 0 0;
-  margin-top: 36px;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 2;
-}
-
-.foto-halo {
-  /* Antes era um 2º círculo com padding revelando a cor (2 bordas duras
-     quase coincidindo = a "sombra" que vazava pra fora do anel). Agora é um
-     brilho desfocado (box-shadow), sem borda dura nenhuma pra competir com
-     a borda do anel. */
-  /* 144px — aumentada de 112px em 14/jul/2026 a pedido da Márcia (foto é o
-     elemento mais importante de uma carteirinha, precisava de mais peso).
-     Tamanho mantido em 11/ago/2026 (já bem dominante pro cartão de 300px de
-     largura) — o ajuste pedido daquela vez foi só engrossar o anel, não
-     crescer a foto. */
-  width: 144px;
-  height: 144px;
-  border-radius: 50%;
-  box-shadow: 0 0 10px 3px var(--cor-halo-foto, rgba(212,175,55,0.10));
-}
-
-.foto-anel {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  /* 3px -> 5px em 11/ago/2026 — a Márcia relatou que a cor do anel passava
-     despercebida em escolas de cor mais clara/pastel. */
-  padding: 5px;
-  background: var(--cor-anel-gradiente, linear-gradient(135deg, #D4AF37, #B8922A, #D4AF37));
-}
-
-.foto-img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  background: var(--cor-foto-bg, #f4f4f4);
 }
 
-.foto-img img {
+.cf-foto-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 50%;
 }
 
-.cargo-label {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #5a5770; /* era #9490a8 (3.1:1, abaixo do mínimo) — 16/jul/2026 */
-  margin-top: 14px;
+/* Degradê só dentro da foto — garante contraste do nome sobre foto
+   clara/mal enquadrada, sem precisar continuar pro corpo (que agora é
+   off-white, não escuro — não tem "costura" pra disfarçar). */
+.cf-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgba(12,10,16,0.18) 0%,
+    rgba(12,10,16,0.12) 35%,
+    rgba(12,10,16,0.94) 100%
+  );
 }
 
-/* ── IDENTIDADE ── */
-.identidade {
-  text-align: center;
-  padding: 4px 16px 0;
-  flex-shrink: 0;
-  position: relative;
+.cf-idblock {
+  position: absolute;
+  bottom: 14px;
+  left: 18px;
+  right: 18px;
   z-index: 2;
 }
 
-.id-nome {
-  font-size: 19px;
-  font-weight: 900;
-  color: #0c0b14;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
+/* Cargo + instrumento numa linha só (ex: "Ritmista · Caixa") — Mestre/Diretor
+   não têm instrumento, ficam sozinhos sem o "·" solto (ver renderCarteirinha,
+   carteirinha.html). Overflow protegido (nunca visto estourar com dados reais,
+   mas sem essa trava um instrumento futuro mais comprido quebraria o layout). */
+.cf-cargo {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #D4AF37;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cf-nome {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
   overflow-wrap: break-word;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9), 0 2px 12px rgba(0,0,0,0.7);
   /* Nome muito comprido: no máximo 2 linhas, com "..." se precisar de uma 3ª — nunca estoura o cartão. */
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -256,148 +178,122 @@
   overflow: hidden;
 }
 
-.id-apelido {
-  /* Decisão final de verdade (16/jul/2026), depois de várias rodadas de
-     teste (dourado escurecido = "caganeira"; selo atrás = botão; contorno =
-     adesivo borrado; âmbar #A8790A = tecnicamente correto, mas ela achou
-     que destoava — nenhum outro elemento do cartão usa essa cor, quebra a
-     unidade visual). Márcia escolheu conscientemente manter o dourado
-     ORIGINAL da marca (#D4AF37, o mesmo usado em todo o resto do app),
-     abrindo mão do contraste técnico ideal em troca de coerência visual —
-     decisão dela, não reabrir sem ela pedir de novo. Fica só o tamanho
-     maior (19px) como reforço de legibilidade. */
-  font-size: 19px;
+.cf-apelido {
+  font-size: 18px;
   font-weight: 700;
   font-style: italic;
   color: #D4AF37;
   margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9), 0 2px 10px rgba(0,0,0,0.7);
 }
 
-.id-instrumento {
-  font-size: 12px;
-  color: #5a5770; /* era #9490a8 (3.1:1, abaixo do mínimo) — 16/jul/2026 */
-  font-weight: 500;
-  margin-top: 4px;
-}
-
-/* ── DIVISOR ── */
-.divisor {
-  height: 1px;
-  margin: 8px 22px 8px;
-  flex-shrink: 0;
-  background: linear-gradient(90deg, transparent, rgba(216,213,232,0.55), transparent);
-}
-
-/* ── CPF ── */
-.cpf-block {
-  text-align: center;
-  flex-shrink: 0;
+/* ── BLOCO DO MEIO (escola/bateria + CPF) ── */
+/* Tingimento sutil da cor da escola — sem isso o bloco lia como
+   formulário/documento solto; com o degradê, faz a transição visual
+   entre a foto (topo) e o rodapé sólido (base) em vez de ser uma
+   fatia branca separada no meio. Usa --cor-primaria (pode ser preto,
+   sem problema aqui — é só um tingimento bem diluído, não precisa do
+   fallback de --cor-destaque que topbar/rodapé/bateria usam). */
+.cf-mid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
   position: relative;
   z-index: 2;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--cor-primaria, #706c87) 16%, transparent),
+    color-mix(in srgb, var(--cor-primaria, #706c87) 6%, transparent)
+  );
 }
 
-.cpf-label {
-  font-size: 9px;
+.cf-header2 {
+  padding: 14px 18px 0;
+  text-align: center;
+}
+
+.cf-escola {
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #5a5770; /* era #9490a8 (3.1:1, abaixo do mínimo) — 16/jul/2026 */
-  margin-bottom: 3px;
+  color: #1a1a1a;
+  overflow-wrap: break-word;
 }
 
-.cpf-valor {
-  font-size: 15px;
-  font-weight: 600;
-  color: #2a2838;
-  letter-spacing: 0.06em;
+.cf-bateria {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--cor-primaria, #D4AF37);
+  margin-top: 14px;
+  overflow-wrap: break-word;
+}
+
+.cf-cpfline {
+  text-align: center;
+  font-size: 10.5px;
+  color: #5a5770; /* mesmo tom usado em outros textos secundários do cartão — já testado pra contraste acessível */
+  margin-top: 14px;
+  letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
 }
 
-/* ── RODAPÉ FLUIDO (poolside) ── */
-/*
-  O rodapé não tem borda definida.
-  A cor emerge suavemente do fundo — como piscina sem borda.
-  O gradiente cobre os últimos 120px do card.
-  O conteúdo (membro desde + logo) flutua sobre o gradiente.
-  IMPORTANTE: padding-top do rodape-content deve ser <= (height do gradiente - altura do conteúdo)
-  para o conteúdo nunca ser cortado.
-*/
-.rodape-fluido {
+/* ── RODAPÉ (faixa sólida) ── */
+.cf-band {
+  height: 108px;
   flex-shrink: 0;
-  position: relative;
-  z-index: 2;
-  padding: 0 18px 16px;
-}
-
-.rodape-gradiente {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 180px;
-  pointer-events: none;
-  /* Calculado direto de --cor-primaria via color-mix (não precisa mais definir
-     --rodape-gradiente escola por escola — uma fórmula só serve pra todas).
-     Bem ousado embaixo (quase cor cheia), sem virar bloco opaco. */
-  background:
-    linear-gradient(to top,
-      color-mix(in srgb, var(--cor-primaria, #12101a) 92%, transparent) 0%,
-      color-mix(in srgb, var(--cor-primaria, #12101a) 62%, transparent) 32%,
-      color-mix(in srgb, var(--cor-primaria, #12101a) 25%, transparent) 62%,
-      transparent 95%
-    );
-}
-
-.rodape-content {
-  position: relative;
-  z-index: 2;
+  background: var(--cor-primaria, #D4AF37);
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-end;
-  /* padding-top garante que membro+logo ficam visíveis dentro da zona bem colorida */
-  padding-top: 70px;
+  padding: 0 22px;
 }
 
-.membro-label {
+.cf-membro { text-align: left; }
+
+/* Reaproveita --cor-rotulo-dinamico/--cor-forte-dinamico (já calculados em
+   aplicarConfigEscola a partir da luminância de --cor-primaria) em vez de
+   duplicar a mesma lógica de contraste — mesmo par de variáveis que o verso
+   já usa pros próprios rótulos/valores sobre fundo de cor variável. */
+.cf-membro-l {
   font-size: 9px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--cor-rotulo-dinamico, rgba(255,255,255,0.8));
-  margin-bottom: 2px;
+  color: var(--cor-rotulo-dinamico, rgba(255,255,255,0.75));
+  margin-bottom: 3px;
 }
 
-.membro-ano {
-  /* 28px -> 22px em 11/ago/2026 — era, sem querer, a maior fonte do cartão
-     inteiro (maior até que o nome do ritmista). Mantém o contraste com a
-     logo do lado (a Márcia gosta desse efeito), só sem exagerar. */
-  font-size: 22px;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--cor-ano, #fff);
+.cf-membro-v {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--cor-forte-dinamico, #fff);
 }
 
-/* ── LOGO DA ESCOLA (frente, canto inferior direito) ── */
-.logo-circulo {
-  /* 76px -> 88px -> 96px em 15/jul/2026: pedido da Márcia pra facilitar a
-     identificação rápida da escola na bilheteria/porta, sem competir
-     com a foto do ritmista (144px). Foi aos poucos até esse tamanho final. */
-  width: 96px;
-  height: 96px;
+.cf-logo {
+  width: 86px;
+  height: 86px;
   border-radius: 50%;
-  border: 1px solid var(--cor-logo-borda, rgba(212,175,55,0.7));
+  /* box-shadow, não border — border com box-sizing:border-box encolhe o
+     círculo visível; box-shadow mantém o tamanho igual com ou sem anel. */
+  box-shadow: 0 0 0 2px var(--cor-logo-borda-final, transparent);
+  background: rgba(255,255,255,0.96);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(255,255,255,0.12);
   overflow: hidden;
 }
 
-.logo-circulo img {
+.cf-logo img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 50%;
 }
 
 /* ── FAIXA DOURADA (assinatura TumTu — sempre presente) ── */
@@ -450,13 +346,14 @@
    prêmio, um selo genérico não seria reconhecível; ideia registrada para o
    futuro, com Super Admin cadastrando quem já ganhou). Espaço à esquerda
    fica vazio de propósito. */
-/* Logo do lado esquerdo desde 11/ago/2026 — segue o mesmo padrão que a
-   marca "TumTu" já usa na barra do topo dessa mesma tela (identidade fica
-   à esquerda, ação "Sair" à direita); antes ficava à direita, sem motivo
-   além de "é onde tava". */
+/* Logo centralizada — 12/ago/2026. Antes ficava à esquerda (mesmo padrão da
+   barra "TumTu"/"Sair" do topo da tela), mas aqui não existe um par à
+   direita como "Sair" tem: o resto do verso (QR, Mestre, validade, rodapé)
+   já é todo centralizado/simétrico, e a logo sozinha na esquerda ficava
+   como o único elemento desalinhado desse conjunto. */
 .v-header {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: flex-start;
   padding: 14px 18px 14px;
   flex-shrink: 0;
@@ -470,12 +367,15 @@
    76px -> 88px em 15/jul/2026, acompanhando o aumento da logo da frente.
    88px -> 96px em 11/ago/2026 — agora que ela está sozinha no cabeçalho
    (sem nome ao lado disputando espaço), igualando o tamanho da logo da
-   escola na frente (mesmo peso visual pras duas únicas logos do conjunto). */
+   escola na frente (mesmo peso visual pras duas únicas logos do conjunto).
+   96px -> 100px em 13/ago/2026. Borda sempre dourada TumTu fixa (não muda
+   com a cor da escola, diferente da logo da frente) — via box-shadow, não
+   border, pelo mesmo motivo da logo da frente (border encolheria o círculo). */
 .v-logo {
-  width: 96px;
-  height: 96px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  border: 1px solid var(--cor-logo-borda, rgba(212,175,55,0.7));
+  box-shadow: 0 0 0 2px rgba(212,175,55,0.7);
   background: rgba(255,255,255,0.06);
   flex-shrink: 0;
   overflow: hidden;
@@ -516,7 +416,7 @@
 
 .v-content::after {
   content: '';
-  flex: 1.8;
+  flex: 1.6;
 }
 
 /* ── QR CODE ── */
