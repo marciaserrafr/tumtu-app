@@ -216,9 +216,12 @@
   min-height: 0;
   position: relative;
   z-index: 2;
+  /* 16%/6% (valor original do documento) renderizava sutil demais pra
+     perceber de verdade (a Márcia não conseguia notar, 13/ago/2026) —
+     aumentado pra um toque real e visível da cor da escola. */
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--cor-primaria, #706c87) 16%, transparent),
-    color-mix(in srgb, var(--cor-primaria, #706c87) 6%, transparent)
+    color-mix(in srgb, var(--cor-primaria, #706c87) 32%, transparent),
+    color-mix(in srgb, var(--cor-primaria, #706c87) 10%, transparent)
   );
 }
 
