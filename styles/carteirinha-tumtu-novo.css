@@ -99,10 +99,21 @@
   background: #fdfcfb;
 }
 
+/* Sempre 4 paradas de cor — não só 2. Escola com menos de 4 cores
+   cadastradas não perde nada: cada parada sem cor própria repete a
+   última cor real da cadeia (fallback var() em cascata), então o
+   degradê nunca "inventa" cor nem fica reto demais — só mostra as
+   cores que a escola realmente tem. Bug real: Imperatriz tem 3 cores
+   e só 2 apareciam aqui (13/ago/2026). */
 .cf-topbar {
   height: 5px;
   flex-shrink: 0;
-  background: linear-gradient(90deg, var(--cor-primaria, #D4AF37), var(--cor-2, var(--cor-primaria, #D4AF37)));
+  background: linear-gradient(90deg,
+    var(--cor-primaria, #D4AF37),
+    var(--cor-2, var(--cor-primaria, #D4AF37)),
+    var(--cor-3, var(--cor-2, var(--cor-primaria, #D4AF37))),
+    var(--cor-4, var(--cor-3, var(--cor-2, var(--cor-primaria, #D4AF37))))
+  );
 }
 
 .cf-photo {
