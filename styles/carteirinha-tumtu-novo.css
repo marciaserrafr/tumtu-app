@@ -218,10 +218,16 @@
   z-index: 2;
   /* 16%/6% (valor original do documento) renderizava sutil demais pra
      perceber de verdade (a Márcia não conseguia notar, 13/ago/2026) —
-     aumentado pra um toque real e visível da cor da escola. */
+     aumentado pra 32%/10%. Mas mistura em "srgb" não é perceptualmente
+     uniforme: a mesma porcentagem de verde (Imperatriz) fica bem mais
+     fraca aos olhos do que a mesma porcentagem de rosa (Jacarezinho) —
+     característica real da visão humana, não só questão de intensidade.
+     "oklch" é um espaço de cor pensado pra misturar de um jeito mais
+     parecido com a percepção humana — mesma porcentagem, resultado mais
+     parecido em "força visual" entre cores diferentes. */
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--cor-primaria, #706c87) 32%, transparent),
-    color-mix(in srgb, var(--cor-primaria, #706c87) 10%, transparent)
+    color-mix(in oklch, var(--cor-primaria, #706c87) 32%, transparent),
+    color-mix(in oklch, var(--cor-primaria, #706c87) 10%, transparent)
   );
 }
 
