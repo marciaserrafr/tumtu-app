@@ -106,8 +106,16 @@
    pra trocar a foto a qualquer momento (não dava — bug relatado pela
    Márcia, 12/ago/2026: parecia funcionar mas nunca salvava sem "Editar"
    antes). Em modo de visualização, borda neutra e sem "mão" de clique. */
+/* Era border-radius:50% (círculo) -- trocado pra quadrado com cantinho
+   suave em 14/ago/2026, depois do redesign "9a" da carteirinha (a foto
+   lá virou quadrada, sem moldura circular) -- pedido da Márcia pra não
+   ter dois formatos diferentes de foto da mesma pessoa dependendo da
+   tela. Nome da classe (mp-foto-circle) ficou desatualizado mas não foi
+   renomeado -- trocar o nome de uma classe usada em 3 telas (Admin,
+   Super Admin, carteirinha) é risco desnecessário pra um ajuste
+   puramente visual. */
 .mp-foto-circle {
-    width: 80px; height: 80px; border-radius: 50%; border: 2px solid #e8e6f0;
+    width: 80px; height: 80px; border-radius: 16px; border: 2px solid #e8e6f0;
     overflow: hidden; cursor: default; display: flex; align-items: center;
     justify-content: center; background: #f7f6fb; flex-shrink: 0;
 }

@@ -14,7 +14,7 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=10">
+    <link rel="stylesheet" href="styles/components.css?v=11">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="ficha-perfil.js?v=11"></script>
     <script src="config-suporte.js?v=1"></script>
@@ -2256,8 +2256,18 @@
             method: 'PATCH', headers,
             body: JSON.stringify({ status: 'aprovado', aprovado_por: usuarioLogado.pessoa_id, motivo_status: null })
         });
-        if (res.ok) { mostrarToast('Acesso aprovado!'); carregarAcessos(escolaSelecionadaId); }
+        if (res.ok) { mostrarToast('Acesso aprovado!'); carregarAcessos(escolaSelecionadaId); notificarAprovacao(id); }
         else { mostrarToast('Erro ao aprovar.', 'erro'); }
+    }
+
+    // E-mail de "seu cadastro foi aprovado" -- best-effort, nunca trava
+    // nem avisa erro pra quem está aprovando (a aprovação em si já
+    // aconteceu no PATCH acima; o e-mail é só um extra).
+    function notificarAprovacao(vinculoId) {
+        fetch(`${SUPABASE_URL}/functions/v1/notificar-aprovacao`, {
+            method: 'POST', headers,
+            body: JSON.stringify({ vinculo_id: vinculoId })
+        }).catch(() => {});
     }
 
     async function rejeitarAcesso(id) {
@@ -3099,6 +3109,7 @@
         if (motivo !== null) body.motivo_status = motivo;
         if (status === 'aprovado') body.motivo_status = null;
         await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, { method: 'PATCH', headers, body: JSON.stringify(body) });
+        if (status === 'aprovado') notificarAprovacao(id);
         await carregarRitmistasSA();
     }
 
