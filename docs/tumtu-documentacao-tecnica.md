@@ -777,3 +777,33 @@ Redesenho de ponta a ponta de `carteirinha.html` + `styles/carteirinha-tumtu-nov
 6. Só depois da aprovação explícita dela (nesse caso: "Blz, pode publicar"), merge (`git merge --ff-only` do branch de preview) + `git push origin main` — a Vercel publica em produção automaticamente.
 
 **Resultado:** publicado em produção em 14/ago/2026, 7 commits no branch de preview, aprovado depois de 3 rodadas de ajuste fino sobre a versão inicial (intensidade do tingimento, equilíbrio de cor da barra do topo, espaçamento do verso).
+
+## 33. E-mails do Supabase Auth em português — servidor de envio próprio via Resend (14/ago/2026)
+
+A Márcia percebeu que o e-mail de "esqueci minha senha" chegava em inglês. Causa: o Supabase manda esses e-mails automáticos (confirmação de cadastro, redefinir senha, etc.) por um servidor de e-mail genérico deles, compartilhado entre todos os projetos — e por isso **trava a edição do assunto/corpo do template até o projeto configurar seu próprio servidor de envio** ("custom SMTP"). Sem isso, os campos de texto aparecem na tela mas não são editáveis.
+
+**Solução: conta no [Resend](https://resend.com), sob a conta pessoal dela (`marciaserrafr@gmail.com`) — mesmo padrão já usado em GitHub/Vercel/Supabase, decisão explícita pra não fragmentar ferramentas entre a conta pessoal e a `tumtuapp@gmail.com` (essa última reservada só pro papel de Super Admin *dentro* do próprio TumTu).**
+
+**Domínio `tumtu.com.br` verificado no Resend** — região São Paulo (`sa-east-1`, mais perto do público brasileiro; não precisa bater com a localização de quem está configurando, é só sobre onde o servidor de envio roda). DNS do domínio é hospedado direto no **Registro.br** (`e.sec.dns.br`/`f.sec.dns.br`), não na Vercel — confirmado por `nslookup` antes de mexer em qualquer coisa. 4 registros novos adicionados na zona DNS existente, todos em subdomínios que não colidem com o `suporte@tumtu.com.br` (que já usa MX do ImprovMX no domínio raiz):
+
+| Tipo | Nome | Função |
+|---|---|---|
+| TXT | `resend._domainkey.tumtu.com.br` | Chave pública DKIM (assinatura anti-falsificação) |
+| MX | `send.tumtu.com.br` | Recebe confirmações de entrega (bounce) |
+| TXT | `send.tumtu.com.br` | SPF (autoriza o Resend/Amazon SES a mandar e-mail em nome do domínio) |
+| TXT | `_dmarc.tumtu.com.br` | Política DMARC (`p=none`, modo monitoramento) |
+
+**Detalhe do processo:** o registro DKIM (o mais longo, ~220 caracteres) não salvou na primeira tentativa no painel do Registro.br — sumiu silenciosamente da lista sem erro visível, precisou ser recriado numa segunda tentativa (confirmado via `nslookup -type=TXT` direto no terminal, mais confiável que tentar ler visualmente uma string longa em print de tela — a mesma lógica se aplicou depois, na hora de confirmar o valor: em vez de comparar caracteres a olho entre duas capturas de tela, o certo foi deixar o próprio Resend validar, porque strings base64 longas (1/l/I, 0/O, 5/S, 8/B) são fáceis de ler errado tanto por humano quanto por leitura de imagem). Propagação no Registro.br foi rápida (minutos, não horas) — não precisa trocar de servidor DNS pra isso, só adicionar registro na zona já existente.
+
+**Configuração final no Supabase** (Authentication → Emails → SMTP Settings): sender `suporte@tumtu.com.br` / "TumTu", host `smtp.resend.com`, porta `465`, usuário `resend`, senha = API key gerada no Resend (`re_...`, visível só uma vez no momento da criação). Endereço de remetente reaproveita o `suporte@tumtu.com.br` já existente (o mesmo que encaminha pro Gmail via ImprovMX) — não precisou criar caixa nova.
+
+**Template "Reset password" traduzido** (Authentication → Emails → Templates), mantendo a mesma estrutura simples do template padrão do Supabase, só traduzido — sem redesenho, sem adicionar elemento visual não pedido:
+```html
+<h2>Redefinir sua senha</h2>
+<p>Recebemos um pedido para redefinir a senha da sua conta no TumTu.</p>
+<p><a href="{{ .ConfirmationURL }}">Clique aqui para escolher uma nova senha</a></p>
+<p>Se você não pediu essa alteração, pode ignorar este e-mail com segurança.</p>
+```
+Testado de ponta a ponta em produção (`tumtu.com.br/login.html` → "Esqueci minha senha" → e-mail chegou em português na caixa do Super Admin).
+
+**Pendência não resolvida ainda:** os outros templates do Supabase (Confirm sign up, Magic Link, Invite, Change Email, Reauthentication, e as notificações de segurança como "Password changed") continuam no texto padrão em inglês — não foram tocados porque não ficou confirmado com a Márcia se algum deles é realmente enviado hoje pelo fluxo do app (ex: cadastro público pode ou não exigir confirmação de e-mail, depende de uma configuração separada do projeto que não foi checada nessa sessão). Como o SMTP já está configurado, traduzir os demais — se algum deles se mostrar necessário — é só repetir o mesmo padrão de texto, sem infraestrutura nova.
