@@ -95,7 +95,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=12');
+        const res = await fetch('ficha-perfil.partial.html?v=13');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -186,6 +186,16 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
             : col === 'genero' ? (FP_GENERO_LABEL[valor] || '—')
             : (valor || '—');
     });
+
+    // "Como se identifica" só existe pra quem escolheu "Prefiro me
+    // identificar como..." no Gênero — pra todo o resto, some a linha
+    // inteira em vez de mostrar um "—" solto que parecia dado faltando
+    // (achado da Márcia, 14/ago/2026, mesmo critério já usado no campo
+    // de Instrumento pra quem não é Ritmista).
+    const campoIdentificacao = fpEl('fp-genero-personalizado');
+    if (campoIdentificacao) {
+        campoIdentificacao.closest('.ficha-campo').style.display = alvo.genero === 'personalizado' ? '' : 'none';
+    }
 
     if (alvo.tipo_documento && alvo.numero_documento) {
         fpEl('fp-bloco-documento').style.display = '';
