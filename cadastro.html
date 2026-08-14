@@ -1112,22 +1112,37 @@
         mostrarEtapa(n - 1, -1);
     }
 
+    // Trava/destrava o formulário inteiro durante o envio -- antes só o
+    // botão ficava desabilitado, então dava pra continuar mexendo nos
+    // campos (ou clicar "Voltar") enquanto o cadastro já estava sendo
+    // processado (relato da Márcia, 14/ago/2026).
+    function travarFormulario(travado) {
+        const btn = document.querySelector('#formCadastro button[type="submit"]') || document.querySelector('button[type="submit"]');
+        if (btn) {
+            btn.disabled = travado;
+            btn.textContent = travado ? 'Enviando...' : 'Enviar cadastro';
+        }
+        document.querySelectorAll('#formCadastro input, #formCadastro select, #formCadastro textarea, #formCadastro button[type="button"]').forEach(el => {
+            el.disabled = travado;
+        });
+    }
+
     document.getElementById('formCadastro').addEventListener('submit', async (e) => {
         e.preventDefault();
         limparErros();
         const btnSubmit = document.querySelector('#formCadastro button[type="submit"]') || document.querySelector('button[type="submit"]');
         if (btnSubmit && btnSubmit.disabled) return;
-        if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Enviando...'; }
+        travarFormulario(true);
 
         const cpf = document.getElementById('cpf').value.trim();
         const email = document.getElementById('email').value.trim();
 
-        if (!validarCampos()) { if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; } return; }
+        if (!validarCampos()) { travarFormulario(false); return; }
         const campoNascimentoFinal = document.getElementById('nascimento');
         if (campoNascimentoFinal.value.trim() && !dataParaISO(campoNascimentoFinal.value)) {
             mostrarErroCampo(campoNascimentoFinal, 'Data inválida — confira dia, mês e ano.');
             campoNascimentoFinal.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            travarFormulario(false);
             return;
         }
         const senha = document.getElementById('senha').value;
@@ -1135,11 +1150,13 @@
         if (senha.length < 6) {
             mostrarErroCampo(document.getElementById('senha'), 'A senha deve ter no mínimo 6 caracteres.');
             document.getElementById('senha').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            travarFormulario(false);
             return;
         }
         if (!pessoaExistente && senha !== confirmar) {
             mostrarErroCampo(document.getElementById('confirmar_senha'), 'As senhas não coincidem.');
             document.getElementById('confirmar_senha').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            travarFormulario(false);
             return;
         }
         // Checkbox HTML "required" não funciona aqui (form tem novalidate, e o
@@ -1150,7 +1167,7 @@
         if (!modoManualAtual && !document.getElementById('politica_aceita').checked) {
             mostrarMensagem('Confirme que você leu e concorda com a Política de Privacidade antes de enviar.', 'erro');
             document.getElementById('politica_aceita').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            travarFormulario(false);
             return;
         }
 
@@ -1203,7 +1220,7 @@
         // o "modo público" sem nenhum parâmetro na URL não é mais um caminho válido.
         if (!linkFixoAtual && !modoManualAtual) {
             mostrarMensagem('Link de cadastro inválido. Peça um novo link ao seu Mestre ou Diretor.', 'erro');
-            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            travarFormulario(false);
             return;
         }
 
@@ -1214,14 +1231,14 @@
             if (!document.getElementById('consentimento_confirmado').checked) {
                 mostrarMensagem('Confirme que a pessoa está ciente e autorizou o cadastro antes de enviar.', 'erro');
                 document.getElementById('bloco-consentimento').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                travarFormulario(false);
                 return;
             }
             const { data: sessionData } = await sb.auth.getSession();
             const token = sessionData.session ? sessionData.session.access_token : null;
             if (!token) {
                 mostrarMensagem('Sessão expirada. Faça login novamente.', 'erro');
-                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                travarFormulario(false);
                 return;
             }
             dados.senha = senha;
@@ -1239,7 +1256,7 @@
                 document.getElementById('convite-banner').style.display = 'none';
             } else {
                 mostrarMensagem('Erro ao criar cadastro: ' + (resultado.error || 'tente novamente'), 'erro');
-                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                travarFormulario(false);
             }
             return;
         }
@@ -1253,13 +1270,13 @@
 
         if (info.existe_cpf && !info.cpf_bate_email) {
             mostrarMensagem('Esse CPF já tem cadastro no TumTu com outro e-mail. Use o e-mail original ou clique em "Esqueci minha senha" no login.', 'erro');
-            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            travarFormulario(false);
             return;
         }
 
         if (info.existe_documento && !info.documento_bate_email) {
             mostrarMensagem('Esse documento já tem cadastro no TumTu com outro e-mail. Use o e-mail original ou clique em "Esqueci minha senha" no login.', 'erro');
-            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            travarFormulario(false);
             return;
         }
 
@@ -1275,7 +1292,7 @@
                     ? 'Senha incorreta. Se não lembra, clique em "Esqueci minha senha" no login.'
                     : 'Esse e-mail já tem cadastro no TumTu. Se não lembra a senha, clique em "Esqueci minha senha" no login.';
                 mostrarMensagem(mensagemErro, 'erro');
-                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                travarFormulario(false);
                 return;
             }
             tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
@@ -1288,7 +1305,7 @@
             const { data: authData, error: authError } = await sb.auth.signUp({ email, password: senha });
             if (authError) {
                 mostrarMensagem('Erro ao criar acesso: ' + authError.message, 'erro');
-                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                travarFormulario(false);
                 return;
             }
             tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
@@ -1310,7 +1327,7 @@
             });
             if (!resPessoa.ok) {
                 mostrarMensagem('Erro ao enviar cadastro. Tente novamente.', 'erro');
-                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                travarFormulario(false);
                 return;
             }
             const novaPessoa = await resPessoa.json();
@@ -1350,7 +1367,7 @@
                 mostrarMensagem('Cadastro enviado com sucesso! Aguarde a aprovação da diretoria.', 'sucesso');
                 document.getElementById('formCadastro').reset();
                 document.querySelector('.foto-preview').innerHTML = '<span>Clique para adicionar foto</span>';
-                if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+                travarFormulario(false);
             }
         } else {
             const erroTexto = await res.text();
@@ -1359,7 +1376,7 @@
             } else {
                 mostrarMensagem('Erro ao enviar cadastro. Tente novamente.', 'erro');
             }
-            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Enviar cadastro'; }
+            travarFormulario(false);
         }
     });
 
