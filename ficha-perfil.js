@@ -51,6 +51,15 @@ const FP_CAMPOS = [
 
 let fpPartialHtml = null;
 let fpFotoBase64 = null;
+// Posição da foto dentro da moldura (equivalente a object-position, em
+// porcentagem 0-100) -- arrastável em modo de edição (ver fpConfigurarDragFoto).
+// Reseta pra 50/50 (centro) sempre que uma foto NOVA é escolhida.
+let fpFotoPosX = 50;
+let fpFotoPosY = 50;
+// Depois de um arrasto de verdade (não só um toque parado), o navegador
+// ainda dispara um "click" no soltar -- sem essa trava, todo arrasto
+// reabriria o seletor de arquivo por engano logo em seguida.
+let fpArrastoRecente = false;
 let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: null, autoedicao: false, editaveis: new Set(), aoSalvar: null };
 
 // Cada coluna editável mora em "pessoas" (dado da pessoa, não muda entre baterias)
@@ -95,7 +104,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=13');
+        const res = await fetch('ficha-perfil.partial.html?v=14');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -161,6 +170,8 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     const editaveis = fpCamposEditaveis(meuPerfil, autoedicao, alvo.perfil);
     fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, aoSalvar: opcoes.aoSalvar || null };
     fpFotoBase64 = null;
+    fpFotoPosX = alvo.foto_pos_x ?? 50;
+    fpFotoPosY = alvo.foto_pos_y ?? 50;
 
     const cargo = fpCargoLabel(alvo.perfil, alvo.genero);
     fpEl('fp-titulo').textContent = alvo.nome || '—';
@@ -168,7 +179,7 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
 
     const circle = fpEl('fp-foto-circle');
     circle.innerHTML = alvo.foto_url
-        ? `<img src="${alvo.foto_url}" style="width:100%;height:100%;object-fit:cover;">`
+        ? `<img src="${alvo.foto_url}" style="width:100%;height:100%;object-fit:cover;object-position:${fpFotoPosX}% ${fpFotoPosY}%;">`
         : `<svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
     // Sempre escondido aqui (modo visualização) — só aparece dentro de
     // fpAtivarEdicao(). Antes ficava visível de cara sempre que a foto era
@@ -324,6 +335,7 @@ async function fpAtivarEdicao() {
     if (fpEstado.editaveis.has('foto_url')) {
         fpEl('fp-foto-acao').style.display = 'block';
         fpEl('fp-foto-circle').classList.add('mp-foto-circle--editavel');
+        fpConfigurarDragFoto();
     }
 
     fpEl('fp-btn-editar').style.display = 'none';
@@ -352,11 +364,14 @@ function fpCancelarEdicao() {
     fpEl('fp-senha-nova').value = '';
     fpEl('fp-senha-confirmar').value = '';
     fpFotoBase64 = null;
-    // Some junto com o resto — se a pessoa trocou a foto e cancelou, a
-    // prévia (só visual, nunca tinha sido salva) volta pra foto de verdade.
+    fpFotoPosX = fpEstado.alvo.foto_pos_x ?? 50;
+    fpFotoPosY = fpEstado.alvo.foto_pos_y ?? 50;
+    // Some junto com o resto — se a pessoa trocou a foto (ou só arrastou
+    // pra reposicionar) e cancelou, a prévia (só visual, nunca tinha sido
+    // salva) volta pra foto e posição de verdade.
     const circleCancelar = fpEl('fp-foto-circle');
     circleCancelar.innerHTML = fpEstado.alvo.foto_url
-        ? `<img src="${fpEstado.alvo.foto_url}" style="width:100%;height:100%;object-fit:cover;">`
+        ? `<img src="${fpEstado.alvo.foto_url}" style="width:100%;height:100%;object-fit:cover;object-position:${fpFotoPosX}% ${fpFotoPosY}%;">`
         : `<svg viewBox="0 0 24 24" width="32" height="32" fill="#c0bdd0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
     circleCancelar.classList.remove('mp-foto-circle--editavel');
     fpEl('fp-foto-acao').style.display = 'none';
@@ -370,41 +385,103 @@ function fpCancelarEdicao() {
 // (mostrava prévia) mas nunca era salva de verdade, sem nenhum aviso pra
 // pessoa (bug relatado pela Márcia, 12/ago/2026). Fora do modo de edição,
 // mostra a mesma mensagem "Editar" já usada em outros campos travados.
-function fpAbrirSeletorFoto() {
+// Clicar na foto, fora do modo de edição, já entra direto em edição (em
+// vez de só avisar "clique em Editar antes") — a ficha pode ser longa, e
+// forçar rolar até o botão lá embaixo só pra trocar a foto era fricção
+// desnecessária pra uma ação rápida e comum (pedido da Márcia, 14/ago/2026).
+// Só entra em edição de verdade se a foto for um campo editável pra quem
+// está olhando (senão nem faz sentido oferecer a ação).
+async function fpAbrirSeletorFoto() {
+    if (fpArrastoRecente) { fpArrastoRecente = false; return false; }
     if (fpEl('fp-btn-salvar').style.display === 'inline-flex') {
         fpEl('fp-input-foto').click();
-    } else {
-        const mensagem = fpEl('fp-mensagem');
-        if (mensagem) {
-            mensagem.className = 'fp-mensagem aviso';
-            mensagem.textContent = 'Clique em "Editar" antes de trocar a foto.';
-            mensagem.style.display = 'block';
-            mensagem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+    } else if (fpEstado.editaveis.has('foto_url')) {
+        await fpAtivarEdicao();
+        fpEl('fp-input-foto').click();
     }
     return false;
 }
 
+// Antes cortava um quadrado central logo no upload, descartando o resto
+// da foto pra sempre — sem imagem sobrando, "arrastar pra reposicionar"
+// não tinha o que fazer (achado real, 14/ago/2026, relato da Márcia de
+// foto não caber direito). Agora só redimensiona (mantendo a foto
+// inteira) e deixa o recorte/posição por conta do CSS na hora de exibir
+// (object-fit + object-position), que dá pra arrastar depois.
 function fpPreviewFoto(input) {
     if (!input.files || !input.files[0]) return;
     const reader = new FileReader();
     reader.onload = function (e) {
         const img = new Image();
         img.onload = function () {
+            const MAX = 1000;
+            const escala = Math.min(1, MAX / Math.max(img.width, img.height));
+            const w = Math.round(img.width * escala);
+            const h = Math.round(img.height * escala);
             const canvas = document.createElement('canvas');
-            const SIZE = 300;
-            canvas.width = SIZE; canvas.height = SIZE;
-            const ctx = canvas.getContext('2d');
-            const side = Math.min(img.width, img.height);
-            const sx = (img.width - side) / 2;
-            const sy = (img.height - side) / 2;
-            ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
-            fpFotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
-            fpEl('fp-foto-circle').innerHTML = `<img src="${fpFotoBase64}" style="width:100%;height:100%;object-fit:cover;">`;
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            fpFotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+            fpFotoPosX = 50;
+            fpFotoPosY = 50;
+            fpEl('fp-foto-circle').innerHTML = `<img src="${fpFotoBase64}" style="width:100%;height:100%;object-fit:cover;object-position:50% 50%;">`;
+            fpConfigurarDragFoto();
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(input.files[0]);
+}
+
+// Arrastar a foto dentro da moldura pra escolher qual parte aparece —
+// mesma ideia de reposicionar foto de capa do Facebook/LinkedIn. Calcula
+// o quanto a imagem "sobra" além da moldura em cada eixo (só existe
+// sobra se a proporção da foto for diferente da moldura) e converte o
+// arrasto em porcentagem de object-position, then salvo pelo fpSalvar()
+// junto com o resto da ficha.
+function fpConfigurarDragFoto() {
+    const circle = fpEl('fp-foto-circle');
+    if (!circle || circle.dataset.dragConfigurado) return;
+    circle.dataset.dragConfigurado = '1';
+
+    let arrastando = false;
+    let inicioX = 0, inicioY = 0, posInicialX = 50, posInicialY = 50, moveuBastante = false;
+
+    function comecar(clientX, clientY) {
+        const img = circle.querySelector('img');
+        if (!circle.classList.contains('mp-foto-circle--editavel') || !img) return false;
+        arrastando = true;
+        moveuBastante = false;
+        inicioX = clientX; inicioY = clientY;
+        posInicialX = fpFotoPosX; posInicialY = fpFotoPosY;
+        return true;
+    }
+
+    function mover(clientX, clientY) {
+        if (!arrastando) return;
+        const img = circle.querySelector('img');
+        if (!img || !img.naturalWidth) return;
+        const dxTotal = clientX - inicioX, dyTotal = clientY - inicioY;
+        if (Math.abs(dxTotal) > 4 || Math.abs(dyTotal) > 4) moveuBastante = true;
+        const rect = circle.getBoundingClientRect();
+        const escala = Math.max(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+        const overflowX = img.naturalWidth * escala - rect.width;
+        const overflowY = img.naturalHeight * escala - rect.height;
+        fpFotoPosX = overflowX > 0 ? Math.min(100, Math.max(0, posInicialX - (dxTotal / overflowX) * 100)) : posInicialX;
+        fpFotoPosY = overflowY > 0 ? Math.min(100, Math.max(0, posInicialY - (dyTotal / overflowY) * 100)) : posInicialY;
+        img.style.objectPosition = `${fpFotoPosX}% ${fpFotoPosY}%`;
+    }
+
+    function soltar() {
+        if (arrastando && moveuBastante) fpArrastoRecente = true;
+        arrastando = false;
+    }
+
+    circle.addEventListener('pointerdown', (e) => {
+        if (comecar(e.clientX, e.clientY)) { circle.setPointerCapture(e.pointerId); e.preventDefault(); }
+    });
+    circle.addEventListener('pointermove', (e) => mover(e.clientX, e.clientY));
+    circle.addEventListener('pointerup', soltar);
+    circle.addEventListener('pointercancel', soltar);
 }
 
 async function fpSalvar() {
@@ -444,6 +521,12 @@ async function fpSalvar() {
         payloadVinculo.bateria_instrumento_id = val ? Number(val) : null;
     }
     if (fpFotoBase64 && fpEstado.editaveis.has('foto_url')) payloadPessoa.foto_url = fpFotoBase64;
+    // Posição vale mesmo sem trocar a foto (só arrastar a existente já
+    // conta) — envia sempre que a foto for editável e a posição mudou.
+    if (fpEstado.editaveis.has('foto_url') && (fpFotoPosX !== (fpEstado.alvo.foto_pos_x ?? 50) || fpFotoPosY !== (fpEstado.alvo.foto_pos_y ?? 50))) {
+        payloadPessoa.foto_pos_x = fpFotoPosX;
+        payloadPessoa.foto_pos_y = fpFotoPosY;
+    }
 
     const { data: sessionData } = await sb.auth.getSession();
     const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;

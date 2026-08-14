@@ -14,7 +14,7 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=11">
+    <link rel="stylesheet" href="styles/components.css?v=12">
     <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=25">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -256,7 +256,7 @@
 
 <div class="c-toast" id="cToast"></div>
 
-<script src="ficha-perfil.js?v=12" defer></script>
+<script src="ficha-perfil.js?v=13" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
@@ -308,6 +308,7 @@
         if (ritmista.foto_url) {
             const img = document.createElement('img');
             img.src = ritmista.foto_url;
+            img.style.objectPosition = `${ritmista.foto_pos_x ?? 50}% ${ritmista.foto_pos_y ?? 50}%`;
             const box = document.getElementById('fotoRitmista');
             box.innerHTML = '';
             box.appendChild(img);
@@ -672,6 +673,7 @@
                 if (novosDados.foto_url) {
                     const img = document.createElement('img');
                     img.src = novosDados.foto_url;
+                    img.style.objectPosition = `${novosDados.foto_pos_x ?? 50}% ${novosDados.foto_pos_y ?? 50}%`;
                     const box = document.getElementById('fotoRitmista');
                     box.innerHTML = '';
                     box.appendChild(img);

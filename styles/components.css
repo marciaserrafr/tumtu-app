@@ -119,7 +119,8 @@
     overflow: hidden; cursor: default; display: flex; align-items: center;
     justify-content: center; background: #f7f6fb; flex-shrink: 0;
 }
-.mp-foto-circle.mp-foto-circle--editavel { border: 2px dashed #D4AF37; cursor: pointer; }
+.mp-foto-circle.mp-foto-circle--editavel { border: 2px dashed #D4AF37; cursor: grab; touch-action: none; }
+.mp-foto-circle.mp-foto-circle--editavel:active { cursor: grabbing; }
 .mp-foto-circle img { width: 100%; height: 100%; object-fit: cover; }
 .mp-foto-hint { font-size: 11px; color: #8b88a0; }
 .mp-acoes { display: flex; gap: 10px; justify-content: flex-start; margin-top: 24px; }
