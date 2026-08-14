@@ -2267,7 +2267,9 @@
         fetch(`${SUPABASE_URL}/functions/v1/notificar-aprovacao`, {
             method: 'POST', headers,
             body: JSON.stringify({ vinculo_id: vinculoId })
-        }).catch(() => {});
+        })
+            .then(r => r.json()).then(r => { if (!r.ok) console.warn('notificar-aprovacao:', r.error || r.aviso); })
+            .catch(err => console.error('notificar-aprovacao falhou:', err));
     }
 
     async function rejeitarAcesso(id) {

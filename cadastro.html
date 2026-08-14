@@ -22,6 +22,14 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { overflow-x: hidden; max-width: 100vw; }
         button { font-family: inherit; }
+        /* Sem isso, um campo desabilitado (travarFormulario, durante o
+           envio) fica com a MESMA aparência de um campo normal -- dava a
+           impressão de que a trava não estava funcionando, mesmo
+           funcionando de verdade por baixo (achado da Márcia, 14/ago/2026). */
+        #formCadastro input:disabled, #formCadastro select:disabled,
+        #formCadastro textarea:disabled, #formCadastro button:disabled {
+            opacity: 0.55; cursor: not-allowed;
+        }
         body.tela-auth-escura { padding-top: max(6vh, 40px); }
         .container-largo { max-width: 640px; }
         @media (max-width: 600px) {
