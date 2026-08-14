@@ -222,13 +222,14 @@
      "oklch" é um espaço de cor pensado pra misturar de um jeito mais
      parecido com a percepção humana — mesma porcentagem, resultado mais
      parecido em "força visual" entre cores diferentes. Depois de resolver
-     o desequilíbrio entre cores, 32%/10% (agora igualado pelo oklch em
-     todas as escolas) passou a ler como forte demais — reduzido pra
-     20%/7%, ponto intermediário: continua visível de propósito, mas
-     sutil (mesmo dia). */
+     o desequilíbrio entre cores, 32%/10% passou a ler como forte demais —
+     reduzido pra 20%/7%, mas ainda forte demais no rosa (Jacarezinho,
+     14/ago/2026). Como "oklch" preserva mais saturação que "srgb" na
+     mesma porcentagem, um valor abaixo do 16%/6% original do documento
+     ficou mais parecido com a intenção "sutil" de origem: 14%/5%. */
   background: linear-gradient(180deg,
-    color-mix(in oklch, var(--cor-primaria, #706c87) 20%, transparent),
-    color-mix(in oklch, var(--cor-primaria, #706c87) 7%, transparent)
+    color-mix(in oklch, var(--cor-primaria, #706c87) 14%, transparent),
+    color-mix(in oklch, var(--cor-primaria, #706c87) 5%, transparent)
   );
 }
 
