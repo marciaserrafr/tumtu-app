@@ -108,12 +108,9 @@
 .cf-topbar {
   height: 5px;
   flex-shrink: 0;
-  background: linear-gradient(90deg,
-    var(--cor-primaria, #D4AF37),
-    var(--cor-2, var(--cor-primaria, #D4AF37)),
-    var(--cor-3, var(--cor-2, var(--cor-primaria, #D4AF37))),
-    var(--cor-4, var(--cor-3, var(--cor-2, var(--cor-primaria, #D4AF37))))
-  );
+  /* Degradê montado em JS (--gradiente-topbar) só com as cores reais da
+     escola, pra cada uma pesar igual na barra — ver aplicarConfigEscola. */
+  background: var(--gradiente-topbar, var(--cor-primaria, #D4AF37));
 }
 
 .cf-photo {
@@ -224,10 +221,14 @@
      característica real da visão humana, não só questão de intensidade.
      "oklch" é um espaço de cor pensado pra misturar de um jeito mais
      parecido com a percepção humana — mesma porcentagem, resultado mais
-     parecido em "força visual" entre cores diferentes. */
+     parecido em "força visual" entre cores diferentes. Depois de resolver
+     o desequilíbrio entre cores, 32%/10% (agora igualado pelo oklch em
+     todas as escolas) passou a ler como forte demais — reduzido pra
+     20%/7%, ponto intermediário: continua visível de propósito, mas
+     sutil (mesmo dia). */
   background: linear-gradient(180deg,
-    color-mix(in oklch, var(--cor-primaria, #706c87) 32%, transparent),
-    color-mix(in oklch, var(--cor-primaria, #706c87) 10%, transparent)
+    color-mix(in oklch, var(--cor-primaria, #706c87) 20%, transparent),
+    color-mix(in oklch, var(--cor-primaria, #706c87) 7%, transparent)
   );
 }
 

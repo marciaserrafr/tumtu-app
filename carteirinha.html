@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=10">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=23">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=24">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
@@ -398,6 +398,19 @@
         (cfg.cores || []).forEach((cor, i) => inner.style.setProperty(`--cor-${i + 1}`, cor));
 
         inner.style.setProperty('--cor-logo-borda-final', escolherCorBordaLogo(cfg.cores));
+
+        // Degradê da barra do topo: pra dar peso igual a cada cor real da
+        // escola (2, 3 ou 4), o gradiente é montado em JS com só as cores
+        // que existem, em vez de sempre 4 "paradas" fixas com fallback —
+        // esse esquema fixo fazia a última cor repetir (via fallback) até
+        // preencher as 4 paradas, dominando o degradê (achado da Márcia,
+        // 13/ago/2026: Jacarezinho, só 2 cores, ficava 75% branco; Imperatriz,
+        // 3 cores, ficava com o dourado ocupando quase metade da barra).
+        const coresValidas = (cfg.cores || []).filter(Boolean);
+        const gradienteTopbar = coresValidas.length > 1
+            ? `linear-gradient(90deg, ${coresValidas.join(', ')})`
+            : (coresValidas[0] || '#D4AF37');
+        inner.style.setProperty('--gradiente-topbar', gradienteTopbar);
 
         // Verso e rodapé da frente têm fundo que muda de cor por escola
         // (--cor-primaria) — textos com transparência fixa (branco 35-45%)
