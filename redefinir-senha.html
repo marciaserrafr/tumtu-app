@@ -89,6 +89,16 @@
     sb.auth.onAuthStateChange((event) => {
         if (event === 'PASSWORD_RECOVERY') sessaoRecuperacaoOk = true;
     });
+    // Reforço: o evento PASSWORD_RECOVERY pode disparar antes do listener
+    // acima terminar de registrar (corrida real entre o supabase-js
+    // processando o link e o navegador rodando essa linha) — nesse caso a
+    // tela perdia o aviso e mostrava "link inválido" mesmo com um link
+    // certo, nunca usado (achado real, 14/ago/2026, com a Márcia testando
+    // um link recém-chegado). Confirma direto se já existe sessão válida,
+    // em vez de confiar só em ter "pego" o evento a tempo.
+    sb.auth.getSession().then(({ data }) => {
+        if (data.session) sessaoRecuperacaoOk = true;
+    });
 
     document.getElementById('formRedefinir').addEventListener('submit', async (e) => {
         e.preventDefault();
