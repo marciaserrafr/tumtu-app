@@ -544,6 +544,9 @@
     }
 
     async function renderMestres(bateriaId) {
+        const bloco = document.getElementById('c-mestre-bloco');
+        const container = document.getElementById('c-mestre-nomes');
+        const label = document.getElementById('c-mestre-label');
         if (!bateriaId) return;
         try {
             const res = await fetch(
@@ -551,11 +554,20 @@
                 { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
             );
             const mestres = await res.json();
-            if (!Array.isArray(mestres) || mestres.length === 0) return;
 
-            const bloco = document.getElementById('c-mestre-bloco');
-            const container = document.getElementById('c-mestre-nomes');
-            const label = document.getElementById('c-mestre-label');
+            // O bloco fica SEMPRE visível (display:flex), mesmo sem nenhum Mestre
+            // cadastrado -- é o min-height/margin-bottom dele (ver .v-mestre no
+            // CSS) que reserva o espaço fixo até o QR. Escondê-lo com
+            // display:none (como era antes) fazia esse espaço reservado
+            // desaparecer junto, e o QR subia -- quebrando a posição fixa que é
+            // requisito explícito da Márcia (bug real, relatado 15/ago/2026,
+            // numa bateria sem Mestre cadastrado).
+            if (!Array.isArray(mestres) || mestres.length === 0) {
+                container.innerHTML = '';
+                label.textContent = '';
+                bloco.style.display = 'flex';
+                return;
+            }
 
             // "Mestres" no plural já é neutro em português — só o singular varia (Mestre/Mestra).
             label.textContent = mestres.length > 1 ? 'Mestres de Bateria'
@@ -571,7 +583,8 @@
 
             bloco.style.display = 'flex';
         } catch (e) {
-            // Silencioso — carteirinha continua funcional sem o bloco de mestre
+            // Mesmo em erro, mantém o espaço reservado (ver comentário acima).
+            bloco.style.display = 'flex';
         }
     }
 
