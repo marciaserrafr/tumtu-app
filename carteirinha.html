@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=13">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=25">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=26">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
@@ -177,6 +177,7 @@
                                 <div class="cf-bateria" id="c-bateria-nome"></div>
                             </div>
                             <div class="cf-cpfline">CPF:&nbsp;<span id="cpfRitmista">—</span></div>
+                            <div class="cf-divider"></div>
                         </div>
 
                         <div class="cf-band">
@@ -206,13 +207,13 @@
                         </div>
 
                         <div class="v-content">
-                            <div class="v-qr-box"><div id="qrcode"></div></div>
-                            <div class="v-qr-label">QR de emergência</div>
-
                             <div class="v-mestre" id="c-mestre-bloco" style="display:none">
                                 <div class="v-mestre__label" id="c-mestre-label">Mestre de Bateria</div>
                                 <div id="c-mestre-nomes"></div>
                             </div>
+
+                            <div class="v-qr-box"><div id="qrcode"></div></div>
+                            <div class="v-qr-label">QR de emergência</div>
                         </div>
 
                         <div class="v-validade">
@@ -564,7 +565,7 @@
                 return sep + `<div class="v-mestre__nome">${nomeExibido}</div>`;
             }).join('');
 
-            bloco.style.display = 'block';
+            bloco.style.display = 'flex';
         } catch (e) {
             // Silencioso — carteirinha continua funcional sem o bloco de mestre
         }

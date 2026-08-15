@@ -259,9 +259,19 @@
   text-align: center;
   font-size: 10.5px;
   color: #5a5770; /* mesmo tom usado em outros textos secundários do cartão — já testado pra contraste acessível */
-  margin-top: 14px;
+  margin-top: 12px;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
+}
+
+/* Traço fino dourado sob o CPF -- fecha visualmente o bloco do meio
+   (escola/bateria/CPF) antes do rodapé sólido, sutileza vinda do
+   redesign v2 (14/ago/2026). */
+.cf-divider {
+  height: 1px;
+  width: 120px;
+  background: rgba(212, 175, 55, 0.35);
+  margin: 12px auto 0;
 }
 
 /* ── RODAPÉ (faixa sólida) ── */
@@ -414,15 +424,18 @@
 }
 
 /* ── CONTEÚDO DO VERSO ── */
-/* QR + Mestre(s): nem colado no topo (flex-start original) nem centralizado
+/* Mestre(s) + QR: nem colado no topo (flex-start original) nem centralizado
    de vez (ficou baixo demais, segundo a Márcia em 15/jul/2026).
-   13/ago/2026 — ajuste fino: a distância logo→QR (::before) virou FIXA
-   (20.7px, medido de verdade pra dar 48.7px de logo até o topo do QR,
-   travando no valor de 2 Mestres) — antes era flexível igual o ::after,
-   e por isso mudava (61px com 1 Mestre, 48.7px com 2), o que a Márcia
-   achou inconsistente entre baterias. Agora só o ::after (embaixo do
-   bloco de Mestre) é flexível — toda a folga de ter só 1 Mestre em vez
-   de 2 vai pra lá, nunca mexe no topo. */
+   13/ago/2026 — ajuste fino: a distância logo→primeiro elemento (::before)
+   virou FIXA (20.7px) — antes era flexível igual o ::after, e por isso
+   mudava conforme o conteúdo, o que a Márcia achou inconsistente entre
+   baterias. Agora só o ::after (depois do QR) é flexível — toda folga de
+   conteúdo variável vai pra lá, nunca mexe no topo.
+   14/ago/2026 — ordem invertida pra Logo → Mestre → QR (redesign v2:
+   identidade da bateria primeiro, dado de emergência do usuário logo
+   abaixo). A distância logo→topo do bloco de Mestre continua os mesmos
+   20.7px fixos de sempre; quem trava a distância Mestre→QR em 1 ou 2
+   Mestres agora é o min-height reservado do .v-mestre (ver abaixo). */
 .v-content {
   flex: 1;
   display: flex;
@@ -472,8 +485,21 @@
 }
 
 /* ── MESTRE(S) DE BATERIA ── */
+/* Logo direto acima (via .v-content::before), sem margin-top próprio --
+   e altura reservada (min-height) + conteúdo alinhado no topo, pra ter
+   sempre a mesma distância até o QR logo abaixo, com 1 ou 2 Mestres
+   (redesign v2, 14/ago/2026 -- mesma lógica de "altura reservada" já
+   usada no bloco de identidade da frente do cartão). margin-bottom (não
+   margin-top no QR) de propósito: quando não há Mestre cadastrado pra
+   bateria, o bloco inteiro fica display:none e essa margem some junto
+   -- o QR volta a ficar logo abaixo da logo, sem vão vazio sobrando. */
 .v-mestre {
-  margin-top: 52px;
+  margin-top: 0;
+  margin-bottom: 26px;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   text-align: center;
   width: 100%;
 }
