@@ -882,3 +882,15 @@ Pedido da Márcia: incentivar quem for aprovado a instalar o TumTu como PWA (íc
 
 Testado de ponta a ponta com e-mails reais (não só a prévia visual) antes de cada aprovação da Márcia — a prévia em Artifact ajudou a decidir textos e layout rápido, mas não substituiu o teste real, já que é exatamente onde o bug do símbolo apareceu.
 
+## 37. Validade da carteirinha configurável por escola — solução provisória (15/ago/2026)
+
+A Márcia notou que a carteirinha já **mostrava** um campo "Válida até" no verso (ao lado de "Temporada"), mas com uma data fixa no código, `31/07/2027` — nunca esteve ligada a nenhum dado real, nem existia essa configuração em lugar nenhum. Ela também apontou que isso precisa ser configurável por escola (cada escola pode ter uma validade diferente).
+
+Decisão explícita da Márcia sobre onde colocar: cogitou criar já uma área dedicada "Configurações → Carteirinha" (mesmo padrão de Instrumentos/Medidas — biblioteca/config própria, com tab no menu), mas optou pelo caminho mais rápido agora — **campo provisório dentro do cadastro de escola já existente**, junto de "Temporada Atual", reaproveitando 100% do padrão que já existe (mesma tabela, mesmo formulário, mesmo modal de editar). A área dedicada fica pra quando o projeto de unificação admin/super-admin entrar (ver roadmap em `CLAUDE.md`) — nada do trabalho de hoje se perde nessa migração futura, o dado já nasce salvo do jeito certo no banco, só muda de lugar na tela depois.
+
+Escopo explicitamente limitado a **só o campo** (guardar e mostrar a data) — **nenhuma lógica de validade foi criada** (não bloqueia acesso, não avisa vencimento, não muda comportamento nenhum). Isso fica pra uma etapa futura, a ser desenhada com calma.
+
+- **Banco**: nova coluna `escolas.validade_carteirinha` (tipo `date`, opcional).
+- **Super Admin** (`super-admin.html`): campo "Validade da Carteirinha" (`<input type="date">`) no formulário de nova escola e no modal de editar escola, logo abaixo de "Temporada Atual" — com nota visual pequena avisando que é provisório. O helper `campo()` do modal de editar ganhou suporte a `opts.tipo: 'data'` (formata a visualização com `fpFormatarData()`, de `ficha-perfil.js`, e usa `<input type="date">` em vez de texto).
+- **Carteirinha** (`carteirinha.html`) e o **pré-carregamento em `login.html`** (mesma arquitetura de cache da seção 24 — a carteirinha nasce pronta, sem estado intermediário): ambos passaram a buscar `validade_carteirinha` junto com o resto dos dados da escola, e o card mostra a data formatada (`DD/MM/AAAA`) ou "—" quando vazia (nenhuma escola tinha essa data até a Márcia preenchê-las manualmente logo depois de publicar).
+
