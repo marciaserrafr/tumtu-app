@@ -227,9 +227,15 @@
    14/ago/2026). Como .ficha-modal-overlay/.modal-admin-overlay já são a
    própria área com rolagem (overflow-y:auto), a barra gruda sozinha no
    fundo dela em qualquer uma das 3 telas que usam esse motor. */
+/* padding-bottom soma env(safe-area-inset-bottom) -- sem isso, no app
+   instalado (PWA, display:standalone) o iPhone não reserva espaço pra
+   barrinha de gesto de baixo, e o botão mais próximo dela ("Cancelar")
+   fica com o texto cortado por trás dela. Mesma técnica já usada no menu
+   fixo de baixo do Super Admin no celular (.nav-abas, achado anterior). */
 .ficha-modal-acoes {
     display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;
-    margin-top: 20px; border-top: 1px solid var(--cor-borda); padding: 16px 0;
+    margin-top: 20px; border-top: 1px solid var(--cor-borda);
+    padding: 16px 0 calc(16px + env(safe-area-inset-bottom));
     position: sticky; bottom: 0; background: var(--cor-fundo-claro);
 }
 .ficha-modal-overlay .ficha-modal-titulo { color: #f7f6fb; }

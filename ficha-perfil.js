@@ -341,6 +341,12 @@ async function fpAtivarEdicao() {
     fpEl('fp-btn-editar').style.display = 'none';
     fpEl('fp-btn-salvar').style.display = 'inline-flex';
     fpEl('fp-btn-cancelar').style.display = 'inline-flex';
+    // "Fechar" (ou os botões extras de admin, tipo Ativar/Rejeitar) somem
+    // durante a edição -- fazem parte da tela de visualização, não da
+    // barra de Salvar/Cancelar, e só apertavam a fileira de botões
+    // flutuante sem necessidade (achado da Márcia, 15/ago/2026).
+    const acoesExtra = fpEl('fp-acoes-extra');
+    if (acoesExtra) acoesExtra.style.display = 'none';
 }
 
 function fpCancelarEdicao() {
@@ -378,35 +384,28 @@ function fpCancelarEdicao() {
     fpEl('fp-btn-editar').style.display = 'inline-flex';
     fpEl('fp-btn-salvar').style.display = 'none';
     fpEl('fp-btn-cancelar').style.display = 'none';
+    // "Fechar" (ou os botões extras de admin) voltam junto com o resto da
+    // tela de visualização — ver fpAtivarEdicao.
+    const acoesExtra = fpEl('fp-acoes-extra');
+    if (acoesExtra) acoesExtra.style.display = 'flex';
 }
 
 // Clicar na foto (ou no botão "Trocar foto") só abre o seletor de arquivo
 // depois de "Editar" — antes disso, escolher uma foto parecia funcionar
 // (mostrava prévia) mas nunca era salva de verdade, sem nenhum aviso pra
-// pessoa (bug relatado pela Márcia, 12/ago/2026). Fora do modo de edição,
-// mostra a mesma mensagem "Editar" já usada em outros campos travados.
-// Clicar na foto, fora do modo de edição, já entra direto em edição (em
-// vez de só avisar "clique em Editar antes") — a ficha pode ser longa, e
-// forçar rolar até o botão lá embaixo só pra trocar a foto era fricção
-// desnecessária pra uma ação rápida e comum (pedido da Márcia, 14/ago/2026).
-// Só entra em edição de verdade se a foto for um campo editável pra quem
-// está olhando (senão nem faz sentido oferecer a ação).
-//
-// Esse primeiro clique NÃO abre mais o seletor de arquivo direto -- só
-// entra em modo de edição (revela "Trocar foto" + a dica de arrastar e
-// libera o arrasto na foto que já existe). Antes, abria o seletor de
-// arquivo na mesma hora, o que tirava a chance de ver a dica ou de
-// arrastar a foto já existente (achado real, 14/ago/2026: a Márcia
-// reportou que "arrastar" parecia não funcionar -- o seletor sempre
-// abria por cima antes de dar tempo de tentar). Um segundo clique (já em
-// modo de edição) continua abrindo o seletor normalmente, pelo primeiro
-// "if" abaixo.
+// pessoa (bug relatado pela Márcia, 12/ago/2026).
+// Entre 14/ago e 15/ago/2026, clicar na foto fora do modo de edição
+// chegou a entrar direto em edição (de tudo, não só da foto), pra evitar
+// rolar até o botão "Editar" lá embaixo. Revertido em 15/ago/2026: depois
+// que os botões Editar/Salvar/Cancelar viraram flutuantes (sempre
+// visíveis, sem precisar rolar), esse atalho ficou redundante e só
+// confundia — clicar na foto entrava em edição da ficha inteira sem
+// avisar. Agora clicar na foto fora da edição não faz nada; o clique só
+// tem efeito depois de "Editar" (mesmo padrão de todo o resto da ficha).
 async function fpAbrirSeletorFoto() {
     if (fpArrastoRecente) { fpArrastoRecente = false; return false; }
     if (fpEl('fp-btn-salvar').style.display === 'inline-flex') {
         fpEl('fp-input-foto').click();
-    } else if (fpEstado.editaveis.has('foto_url')) {
-        await fpAtivarEdicao();
     }
     return false;
 }

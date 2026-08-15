@@ -14,7 +14,7 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=13">
+    <link rel="stylesheet" href="styles/components.css?v=14">
     <script src="config-escola.js?v=1"></script>
     <script src="config-suporte.js?v=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1367,12 +1367,12 @@
 
         if (res.ok) {
             if (linkFixoAtual && linkFixoAtual.perfil !== 'ritmista') {
-                mostrarMensagem('Cadastro enviado! Aguarde a aprovação para acessar o painel.', 'sucesso');
+                mostrarMensagem('Cadastro enviado! Aguarde a aprovação da diretoria — você vai receber um e-mail assim que for aprovado.', 'sucesso');
                 document.getElementById('formCadastro').style.display = 'none';
                 document.querySelector('.foto-area').style.display = 'none';
                 document.getElementById('convite-banner').style.display = 'none';
             } else {
-                mostrarMensagem('Cadastro enviado com sucesso! Aguarde a aprovação da diretoria.', 'sucesso');
+                mostrarMensagem('Cadastro enviado com sucesso! Aguarde a aprovação da diretoria — você vai receber um e-mail assim que for aprovado.', 'sucesso');
                 document.getElementById('formCadastro').reset();
                 document.querySelector('.foto-preview').innerHTML = '<span>Clique para adicionar foto</span>';
                 travarFormulario(false);

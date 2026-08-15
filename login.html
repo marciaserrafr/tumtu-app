@@ -14,7 +14,7 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=13">
+    <link rel="stylesheet" href="styles/components.css?v=14">
     <script src="config-escola.js?v=1" defer></script>
     <script src="config-suporte.js?v=1" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -438,8 +438,8 @@
         if (vinculo.status === 'pendente') {
             mostrarFormularioLogin();
             mostrarMensagem(isAdmin
-                ? 'Seu cadastro está em análise. Você poderá acessar o painel assim que for aprovado.'
-                : 'Seu cadastro ainda está aguardando aprovação da diretoria.', 'aviso');
+                ? 'Seu cadastro está em análise. Você vai receber um e-mail assim que for aprovado.'
+                : 'Seu cadastro ainda está aguardando aprovação da diretoria. Você vai receber um e-mail assim que for aprovado.', 'aviso');
             return;
         }
         if (vinculo.status === 'rejeitado') {
