@@ -400,14 +400,19 @@
    88px -> 96px em 11/ago/2026 — agora que ela está sozinha no cabeçalho
    (sem nome ao lado disputando espaço), igualando o tamanho da logo da
    escola na frente (mesmo peso visual pras duas únicas logos do conjunto).
-   96px -> 100px em 13/ago/2026. Borda sempre dourada TumTu fixa (não muda
-   com a cor da escola, diferente da logo da frente) — via box-shadow, não
-   border, pelo mesmo motivo da logo da frente (border encolheria o círculo). */
+   96px -> 100px em 13/ago/2026.
+   14/ago/2026 — borda passou a usar a MESMA lógica de cor da logo da
+   frente (var(--cor-logo-borda-final), calculada em JS por
+   escolherCorBordaLogo: última cor cadastrada da escola que não seja
+   branca, caindo no dourado TumTu só se não houver nenhuma) — antes era
+   sempre dourada fixa, sem relação com a cor da escola. Continua
+   box-shadow, não border, pelo mesmo motivo da logo da frente (border
+   encolheria o círculo). */
 .v-logo {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  box-shadow: 0 0 0 2px rgba(212,175,55,0.7);
+  box-shadow: 0 0 0 2px var(--cor-logo-borda-final, rgba(212,175,55,0.7));
   background: rgba(255,255,255,0.06);
   flex-shrink: 0;
   overflow: hidden;
