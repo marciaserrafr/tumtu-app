@@ -852,3 +852,33 @@ A Márcia trouxe um segundo arquivo de handoff (`docs/Carteirinha - Redesign_ver
 
 **Elementos avaliados e mantidos como já estavam** (a Márcia considerou mudar, decidiu não mexer): a sombra do cartão (achou que era "uma linha" separada embaixo do cartão — é só o `box-shadow` normal, explicado e descartado); a assinatura "TumTu" (T dourado + risco terracota) no rodapé do verso, que É de propósito fixa (cor da própria marca TumTu, não da escola — é a "assinatura" do produto, não da bateria).
 
+## 36. Barra flutuante do Meu Perfil, aviso de e-mail e reformulação do e-mail de aprovação (15/ago/2026)
+
+Sessão iniciada retomando um trabalho interrompido por uma queda de conexão/reinício do computador no meio de uma sessão anterior — nada tinha sido perdido (o `git diff` da sessão anterior estava limpo, só existia um arquivo de repro isolado, `_repro-meuperfil.html`, usado pra investigar o bug abaixo sem precisar reproduzir no app de verdade).
+
+### Três correções na ficha de perfil (`ficha-perfil.js`, `styles/components.css`)
+
+A barra de ações flutuante (`.ficha-modal-acoes`, ver seção 35) trouxe dois problemas novos, relatados pela Márcia depois de testar no celular:
+
+1. **Botão "Cancelar" com o texto cortado, só no celular** — investigado por várias hipóteses erradas antes de achar a causa real (overflow horizontal de um `<select>` com opção longa; layout intermediário de rolagem) — a causa verdadeira só ficou clara com um print real do celular: era o **home indicator do iPhone** (a barrinha de gesto embaixo da tela) cobrindo a barra, porque o TumTu é instalado como PWA `display:standalone` (`manifest.json`) e nesse modo o iOS não reserva espaço pra essa barra sozinho — precisa de `env(safe-area-inset-bottom)` manualmente. Mesma técnica já usada antes no menu fixo de baixo do Super Admin no celular (`.nav-abas`, `super-admin.html`) — só nunca tinha sido aplicada em `.ficha-modal-acoes`. Corrigido com `padding: 16px 0 calc(16px + env(safe-area-inset-bottom));`.
+2. **Clicar na foto continuava ativando a edição de TODOS os campos** — fazia sentido quando "Editar" só existia lá embaixo (ver seção 35), mas virou redundante e confuso depois que os botões passaram a flutuar (sempre alcançáveis). `fpAbrirSeletorFoto()` simplificada: clicar na foto fora do modo de edição não faz mais nada; só abre o seletor de arquivo se já estiver editando.
+3. **Botão "Fechar" (ou ações extras de admin, via `#fp-acoes-extra`) crescendo a fileira flutuante durante a edição, sem necessidade** — já existe "Cancelar" fazendo esse papel enquanto edita. `fpAtivarEdicao()`/`fpCancelarEdicao()` agora escondem/mostram `#fp-acoes-extra` junto com o resto do modo de edição.
+
+Publicado direto em `main` (branch `preview/meu-perfil-e-aviso-email` → merge fast-forward), pulando o link de teste da Vercel por pedido explícito da Márcia nessa sessão ("pode implementar que eu vou ver em produção mesmo") — desvio pontual da regra normal de aprovação por link antes do `git push` na `main` (ver `CLAUDE.md`), não uma mudança permanente do processo.
+
+### Aviso de e-mail nas mensagens de "aguarde aprovação"
+
+A Márcia notou que a mensagem de "aguarde aprovação" (mostrada logo após o cadastro, e de novo se a pessoa tentar logar antes de ser aprovada) não avisava que um e-mail chegaria depois — mesmo já existindo o e-mail de aprovação (`notificar-aprovacao`, seção 34). Adicionado "você vai receber um e-mail assim que for aprovado" nas 3 mensagens envolvidas: `cadastro.html` (2 variantes — Mestre/Diretor via link fixo vs. Ritmista) e `login.html` (tentativa de login com vínculo `pendente`).
+
+### Reformulação do e-mail de "cadastro aprovado" (Edge Function `notificar-aprovacao`)
+
+Pedido da Márcia: incentivar quem for aprovado a instalar o TumTu como PWA (ícone na tela inicial), já que hoje isso só acontece se a pessoa souber procurar por conta própria. Depois de várias rodadas de ajuste — cada uma testada com um e-mail real disparado pra `marciaserra.ms@gmail.com` (pessoa de teste dela, vínculo `109`/bateria Maricadência) via chamada direta à função com um token de sessão da conta QA (`teste-superadmin@tumtu.com.br`) — chegou nesse formato final:
+
+- **Passo a passo de instalação** (Android via Chrome, iPhone via Safari) embutido no corpo do e-mail, mesmo texto que a Márcia já tinha escrito numa conversa anterior (perdido por não ter sido salvo em arquivo — lição: agora está aqui, documentado, pra não se perder de novo).
+- **Endereço por extenso além do link clicável** (`Se o link não abrir direto no navegador... copie e cole: tumtu.com.br/login.html`) — alguns apps de e-mail (Gmail, WhatsApp) abrem o link numa janela própria em vez do navegador de verdade, o que trava a instalação (precisa ser Chrome/Safari nativo).
+- **Frase de aprovação sem implicar que o TumTu concede o cargo**: era `"você já é Ritmista da X"`, virou `"Seu cadastro como Ritmista foi aprovado"` — a Márcia apontou que o cargo (Ritmista/Mestre/Diretor) é um fato da vida real da pessoa, o TumTu só aprova o cadastro/acesso.
+- **Escola em destaque, sem duplicar "Bateria" nem colocar a bateria entre parênteses**: nome da bateria nem sempre é reconhecível de cara, mas o da escola sim — porém `"Bateria " + nomeBateria` duplicava a palavra quando o nome da bateria já começava com "Bateria" (mesma categoria de bug já corrigido antes no título do convite de cadastro), e parênteses davam a entender que a bateria era só um detalhe secundário (quando na verdade é dela que é a carteirinha). Formato final: `"{cargo} na {escola} — {bateria}"`, ambos em negrito, travessão como separador — mesmo padrão que outras telas do app já usam pra parear escola e bateria.
+- **Símbolo da marca (dois círculos) tentado e revertido**: primeira tentativa usou `position:absolute` (como em `.simbolo-marca` de `login.html`) — funcionou na prévia (Artifact, que roda num navegador normal) mas o Gmail real ignora `position` silenciosamente, empilhando os dois círculos um em cima do outro. Segunda tentativa, com tabela HTML (técnica "à prova de balas" de e-mail), também não ficou boa — o círculo grande saiu ovalado no Gmail real. **Removido por enquanto**, ficou só o wordmark "TumTu" em texto (sempre renderiza certo) + linha dourada abaixo. Retomar o símbolo é tarefa futura, não decidida como definitivamente descartada.
+
+Testado de ponta a ponta com e-mails reais (não só a prévia visual) antes de cada aprovação da Márcia — a prévia em Artifact ajudou a decidir textos e layout rápido, mas não substituiu o teste real, já que é exatamente onde o bug do símbolo apareceu.
+
