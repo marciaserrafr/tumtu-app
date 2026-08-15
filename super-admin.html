@@ -14,9 +14,9 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=12">
+    <link rel="stylesheet" href="styles/components.css?v=13">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=13"></script>
+    <script src="ficha-perfil.js?v=14"></script>
     <script src="config-suporte.js?v=1"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -148,7 +148,7 @@
         .card-esquerda { flex: 1; min-width: 0; }
         .card-linha1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
         .card-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
-        .card-apelido-inline { font-size: 15px; font-weight: 700; color: #D4AF37; }
+        .card-apelido-inline { font-size: 15px; font-weight: 700; font-style: italic; color: #D4AF37; }
         .card-linha2 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
         .pill-instrumento {
             display: inline-flex; align-items: center; gap: 5px;
@@ -2220,7 +2220,7 @@
         return `
             <div class="item-card" style="cursor:pointer" onclick="verAcesso('${u.id}')">
                 <div class="item-info">
-                    <div class="item-nome">${u.nome}${u.apelido ? ` <span style="font-size:15px;font-weight:700;color:#D4AF37">"${u.apelido}"</span>` : ''}</div>
+                    <div class="item-nome">${u.nome}${u.apelido ? ` <span style="font-size:15px;font-weight:700;font-style:italic;color:#D4AF37">${u.apelido}</span>` : ''}</div>
                     <div class="item-detalhe" style="margin-top:5px">
                         <span style="background:#e8e6f0;color:#5a5770;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px">${labelPerfil(u.perfil)}</span>
                         <span style="font-size:12px;color:var(--cor-texto-muted)"> · CPF ${u.cpf || '—'}${u.bateria_id ? ' · ' + nomeBateria(u.bateria_id) : ''}</span>
@@ -2322,7 +2322,7 @@
         const nivelNome = (perfisEscolaCacheSA.find(x => x.id === u.nivel_acesso_id) || {}).nome || '—';
 
         document.getElementById('acesso-titulo-nome').textContent = u.nome || '—';
-        document.getElementById('acesso-titulo-sub').textContent = [u.apelido ? `"${u.apelido}"` : '', labelPerfilVal].filter(Boolean).join(' · ');
+        document.getElementById('acesso-titulo-sub').textContent = [u.apelido || '', labelPerfilVal].filter(Boolean).join(' · ');
 
         document.getElementById('modal-acesso-body').innerHTML = `
             <div class="ficha-grid">
@@ -3094,7 +3094,7 @@
                 <div class="card-esquerda">
                     <div class="card-linha1">
                         <span class="card-nome">${esc(r.nome)}</span>
-                        ${r.apelido ? `<span class="card-apelido-inline">"${esc(r.apelido)}"</span>` : ''}
+                        ${r.apelido ? `<span class="card-apelido-inline">${esc(r.apelido)}</span>` : ''}
                         ${menor ? `<span class="badge-menor">Menor · ${idade} anos</span>` : ''}
                         ${r.nacionalidade && r.nacionalidade !== 'Brasileira' ? `<span title="${esc(r.nacionalidade)}" style="font-size:14px;">🌍</span>` : ''}
                         ${aniversarioMes ? '<span title="Aniversário este mês">🎂</span>' : ''}
@@ -3145,7 +3145,7 @@
             suspenso: `<span class="badge-suspenso">Suspenso</span>`, desligado: `<span class="badge-desligado">Desligado</span>`,
             rejeitado: `<span class="badge-rejeitado">Rejeitado</span>`,
         }[status] || '';
-        document.getElementById('ri-status-badge-sa').innerHTML = (r.apelido ? `"${esc(r.apelido)}" ` : esc(r.nome) + ' ') + badgeHTML;
+        document.getElementById('ri-status-badge-sa').innerHTML = (r.apelido ? `${esc(r.apelido)} ` : esc(r.nome) + ' ') + badgeHTML;
 
         const usuarioLogadoAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');
         await fpMontar(document.getElementById('fp-container-ritmista-sa'));

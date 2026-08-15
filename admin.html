@@ -14,9 +14,9 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=12">
+    <link rel="stylesheet" href="styles/components.css?v=13">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=13"></script>
+    <script src="ficha-perfil.js?v=14"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -160,7 +160,7 @@
         .card-esquerda { flex: 1; min-width: 0; }
         .card-linha1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
         .card-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
-        .card-apelido-inline { font-size: 15px; font-weight: 700; color: #D4AF37; }
+        .card-apelido-inline { font-size: 15px; font-weight: 700; font-style: italic; color: #D4AF37; }
         .card-linha2 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
         .pill-instrumento {
             display: inline-flex; align-items: center; gap: 5px;
@@ -407,7 +407,7 @@
         .dir-foto img { width: 100%; height: 100%; object-fit: cover; }
         .dir-info { flex: 1; min-width: 0; }
         .dir-nome { font-size: 14px; font-weight: 700; color: #12101a; }
-        .dir-apelido { font-size: 13px; font-weight: 700; color: #D4AF37; }
+        .dir-apelido { font-size: 13px; font-weight: 700; font-style: italic; color: #D4AF37; }
         .dir-meta { font-size: 12px; color: #8b88a0; margin-top: 4px; }
         .dir-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
         .dir-badge-cargo { background: #e8e6f0; color: #5a5770; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
@@ -865,7 +865,7 @@
                 <div class="card-esquerda">
                     <div class="card-linha1">
                         <span class="card-nome">${r.nome}</span>
-                        ${r.apelido ? `<span class="card-apelido-inline">"${r.apelido}"</span>` : ''}
+                        ${r.apelido ? `<span class="card-apelido-inline">${r.apelido}</span>` : ''}
                         ${menor ? `<span class="badge badge-menor">Menor · ${idade} anos</span>` : ''}
                         ${r.nacionalidade && r.nacionalidade !== 'Brasileira' ? `<span title="${r.nacionalidade}" style="font-size:14px;">🌍</span>` : ''}
                         ${aniversarioMes ? '<span title="Aniversário este mês">🎂</span>' : ''}
@@ -1148,7 +1148,7 @@
             return `<div class="vg-aniversariante">
                 <span style="font-size:20px;">🎂</span>
                 <div>
-                    <div class="vg-aniv-nome">${r.nome}${r.apelido ? ` <span style="color:#D4AF37;font-weight:400;font-style:italic;">"${r.apelido}"</span>` : ''}</div>
+                    <div class="vg-aniv-nome">${r.nome}${r.apelido ? ` <span style="color:#D4AF37;font-weight:400;font-style:italic;">${r.apelido}</span>` : ''}</div>
                     <div class="vg-aniv-detalhe">Dia ${dia} · ${idade} anos · ${r.instrumento_nome || '—'}</div>
                 </div>
             </div>`;
@@ -1592,7 +1592,7 @@
                 ? `<img src="${a.foto_url}">`
                 : inicial;
             const cargo = a.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
-            const apelido = a.apelido ? `<span class="dir-apelido">"${a.apelido}"</span>` : '';
+            const apelido = a.apelido ? `<span class="dir-apelido">${a.apelido}</span>` : '';
 
             let statusBadge, acoes = '';
             if (a.status === 'pendente') {

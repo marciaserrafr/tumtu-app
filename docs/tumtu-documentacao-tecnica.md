@@ -807,3 +807,21 @@ A Márcia percebeu que o e-mail de "esqueci minha senha" chegava em inglês. Cau
 Testado de ponta a ponta em produção (`tumtu.com.br/login.html` → "Esqueci minha senha" → e-mail chegou em português na caixa do Super Admin).
 
 **Pendência não resolvida ainda:** os outros templates do Supabase (Confirm sign up, Magic Link, Invite, Change Email, Reauthentication, e as notificações de segurança como "Password changed") continuam no texto padrão em inglês — não foram tocados porque não ficou confirmado com a Márcia se algum deles é realmente enviado hoje pelo fluxo do app (ex: cadastro público pode ou não exigir confirmação de e-mail, depende de uma configuração separada do projeto que não foi checada nessa sessão). Como o SMTP já está configurado, traduzir os demais — se algum deles se mostrar necessário — é só repetir o mesmo padrão de texto, sem infraestrutura nova.
+
+---
+
+## 34. Bug real: e-mail de "cadastro aprovado" não saía do navegador em `super-admin.html` (14/ago/2026)
+
+A Márcia percebeu que o e-mail de "seu cadastro foi aprovado" (Edge Function `notificar-aprovacao`, criada antes desta sessão) não chegava quando quem aprovava era o Super Admin — mas funcionava normalmente quando era o Admin comum. Comportamento intermitente por tela, não por tipo de aprovação (ativação, reativação, primeira bateria, segunda bateria — todas usam o mesmo botão/função).
+
+**Diagnóstico:** os logs do servidor (`get_logs(service='edge-function')`) só mostravam o pedido `OPTIONS` (preflight) chegando — o `POST` de verdade nunca aparecia, mesmo depois de tentar corrigir o CORS às cegas (adicionar `Access-Control-Allow-Methods`, que não resolveu). Ficou claro que o problema era do lado do navegador, não do servidor — mas os logs do servidor não mostram *por que* o navegador bloqueia algo antes de mandar. A virada só veio pedindo pra Márcia abrir o DevTools (F12) → aba Console → tentar de novo, e mandar o print. A mensagem exata:
+
+```
+Access to fetch at 'https://pkvzsgrkylrkyzligeim.supabase.co/functions/v1/notificar-aprovacao' from origin 'https://tumtu.com.br' has been blocked by CORS policy: Request header field prefer is not allowed by Access-Control-Allow-Headers in preflight response.
+```
+
+**Causa raiz:** `super-admin.html` reaproveita um objeto `headers` único (`{ apikey, Authorization: <anon key fixa>, Content-Type, Prefer: 'return=representation' }`) — criado originalmente pra chamadas diretas à API REST do Postgres (onde `Prefer: return=representation` é necessário/comum) — também na chamada à Edge Function `notificar-aprovacao`. A função, porém, só declarava `Access-Control-Allow-Headers: authorization, x-client-info, apikey, content-type` — sem `prefer`. O navegador, ao ver um cabeçalho não autorizado, bloqueia o `POST` inteiro antes de mandar (é o próprio CORS fazendo o trabalho dele). `admin.html` nunca teve esse problema porque usa um objeto `authHeaders` separado, mais enxuto, sem `Prefer`.
+
+**Correção:** adicionado `prefer` à lista de `Access-Control-Allow-Headers` da função `notificar-aprovacao` (redeploy, versão 4) — resolve na raiz, sem precisar mexer no front-end nem duplicar objetos de cabeçalho. Testado em produção com e-mail real: chegou.
+
+**Lição pra próxima vez que uma chamada a uma Edge Function "sumir" sem log nenhum de erro no servidor:** pedir print do Console do navegador (F12 → Console) direto, em vez de tentar adivinhar pela lista de headers — a mensagem de erro de CORS é sempre explícita sobre qual cabeçalho foi rejeitado, só que só aparece no navegador de quem está usando, nunca nos logs do servidor.

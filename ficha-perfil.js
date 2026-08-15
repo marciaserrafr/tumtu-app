@@ -175,7 +175,7 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
 
     const cargo = fpCargoLabel(alvo.perfil, alvo.genero);
     fpEl('fp-titulo').textContent = alvo.nome || '—';
-    fpEl('fp-sub').textContent = [alvo.apelido ? `"${alvo.apelido}"` : '', cargo].filter(Boolean).join(' · ');
+    fpEl('fp-sub').textContent = [alvo.apelido || '', cargo].filter(Boolean).join(' · ');
 
     const circle = fpEl('fp-foto-circle');
     circle.innerHTML = alvo.foto_url
@@ -391,13 +391,22 @@ function fpCancelarEdicao() {
 // desnecessária pra uma ação rápida e comum (pedido da Márcia, 14/ago/2026).
 // Só entra em edição de verdade se a foto for um campo editável pra quem
 // está olhando (senão nem faz sentido oferecer a ação).
+//
+// Esse primeiro clique NÃO abre mais o seletor de arquivo direto -- só
+// entra em modo de edição (revela "Trocar foto" + a dica de arrastar e
+// libera o arrasto na foto que já existe). Antes, abria o seletor de
+// arquivo na mesma hora, o que tirava a chance de ver a dica ou de
+// arrastar a foto já existente (achado real, 14/ago/2026: a Márcia
+// reportou que "arrastar" parecia não funcionar -- o seletor sempre
+// abria por cima antes de dar tempo de tentar). Um segundo clique (já em
+// modo de edição) continua abrindo o seletor normalmente, pelo primeiro
+// "if" abaixo.
 async function fpAbrirSeletorFoto() {
     if (fpArrastoRecente) { fpArrastoRecente = false; return false; }
     if (fpEl('fp-btn-salvar').style.display === 'inline-flex') {
         fpEl('fp-input-foto').click();
     } else if (fpEstado.editaveis.has('foto_url')) {
         await fpAtivarEdicao();
-        fpEl('fp-input-foto').click();
     }
     return false;
 }

@@ -221,10 +221,20 @@
    cima de fundo branco) em qualquer ficha aberta fora do carteirinha.html. */
 .ficha-modal-titulo { font-size: 18px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 4px; }
 .ficha-modal-sub { font-size: 13px; color: var(--cor-texto-secundario); margin-bottom: 16px; }
-.ficha-modal-acoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 20px; border-top: 1px solid var(--cor-borda); padding-top: 16px; }
+/* Fixa (sticky) no rodapé da tela, em vez de só no fim do conteúdo --
+   sem isso, ajustar um campo (ex: arrastar a foto) lá no topo da ficha
+   exigia rolar até o fim só pra achar "Salvar" (achado da Márcia,
+   14/ago/2026). Como .ficha-modal-overlay/.modal-admin-overlay já são a
+   própria área com rolagem (overflow-y:auto), a barra gruda sozinha no
+   fundo dela em qualquer uma das 3 telas que usam esse motor. */
+.ficha-modal-acoes {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;
+    margin-top: 20px; border-top: 1px solid var(--cor-borda); padding: 16px 0;
+    position: sticky; bottom: 0; background: var(--cor-fundo-claro);
+}
 .ficha-modal-overlay .ficha-modal-titulo { color: #f7f6fb; }
 .ficha-modal-overlay .ficha-modal-sub { color: #a39fc0; }
-.ficha-modal-overlay .ficha-modal-acoes { border-top-color: rgba(255,255,255,0.12); }
+.ficha-modal-overlay .ficha-modal-acoes { border-top-color: rgba(255,255,255,0.12); background: #12101a; }
 
 /* Cartões por seção + marcação de cor alternando dourado/terracota clara (as
    duas cores de destaque da marca) — resolve o visual "seco"/monocromático
