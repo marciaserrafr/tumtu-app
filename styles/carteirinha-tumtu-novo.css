@@ -264,9 +264,9 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Traço fino dourado sob o CPF -- fecha visualmente o bloco do meio
-   (escola/bateria/CPF) antes do rodapé sólido, sutileza vinda do
-   redesign v2 (14/ago/2026). */
+/* Traço fino dourado entre o cabeçalho (escola/bateria) e o CPF --
+   separa visualmente a identidade da bateria do dado administrativo,
+   sutileza vinda do redesign v2 (14/ago/2026). */
 .cf-divider {
   height: 1px;
   width: 120px;
