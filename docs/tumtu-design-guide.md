@@ -352,7 +352,7 @@ O título da seção é **"DECLARAÇÃO DO RESPONSÁVEL"** — nunca "MENOR DE I
 
 ### 7.3 Carteirinha digital
 
-> Reescrita em 14/ago/2026 direto do código (`carteirinha.html` + `styles/carteirinha-tumtu-novo.css`), depois do redesign "9a" (11-14/ago/2026, ver `tumtu-documentacao-tecnica.md` seção 32). A versão anterior deste doc (17/jul/2026) descrevia o desenho antigo, de foto circular com anel colorido — **substituído por completo**: agora a foto é em tela cheia no topo, com identidade sobreposta. Cartão vira ao tocar (frente/verso), animação 3D suave — isso não mudou.
+> Reescrita em 14/ago/2026 direto do código (`carteirinha.html` + `styles/carteirinha-tumtu-novo.css`), depois do redesign "9a" (11-14/ago/2026, ver `tumtu-documentacao-tecnica.md` seção 32). A versão anterior deste doc (17/jul/2026) descrevia o desenho antigo, de foto circular com anel colorido — **substituído por completo**: agora a foto é em tela cheia no topo, com identidade sobreposta. Cartão vira ao tocar (frente/verso), animação 3D suave — isso não mudou. **Atualizado de novo em 15/ago/2026** com as sutilezas do "redesign v2" (ver `tumtu-documentacao-tecnica.md` seção 35): traço entre cabeçalho e CPF, verso reordenado, apelido sem aspas, borda da logo do verso também dinâmica.
 
 **Quem usa:** ritmista, Mestre e Diretor (a mesma tela, adaptando cargo/rótulo — Admin ainda não usa isso como painel principal, só o ritmista de fato).
 **Dimensão fixa do cartão:** 300×540px (regra dura — nunca muda sem aprovação explícita da Márcia, mesmo que conteúdo novo não caiba; o ajuste é sempre no conteúdo). Cresce/encolhe na tela via `transform: scale()`, preservando a proporção 300:540 sempre.
@@ -365,22 +365,23 @@ Cada escola cadastra de 1 a 4 cores reais (`cor_primaria/secundaria/terciaria/qu
 - **Barra fina no topo da frente:** degradê horizontal com **todas** as cores reais da escola (2, 3 ou 4), pesando igual entre elas — montado em JS a partir das cores que existem de verdade, nunca com posições fixas demais (achado técnico: posições fixas faziam a última cor repetir e dominar a barra em escolas com menos de 4 cores — ver seção 32 da documentação técnica).
 - **Tingimento do bloco central (frente):** leve véu da cor primária da escola sobre o fundo off-white — sutil de propósito, mas perceptível (ajustado depois de duas rodadas de calibragem com a Márcia).
 - **Borda da logo da escola (frente):** a **última cor cadastrada que não seja branca** — nunca a cor primária (que já domina o resto do cartão) nem branco. Ex.: escola com vermelho/azul/branco → borda azul. Sem nenhuma cor não-branca cadastrada, cai no dourado do TumTu.
-- **Borda da logo da bateria (verso):** sempre dourado fixo (`rgba(212,175,55,0.7)`) — não depende da cor da escola.
+- **Borda da logo da bateria (verso):** desde 15/ago/2026, a **mesma lógica dinâmica** da logo da frente (última cor cadastrada que não seja branca, dourado só se não houver nenhuma) — antes era sempre dourado fixo, independente da escola.
 - **Textos sobre o verso (cor dinâmica):** calcula automaticamente se o fundo da escola é claro ou escuro (fórmula oficial de luminância WCAG) e troca rótulos/valores entre branco e escuro forte — garante contraste de verdade em qualquer escola, clara ou escura. Dourado (`#D4AF37`) só é usado sobre fundo escuro; em escola de cor clara, esses mesmos elementos caem pro escuro sólido.
 
 #### Frente
 - Barra fina de 5px no topo, com o degradê das cores da escola (ver acima).
 - **Foto do ritmista em tela cheia** (278px de altura, topo do cartão, sem moldura nem círculo) — um gradiente escuro (scrim) nasce de baixo pra cima só na própria foto, garantindo contraste pro texto sobreposto. Sem foto: silhueta cinza neutra centralizada.
-- Sobre a foto, alinhado embaixo: rótulo do cargo (11px, uppercase — "Ritmista", "Mestre"/"Mestra de Bateria" ou "Diretor"/"Diretora"; se for ritmista com instrumento, vira "Ritmista · [Instrumento]"), nome completo (20px, peso 800, branco, até 2 linhas) e apelido (18px, itálico, dourado `#D4AF37`, entre aspas).
-- Bloco central off-white, com o leve tingimento da cor da escola: nome da escola (14px) + nome da bateria (13px, uppercase, na cor primária da escola) + CPF centralizado (com dois pontos: "CPF: 000.000.000-00").
+- Sobre a foto, alinhado embaixo: rótulo do cargo (11px, uppercase — "Ritmista", "Mestre"/"Mestra de Bateria" ou "Diretor"/"Diretora"; se for ritmista com instrumento, vira "Ritmista · [Instrumento]"), nome completo (20px, peso 800, branco, até 2 linhas) e apelido (18px, itálico, dourado `#D4AF37`, **sem aspas** — só cor + itálico, desde 15/ago/2026).
+- Bloco central off-white, com o leve tingimento da cor da escola: nome da escola (14px) + nome da bateria (13px, uppercase, na cor primária da escola) + **traço fino** (1px, 120px, cor dinâmica igual a borda das logos — desde 15/ago/2026) + CPF centralizado (com dois pontos: "CPF: 000.000.000-00").
 - Rodapé sólido na cor primária da escola (108px de altura): "Membro desde [ano]" (esquerda) + círculo do **logo da escola**, 86px (direita) — logo real se cadastrado, senão círculo vazio com a borda calculada (ver regra de cor da borda acima). NUNCA texto/sigla no lugar da logo, NUNCA "TumTu" nesse círculo (esse círculo é sempre da escola).
 - Faixa dourada fininha fechando a base do cartão.
 
 #### Verso
-- Círculo do **logo da bateria**, 100px, centralizado no topo, borda dourada fixa (separado do logo da escola da frente — pode ser diferente).
-- QR code (aponta pra página pública de emergência, `qr.html?id=`) com rótulo "QR de emergência", dentro de uma moldura branca com cantos arredondados.
-- Distância entre o logo e o QR code é **fixa** (não muda com 1 ou 2 Mestres cadastrados — toda a diferença de espaço fica abaixo do bloco de Mestre, nunca entre logo e QR).
+- Círculo do **logo da bateria**, 100px, centralizado no topo, borda dinâmica (separado do logo da escola da frente — pode ser diferente).
+- **Ordem desde 15/ago/2026: Logo → Mestre de Bateria → QR** (era Logo → QR → Mestre) — identidade da bateria primeiro, dado de emergência do usuário logo abaixo.
 - Bloco "Mestre de Bateria" / "Mestre**s** de Bateria" (plural automático se a bateria tiver mais de um Mestre aprovado) com o(s) nome(s) — busca em tempo real na tabela de vínculos, não é texto fixo digitado.
+- QR code (aponta pra página pública de emergência, `qr.html?id=`) com rótulo "QR de emergência", dentro de uma moldura branca com cantos arredondados.
+- Distância entre o logo e o QR code (contando o bloco de Mestre no meio) é **fixa** — não muda com 1 ou 2 Mestres cadastrados, nem sem nenhum Mestre. Os dois vãos visuais (logo→"Mestre de Bateria" e nome→QR) são calculados pra ficarem sempre iguais entre si, qualquer que seja a quantidade de Mestres (ver a conta completa em `tumtu-documentacao-tecnica.md` seção 35).
 - "Válida até" + "Temporada" lado a lado, com linha divisória vertical.
 - Rodapé: Instagram da bateria (esquerda, com @) + marca "T" monograma TumTu (direita, discreta).
 
