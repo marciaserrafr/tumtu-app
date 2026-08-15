@@ -441,9 +441,14 @@
    conteúdo variável vai pra lá, nunca mexe no topo.
    14/ago/2026 — ordem invertida pra Logo → Mestre → QR (redesign v2:
    identidade da bateria primeiro, dado de emergência do usuário logo
-   abaixo). A distância logo→topo do bloco de Mestre continua os mesmos
-   20.7px fixos de sempre; quem trava a distância Mestre→QR em 1 ou 2
-   Mestres agora é o min-height reservado do .v-mestre (ver abaixo). */
+   abaixo). Quem trava a distância Mestre→QR em 1 ou 2 Mestres é o
+   min-height reservado do .v-mestre (ver abaixo).
+   15/ago/2026 — ::before zerado. Os 20.7px daqui SOMADOS ao padding do
+   .v-header (14px) + padding do .v-content (14px) + o respiro que o
+   .v-mestre centralizado já dá por conta própria deixavam o vão
+   logo→"Mestre de Bateria" bem maior que o vão nome→QR (achado real da
+   Márcia, com print comparando os dois espaços). Só os paddings de
+   header/content (28px já fixos) bastam como distância logo→conteúdo. */
 .v-content {
   flex: 1;
   display: flex;
@@ -457,7 +462,7 @@
 
 .v-content::before {
   content: '';
-  height: 20.7px;
+  height: 0;
   flex-shrink: 0;
 }
 
