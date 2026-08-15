@@ -264,13 +264,16 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Traço fino dourado entre o cabeçalho (escola/bateria) e o CPF --
-   separa visualmente a identidade da bateria do dado administrativo,
-   sutileza vinda do redesign v2 (14/ago/2026). */
+/* Traço fino entre o cabeçalho (escola/bateria) e o CPF -- separa
+   visualmente a identidade da bateria do dado administrativo, sutileza
+   vinda do redesign v2 (14/ago/2026). Cor: mesma lógica dinâmica da
+   borda das logos (var(--cor-logo-borda-final)) -- decisão de
+   15/ago/2026, pra não ser só "mais um elemento dourado fixo" e sim
+   parte do mesmo sistema de acento que já une as duas logos. */
 .cf-divider {
   height: 1px;
   width: 120px;
-  background: rgba(212, 175, 55, 0.35);
+  background: color-mix(in srgb, var(--cor-logo-borda-final, #D4AF37) 35%, transparent);
   margin: 12px auto 0;
 }
 
@@ -497,14 +500,20 @@
    usada no bloco de identidade da frente do cartão). margin-bottom (não
    margin-top no QR) de propósito: quando não há Mestre cadastrado pra
    bateria, o bloco inteiro fica display:none e essa margem some junto
-   -- o QR volta a ficar logo abaixo da logo, sem vão vazio sobrando. */
+   -- o QR volta a ficar logo abaixo da logo, sem vão vazio sobrando.
+   justify-content: center (não flex-start) -- achado da Márcia,
+   15/ago/2026: com só 1 Mestre (caso mais comum), o conteúdo colado no
+   topo deixava um vão vazio "esquecido" embaixo, dentro do espaço
+   reservado. Centralizado, esse mesmo vão vira respiro em cima E embaixo,
+   lendo como intencional -- a posição do QR não muda, só onde o texto
+   senta dentro da caixa reservada. */
 .v-mestre {
   margin-top: 0;
   margin-bottom: 26px;
   min-height: 72px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   text-align: center;
   width: 100%;
 }
