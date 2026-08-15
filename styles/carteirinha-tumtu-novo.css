@@ -527,11 +527,13 @@
   overflow-wrap: break-word;
 }
 
-/* separador entre dois mestres */
+/* separador entre dois mestres -- margem lateral maior (20px -> 40px)
+   pra ficar mais curto, a pedido da Márcia (14/ago/2026: "achei que o
+   traço... está muito largo"). */
 .v-mestre__sep {
   height: 1px;
   background: rgba(255,255,255,0.12);
-  margin: 5px 20px;
+  margin: 5px 40px;
 }
 
 /* ── VALIDADE ── */
