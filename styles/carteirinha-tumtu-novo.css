@@ -443,12 +443,13 @@
    identidade da bateria primeiro, dado de emergência do usuário logo
    abaixo). Quem trava a distância Mestre→QR em 1 ou 2 Mestres é o
    min-height reservado do .v-mestre (ver abaixo).
-   15/ago/2026 — ::before zerado. Os 20.7px daqui SOMADOS ao padding do
-   .v-header (14px) + padding do .v-content (14px) + o respiro que o
-   .v-mestre centralizado já dá por conta própria deixavam o vão
-   logo→"Mestre de Bateria" bem maior que o vão nome→QR (achado real da
-   Márcia, com print comparando os dois espaços). Só os paddings de
-   header/content (28px já fixos) bastam como distância logo→conteúdo. */
+   15/ago/2026 — ::before TEM que continuar 20.7px: é o que trava a
+   posição do QR (pedido explícito da Márcia desde 13/ago, "o QR code
+   era fixo eu pedi isso") — mexer aqui move o QR inteiro pra cima,
+   mesmo com o bloco de Mestre tendo altura reservada. O desequilíbrio
+   visual entre o vão logo→"Mestre de Bateria" e o vão nome→QR (achado
+   real da Márcia, com print comparando os dois espaços) foi resolvido
+   SEM tocar aqui — ver justify-content do .v-mestre logo abaixo. */
 .v-content {
   flex: 1;
   display: flex;
@@ -462,7 +463,7 @@
 
 .v-content::before {
   content: '';
-  height: 0;
+  height: 20.7px;
   flex-shrink: 0;
 }
 
@@ -506,19 +507,22 @@
    margin-top no QR) de propósito: quando não há Mestre cadastrado pra
    bateria, o bloco inteiro fica display:none e essa margem some junto
    -- o QR volta a ficar logo abaixo da logo, sem vão vazio sobrando.
-   justify-content: center (não flex-start) -- achado da Márcia,
-   15/ago/2026: com só 1 Mestre (caso mais comum), o conteúdo colado no
-   topo deixava um vão vazio "esquecido" embaixo, dentro do espaço
-   reservado. Centralizado, esse mesmo vão vira respiro em cima E embaixo,
-   lendo como intencional -- a posição do QR não muda, só onde o texto
-   senta dentro da caixa reservada. */
+   justify-content: flex-start -- 15/ago/2026, voltou desse jeito depois
+   de testar "center": centralizado deixava o vão logo→"Mestre de
+   Bateria" bem maior que o vão nome→QR (achado real da Márcia). A
+   correção certa NÃO podia mexer no ::before nem no min-height/
+   margin-bottom aqui (a Márcia confirmou: a posição do QR tem que
+   continuar fixa, pedido explícito de 13/ago) -- só sobrou ajustar ONDE
+   dentro da caixa reservada o texto senta. flex-start ainda deixa mais
+   vão embaixo (empurrado pro name→QR) do que em cima, mas bem menos
+   desequilibrado que o "center", e sem mover o QR nem um pixel. */
 .v-mestre {
   margin-top: 0;
   margin-bottom: 26px;
   min-height: 72px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
   width: 100%;
 }
