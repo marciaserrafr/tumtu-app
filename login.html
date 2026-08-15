@@ -225,7 +225,7 @@
             const bateria = Array.isArray(baterias) && baterias[0] ? baterias[0] : null;
             if (!bateria || !bateria.escola_id) return;
 
-            const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,temporada_atual,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url`, { headers: hdrs });
+            const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,temporada_atual,validade_carteirinha,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url`, { headers: hdrs });
             const escolas = await resEscola.json();
             const escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
             if (!escola) return;
@@ -235,6 +235,7 @@
                 nomeBateria: bateria.nome || '',
                 instagramBateria: bateria.instagram || '',
                 temporadaAtual: escola.temporada_atual || '',
+                validadeCarteirinha: escola.validade_carteirinha || '',
                 cores: [escola.cor_primaria, escola.cor_secundaria, escola.cor_terciaria, escola.cor_quaternaria].filter(Boolean),
                 corPrimaria: escola.cor_primaria || null,
                 corSecundaria: escola.cor_secundaria || null,

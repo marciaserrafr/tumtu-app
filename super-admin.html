@@ -720,6 +720,7 @@
                     <input type="file" id="nova-escola-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'escolaNova')">
                 </div>
                 <div class="campo campo-full"><label>Temporada Atual</label><input type="text" id="nova-escola-temporada" placeholder="Ex: Carnaval 2027"></div>
+                <div class="campo campo-full"><label>Validade da Carteirinha <span style="font-weight:400;color:#999;font-size:12px;">— provisório, vai morar em Configurações → Carteirinha no futuro</span></label><input type="date" id="nova-escola-validade"></div>
                 <div class="campo"><label>Cor Primária</label><input type="text" id="nova-escola-cor-primaria" value="" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
                 <div class="campo"><label>Cor Secundária</label><input type="text" id="nova-escola-cor-secundaria" value="" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
                 <div class="campo"><label>Cor Terciária</label><input type="text" id="nova-escola-cor-terciaria" value="" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
@@ -1756,6 +1757,7 @@
             nome, sigla,
             logo_url: logoPendente.escolaNova || null,
             temporada_atual: document.getElementById('nova-escola-temporada').value.trim() || null,
+            validade_carteirinha: document.getElementById('nova-escola-validade').value || null,
             cor_primaria: document.getElementById('nova-escola-cor-primaria').value.trim() || null,
             cor_secundaria: document.getElementById('nova-escola-cor-secundaria').value.trim() || null,
             cor_terciaria: document.getElementById('nova-escola-cor-terciaria').value.trim() || null,
@@ -1823,8 +1825,8 @@
         const campo = (label, id, valor, opts = {}) => `
             <div class="ficha-campo${opts.full ? ' full' : ''}">
                 <span>${label}</span>
-                <strong style="${visView}">${valor ? esc(valor) : '—'}</strong>
-                <input type="text" id="${id}" class="fc-input" value="${e ? esc(valor || '') : ''}" style="${visEdit}"
+                <strong style="${visView}">${opts.tipo === 'data' ? fpFormatarData(valor) : (valor ? esc(valor) : '—')}</strong>
+                <input type="${opts.tipo === 'data' ? 'date' : 'text'}" id="${id}" class="fc-input" value="${e ? esc(valor || '') : ''}" style="${visEdit}"
                     ${opts.placeholder ? `placeholder="${opts.placeholder}"` : ''} ${opts.extra || ''}>
             </div>`;
 
@@ -1850,6 +1852,7 @@
                 <div class="ficha-secao-titulo">Temporada e cores</div>
                 <div class="ficha-grid">
                     ${campo('Temporada Atual', 'escola-cor-temporada', e && e.temporada_atual, { full: true, placeholder: 'Ex: Carnaval 2027' })}
+                    ${campo('Validade da Carteirinha', 'escola-cor-validade', e && e.validade_carteirinha, { full: true, tipo: 'data' })}
                     ${campo('Cor Primária', 'escola-cor-primaria', e && e.cor_primaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewEscola()"' })}
                     ${campo('Cor Secundária', 'escola-cor-secundaria', e && e.cor_secundaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewEscola()"' })}
                     ${campo('Cor Terciária', 'escola-cor-terciaria', e && e.cor_terciaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewEscola()"' })}
@@ -1874,6 +1877,7 @@
             nome, sigla,
             logo_url: logoPendente.escolaEdicao || (escolaAtualData ? escolaAtualData.logo_url : null) || null,
             temporada_atual: document.getElementById('escola-cor-temporada').value.trim() || null,
+            validade_carteirinha: document.getElementById('escola-cor-validade').value || null,
             cor_primaria: document.getElementById('escola-cor-primaria').value.trim() || null,
             cor_secundaria: document.getElementById('escola-cor-secundaria').value.trim() || null,
             cor_terciaria: document.getElementById('escola-cor-terciaria').value.trim() || null,
