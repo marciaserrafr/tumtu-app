@@ -221,18 +221,6 @@
                 <input type="text" id="nascimento" inputmode="numeric" placeholder="DD/MM/AAAA" maxlength="10" oninput="mascaraData(this); verificarMenorIdade();" required>
             </div>
         </div>
-        <div id="bloco-responsavel" class="campo-revelavel oculto-pessoa-existente">
-            <div class="form-row">
-                <div class="auth-form-group">
-                    <label>Nome do responsável <span class="obrigatorio">*</span></label>
-                    <input type="text" id="responsavel_nome" placeholder="Nome completo do responsável" onblur="aplicarCapitalizacao(this)">
-                </div>
-                <div class="auth-form-group">
-                    <label>CPF do responsável <span class="obrigatorio">*</span></label>
-                    <input type="text" id="responsavel_cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)">
-                </div>
-            </div>
-        </div>
         <div class="form-row oculto-pessoa-existente">
             <div class="auth-form-group">
                 <label>Nacionalidade <span class="obrigatorio">*</span></label>
@@ -315,6 +303,18 @@
                     <option value="nao_informado">Prefiro não informar</option>
                 </select>
                 <input type="text" id="genero_personalizado" placeholder="Como você se identifica" class="campo-revelavel">
+            </div>
+        </div>
+        <div id="bloco-responsavel" class="campo-revelavel oculto-pessoa-existente">
+            <div class="form-row">
+                <div class="auth-form-group">
+                    <label>Nome do responsável <span class="obrigatorio">*</span></label>
+                    <input type="text" id="responsavel_nome" placeholder="Nome completo do responsável" onblur="aplicarCapitalizacao(this)">
+                </div>
+                <div class="auth-form-group">
+                    <label>CPF do responsável <span class="obrigatorio">*</span></label>
+                    <input type="text" id="responsavel_cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)">
+                </div>
             </div>
         </div>
         <div class="form-step-nav">
