@@ -461,6 +461,7 @@
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)">Visão Geral</button>
     <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
     <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)">Diretoria</button>
+    <button class="aba-btn" data-aba="convites" onclick="trocarAba('convites', this)">Convites</button>
     <button class="aba-btn" data-aba="configuracoes" onclick="trocarAba('configuracoes', this)">Configurações</button>
     <button class="aba-btn" data-aba="meu-perfil" onclick="trocarAba('meu-perfil', this)">Meu Perfil</button>
 </nav>
@@ -603,16 +604,18 @@
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
         <button onclick="abrirModalExportar('diretoria')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Diretoria</button>
     </div>
-    <div id="linkDiretorCadastro" style="display:none;margin-bottom:20px;background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
-        <div style="font-size:12px;font-weight:700;color:#5a5770;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Link de cadastro de Diretor</div>
-        <p style="font-size:12px;color:#5a5770;margin-bottom:10px;">Envie pelo WhatsApp da diretoria — não expira, não é de uso único.</p>
-        <div style="display:flex;gap:8px;">
-            <input type="text" id="linkDiretorInput" readonly style="flex:1;padding:9px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;color:#333;">
-            <button class="btn-modal-confirmar verde" onclick="copiarLinkDiretor()">Copiar</button>
-        </div>
-    </div>
     <div id="listaDiretoria" style="min-height:200px;">
         <div class="vazio">Carregando...</div>
+    </div>
+</div>
+
+<!-- PAINEL CONVITES -->
+<div class="painel" id="painel-convites">
+    <div class="painel-titulo">Convites</div>
+    <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
+        <div style="font-size:12px;font-weight:700;color:#5a5770;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Links de cadastro</div>
+        <p style="font-size:12px;color:#5a5770;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
+        <div id="linksCadastroAdmin"></div>
     </div>
 </div>
 
@@ -1280,28 +1283,28 @@
         const cargoLabel = perfil === 'mestre' ? (femininoAdmin ? 'Mestra de Bateria' : 'Mestre de Bateria')
             : perfil === 'diretor' ? (femininoAdmin ? 'Diretora' : 'Diretor') : '';
         document.getElementById('headerCargo').textContent = cargoLabel;
-        if (perfil === 'mestre') {
-            renderizarLinkDiretor(usuario);
-        }
         await carregarBibliotecaInstrumentos();
         await carregarBateriaInstrumentos();
         construirMultiSelect();
         await carregarNomeEscolaBateria(usuario.bateria_id);
         aplicarConfigEscola();
+        renderizarLinksCadastroAdmin();
     }
 
     // Preenche configEscola.nomeEscola/nomeBateria com dado real -- antes desse
     // achado (17/ago/2026), esse objeto nunca era atualizado aqui, só existia
     // vazio (config-escola.js), então o cabeçalho não mostrava escola nem
     // bateria de verdade.
+    let codigoConviteBateria = null;
     async function carregarNomeEscolaBateria(bateriaId) {
         if (!bateriaId) return;
         try {
-            const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome,escola_id`, { headers: authHeaders });
+            const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome,escola_id,codigo_convite`, { headers: authHeaders });
             const baterias = await resBateria.json();
             const bateria = Array.isArray(baterias) && baterias[0] ? baterias[0] : null;
             if (!bateria) return;
             configEscola.nomeBateria = bateria.nome || '';
+            codigoConviteBateria = bateria.codigo_convite || bateriaId;
             if (bateria.escola_id) {
                 const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla`, { headers: authHeaders });
                 const escolas = await resEscola.json();
@@ -1313,15 +1316,31 @@
         }
     }
 
-    function renderizarLinkDiretor(usuario) {
-        if (!usuario || !usuario.bateria_id) return;
-        const link = `${window.location.origin}/cadastro.html?bateria=${usuario.bateria_id}&cargo=diretor`;
-        document.getElementById('linkDiretorInput').value = link;
-        document.getElementById('linkDiretorCadastro').style.display = 'block';
+    // Convites: visível pra Mestre e Diretor (antes só existia o link de
+    // convidar Diretor, e só pro Mestre ver -- achado da Márcia, 17/ago/2026,
+    // pedindo os 3 links pros dois cargos, mesmo padrão do Super Admin).
+    function renderizarLinksCadastroAdmin() {
+        const div = document.getElementById('linksCadastroAdmin');
+        if (!div) return;
+        const usuario = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        const codigo = codigoConviteBateria || (usuario ? usuario.bateria_id : null);
+        if (!codigo) { div.innerHTML = '<p style="font-size:13px;color:#999;">Não foi possível montar os links agora.</p>'; return; }
+        const base = `${window.location.origin}/cadastro.html?bateria=${codigo}`;
+        const linhas = [
+            { label: 'Ritmista', url: base },
+            { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },
+            { label: 'Diretor', url: `${base}&cargo=diretor` }
+        ];
+        div.innerHTML = linhas.map((l, i) => `
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;${i > 0 ? 'margin-top:10px;' : ''}">
+                <label style="width:120px;flex-shrink:0;font-size:12px;color:#5a5770;font-weight:600;">${l.label}</label>
+                <input type="text" readonly value="${l.url}" style="flex:1;min-width:200px;padding:9px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;color:#333;">
+                <button class="btn-modal-confirmar verde" onclick="copiarLinkCadastroAdmin(this)">Copiar</button>
+            </div>`).join('');
     }
 
-    function copiarLinkDiretor() {
-        const input = document.getElementById('linkDiretorInput');
+    function copiarLinkCadastroAdmin(btn) {
+        const input = btn.previousElementSibling;
         input.select();
         navigator.clipboard.writeText(input.value).catch(() => {});
     }
