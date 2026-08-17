@@ -2825,6 +2825,7 @@
         const [resRit, resBI] = await Promise.all([
             fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=*&order=created_at.desc`, { headers }),
             fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?bateria_id=eq.${bateriaId}`, { headers }),
+            carregarBibliotecaInstrumentosSA(),
         ]);
         todosRitmistasSA = resRit.ok ? await resRit.json() : [];
         bateriaInstrumentosCacheSA = resBI.ok ? await resBI.json() : [];
@@ -2832,10 +2833,19 @@
         aplicarFiltrosRitmistasSA();
     }
 
+    // Antes pegava o nome "emprestado" de algum ritmista já com esse
+    // instrumento atribuído (todosRitmistasSA.find(...).instrumento_nome) --
+    // um instrumento recém-ativado, sem ninguém usando ainda, nunca tinha
+    // esse empréstimo pra fazer, e ficava com "—" pra sempre no filtro, até
+    // a primeira pessoa ser atribuída a ele (achado real da Márcia,
+    // 17/ago/2026: ativou instrumentos novos pra Imperatriz e não achou no
+    // filtro). Agora resolve o nome direto da categoria/nomenclatura
+    // (mesma função já usada na tela de Configurações → Instrumentos),
+    // funciona mesmo sem nenhum ritmista atribuído ainda.
     function instrumentosAtivosDaBateriaSA() {
         return bateriaInstrumentosCacheSA
             .filter(bi => bi.ativo)
-            .map(bi => ({ id: bi.id, nome: (todosRitmistasSA.find(r => r.bateria_instrumento_id === bi.id) || {}).instrumento_nome || '—' }))
+            .map(bi => ({ id: bi.id, nome: nomeExibicaoBateriaInstrumentoSA(bi) }))
             .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
     }
 
@@ -3416,8 +3426,13 @@
     }
 
     async function iniciarConfigBateriaSA() {
-        if (bibliotecaInstrumentosSA.length === 0) await carregarBibliotecaInstrumentosSA();
-        if (bibliotecaMedidasSA.length === 0) await carregarBibliotecaMedidasSA();
+        // Sempre busca de novo (não só "se ainda não carregou") -- a lista de
+        // nomes ficava presa na primeira leitura da sessão, então instrumento
+        // criado ou editado depois disso aparecia sem nome ("—") no filtro de
+        // Ritmistas (achado real da Márcia, 17/ago/2026, print mostrando 7
+        // instrumentos em branco no filtro da Imperatriz).
+        await carregarBibliotecaInstrumentosSA();
+        await carregarBibliotecaMedidasSA();
         await carregarBateriaMedidasSA();
         voltarConfigBateriaListaSA();
     }
