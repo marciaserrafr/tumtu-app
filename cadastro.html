@@ -305,7 +305,7 @@
                 <input type="text" id="genero_personalizado" placeholder="Como você se identifica" class="campo-revelavel">
             </div>
         </div>
-        <div id="bloco-responsavel" class="campo-revelavel oculto-pessoa-existente">
+        <div id="bloco-responsavel" class="oculto-pessoa-existente" style="display:none">
             <div class="form-row">
                 <div class="auth-form-group">
                     <label>Nome do responsável <span class="obrigatorio">*</span></label>
@@ -763,7 +763,7 @@
             if (!aniversarioJaPassou) idade--;
             menor = idade < IDADE_MAIOR;
         }
-        bloco.classList.toggle('aberto', menor);
+        bloco.style.display = menor ? 'block' : 'none';
         nomeResp.required = menor;
         cpfResp.required = menor;
         if (!menor) { nomeResp.value = ''; cpfResp.value = ''; }
