@@ -474,7 +474,7 @@
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
         <button class="btn-novo" onclick="irParaCadastroManualRitmista()">+ Cadastrar Ritmista</button>
-        <button onclick="abrirModalExportar()" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Excel</button>
+        <button onclick="abrirModalExportar('ritmistas')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Excel</button>
     </div>
 
     <!-- BUSCA -->
@@ -600,6 +600,9 @@
 <!-- PAINEL DIRETORIA -->
 <div class="painel" id="painel-diretoria">
     <div class="painel-titulo">Diretoria</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+        <button onclick="abrirModalExportar('diretoria')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Diretoria</button>
+    </div>
     <div id="linkDiretorCadastro" style="display:none;margin-bottom:20px;background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
         <div style="font-size:12px;font-weight:700;color:#5a5770;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Link de cadastro de Diretor</div>
         <p style="font-size:12px;color:#5a5770;margin-bottom:10px;">Envie pelo WhatsApp da diretoria — não expira, não é de uso único.</p>
@@ -971,6 +974,19 @@
         ]},
     ];
     const LABELS_STATUS_EXPORT = { pendente: 'Pendente', aprovado: 'Ativo', suspenso: 'Suspenso', rejeitado: 'Rejeitado', desligado: 'Desligado' };
+    // Mesmos campos/labels já usados no export de Diretoria do Super Admin
+    // (super-admin.html) -- só falta essa opção existir aqui também.
+    const CAMPOS_EXPORTAVEIS_DIRETORIA = [
+        { grupo: 'Diretoria', campos: [
+            { chave: 'nome', label: 'Nome' },
+            { chave: 'apelido', label: 'Apelido' },
+            { chave: 'cpf', label: 'CPF' },
+            { chave: 'perfil', label: 'Cargo' },
+            { chave: 'status', label: 'Status' },
+        ]},
+    ];
+    const LABELS_PERFIL_EXPORT = { mestre: 'Mestre de Bateria', diretor: 'Diretor' };
+    let tipoExportacaoAtual = 'ritmistas';
     let sheetJSCarregado = false;
     function carregarSheetJS() {
         return new Promise((resolve, reject) => {
@@ -982,14 +998,20 @@
             document.head.appendChild(script);
         });
     }
-    function abrirModalExportar() {
-        const total = listaFiltradaAtual.length;
+    function abrirModalExportar(tipo) {
+        tipoExportacaoAtual = tipo;
+        const ehRitmistas = tipo === 'ritmistas';
+        const lista = ehRitmistas ? listaFiltradaAtual : listaDiretoriaAtual;
+        const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
+        const substantivo = ehRitmistas ? 'ritmista' : 'pessoa da diretoria';
+
+        const total = lista.length;
         document.getElementById('exportResumoLista').textContent = total === 1
-            ? '1 ritmista será exportado (conforme os filtros aplicados na lista).'
-            : `${total} ritmistas serão exportados (conforme os filtros aplicados na lista).`;
+            ? `1 ${substantivo} será exportado(a) (conforme os filtros aplicados na lista).`
+            : `${total} ${ehRitmistas ? 'ritmistas serão exportados' : 'pessoas da diretoria serão exportadas'} (conforme os filtros aplicados na lista).`;
 
         const container = document.getElementById('exportCamposContainer');
-        container.innerHTML = CAMPOS_EXPORTAVEIS.map(grupo => `
+        container.innerHTML = campos.map(grupo => `
             <div style="margin-bottom:14px;">
                 <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">${grupo.grupo}</div>
                 ${grupo.campos.map(c => `
@@ -1007,17 +1029,23 @@
         document.querySelectorAll('.export-campo-check').forEach(c => c.checked = marcar);
     }
     async function confirmarExportarExcel() {
+        const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
+        const lista = ehRitmistas ? listaFiltradaAtual : listaDiretoriaAtual;
+        const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
+        const nomeAba = ehRitmistas ? 'Ritmistas' : 'Diretoria';
+
         const marcados = Array.from(document.querySelectorAll('.export-campo-check:checked')).map(c => c.value);
         if (marcados.length === 0) { alert('Marque pelo menos um campo para exportar.'); return; }
-        if (listaFiltradaAtual.length === 0) { alert('Não há ritmistas para exportar com os filtros atuais.'); return; }
+        if (lista.length === 0) { alert('Não há registros para exportar com os filtros atuais.'); return; }
 
-        const todosCampos = CAMPOS_EXPORTAVEIS.flatMap(g => g.campos);
-        const linhas = listaFiltradaAtual.map(r => {
+        const todosCampos = campos.flatMap(g => g.campos);
+        const linhas = lista.map(r => {
             const linha = {};
             marcados.forEach(chave => {
                 const campo = todosCampos.find(c => c.chave === chave);
                 let valor = r[chave] ?? '';
                 if (chave === 'status') valor = LABELS_STATUS_EXPORT[valor] || valor;
+                if (chave === 'perfil') valor = LABELS_PERFIL_EXPORT[valor] || valor;
                 linha[campo.label] = valor;
             });
             return linha;
@@ -1032,9 +1060,9 @@
 
         const planilha = XLSX.utils.json_to_sheet(linhas);
         const livro = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(livro, planilha, 'Ritmistas');
+        XLSX.utils.book_append_sheet(livro, planilha, nomeAba);
         const dataHoje = new Date().toISOString().slice(0, 10);
-        XLSX.writeFile(livro, `ritmistas-${dataHoje}.xlsx`);
+        XLSX.writeFile(livro, `${tipoExportacaoAtual}-${dataHoje}.xlsx`);
         fecharModal('modalExportarExcel');
     }
 
@@ -1586,6 +1614,7 @@
     // ── DIRETORIA ─────────────────────────────────────────────────────────────
     let diretoriaCarregada = false;
     let adminSelecionado = null;
+    let listaDiretoriaAtual = [];
 
     async function carregarDiretoria() {
         if (diretoriaCarregada) return;
@@ -1600,6 +1629,7 @@
             headers: authHeaders
         });
         const admins = await res.json();
+        listaDiretoriaAtual = admins || [];
         renderizarDiretoria(admins);
         diretoriaCarregada = true;
     }
