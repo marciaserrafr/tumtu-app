@@ -451,7 +451,7 @@
             <span class="header-user" id="headerNome"></span>
             <span id="headerCargo" style="font-size:10px;color:rgba(212,175,55,0.6);letter-spacing:0.5px;text-transform:uppercase;"></span>
         </div>
-        <button onclick="irParaMeuPerfil()" style="background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);padding:5px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">Meu perfil</button>
+        <button onclick="window.open('carteirinha.html', '_blank')" style="background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);padding:5px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">Minha Carteirinha</button>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
@@ -1535,11 +1535,6 @@
 
 <script>
     // ── MEU PERFIL (aba) ──────────────────────────────────────────────────────
-    function irParaMeuPerfil() {
-        const btn = document.querySelector('.aba-btn[data-aba="meu-perfil"]');
-        trocarAba('meu-perfil', btn);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
 
     async function iniciarMeuPerfilAba() {
         const params = new URLSearchParams(window.location.search);
