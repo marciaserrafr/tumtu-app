@@ -218,7 +218,19 @@
             </div>
             <div class="auth-form-group">
                 <label>Nascimento <span class="obrigatorio">*</span></label>
-                <input type="text" id="nascimento" inputmode="numeric" placeholder="DD/MM/AAAA" maxlength="10" oninput="mascaraData(this)" required>
+                <input type="text" id="nascimento" inputmode="numeric" placeholder="DD/MM/AAAA" maxlength="10" oninput="mascaraData(this); verificarMenorIdade();" required>
+            </div>
+        </div>
+        <div id="bloco-responsavel" class="campo-revelavel oculto-pessoa-existente">
+            <div class="form-row">
+                <div class="auth-form-group">
+                    <label>Nome do responsável <span class="obrigatorio">*</span></label>
+                    <input type="text" id="responsavel_nome" placeholder="Nome completo do responsável" onblur="aplicarCapitalizacao(this)">
+                </div>
+                <div class="auth-form-group">
+                    <label>CPF do responsável <span class="obrigatorio">*</span></label>
+                    <input type="text" id="responsavel_cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)">
+                </div>
             </div>
         </div>
         <div class="form-row oculto-pessoa-existente">
@@ -729,6 +741,34 @@
         return valida ? `${ano}-${mes}-${dia}` : null;
     }
 
+    // Idade considerada "maior de idade" pra dispensar os dados do
+    // responsável -- 18 é a maioridade civil padrão no Brasil. A Márcia
+    // pediu pra usar isso por enquanto (17/ago/2026); ela ainda vai
+    // confirmar com um diretor de bateria se o número certo pra essa regra
+    // é outro (cogitou 16) -- só trocar esse valor quando ela confirmar.
+    const IDADE_MAIOR = 18;
+
+    function verificarMenorIdade() {
+        const iso = dataParaISO(document.getElementById('nascimento').value);
+        const bloco = document.getElementById('bloco-responsavel');
+        const nomeResp = document.getElementById('responsavel_nome');
+        const cpfResp = document.getElementById('responsavel_cpf');
+        let menor = false;
+        if (iso) {
+            const nascimento = new Date(iso + 'T00:00:00');
+            const hoje = new Date();
+            let idade = hoje.getFullYear() - nascimento.getFullYear();
+            const aniversarioJaPassou = (hoje.getMonth() > nascimento.getMonth())
+                || (hoje.getMonth() === nascimento.getMonth() && hoje.getDate() >= nascimento.getDate());
+            if (!aniversarioJaPassou) idade--;
+            menor = idade < IDADE_MAIOR;
+        }
+        bloco.classList.toggle('aberto', menor);
+        nomeResp.required = menor;
+        cpfResp.required = menor;
+        if (!menor) { nomeResp.value = ''; cpfResp.value = ''; }
+    }
+
     function mostrarOutro(campo) {
         const select = document.getElementById(campo);
         const outro = document.getElementById(campo + '_outro');
@@ -1193,6 +1233,8 @@
             tipo_documento: document.getElementById('tipo_documento').value || null,
             numero_documento: document.getElementById('numero_documento').value.trim() || null,
             nascimento: dataParaISO(document.getElementById('nascimento').value),
+            responsavel_nome: document.getElementById('responsavel_nome').value.trim() || null,
+            responsavel_cpf: document.getElementById('responsavel_cpf').value.trim() || null,
             celular: document.getElementById('celular').value,
             email: email || null,
             bateria_instrumento_id: document.getElementById('instrumento').value ? Number(document.getElementById('instrumento').value) : null,
@@ -1322,6 +1364,7 @@
                 nome: dados.nome, apelido: dados.apelido, genero: dados.genero, genero_personalizado: dados.genero_personalizado,
                 nacionalidade: dados.nacionalidade, cpf: dados.cpf,
                 tipo_documento: dados.tipo_documento, numero_documento: dados.numero_documento, nascimento: dados.nascimento,
+                responsavel_nome: dados.responsavel_nome, responsavel_cpf: dados.responsavel_cpf,
                 celular: dados.celular, email: dados.email, endereco: dados.endereco, numero: dados.numero,
                 complemento: dados.complemento, bairro: dados.bairro, cidade: dados.cidade, estado: dados.estado,
                 pais: dados.pais, tipo_sanguineo: dados.tipo_sanguineo,
