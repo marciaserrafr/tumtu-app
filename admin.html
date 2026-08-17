@@ -1215,9 +1215,17 @@
     function aplicarConfigEscola() {
         const cfg = (typeof configEscola !== 'undefined') ? configEscola : {};
 
-        // Header: nome da bateria abaixo da marca TumTu
+        // Header: escola — bateria abaixo da marca TumTu (mesmo padrão já usado
+        // no e-mail de aprovação, 15/ago/2026) -- nome da bateria sozinho nem
+        // sempre é reconhecível de cara, o da escola é. Achado real, 17/ago/2026:
+        // esse campo nunca tinha sido ligado a dado de verdade -- configEscola
+        // ficava sempre com os valores vazios de fábrica (config-escola.js).
         const batEl = document.getElementById('headerBateria');
-        if (batEl) batEl.textContent = cfg.nomeBateria || '';
+        if (batEl) {
+            batEl.textContent = cfg.nomeEscola
+                ? `${cfg.nomeEscola} — ${cfg.nomeBateria || ''}`
+                : (cfg.nomeBateria || '');
+        }
 
         // Cor do botão Ativar (usa corDestaque da escola ou dourado TumTu)
         const cor = cfg.corDestaque || '#D4AF37';
@@ -1250,7 +1258,31 @@
         await carregarBibliotecaInstrumentos();
         await carregarBateriaInstrumentos();
         construirMultiSelect();
+        await carregarNomeEscolaBateria(usuario.bateria_id);
         aplicarConfigEscola();
+    }
+
+    // Preenche configEscola.nomeEscola/nomeBateria com dado real -- antes desse
+    // achado (17/ago/2026), esse objeto nunca era atualizado aqui, só existia
+    // vazio (config-escola.js), então o cabeçalho não mostrava escola nem
+    // bateria de verdade.
+    async function carregarNomeEscolaBateria(bateriaId) {
+        if (!bateriaId) return;
+        try {
+            const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome,escola_id`, { headers: authHeaders });
+            const baterias = await resBateria.json();
+            const bateria = Array.isArray(baterias) && baterias[0] ? baterias[0] : null;
+            if (!bateria) return;
+            configEscola.nomeBateria = bateria.nome || '';
+            if (bateria.escola_id) {
+                const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla`, { headers: authHeaders });
+                const escolas = await resEscola.json();
+                const escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
+                configEscola.nomeEscola = escola ? (escola.sigla || escola.nome || '') : '';
+            }
+        } catch (e) {
+            // Sem dado real, header cai de volta pro vazio de fábrica -- não quebra a tela.
+        }
     }
 
     function renderizarLinkDiretor(usuario) {
