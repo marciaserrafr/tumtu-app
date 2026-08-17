@@ -29,6 +29,8 @@ const FP_CAMPOS = [
     { id: 'fp-nacionalidade',        col: 'nacionalidade' },
     { id: 'fp-cpf',                  col: 'cpf' },
     { id: 'fp-nascimento',           col: 'nascimento', tipo: 'data' },
+    { id: 'fp-responsavel-nome',     col: 'responsavel_nome' },
+    { id: 'fp-responsavel-cpf',      col: 'responsavel_cpf' },
     { id: 'fp-celular',              col: 'celular' },
     { id: 'fp-email',                col: 'email' },
     { id: 'fp-membro-desde',         col: 'membro_desde' },
@@ -104,7 +106,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=14');
+        const res = await fetch('ficha-perfil.partial.html?v=15');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -214,6 +216,14 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     } else {
         fpEl('fp-bloco-documento').style.display = 'none';
     }
+
+    // Responsável (nome/CPF) só existe pra quem era menor de idade no
+    // cadastro -- some a linha inteira em vez de "—" solto pra quem é
+    // maior (mesmo critério já usado em Documento/Instrumento/"Como se
+    // identifica"), em vez de mostrar campo vazio pra maioria das pessoas.
+    const temResponsavel = !!(alvo.responsavel_nome || alvo.responsavel_cpf);
+    fpEl('fp-bloco-responsavel-nome').style.display = temResponsavel ? '' : 'none';
+    fpEl('fp-bloco-responsavel-cpf').style.display = temResponsavel ? '' : 'none';
 
     const campoCadastro = fpEl('fp-campo-cadastro');
     if (campoCadastro) {
