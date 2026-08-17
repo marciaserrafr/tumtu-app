@@ -594,6 +594,17 @@
     const params = new URLSearchParams(window.location.search);
     const idParam = params.get('id');
 
+    // Admin (Mestre/Diretor) abrindo a própria carteirinha a partir do painel
+    // (botão "Minha Carteirinha") -- "Sair" viraria logout sem querer, então
+    // troca por "Voltar ao painel", que só navega de volta pro admin.html
+    // sem mexer na sessão (achado da Márcia, 17/ago/2026: sem isso, só dava
+    // pra voltar saindo e escolhendo a bateria de novo em "Trocar de Bateria").
+    if (params.get('voltar') === 'admin') {
+        const btnVoltar = document.getElementById('btnSairTopo');
+        btnVoltar.textContent = 'Voltar ao painel';
+        btnVoltar.onclick = () => { window.location.href = 'admin.html'; };
+    }
+
     if (idParam) {
         // Modo admin: botão "Sair" não deve limpar a sessão do admin logado
         const btnSair = document.getElementById('btnSairTopo');
