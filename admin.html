@@ -548,13 +548,20 @@
 
         /* MEU PERFIL (.mp-*) agora vive em styles/components.css, compartilhado com super-admin.html */
 
-        /* CONFIGURAÇÕES (lista estilo Google + sub-telas drill-down) */
+        /* CONFIGURAÇÕES (lista estilo Google + sub-telas drill-down) — estilo
+           unificado com o que já tinha sido corrigido no Super Admin em
+           21/jul/2026: linha com borda embaixo não dava nenhuma pista de que
+           era clicável sem passar o mouse, o que no celular (sem hover) não
+           existe de jeito nenhum. Card com borda própria + reação também no
+           toque (:active), não só no hover. */
         .config-item {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 4px; border-bottom: 1px solid #f0f0f0;
+            padding: 14px 16px; margin-bottom: 6px; border-radius: 10px;
+            background: var(--cor-superficie); border: 1px solid var(--cor-borda);
             cursor: pointer; font-size: 14px; font-weight: 600; color: var(--cor-texto-principal);
+            transition: background 0.15s, border-color 0.15s;
         }
-        .config-item:hover { background: #faf9fb; }
+        .config-item:hover, .config-item:active { background: var(--cor-fundo-claro); border-color: var(--cor-borda-forte); }
         .config-item-seta { color: #ccc; font-size: 20px; font-weight: 300; }
         .btn-voltar-config { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: #D4AF37; padding: 0; margin-bottom: 16px; font-family: inherit; }
         .btn-voltar-config:hover { text-decoration: underline; }
@@ -962,7 +969,7 @@
 <nav class="nav-abas" id="navAbasEscola" style="display:none">
     <button class="aba-btn-sa aba-btn" data-aba="dados-escola" onclick="trocarAba('dados-escola', this)" style="display:none">Dados da Escola</button>
     <button class="aba-btn-sa aba-btn" data-aba="dados-bateria" onclick="trocarAba('dados-bateria', this)" style="display:none">Dados da Bateria</button>
-    <button class="aba-btn-sa aba-btn" data-aba="modo-venda" onclick="trocarAba('modo-venda', this)" style="display:none">Modo de Venda</button>
+    <button class="aba-btn-sa aba-btn" data-aba="comercial" onclick="trocarAba('comercial', this)" style="display:none">Comercial</button>
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)">Visão Geral</button>
     <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
     <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)">Diretoria</button>
@@ -991,10 +998,10 @@
     </div>
 </div>
 
-<!-- PAINEL MODO DE VENDA (só Super Admin — decisão comercial, nunca junto de "Dados da Bateria") -->
-<div class="painel" id="painel-modo-venda">
-    <div class="painel-titulo">Modo de Venda</div>
-    <div id="modoVendaConteudo">
+<!-- PAINEL COMERCIAL (só Super Admin — decisão comercial, nunca junto de "Dados da Bateria") -->
+<div class="painel" id="painel-comercial">
+    <div class="painel-titulo">Comercial</div>
+    <div id="comercialConteudo">
         <div class="estado-vazio"><div class="estado-vazio-icone">🎟️</div>Carregando...</div>
     </div>
 </div>
@@ -2758,7 +2765,7 @@
 
         renderizarDadosEscolaTab();
         renderizarDadosBateriaTab();
-        renderizarModoVendaTab();
+        renderizarComercialTab();
 
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
         carregarRitmistas();
@@ -3080,7 +3087,7 @@
 
     // ══════════════════════════════════════════════════════════════════
     // DADOS DA BATERIA (aba, só Super Admin nesta etapa) — SEM Modo
-    // Carteirinha aqui dentro (mora sozinho na aba "Modo de Venda").
+    // Carteirinha aqui dentro (mora sozinho na aba "Comercial").
     // ══════════════════════════════════════════════════════════════════
     async function carregarBaterias(escolaId) {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?order=nome&escola_id=eq.${escolaId}`, { headers: authHeaders });
@@ -3173,7 +3180,7 @@
             logo_url: logoPendente.bateria || (bateriaAtualData ? bateriaAtualData.logo_url : null) || null,
             ativa: true,
         };
-        if (!id) payload.modo_piloto = false; // decisão comercial -- nasce desligada, só se muda em "Modo de Venda"
+        if (!id) payload.modo_piloto = false; // decisão comercial -- nasce desligada, só se muda em "Comercial"
         const res = id
             ? await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify(payload) })
             : await fetch(`${SUPABASE_URL}/rest/v1/baterias`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify(payload) });
@@ -3183,7 +3190,7 @@
             const idx = bateriasCache.findIndex(x => x.id === bateriaAtualData.id);
             if (idx >= 0) bateriasCache[idx] = bateriaAtualData; else bateriasCache.push(bateriaAtualData);
             renderizarDadosBateriaTab(false);
-            renderizarModoVendaTab();
+            renderizarComercialTab();
             renderizarLinksCadastroAdmin();
             carregarRitmistas();
             mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
@@ -3208,22 +3215,22 @@
     // Decisão comercial, nunca junto de "Dados da Bateria" (pedido explícito
     // da Márcia, 18/ago/2026).
     // ══════════════════════════════════════════════════════════════════
-    function renderizarModoVendaTab() {
+    function renderizarComercialTab() {
         const b = bateriaAtualData;
-        const div = document.getElementById('modoVendaConteudo');
+        const div = document.getElementById('comercialConteudo');
         if (!div) return;
         if (!b) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🎟️</div>Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
         div.innerHTML = `
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Modo Carteirinha</div>
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <input type="checkbox" id="mv-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${b.modo_piloto ? 'checked' : ''} onchange="salvarModoVenda(this.checked)">
+                    <input type="checkbox" id="mv-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${b.modo_piloto ? 'checked' : ''} onchange="salvarComercial(this.checked)">
                     <label for="mv-modo-piloto" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
                 </div>
                 <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de gestão. Decisão comercial (ex: vender só a carteirinha pra quem não quer o módulo de gestão completo) — não é um dado operacional da bateria.</div>
             </div>`;
     }
-    async function salvarModoVenda(ligado) {
+    async function salvarComercial(ligado) {
         const id = bateriaAtualData ? bateriaAtualData.id : null;
         if (!id) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ modo_piloto: ligado }) });
@@ -4023,7 +4030,7 @@
         if (aba === 'configuracoes') iniciarConfiguracoesAba();
         if (aba === 'dados-escola') renderizarDadosEscolaTab(false);
         if (aba === 'dados-bateria') renderizarDadosBateriaTab(false);
-        if (aba === 'modo-venda') renderizarModoVendaTab();
+        if (aba === 'comercial') renderizarComercialTab();
         if (aba === 'permissoes') { perfilEscolaEditando = null; document.getElementById('pe-ativar-lista').style.display = 'none'; renderizarEditorPerfilEscolaSA(); carregarPerfisEscolaSA(); }
         if (aba === 'historico') carregarHistoricoEscolaSA();
     }
