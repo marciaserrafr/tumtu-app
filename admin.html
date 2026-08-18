@@ -1454,11 +1454,37 @@
         return '#D4AF37';
     }
 
+    // Mesma chave/cache que login.html grava (prefetchConfigEscola) e
+    // carteirinha.html já lê -- lida aqui SÍNCRONO, antes de qualquer fetch,
+    // pra aplicar o tema no primeiro desenho da tela. Sem isso, o cabeçalho
+    // sempre nascia preto/TumTu por um instante e só depois de duas idas à
+    // rede (biblioteca de instrumentos + bateria + escola) trocava pra cor
+    // da escola -- achado real da Márcia, 18/ago/2026 ("a tela sempre abre
+    // com o header preto e depois aparece o header customizado").
+    function aplicarCacheConfigEscolaAntecipado(bateriaId) {
+        if (!bateriaId) return;
+        try {
+            const raw = localStorage.getItem(`tumtu_cfg_${bateriaId}`);
+            if (!raw) return;
+            const cache = JSON.parse(raw);
+            configEscola.nomeEscola = cache.nomeEscola || '';
+            configEscola.nomeBateria = cache.nomeBateria || '';
+            configEscola.temaPersonalizadoAtivo = !!cache.temaPersonalizadoAtivo;
+            configEscola.corPrimariaEscola = cache.corPrimaria || null;
+            configEscola.logoEscola = cache.logoEscola || null;
+            configEscola.coresEscola = Array.isArray(cache.cores) ? cache.cores : [];
+            aplicarConfigEscola();
+        } catch (e) {
+            // Sem cache não quebra nada -- carregarNomeEscolaBateria() busca de verdade a seguir.
+        }
+    }
+
     async function iniciarUsuario() {
         const usuario = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!usuario) { window.location.href = 'login.html'; return; }
         // Trava da fase piloto: Mestre/Diretor de bateria com modo_piloto ligado não vê o painel, mesmo digitando a URL direto.
         if (usuario.modo_piloto) { window.location.href = 'carteirinha.html'; return; }
+        aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
         document.getElementById('headerNome').textContent = usuario.nome || 'Admin';
         const perfil = usuario.perfil || '';
         const femininoAdmin = usuario.genero === 'feminino';

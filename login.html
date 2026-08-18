@@ -225,7 +225,7 @@
             const bateria = Array.isArray(baterias) && baterias[0] ? baterias[0] : null;
             if (!bateria || !bateria.escola_id) return;
 
-            const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,temporada_atual,validade_carteirinha,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url`, { headers: hdrs });
+            const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,temporada_atual,validade_carteirinha,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url,tema_personalizado_ativo`, { headers: hdrs });
             const escolas = await resEscola.json();
             const escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
             if (!escola) return;
@@ -243,6 +243,9 @@
                 escolaId: bateria.escola_id,
                 logoEscola: escola.logo_url || null,
                 logoBateria: bateria.logo_url || null,
+                // Só usado pelo cabeçalho do admin.html (tema por escola,
+                // 18/ago/2026) -- carteirinha.html ignora este campo.
+                temaPersonalizadoAtivo: !!escola.tema_personalizado_ativo,
             };
             await Promise.all([
                 precarregarImagem(cfg.logoEscola),
@@ -357,11 +360,16 @@
         }
 
         const isAdmin = cache.perfil === 'mestre' || cache.perfil === 'diretor';
+        // Busca cor/logo/tema aqui, com o spinner do login na tela, antes de
+        // trocar de tela -- mesmo raciocínio já usado pra carteirinha.html
+        // (18/ago/2026, achado da Márcia: sem isso, o cabeçalho de admin.html
+        // sempre nascia preto/TumTu por um instante e só depois trocava pra
+        // cor da escola, porque nunca tinha cache pronto esperando).
+        await prefetchConfigEscola(cache.bateria_id, session.access_token);
         if (isAdmin && !cache.modo_piloto) {
             window.location.href = 'admin.html';
             return;
         }
-        await prefetchConfigEscola(cache.bateria_id, session.access_token);
         window.location.href = 'carteirinha.html';
     }
     document.addEventListener('DOMContentLoaded', () => {
@@ -475,16 +483,26 @@
 
         localStorage.setItem('ritmista', JSON.stringify(vinculo));
 
+        // Se a cor/logo/tema dessa bateria já foi buscada em segundo plano
+        // enquanto a pessoa estava na telinha de escolher (ver
+        // buscarEEscolherVinculos), o cache já está pronto -- troca de tela
+        // na hora, sem spinner novo (nem no admin.html, nem na carteirinha).
+        // Vale pros dois casos porque esse cache passou a servir o cabeçalho
+        // do admin.html também (18/ago/2026, achado da Márcia -- header
+        // nascia preto/TumTu por um instante antes de trocar pra cor da
+        // escola, único caminho que nunca buscava esse cache antes).
         if (isAdmin && !vinculo.modo_piloto) {
+            if (!lerConfigCache(vinculo.bateria_id)) {
+                document.getElementById('containerLogin').style.display = 'none';
+                document.getElementById('containerEscolherBateria').style.display = 'none';
+                document.getElementById('containerCarregando').style.display = 'flex';
+                const { data: { session } } = await sb.auth.getSession();
+                await prefetchConfigEscola(vinculo.bateria_id, session ? session.access_token : null);
+            }
             window.location.href = 'admin.html';
             return;
         }
 
-        // Vai pra carteirinha. Se a cor/logo dessa bateria já foi buscada em
-        // segundo plano enquanto a pessoa estava na telinha de escolher
-        // (ver buscarEEscolherVinculos), o cache já está pronto — troca de
-        // tela na hora, sem spinner novo. Só mostra o spinner de novo se
-        // esse cache ainda não tiver chegado a tempo (raro).
         if (lerConfigCache(vinculo.bateria_id)) {
             window.location.href = 'carteirinha.html';
             return;
