@@ -3056,7 +3056,6 @@
         const e = escolaAtualData;
         const container = document.getElementById('dadosEscolaConteudo');
         if (!container) return;
-        const ativa = e && e.ativa !== false;
         const visEdit = modoEdicao ? 'display:block' : 'display:none';
         const visView = modoEdicao ? 'display:none' : '';
 
@@ -3069,7 +3068,6 @@
             <div class="form-rodape">
                 <div class="form-rodape-esq">
                     <button class="btn-ficha btn-ficha-editar" onclick="renderizarDadosEscolaTab(true)">Editar</button>
-                    ${souSuperAdmin ? `<button class="btn-ficha btn-ficha-danger" onclick="confirmarToggleEscola(${e ? e.id : 'null'},${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>` : ''}
                 </div>
             </div>` : '');
 
@@ -3118,15 +3116,6 @@
                 </div>
                 <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o cabeçalho do painel de gestão (Mestre/Diretor) usa a cor primária e o logo da escola no lugar da marca TumTu.</div>
             </div>
-            ${souSuperAdmin ? `
-            <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Classificação comercial</div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <input type="checkbox" id="de-tipo-demo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${e && e.tipo === 'demo' ? 'checked' : ''} ${modoEdicao ? '' : 'disabled'}>
-                    <label for="de-tipo-demo" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Escola DEMO (demonstração)</label>
-                </div>
-                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Escolas DEMO ficam de fora da contagem do Dashboard geral — sempre exclusivo do Super Admin, mesmo que "Editar Dados da Escola" esteja liberado pra alguém.</div>
-            </div>` : ''}
             ${rodape}`;
         logoPendente.escolaEdicao = null;
         atualizarPreviewDadosEscola();
@@ -3155,12 +3144,6 @@
             cor_quaternaria: document.getElementById('de-cor-quaternaria').value.trim() || null,
             tema_personalizado_ativo: document.getElementById('de-tema-ativo').checked,
         };
-        // "tipo" (real/demo) só existe no formulário pro Super Admin -- o
-        // gatilho no banco (aplicar_matriz_edicao_escolas) já rejeitaria a
-        // mudança de qualquer outra pessoa mesmo assim, isso aqui é só pra
-        // não mandar um campo que não existe na tela.
-        const campoTipo = document.getElementById('de-tipo-demo');
-        if (campoTipo) payload.tipo = campoTipo.checked ? 'demo' : 'real';
         const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify(payload) });
         if (res.ok) {
             const dados = await res.json();
@@ -3204,7 +3187,7 @@
             escolaAtualData = dados[0];
             const idx = escolasCache.findIndex(x => x.id === id);
             if (idx >= 0) escolasCache[idx] = escolaAtualData;
-            renderizarDadosEscolaTab(false);
+            renderizarComercialTab();
         } else {
             mostrarToast('Erro ao atualizar escola.', 'erro');
         }
@@ -3230,7 +3213,6 @@
             return;
         }
 
-        const ativa = b.ativa !== false;
         const podeEditar = tenhoCapacidade('editar_dados_bateria');
         const visEdit = modoEdicao ? 'display:block' : 'display:none';
         const visView = modoEdicao ? 'display:none' : '';
@@ -3242,7 +3224,6 @@
             <div class="form-rodape">
                 <div class="form-rodape-esq">
                     <button class="btn-ficha btn-ficha-editar" onclick="renderizarDadosBateriaTab(true)">Editar</button>
-                    ${souSuperAdmin ? `<button class="btn-ficha btn-ficha-danger" onclick="toggleBateriaAtiva(${b.id},${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>` : ''}
                 </div>
             </div>` : '');
         const campo = (label, id, valor) => `
@@ -3332,22 +3313,45 @@
             mostrarToast(ativaAtual ? 'Bateria desativada.' : 'Bateria ativada!');
             await carregarBaterias(escolaSelecionadaId);
             bateriaAtualData = bateriasCache.find(b => b.id === id) || bateriasCache[0] || null;
-            renderizarDadosBateriaTab(false);
+            renderizarComercialTab();
         }
     }
 
     // ══════════════════════════════════════════════════════════════════
-    // MODO DE VENDA (aba independente — Modo Carteirinha/baterias.modo_piloto).
-    // Decisão comercial, nunca junto de "Dados da Bateria" (pedido explícito
-    // da Márcia, 18/ago/2026).
+    // COMERCIAL (aba independente) — reúne toda decisão comercial da
+    // escola/bateria, nunca junto de "Dados da Escola"/"Dados da Bateria":
+    // Modo Carteirinha, Ativar/Desativar Escola, Ativar/Desativar Bateria,
+    // Classificação (DEMO/Real). Pedido explícito da Márcia (18 e 19/ago/2026)
+    // — tudo isso é decisão de negócio, não dado operacional do dia a dia.
     // ══════════════════════════════════════════════════════════════════
     function renderizarComercialTab() {
-        const b = bateriaAtualData;
         const div = document.getElementById('comercialConteudo');
         if (!div) return;
-        if (!b) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🎟️</div>Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
+        const e = escolaAtualData;
+        const b = bateriaAtualData;
         const podeEditar = tenhoCapacidade('editar_comercial');
-        div.innerHTML = `
+        const ativaEscola = e && e.ativa !== false;
+        const ativaBateria = b && b.ativa !== false;
+
+        let html = `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Classificação da Escola</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="cm-tipo-demo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${e && e.tipo === 'demo' ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="salvarClassificacaoEscola(this.checked)">
+                    <label for="cm-tipo-demo" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Escola DEMO (demonstração)</label>
+                </div>
+                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Escolas DEMO ficam de fora da contagem do Dashboard geral.</div>
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Status da Escola</div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="${ativaEscola ? 'badge-ativo' : 'badge-inativo'}">${ativaEscola ? 'Ativa' : 'Inativa'}</span>
+                    ${podeEditar && e ? `<button class="btn-ficha btn-ficha-danger" onclick="confirmarToggleEscola(${e.id},${ativaEscola})">${ativaEscola ? 'Desativar Escola' : 'Ativar Escola'}</button>` : ''}
+                </div>
+            </div>`;
+
+        if (b) {
+            html += `
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Modo Carteirinha</div>
                 <div style="display:flex;align-items:center;gap:8px;">
@@ -3355,7 +3359,23 @@
                     <label for="mv-modo-piloto" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
                 </div>
                 <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de gestão. Decisão comercial (ex: vender só a carteirinha pra quem não quer o módulo de gestão completo) — não é um dado operacional da bateria.</div>
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Status da Bateria</div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="${ativaBateria ? 'badge-ativo' : 'badge-inativo'}">${ativaBateria ? 'Ativa' : 'Inativa'}</span>
+                    ${podeEditar ? `<button class="btn-ficha btn-ficha-danger" onclick="toggleBateriaAtiva(${b.id},${ativaBateria})">${ativaBateria ? 'Desativar Bateria' : 'Ativar Bateria'}</button>` : ''}
+                </div>
             </div>`;
+        } else {
+            html += `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Modo Carteirinha</div>
+                <div style="font-size:12px;color:var(--cor-texto-muted);">Cadastre a bateria primeiro, em "Dados da Bateria".</div>
+            </div>`;
+        }
+
+        div.innerHTML = html;
     }
     async function salvarComercial(ligado) {
         const id = bateriaAtualData ? bateriaAtualData.id : null;
@@ -3369,6 +3389,21 @@
             mostrarToast(ligado ? 'Modo Carteirinha ligado.' : 'Modo Carteirinha desligado.');
         } else {
             mostrarToast('Erro ao atualizar.', 'erro');
+        }
+    }
+    async function salvarClassificacaoEscola(demo) {
+        const id = escolaAtualData ? escolaAtualData.id : null;
+        if (!id) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ tipo: demo ? 'demo' : 'real' }) });
+        if (res.ok) {
+            const dados = await res.json();
+            escolaAtualData = dados[0];
+            const idx = escolasCache.findIndex(x => x.id === id);
+            if (idx >= 0) escolasCache[idx] = escolaAtualData;
+            mostrarToast(demo ? 'Marcada como Escola DEMO.' : 'Marcada como Escola Real.');
+        } else {
+            mostrarToast('Erro ao atualizar classificação.', 'erro');
+            renderizarComercialTab();
         }
     }
 
