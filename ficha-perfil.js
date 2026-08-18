@@ -31,6 +31,7 @@ const FP_CAMPOS = [
     { id: 'fp-nascimento',           col: 'nascimento', tipo: 'data' },
     { id: 'fp-responsavel-nome',     col: 'responsavel_nome' },
     { id: 'fp-responsavel-cpf',      col: 'responsavel_cpf' },
+    { id: 'fp-responsavel-celular',  col: 'responsavel_celular' },
     { id: 'fp-celular',              col: 'celular' },
     { id: 'fp-email',                col: 'email' },
     { id: 'fp-membro-desde',         col: 'membro_desde' },
@@ -106,7 +107,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=16');
+        const res = await fetch('ficha-perfil.partial.html?v=17');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -224,6 +225,7 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     const temResponsavel = !!(alvo.responsavel_nome || alvo.responsavel_cpf);
     fpEl('fp-bloco-responsavel-nome').style.display = temResponsavel ? '' : 'none';
     fpEl('fp-bloco-responsavel-cpf').style.display = temResponsavel ? '' : 'none';
+    fpEl('fp-bloco-responsavel-celular').style.display = temResponsavel ? '' : 'none';
 
     const campoCadastro = fpEl('fp-campo-cadastro');
     if (campoCadastro) {

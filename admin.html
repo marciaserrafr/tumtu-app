@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=14">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=16"></script>
+    <script src="ficha-perfil.js?v=17"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -60,6 +60,16 @@
         }
         .header-marca-logo { width: 100%; height: 100%; object-fit: contain; }
         .header-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(212,175,55,0.7); margin-top: 7px; }
+        /* Escola normal, bateria em caixa alta -- mesmo tratamento visual já
+           usado na carteirinha (.cf-escola/.cf-bateria), pedido da Márcia,
+           18/ago/2026: "a bateria está com a caixa alta [na carteirinha]...
+           acho que fica mais bonito". Sobrescreve o text-transform do
+           .header-badge (e da variante com logo, que zera pra "none") de
+           propósito -- cada span decide sua própria caixa, independente do
+           container. */
+        .header-badge .hb-escola { text-transform: none; }
+        .header-badge .hb-bateria { text-transform: uppercase; letter-spacing: 0.4px; }
+        .header-badge .hb-sep { opacity: 0.7; }
         .header-acoes { display: flex; gap: 12px; align-items: center; }
         .header-user { font-size: 13px; color: rgba(255,255,255,0.6); }
         .btn-sair { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
@@ -73,15 +83,19 @@
         .btn-header-tematico { background: rgba(255,255,255,0.94) !important; border-color: transparent !important; color: #12101a !important; font-weight: 700 !important; }
         .btn-header-tematico:hover { background: #ffffff !important; }
         .rodape-tumtu {
-            text-align: center; padding: 28px 24px 26px; margin-top: 12px;
+            text-align: center; padding: 16px 24px 14px; margin-top: 12px;
             border-top: 1px solid var(--cor-borda);
         }
-        /* .tt-m tem border-bottom (o traço terracota do "m") -- 3px de gap
-           não dava respiro nenhum pro traço antes do texto de baixo, ficava
-           parecendo cortar a legenda (achado da Márcia, 18/ago/2026). */
-        .rodape-tumtu .tt-logo { font-size: 15px; display: inline-block; }
+        /* Reduzido de 28/26px pra 16/14px (18/ago/2026, achado da Márcia:
+           "achei que tá muito grande o cabeçalho" -- é rodapé, mas o
+           comentário era sobre o respiro exagerado) -- isso aqui é só uma
+           assinatura discreta, não uma seção de verdade. .tt-m tem
+           border-bottom (o traço terracota do "m") -- 3px de gap não dava
+           respiro nenhum pro traço antes do texto de baixo, ficava parecendo
+           cortar a legenda (achado anterior, mesmo dia) -- mantido em 12px. */
+        .rodape-tumtu .tt-logo { font-size: 13px; display: inline-block; }
         .rodape-tumtu .rodape-tagline {
-            display: block; margin-top: 12px; font-size: 10.5px; font-weight: 600;
+            display: block; margin-top: 8px; font-size: 10px; font-weight: 600;
             letter-spacing: 0.8px; text-transform: uppercase; color: var(--cor-texto-muted);
         }
         /* NAV ABAS */
@@ -197,6 +211,17 @@
         .card-ritmista:hover { box-shadow: 0 4px 16px rgba(15,23,42,0.10); transform: translateY(-1px); }
 
 
+        /* Foto QUADRADA de propósito (não redonda como .dir-foto da
+           Diretoria) -- mesmo padrão que a carteirinha adotou no redesign
+           "9a" (14-16/ago/2026), pedido explícito da Márcia, 18/ago/2026,
+           pra identificar a pessoa de relance na lista de gestão. */
+        .card-foto {
+            width: 44px; height: 44px; border-radius: 8px; background: #f7f6fb;
+            border: 1px solid #e8e6f0; overflow: hidden; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 700; color: #8b88a0;
+        }
+        .card-foto img { width: 100%; height: 100%; object-fit: cover; }
         .card-esquerda { flex: 1; min-width: 0; }
         .card-linha1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
         .card-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
@@ -256,9 +281,19 @@
         .btn-modal-confirmar.azul { background: var(--cor-fundo-escuro); }
 
         /* MODAL — AÇÕES DO CADASTRO */
+        /* Sticky no fundo da área que rola (.modal-overlay), mesmo padrão já
+           usado em .ficha-modal-acoes (components.css) -- pedido da Márcia,
+           18/ago/2026: "lembra dos botões flutuantes no meu perfil? vai
+           funcionar aqui tb?". Funciona pelo mesmo motivo: .modal-overlay é
+           quem tem overflow-y:auto agora (corrigido hoje mais cedo), então a
+           barra gruda sozinha no fundo dela. Padding de baixo soma
+           env(safe-area-inset-bottom) -- mesma razão de sempre (iPhone
+           instalado como PWA não reserva espaço pra barrinha de gesto). */
         .modal-acoes-ficha {
             display: flex; gap: 8px; flex-wrap: wrap;
-            padding-top: 14px; border-top: 1px solid #f0f0f0; margin-top: 16px;
+            padding: 14px 0 calc(14px + env(safe-area-inset-bottom));
+            border-top: 1px solid #f0f0f0; margin-top: 16px;
+            position: sticky; bottom: 0; background: white;
         }
         .btn-ficha {
             padding: 5px 12px; border-radius: 8px; cursor: pointer;
@@ -456,6 +491,19 @@
         .config-vaga-contagem { color: #999; font-weight: 400; }
         .config-vaga-input { width: 64px; padding: 6px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; text-align: center; }
 
+        /* Título de seção genérico -- mesmo padrão já usado no Super Admin
+           (aba Acessos, "Mestres"/"Diretores"), reaproveitado aqui pra
+           separar Mestres/Diretores (Diretoria) e Pendentes/Ativos/etc
+           (Ritmistas), pedido da Márcia, 18/ago/2026. */
+        .secao-titulo { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
+        .secao-titulo:first-child { margin-top: 4px; }
+        /* .cards (Ritmistas) já tem gap:10px entre os filhos -- sem esse
+           ajuste, o título de seção somava esse gap com sua própria margem e
+           ficava com respiro maior que o dos cards de Diretoria (que não têm
+           gap no container). */
+        .cards .secao-titulo { margin: 6px 0 0; }
+        .cards .secao-titulo:first-child { margin-top: 0; }
+
         /* DIRETORIA */
         .dir-card {
             background: white; border-radius: 12px; padding: 16px 18px;
@@ -525,7 +573,7 @@
 <div class="header" id="pageHeader">
     <div class="header-esquerda">
         <div class="header-marca tt-logo" id="headerMarca"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
-        <div class="header-badge" id="headerBateria"></div>
+        <div class="header-badge" id="headerBateria"><span id="headerEscolaNome" class="hb-escola"></span><span id="headerBateriaSep" class="hb-sep"> — </span><span id="headerBateriaNome" class="hb-bateria"></span></div>
     </div>
     <div class="header-acoes">
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;">
@@ -578,15 +626,20 @@
         </div>
         <!-- FILTRO STATUS -->
         <div class="multi-select" id="statusSelectWrap">
-            <div class="multi-select-trigger" id="statusSelectTrigger" onclick="toggleStatusSelect()">
-                <span id="statusSelectLabel">Todos os status</span>
+            <div class="multi-select-trigger ativo" id="statusSelectTrigger" onclick="toggleStatusSelect()">
+                <span id="statusSelectLabel">Ativos, Pendentes</span>
                 <span id="statusSelectArrow">▼</span>
             </div>
+            <!-- Padrão inicial = Ativos + Pendentes marcados (não "Todos os
+                 status") -- pedido da Márcia, 18/ago/2026: lista completa
+                 (com suspenso/desligado/rejeitado) polui o dia a dia, "não é
+                 legal". "Limpar filtro" continua sendo o jeito de ver todo
+                 mundo, sem filtro nenhum. -->
             <div class="multi-select-dropdown" id="statusSelectDropdown" style="display:none;">
-                <label class="multi-select-option"><input type="checkbox" value="aprovado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
+                <label class="multi-select-option"><input type="checkbox" value="aprovado" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
                 <label class="multi-select-option"><input type="checkbox" value="desligado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
                 <label class="multi-select-option"><input type="checkbox" value="menor" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#5b21b6;margin:0 4px;"></span>Menores</label>
-                <label class="multi-select-option"><input type="checkbox" value="pendente" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
+                <label class="multi-select-option"><input type="checkbox" value="pendente" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
                 <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
                 <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
@@ -736,7 +789,7 @@
             <div id="fc-declaracao-area"></div>
         </div>
 
-        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding-top:14px; border-top:1px solid #f0f0f0; margin-top:16px;">
+        <div class="modal-acoes-ficha" style="align-items:center; justify-content:space-between;">
             <div id="modalCadastroAcoes" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
             <button class="btn-ficha" onclick="fecharModal('modalCadastroOverlay')">Fechar</button>
         </div>
@@ -805,7 +858,7 @@
 
     let todosRitmistas = [];
     let listaFiltradaAtual = [];
-    let filtroStatusSelecionados = [];
+    let filtroStatusSelecionados = ['aprovado', 'pendente'];
     const semAcento = s => (s||'').toLowerCase().normalize('NFD').split('').filter(c => c.charCodeAt(0) < 768 || c.charCodeAt(0) > 879).join('').trim();
     let acaoAtualId = null;
 
@@ -929,7 +982,7 @@
         const svgClock  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a6800" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
         const svgTriang = '<svg width="12" height="12" viewBox="0 0 24 24" fill="#5b21b6"><path d="M12 2L1 21h22L12 2z"/><rect x="11" y="9" width="2" height="6" rx="1" fill="white"/><rect x="11" y="17" width="2" height="2" rx="1" fill="white"/></svg>';
 
-        container.innerHTML = lista.map(r => {
+        const cardHTML = r => {
             const idade = calcularIdade(r.nascimento);
             const menor = idade !== null && idade < 18;
             const status = r.status || 'pendente';
@@ -951,8 +1004,13 @@
                    <button class="btn-card-acao btn-card-rejeitar" onclick="event.stopPropagation();atualizarStatus(${r.id},'rejeitado')">Rejeitar</button>`
                 : `${badgeStatus}<span class="card-chevron">›</span>`;
 
+            const fotoHtml = r.foto_url
+                ? `<img src="${r.foto_url}" style="object-position:${r.foto_pos_x ?? 50}% ${r.foto_pos_y ?? 50}%;">`
+                : (r.nome || '?')[0].toUpperCase();
+
             return `
             <div class="card-ritmista ${status}" onclick="abrirCadastro(${r.id})">
+                <div class="card-foto">${fotoHtml}</div>
                 <div class="card-esquerda">
                     <div class="card-linha1">
                         <span class="card-nome">${r.nome}</span>
@@ -967,7 +1025,24 @@
                 </div>
                 <div class="card-direita">${direita}</div>
             </div>`;
-        }).join('');
+        };
+
+        // Agrupado por status, mesmo padrão de seção usado em Diretoria
+        // (Mestres/Diretores) -- pedido da Márcia, 18/ago/2026. `lista` já
+        // chega ordenada por status (aplicarFiltros), então basta juntar os
+        // consecutivos do mesmo grupo.
+        const tituloStatus = { pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', rejeitado: 'Rejeitados', desligado: 'Desligados' };
+        let html = '';
+        let statusAnterior = null;
+        lista.forEach(r => {
+            const status = r.status || 'pendente';
+            if (status !== statusAnterior) {
+                html += `<div class="secao-titulo">${tituloStatus[status] || status}</div>`;
+                statusAnterior = status;
+            }
+            html += cardHTML(r);
+        });
+        container.innerHTML = html;
     }
 
     async function atualizarStatus(id, status, motivo = null) {
@@ -1336,11 +1411,13 @@
         // sempre é reconhecível de cara, o da escola é. Achado real, 17/ago/2026:
         // esse campo nunca tinha sido ligado a dado de verdade -- configEscola
         // ficava sempre com os valores vazios de fábrica (config-escola.js).
-        const batEl = document.getElementById('headerBateria');
-        if (batEl) {
-            batEl.textContent = cfg.nomeEscola
-                ? `${cfg.nomeEscola} — ${cfg.nomeBateria || ''}`
-                : (cfg.nomeBateria || '');
+        const escolaEl = document.getElementById('headerEscolaNome');
+        const sepEl = document.getElementById('headerBateriaSep');
+        const bateriaEl = document.getElementById('headerBateriaNome');
+        if (bateriaEl) {
+            escolaEl.textContent = cfg.nomeEscola || '';
+            sepEl.style.display = cfg.nomeEscola ? '' : 'none';
+            bateriaEl.textContent = cfg.nomeBateria || '';
         }
 
         // Cor do botão Ativar (usa corDestaque da escola ou dourado TumTu)
@@ -1876,7 +1953,7 @@
         const usuarioAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');
         const souMestre = !!usuarioAtual && usuarioAtual.perfil === 'mestre';
 
-        lista.innerHTML = admins.map(a => {
+        const cardHTML = a => {
             const inicial = (a.nome || 'A')[0].toUpperCase();
             const fotoHtml = a.foto_url
                 ? `<img src="${a.foto_url}">`
@@ -1911,7 +1988,16 @@
                 </div>
                 ${acoes ? `<div style="display:flex;gap:6px;flex-shrink:0;" onclick="event.stopPropagation()">${acoes}</div>` : ''}
             </div>`;
-        }).join('');
+        };
+
+        // Mesma separação já usada no Super Admin (aba Acessos) -- Mestres
+        // primeiro, Diretores depois, cada um com seu título de seção.
+        const mestres = admins.filter(a => a.perfil === 'mestre');
+        const diretores = admins.filter(a => a.perfil === 'diretor');
+        let html = '';
+        if (mestres.length) html += `<div class="secao-titulo">Mestres</div>` + mestres.map(cardHTML).join('');
+        if (diretores.length) html += `<div class="secao-titulo">Diretores</div>` + diretores.map(cardHTML).join('');
+        lista.innerHTML = html;
 
         // Guarda admins para uso no modal
         window._adminsCache = admins;

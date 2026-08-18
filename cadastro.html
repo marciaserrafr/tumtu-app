@@ -315,6 +315,10 @@
                     <label>CPF do responsável <span class="obrigatorio">*</span></label>
                     <input type="text" id="responsavel_cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)">
                 </div>
+                <div class="auth-form-group">
+                    <label>Celular do responsável <span class="obrigatorio">*</span></label>
+                    <input type="text" id="responsavel_celular" placeholder="(21) 99999-9999" maxlength="15" oninput="mascaraCelular(this)">
+                </div>
             </div>
         </div>
         <div class="form-step-nav">
@@ -753,6 +757,7 @@
         const bloco = document.getElementById('bloco-responsavel');
         const nomeResp = document.getElementById('responsavel_nome');
         const cpfResp = document.getElementById('responsavel_cpf');
+        const celularResp = document.getElementById('responsavel_celular');
         let menor = false;
         if (iso) {
             const nascimento = new Date(iso + 'T00:00:00');
@@ -766,7 +771,8 @@
         bloco.style.display = menor ? 'block' : 'none';
         nomeResp.required = menor;
         cpfResp.required = menor;
-        if (!menor) { nomeResp.value = ''; cpfResp.value = ''; }
+        celularResp.required = menor;
+        if (!menor) { nomeResp.value = ''; cpfResp.value = ''; celularResp.value = ''; }
     }
 
     function mostrarOutro(campo) {
@@ -1235,6 +1241,7 @@
             nascimento: dataParaISO(document.getElementById('nascimento').value),
             responsavel_nome: document.getElementById('responsavel_nome').value.trim() || null,
             responsavel_cpf: document.getElementById('responsavel_cpf').value.trim() || null,
+            responsavel_celular: document.getElementById('responsavel_celular').value.trim() || null,
             celular: document.getElementById('celular').value,
             email: email || null,
             bateria_instrumento_id: document.getElementById('instrumento').value ? Number(document.getElementById('instrumento').value) : null,
@@ -1364,7 +1371,7 @@
                 nome: dados.nome, apelido: dados.apelido, genero: dados.genero, genero_personalizado: dados.genero_personalizado,
                 nacionalidade: dados.nacionalidade, cpf: dados.cpf,
                 tipo_documento: dados.tipo_documento, numero_documento: dados.numero_documento, nascimento: dados.nascimento,
-                responsavel_nome: dados.responsavel_nome, responsavel_cpf: dados.responsavel_cpf,
+                responsavel_nome: dados.responsavel_nome, responsavel_cpf: dados.responsavel_cpf, responsavel_celular: dados.responsavel_celular,
                 celular: dados.celular, email: dados.email, endereco: dados.endereco, numero: dados.numero,
                 complemento: dados.complemento, bairro: dados.bairro, cidade: dados.cidade, estado: dados.estado,
                 pais: dados.pais, tipo_sanguineo: dados.tipo_sanguineo,
