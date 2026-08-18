@@ -38,14 +38,38 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
         .header-esquerda { display: flex; flex-direction: column; gap: 2px; }
+        /* Quando o tema da escola tem logo, o cabeçalho vira logo GRANDE ao
+           lado do nome (não empilhado como o wordmark "TumTu" original) --
+           achado da Márcia, 18/ago/2026, primeiro teste real: a logo pequena
+           empilhada "ficou perdida". */
+        .header-esquerda.com-logo-escola { flex-direction: row; align-items: center; gap: 14px; }
+        .header-esquerda.com-logo-escola .header-badge {
+            font-size: 15px; font-weight: 700; letter-spacing: 0; text-transform: none; margin-top: 0;
+        }
         .header-marca { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
-        .header-marca-logo { max-height: 32px; max-width: 140px; object-fit: contain; display: block; }
+        .header-marca-logo { max-height: 52px; max-width: 200px; object-fit: contain; display: block; }
         .header-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(212,175,55,0.7); margin-top: 7px; }
         .header-acoes { display: flex; gap: 12px; align-items: center; }
         .header-user { font-size: 13px; color: rgba(255,255,255,0.6); }
         .btn-sair { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
-        .rodape-tumtu { text-align: center; padding: 18px 24px 24px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--cor-texto-muted); opacity: 0.6; }
         .btn-sair:hover { background: rgba(255,255,255,0.08); }
+        /* Botões do cabeçalho quando o tema da escola está ligado -- fundo
+           sólido claro em vez de contorno translúcido, pra ficar nítido em
+           cima de QUALQUER cor de escola, sem precisar calcular contraste
+           cor a cor (achado da Márcia, 18/ago/2026: o contorno sutil "não
+           tava legal", pouco nítido, mesmo já mudando de cor por trás dos
+           panos). */
+        .btn-header-tematico { background: rgba(255,255,255,0.94) !important; border-color: transparent !important; color: #12101a !important; font-weight: 700 !important; }
+        .btn-header-tematico:hover { background: #ffffff !important; }
+        .rodape-tumtu {
+            text-align: center; padding: 28px 24px 26px; margin-top: 12px;
+            border-top: 1px solid var(--cor-borda);
+        }
+        .rodape-tumtu .tt-logo { font-size: 15px; }
+        .rodape-tumtu .rodape-tagline {
+            display: block; margin-top: 3px; font-size: 10.5px; font-weight: 600;
+            letter-spacing: 0.8px; text-transform: uppercase; color: var(--cor-texto-muted);
+        }
         /* NAV ABAS */
         .nav-abas {
             display: flex; gap: 0; padding: 0 24px;
@@ -638,7 +662,10 @@
 
 </div><!-- /main -->
 
-<footer class="rodape-tumtu">TumTu</footer>
+<footer class="rodape-tumtu">
+    <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
+    <span class="rodape-tagline">Sistema de gestão de bateria</span>
+</footer>
 
 <!-- MODAL CADASTRO COMPLETO -->
 <div class="modal-overlay" id="modalCadastroOverlay">
@@ -1282,25 +1309,50 @@
         // não está presa a uma escola só.
         const header = document.getElementById('pageHeader');
         const marca = document.getElementById('headerMarca');
+        const headerEsquerda = document.querySelector('.header-esquerda');
         if (header && cfg.temaPersonalizadoAtivo && cfg.corPrimariaEscola) {
             header.style.background = cfg.corPrimariaEscola;
-            const claro = corEhClara(cfg.corPrimariaEscola);
-            const corTexto = claro ? '#12101a' : '#ffffff';
-            const corTextoSuave = claro ? 'rgba(18,16,26,0.7)' : 'rgba(255,255,255,0.6)';
-            const corBorda = claro ? 'rgba(18,16,26,0.25)' : 'rgba(255,255,255,0.25)';
-            if (marca && !cfg.logoEscola) marca.style.color = corTexto;
-            document.getElementById('headerBateria').style.color = claro ? 'rgba(18,16,26,0.75)' : 'rgba(212,175,55,0.7)';
-            document.getElementById('headerNome').style.color = corTextoSuave;
-            const btnCarteirinha = document.getElementById('btnMinhaCarteirinhaHeader');
-            if (btnCarteirinha) { btnCarteirinha.style.borderColor = corBorda; btnCarteirinha.style.color = corTextoSuave; }
-            const btnSair = document.querySelector('.btn-sair');
-            if (btnSair) { btnSair.style.borderColor = corBorda; btnSair.style.color = corTextoSuave; }
 
-            // Logo só substitui a marca TumTu se a escola tiver logo cadastrado
-            // -- tema ligado sem logo ainda enviado mantém a marca TumTu (com a
-            // cor de texto ajustada), nunca fica um espaço vazio no lugar dela.
+            // Texto branco com sombra sutil é o padrão (mesma técnica de banner
+            // colorido usada em muitos apps) -- funciona bem pra quase toda cor
+            // de marca, sem precisar acertar o tom exato de cada escola. Só
+            // troca pra texto escuro em cores CLARAMENTE claras (limiar mais
+            // alto que o usado na carteirinha, de propósito -- um verde ou azul
+            // médio, por exemplo, ainda lê melhor com texto branco+sombra do
+            // que com texto escuro). Achado da Márcia, 18/ago/2026: a primeira
+            // versão (texto escuro semi-transparente) ficou "sem graça", pouco
+            // nítida, mesmo tecnicamente mudando de cor.
+            const claro = corEhClara(cfg.corPrimariaEscola, 0.6);
+            const corTexto = claro ? '#12101a' : '#ffffff';
+            const sombra = claro ? 'none' : '0 1px 3px rgba(0,0,0,0.45)';
+
+            if (marca && !cfg.logoEscola) { marca.style.color = corTexto; marca.style.textShadow = sombra; }
+            const badge = document.getElementById('headerBateria');
+            badge.style.color = corTexto;
+            badge.style.textShadow = sombra;
+            const nome = document.getElementById('headerNome');
+            nome.style.color = corTexto;
+            nome.style.opacity = '0.85';
+            nome.style.textShadow = sombra;
+            document.getElementById('headerCargo').style.color = corTexto;
+            document.getElementById('headerCargo').style.opacity = '0.7';
+
+            // Botões: fundo sólido claro em vez de contorno translúcido -- fica
+            // nítido em cima de qualquer cor, sem depender de acertar o
+            // contraste cor a cor (era o que estava "não nítido" antes).
+            const btnCarteirinha = document.getElementById('btnMinhaCarteirinhaHeader');
+            if (btnCarteirinha) btnCarteirinha.classList.add('btn-header-tematico');
+            document.querySelector('.btn-sair').classList.add('btn-header-tematico');
+
+            // Logo GRANDE ao lado do nome da escola/bateria (não mais empilhada
+            // sozinha e pequena) -- achado da Márcia, 18/ago/2026: "a logo
+            // ficou muito pequena... tem que ficar sozinha e maior e ao lado
+            // dela o nome da escola e da bateria". Só substitui a marca TumTu
+            // se a escola tiver logo cadastrada -- sem logo ainda enviada, a
+            // marca TumTu continua ali (com a cor ajustada), nunca fica vazio.
             if (marca && cfg.logoEscola) {
                 marca.innerHTML = `<img src="${cfg.logoEscola}" class="header-marca-logo" alt="Logo">`;
+                if (headerEsquerda) headerEsquerda.classList.add('com-logo-escola');
             }
         }
         // Interruptor desligado (ou sem cor cadastrada ainda): nenhum style
@@ -1310,7 +1362,7 @@
     // Duplicado de carteirinha.html (mesma convenção do projeto: helper
     // pequeno de UI vive em cada arquivo, não é importado -- ver
     // fpMascaraData/ficha-perfil.js vs mascaraData/cadastro.html).
-    function corEhClara(hex) {
+    function corEhClara(hex, limiar) {
         if (!hex) return false;
         const h = hex.replace('#', '');
         const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
@@ -1320,7 +1372,7 @@
         const g = canal(parseInt(full.slice(2, 4), 16));
         const b = canal(parseInt(full.slice(4, 6), 16));
         const luminancia = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        return luminancia > 0.42;
+        return luminancia > (limiar ?? 0.42);
     }
 
     async function iniciarUsuario() {
