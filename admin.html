@@ -641,23 +641,168 @@
         .modal-admin-campo strong { font-size: 14px; color: #12101a; margin-top: 2px; }
         .modal-admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
         .modal-admin-acoes { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid #f0f0f0; padding-top: 16px; }
+
+        /* ══════════════════════════════════════════════════════════════
+           UNIFICAÇÃO ADMIN + SUPER ADMIN (Etapa 2) — tudo abaixo é novo.
+           Barra lateral e telas de Super Admin, portadas de super-admin.html
+           (que deixa de existir como arquivo separado).
+           ══════════════════════════════════════════════════════════════ */
+
+        /* Barra lateral do Super Admin (Dashboard/Escolas/Configurações/
+           Privacidade) — mesmo padrão visual e mesmo comportamento mobile
+           (vira barra fixa embaixo) já aprovado em super-admin.html,
+           21/jul/2026. Some completamente pra Admin comum. */
+        .sa-sidebar {
+            background: var(--cor-fundo-medio); display: flex; flex-direction: column; gap: 2px;
+            padding: 16px 12px; position: fixed; top: var(--altura-header-admin, 68px);
+            left: 0; bottom: 0; width: 210px; overflow-y: auto; z-index: 90;
+        }
+        .sa-sidebar-item {
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+            font-size: 13.5px; font-weight: 600; text-align: left; color: rgba(255,255,255,0.7);
+            cursor: pointer; background: none; border: none; font-family: inherit;
+            transition: color 0.15s, background 0.15s; white-space: nowrap;
+        }
+        .sa-sidebar-item .sa-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
+        .sa-sidebar-item:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
+        .sa-sidebar-item.ativa { color: var(--cor-destaque); background: rgba(212,175,55,0.16); font-weight: 700; }
+
+        /* Área de conteúdo do Super Admin (Dashboard/Escolas/Config/Privacidade) —
+           largura toda ao lado da barra lateral, não a coluna estreita centralizada
+           que .main usa pro contexto de uma escola. */
+        .sa-main { flex: 1; padding: 28px 32px; margin-left: 210px; }
+        .sa-painel { display: none; }
+        .sa-painel.ativo { display: block; }
+
+        /* Cards de listagem (Escolas, Privacidade, Histórico) */
+        .lista-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+        .item-card {
+            background: white; border: 1px solid var(--cor-borda); border-radius: 14px;
+            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        }
+        .item-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+        .item-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
+        .item-detalhe { font-size: 12px; color: var(--cor-texto-muted); }
+        .item-acoes { display: flex; gap: 8px; align-items: center; }
+        .badge-ativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #e8f5e9; color: #2e7d32; }
+        .badge-inativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fce4ec; color: #c62828; }
+        .badge-tag-demo { font-size: 10px; font-weight: 800; letter-spacing: 0.04em; color: #8a6d1a; background: #fdf1cf; padding: 3px 9px; border-radius: 999px; }
+
+        /* Dashboard (agregado, todas as escolas) */
+        .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+        .kpi { background: white; border: 1px solid var(--cor-borda); border-radius: 14px; padding: 16px 18px; }
+        .kpi .n { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--cor-texto-principal); }
+        .kpi .l { font-size: 12px; color: var(--cor-texto-secundario); font-weight: 600; margin-top: 2px; }
+        .kpi.ok .n { color: #2e7d32; }
+        .kpi.atencao .n { color: var(--cor-terracota); }
+        .kpi.atencao { border-color: var(--cor-terracota-clara); }
+        .dash-secao-titulo { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cor-texto-muted); margin: 4px 0 12px; }
+        .atencao-box { background: white; border: 1px solid var(--cor-borda); border-left: 4px solid var(--cor-terracota); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
+        .atencao-titulo { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--cor-terracota); margin-bottom: 10px; }
+        .atencao-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 13.5px; color: var(--cor-texto-principal); border-bottom: 1px solid var(--cor-borda); cursor: pointer; }
+        .atencao-item:last-child { border-bottom: none; }
+        .atencao-item .seta { color: var(--cor-terracota); font-weight: 700; white-space: nowrap; }
+        .baterias-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .bateria-card { background: white; border: 1px solid var(--cor-borda); border-radius: 14px; padding: 16px 18px; cursor: pointer; transition: border-color 0.15s; }
+        .bateria-card:hover { border-color: var(--cor-borda-forte); }
+        .bc-nome { font-size: 14.5px; font-weight: 700; color: var(--cor-texto-principal); margin-bottom: 2px; }
+        .bc-escola { font-size: 12px; color: var(--cor-texto-muted); margin-bottom: 12px; }
+        .bc-stats { display: flex; gap: 16px; }
+        .bc-stat .n { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--cor-texto-principal); }
+        .bc-stat .n.aviso { color: var(--cor-terracota); }
+        .bc-stat .l { font-size: 10.5px; color: var(--cor-texto-muted); font-weight: 600; text-transform: uppercase; }
+
+        /* Formulários inline (Nova Escola, Dados da Escola, Dados da Bateria) */
+        .card-form { margin-bottom: 14px; }
+        .card-form-titulo { font-size: 10px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 3px; border-bottom: 1px solid #D4AF37; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-grid .campo-full { grid-column: 1 / -1; }
+        .campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+        .campo > label { font-size: 11px; font-weight: 600; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 0.5px; }
+        .campo input, .campo select, .campo textarea {
+            padding: 7px 10px; border: 1.5px solid #D4AF37; border-radius: 8px;
+            font-size: 13px; color: #0f172a; font-family: inherit; background: #fffdf4;
+            transition: border-color 0.2s; outline: none;
+        }
+        .campo input:focus, .campo select:focus, .campo textarea:focus { border-color: #b8922a; }
+        .campo textarea { resize: vertical; min-height: 80px; }
+        .preview-cores { display: flex; gap: 10px; margin-top: 10px; padding: 14px; border-radius: 10px; background: var(--cor-fundo-claro); border: 1px solid var(--cor-borda); align-items: center; }
+        .preview-circulo { width: 36px; height: 36px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); flex-shrink: 0; }
+        .preview-texto { font-size: 12px; color: var(--cor-texto-muted); flex: 1; }
+        .logo-box { width: 96px; height: 96px; border-radius: 12px; border: 2px dashed #D4AF37; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; background: var(--cor-fundo-claro); flex-shrink: 0; }
+        .logo-box.desabilitado { cursor: default; border-style: solid; border-color: var(--cor-borda); }
+        .logo-box img { width: 100%; height: 100%; object-fit: contain; }
+        .logo-box-vazio { font-size: 11px; color: var(--cor-texto-muted); text-align: center; padding: 4px; }
+        .logo-area { display: flex; align-items: center; gap: 14px; }
+        .logo-hint { font-size: 11px; color: var(--cor-texto-muted); }
+        .form-rodape { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--cor-borda); flex-wrap: wrap; gap: 8px; }
+        .form-rodape-esq { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .btn-ficha-danger { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+        .btn-ficha-danger:hover { background: #fef0eb; }
+        .btn-secundario {
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: transparent;
+            color: var(--cor-texto-secundario); border: 1.5px solid var(--cor-borda); border-radius: 10px;
+            cursor: pointer; font-size: 14px; font-weight: 700; font-family: inherit; margin-bottom: 20px;
+        }
+        .btn-secundario:hover { border-color: var(--cor-borda-forte); color: var(--cor-texto-principal); }
+        .cat-edit-nom-linha { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .cat-edit-nom-linha input { flex: 1; padding: 9px 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; }
+        .cat-edit-nom-remover { background: none; border: none; color: #b3261e; font-size: 18px; cursor: pointer; padding: 0 6px; line-height: 1; }
+        .cat-edit-nom-add { display: inline-block; margin-top: 4px; font-size: 12.5px; color: #D4AF37; cursor: pointer; font-weight: 600; }
+        .cat-edit-nom-add:hover { text-decoration: underline; }
+
+        /* Modal padrão Super Admin (usado só pela exclusão LGPD) */
+        .modal-sa { background: white; border-radius: 16px; width: 100%; max-width: 440px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-sa-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid var(--cor-borda); flex-shrink: 0; }
+        .modal-sa-titulo { font-size: 16px; font-weight: 800; color: var(--cor-texto-principal); }
+        .modal-sa-fechar { background: none; border: none; font-size: 20px; cursor: pointer; color: #aaa; line-height: 1; padding: 0 4px; }
+        .modal-sa-fechar:hover { color: #333; }
+        .modal-sa-body { padding: 20px 24px; overflow-y: auto; overflow-x: hidden; flex: 1; }
+        .modal-sa-rodape { padding: 16px 24px; border-top: 1px solid var(--cor-borda); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; flex-wrap: wrap; gap: 8px; }
+
+        /* Toast (Super Admin) */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; background: #12101a; color: white; padding: 14px 20px;
+            border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            z-index: 9999; display: none; align-items: center; gap: 10px;
+        }
+        .toast.ok { border-left: 4px solid #D4AF37; }
+        .toast.erro { border-left: 4px solid #ef4444; }
+        .toast.visivel { display: flex; }
+
+        /* Botão "← Escolas", só aparece pra Super Admin dentro do contexto de uma escola */
+        .btn-voltar-escolas { background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.75); padding: 0; font-family: inherit; margin-bottom: 4px; text-align: left; }
+        .btn-voltar-escolas:hover { color: #fff; text-decoration: underline; }
+
+        @media (max-width: 560px) {
+            .sa-sidebar {
+                flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+                position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: 100%;
+                background: var(--cor-fundo-escuro); justify-content: space-around; z-index: 200;
+            }
+            .sa-sidebar-item { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
+            .sa-sidebar-item .sa-ic { font-size: 18px; width: auto; }
+            .sa-sidebar-item.ativa { background: none; }
+            .sa-main { margin-left: 0; padding: 16px 12px 82px; }
+            .kpi-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .baterias-grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-grid .campo-full { grid-column: 1; }
+            .item-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .item-acoes { width: 100%; justify-content: flex-end; }
+        }
     </style>
 </head>
 <body>
 
-<!-- Banner Super Admin (só aparece quando acessado via super-admin.html) -->
-<div id="banner-superadmin" style="display:none; background:#1e1b2e; color:#8b88a0; font-size:12px; padding:8px 20px; align-items:center; justify-content:space-between; font-family:'Plus Jakarta Sans',sans-serif;">
-    <span>⚡ Acessando como Super Admin — <strong id="banner-escola-nome" style="color:#D4AF37"></strong></span>
-    <button onclick="window.close()" style="background:transparent; border:1px solid #5a5770; color:#8b88a0; font-size:11px; padding:3px 10px; border-radius:6px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Fechar aba</button>
-</div>
-
 <div class="header" id="pageHeader">
     <div class="header-esquerda">
+        <button id="btnVoltarEscolasHeader" class="btn-voltar-escolas" onclick="voltarParaEscolasSA()" style="display:none">← Escolas</button>
         <div class="header-marca tt-logo" id="headerMarca"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
         <div class="header-badge" id="headerBateria"><span id="headerEscolaNome" class="hb-escola"></span><span id="headerBateriaSep" class="hb-sep"> — </span><span id="headerBateriaNome" class="hb-bateria"></span></div>
     </div>
     <div class="header-acoes">
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;" id="headerNomeWrap">
             <span class="header-user" id="headerNome"></span>
             <span id="headerCargo" style="font-size:10px;color:rgba(212,175,55,0.6);letter-spacing:0.5px;text-transform:uppercase;"></span>
         </div>
@@ -668,17 +813,212 @@
 
 <div class="conteudo-rolavel">
 
-<!-- NAV ABAS -->
-<nav class="nav-abas">
+<!-- ══════════════════════════════════════════════════════════════════
+     BARRA LATERAL DO SUPER ADMIN — só existe/aparece quando quem logou
+     é Super Admin (perfil==='super_admin'). Mestre/Diretor nunca vê isso.
+     ══════════════════════════════════════════════════════════════════ -->
+<div class="sa-sidebar" id="saSidebar" style="display:none">
+    <button type="button" class="sa-sidebar-item ativa" data-sa="dashboard" onclick="trocarSaAba('dashboard',this)"><span class="sa-ic">📊</span><span>Dashboard</span></button>
+    <button type="button" class="sa-sidebar-item" data-sa="escolas" onclick="trocarSaAba('escolas',this)"><span class="sa-ic">🏫</span><span>Escolas</span></button>
+    <button type="button" class="sa-sidebar-item" data-sa="configuracoes-globais" onclick="trocarSaAba('configuracoes-globais',this)"><span class="sa-ic">⚙️</span><span>Configurações</span></button>
+    <button type="button" class="sa-sidebar-item" data-sa="privacidade" onclick="trocarSaAba('privacidade',this)"><span class="sa-ic">🔒</span><span>Privacidade</span></button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CONTEÚDO DO SUPER ADMIN (Dashboard/Escolas/Configurações globais/
+     Privacidade) — portado de super-admin.html.
+     ══════════════════════════════════════════════════════════════════ -->
+<div class="sa-main" id="saMain" style="display:none">
+
+    <!-- DASHBOARD -->
+    <div class="sa-painel ativo" id="sa-painel-dashboard">
+        <div class="painel-titulo">Dashboard</div>
+        <div class="vg-secao-titulo" style="margin-bottom:20px;">Visão geral de todas as escolas e ritmistas.</div>
+        <div class="kpi-row" id="dashboard-kpis"></div>
+        <div id="dashboard-atencao"></div>
+        <div class="dash-secao-titulo">Baterias</div>
+        <div class="baterias-grid" id="dashboard-lista-baterias"></div>
+    </div>
+
+    <!-- ESCOLAS -->
+    <div class="sa-painel" id="sa-painel-escolas">
+        <div class="painel-titulo">Escolas</div>
+        <div class="vg-secao-titulo" style="margin-bottom:16px;">Selecione uma escola para gerenciar seu cadastro, bateria e acessos.</div>
+        <button class="btn-novo" onclick="abrirNovaEscolaSA()">+ Nova Escola</button>
+        <div id="lista-escolas" class="lista-cards">
+            <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
+        </div>
+    </div>
+
+    <!-- NOVA ESCOLA -->
+    <div class="sa-painel" id="sa-painel-nova-escola">
+        <div style="margin-bottom:16px;">
+            <button class="btn-voltar-config" onclick="trocarSaAba('escolas', document.querySelector('.sa-sidebar-item[data-sa=escolas]'))">← Escolas</button>
+        </div>
+        <div class="card-form">
+            <div class="card-form-titulo">Dados da Escola</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome Completo *</label><input type="text" id="nova-escola-nome" placeholder="Ex: Grêmio Recreativo..."></div>
+                <div class="campo campo-full"><label>Sigla *</label><input type="text" id="nova-escola-sigla" placeholder="Ex: Imperatriz"></div>
+                <div class="campo campo-full"><label>Logo da Escola</label>
+                    <div class="logo-area">
+                        <div class="logo-box" id="nova-escola-logo-preview" onclick="document.getElementById('nova-escola-logo-input').click()">
+                            <span class="logo-box-vazio">Sem logo</span>
+                        </div>
+                        <div class="logo-hint">Clique no quadro para escolher a imagem do logo.<br>Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>
+                    </div>
+                    <input type="file" id="nova-escola-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'escolaNova')">
+                </div>
+                <div class="campo campo-full"><label>Temporada Atual</label><input type="text" id="nova-escola-temporada" placeholder="Ex: Carnaval 2027"></div>
+                <div class="campo campo-full"><label>Validade da Carteirinha <span style="font-weight:400;color:#999;font-size:12px;">— provisório, vai morar em Configurações → Carteirinha no futuro</span></label><input type="date" id="nova-escola-validade"></div>
+                <div class="campo"><label>Cor Primária</label><input type="text" id="nova-escola-cor-primaria" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
+                <div class="campo"><label>Cor Secundária</label><input type="text" id="nova-escola-cor-secundaria" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
+                <div class="campo"><label>Cor Terciária</label><input type="text" id="nova-escola-cor-terciaria" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
+                <div class="campo"><label>Cor Quaternária</label><input type="text" id="nova-escola-cor-quaternaria" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
+                <div class="campo campo-full"><label>Preview</label><div class="preview-cores" id="preview-nova-escola"><span style="font-size:13px;color:#999">Sem cores definidas</span></div></div>
+                <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="nova-escola-tema-ativo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;">
+                    <label for="nova-escola-tema-ativo" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Ligar cores da escola no painel de gestão</label>
+                </div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarNovaEscola()">Salvar Escola</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIGURAÇÕES GLOBAIS (biblioteca mestre — Instrumentos/Medidas/Perfis de Permissão) -->
+    <div class="sa-painel" id="sa-painel-configuracoes-globais">
+        <div id="sa-config-lista">
+            <div class="painel-titulo">Configurações</div>
+            <div class="vg-secao-titulo" style="margin-bottom:16px;">Ajustes que valem para todas as escolas.</div>
+            <div class="config-item" onclick="abrirConfigTelaSA('instrumentos')"><span>Instrumentos</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Medidas</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="abrirConfigTelaSA('permissoes')"><span>Perfis de Permissão</span><span class="config-item-seta">›</span></div>
+        </div>
+
+        <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
+            <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
+            <div class="painel-titulo">Instrumentos</div>
+            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada categoria pode ter mais de um nome possível (nomenclatura); cada bateria escolhe qual usar em "Configurações → Instrumentos" no painel dela.</p>
+            <button class="btn-novo" onclick="abrirNovaCategoria()">+ Nova Categoria</button>
+            <div id="sa-categoria-editor" style="display:none;"></div>
+            <div id="sa-categorias-lista"></div>
+        </div>
+
+        <div id="sa-config-tela-medidas" class="config-subtela" style="display:none;">
+            <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
+            <div class="painel-titulo">Medidas</div>
+            <p class="config-sub-desc">Biblioteca mestre de tamanhos — vale para todas as escolas. Cada bateria escolhe quais usar em "Configurações → Medidas" no painel dela.</p>
+            <button class="btn-novo" onclick="abrirNovoTamanho()">+ Novo Tamanho</button>
+            <div id="sa-tamanho-editor" style="display:none;"></div>
+            <div id="sa-tamanhos-lista"></div>
+        </div>
+
+        <div id="sa-config-tela-permissoes" class="config-subtela" style="display:none;">
+            <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
+            <div class="painel-titulo">Perfis de Permissão</div>
+            <p class="config-sub-desc">Biblioteca mestre — modelos prontos que qualquer escola pode ativar (e ajustar) na própria aba "Permissões". Editar um modelo aqui não muda o que uma escola já ativou.</p>
+            <button class="btn-novo" onclick="abrirNovoNivel()">+ Novo Perfil</button>
+            <div id="sa-nivel-editor" style="display:none;"></div>
+            <div id="sa-niveis-lista"></div>
+        </div>
+    </div>
+
+    <!-- PRIVACIDADE (LGPD) -->
+    <div class="sa-painel" id="sa-painel-privacidade">
+        <div class="painel-titulo">Privacidade</div>
+        <div class="vg-secao-titulo" style="margin-bottom:20px;">Exclusão de dados sob pedido (LGPD) — ações sem volta, com prova registrada abaixo.</div>
+
+        <div class="ficha-secao-titulo">Excluir dados de uma pessoa</div>
+        <div class="vg-secao-titulo" style="margin:0 0 10px;text-transform:none;letter-spacing:0;font-weight:400;">Busca por nome, CPF ou e-mail — encontra até quem não tem vínculo com nenhuma bateria hoje.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input type="text" id="priv-busca-pessoa" class="fc-input" style="display:block;flex:1;min-width:220px;" placeholder="Nome, CPF ou e-mail..." onkeydown="if(event.key==='Enter'){event.preventDefault();buscarPessoaExclusao();}">
+            <button class="btn-novo" style="margin:0;" onclick="buscarPessoaExclusao()">Buscar</button>
+        </div>
+        <div id="priv-resultado-pessoa" style="margin-top:12px;"></div>
+
+        <div class="ficha-secao-titulo" style="margin-top:28px;">Excluir uma escola inteira</div>
+        <div class="vg-secao-titulo" style="margin:0 0 10px;text-transform:none;letter-spacing:0;font-weight:400;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select id="priv-select-escola" class="fc-input" style="display:block;flex:1;min-width:220px;">
+                <option value="">Selecione a escola...</option>
+            </select>
+            <button class="btn-ficha btn-ficha-danger" style="margin:0;" onclick="prepararExclusaoEscola()">Excluir escola</button>
+        </div>
+
+        <div class="ficha-secao-titulo" style="margin-top:28px;">Histórico de exclusões (prova)</div>
+        <div class="vg-secao-titulo" style="margin:0 0 10px;text-transform:none;letter-spacing:0;font-weight:400;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
+        <div id="priv-lista-log">
+            <div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Carregando...</div>
+        </div>
+    </div>
+
+</div><!-- /saMain -->
+
+<!-- NAV ABAS (contexto de uma escola — Mestre/Diretor sempre; Super Admin depois de entrar numa escola) -->
+<nav class="nav-abas" id="navAbasEscola" style="display:none">
+    <button class="aba-btn-sa aba-btn" data-aba="dados-escola" onclick="trocarAba('dados-escola', this)" style="display:none">Dados da Escola</button>
+    <button class="aba-btn-sa aba-btn" data-aba="dados-bateria" onclick="trocarAba('dados-bateria', this)" style="display:none">Dados da Bateria</button>
+    <button class="aba-btn-sa aba-btn" data-aba="modo-venda" onclick="trocarAba('modo-venda', this)" style="display:none">Modo de Venda</button>
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)">Visão Geral</button>
     <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
     <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)">Diretoria</button>
     <button class="aba-btn" data-aba="convites" onclick="trocarAba('convites', this)">Convites</button>
+    <button class="aba-btn-sa aba-btn" data-aba="permissoes" onclick="trocarAba('permissoes', this)" style="display:none">Permissões</button>
+    <button class="aba-btn-sa aba-btn" data-aba="historico" onclick="trocarAba('historico', this)" style="display:none">Histórico</button>
     <button class="aba-btn" data-aba="configuracoes" onclick="trocarAba('configuracoes', this)">Configurações</button>
     <button class="aba-btn" data-aba="meu-perfil" onclick="trocarAba('meu-perfil', this)">Meu Perfil</button>
 </nav>
 
-<div class="main">
+<div class="main" id="mainEscola" style="display:none">
+
+<!-- PAINEL DADOS DA ESCOLA (só Super Admin, nesta etapa) -->
+<div class="painel" id="painel-dados-escola">
+    <div class="painel-titulo">Dados da Escola</div>
+    <div id="dadosEscolaConteudo">
+        <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
+    </div>
+</div>
+
+<!-- PAINEL DADOS DA BATERIA (só Super Admin, nesta etapa) -->
+<div class="painel" id="painel-dados-bateria">
+    <div class="painel-titulo">Dados da Bateria</div>
+    <div id="dadosBateriaConteudo">
+        <div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Carregando...</div>
+    </div>
+</div>
+
+<!-- PAINEL MODO DE VENDA (só Super Admin — decisão comercial, nunca junto de "Dados da Bateria") -->
+<div class="painel" id="painel-modo-venda">
+    <div class="painel-titulo">Modo de Venda</div>
+    <div id="modoVendaConteudo">
+        <div class="estado-vazio"><div class="estado-vazio-icone">🎟️</div>Carregando...</div>
+    </div>
+</div>
+
+<!-- PAINEL PERMISSÕES (por escola, só Super Admin nesta etapa) -->
+<div class="painel" id="painel-permissoes">
+    <div class="painel-titulo">Permissões</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+        <button class="btn-novo" onclick="abrirAtivarPerfilEscolaSA()">+ Ativar Perfil da Biblioteca</button>
+        <button class="btn-secundario" onclick="abrirNovoPerfilEscolaSA()">+ Criar Perfil Exclusivo</button>
+    </div>
+    <div id="pe-ativar-lista" style="display:none;margin-bottom:20px;"></div>
+    <div id="pe-editor" style="display:none;"></div>
+    <div id="pe-perfis-lista"></div>
+</div>
+
+<!-- PAINEL HISTÓRICO (por escola, só Super Admin nesta etapa) -->
+<div class="painel" id="painel-historico">
+    <div class="painel-titulo">Histórico</div>
+    <div class="vg-secao-titulo" style="margin-bottom:20px;text-transform:none;letter-spacing:0;font-weight:400;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta bateria, e quando.</div>
+    <div id="lista-historico-escola">
+        <div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Carregando...</div>
+    </div>
+</div>
 
 <!-- PAINEL RITMISTAS -->
 <div class="painel" id="painel-ritmistas">
@@ -911,6 +1251,20 @@
     </div>
 </div>
 
+<!-- MODAL DESATIVAR ESCOLA (só Super Admin) -->
+<div class="modal-overlay" id="modalDesativarEscola">
+    <div class="modal">
+        <h2>Desativar Escola</h2>
+        <p id="modalDesativarEscolaNome"></p>
+        <label>Motivo *</label>
+        <textarea id="motivoDesativarEscola" rows="3" placeholder="Ex: temporada encerrada, escola solicitou pausa..."></textarea>
+        <div class="modal-acoes">
+            <button class="btn-modal-cancelar" onclick="fecharModal('modalDesativarEscola')">Cancelar</button>
+            <button class="btn-modal-confirmar vermelho" onclick="confirmarDesativarEscola()">Desativar</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL EXPORTAR EXCEL -->
 <div class="modal-overlay" id="modalExportarExcel">
     <div class="modal modal-exportar">
@@ -991,6 +1345,50 @@
     </div>
 </div>
 
+<!-- MODAL CONFIRMAR EXCLUSÃO (LGPD) — reaproveitado pra pessoa e escola, portado de super-admin.html -->
+<div class="modal-overlay" id="modal-excluir-lgpd-overlay" onclick="fecharSeForaModal(event,'modal-excluir-lgpd-overlay','fecharConfirmacaoExclusao')">
+    <div class="modal-sa" style="max-width:440px;">
+        <div class="modal-sa-header">
+            <div class="modal-sa-titulo" id="excluir-lgpd-titulo">Excluir dados</div>
+            <button class="modal-sa-fechar" onclick="fecharConfirmacaoExclusao()">✕</button>
+        </div>
+        <div class="modal-sa-body">
+            <p id="excluir-lgpd-descricao" style="font-size:14px;color:#5a5770;margin-bottom:14px;"></p>
+            <div class="campo" style="margin-bottom:10px;" id="excluir-lgpd-motivo-pessoa-wrap">
+                <label>Motivo *</label>
+                <select id="excluir-lgpd-motivo-select" onchange="onMudarMotivoExclusaoPessoa()">
+                    <option value="">Selecione...</option>
+                    <option value="pedido_pessoa">A pedido da própria pessoa</option>
+                    <option value="perda_acesso">Perda de acesso — vai se cadastrar de novo</option>
+                    <option value="outro">Outro</option>
+                </select>
+            </div>
+            <div class="campo" style="margin-bottom:10px;display:none;" id="excluir-lgpd-motivo-outro-wrap">
+                <label>Descreva o motivo *</label>
+                <input type="text" id="excluir-lgpd-motivo-outro" placeholder="Descreva o motivo" oninput="onDigitarConfirmacaoExclusao()">
+            </div>
+            <div class="campo" style="margin-bottom:10px;display:none;" id="excluir-lgpd-motivo-escola-wrap">
+                <label>Motivo *</label>
+                <input type="text" id="excluir-lgpd-motivo" placeholder="Ex: parceria encerrada, escola solicitou" oninput="onDigitarConfirmacaoExclusao()">
+            </div>
+            <div class="campo" style="margin-bottom:10px;">
+                <label>Quem pediu (opcional)</label>
+                <input type="text" id="excluir-lgpd-solicitante" placeholder="Ex: a própria pessoa, por e-mail">
+            </div>
+            <div class="campo">
+                <label>Pra confirmar, digite <strong>EXCLUIR</strong> abaixo</label>
+                <input type="text" id="excluir-lgpd-confirmacao" placeholder="EXCLUIR" oninput="onDigitarConfirmacaoExclusao()" style="text-transform:uppercase;">
+            </div>
+        </div>
+        <div class="modal-sa-rodape">
+            <button class="btn-ficha" onclick="fecharConfirmacaoExclusao()">Cancelar</button>
+            <button class="btn-ficha btn-ficha-danger" id="excluir-lgpd-btn-confirmar" disabled onclick="executarExclusaoConfirmada()">Excluir de vez</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST (Super Admin) -->
+<div class="toast" id="toast"></div>
 
 <script src="config-escola.js?v=3"></script>
 <script src="config-suporte.js?v=1"></script>
@@ -1029,11 +1427,7 @@
     }
 
     function bateriaIdContexto() {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('superadmin') === 'true') {
-            const bid = params.get('bateria_id');
-            return bid ? Number(bid) : null;
-        }
+        if (souSuperAdmin) return bateriaAtualData ? bateriaAtualData.id : null;
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         return u ? u.bateria_id : null;
     }
@@ -1666,9 +2060,9 @@
     }
 
     function irParaCadastroManualRitmista() {
-        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        if (!u || !u.bateria_id) { alert('Bateria não encontrada para este usuário.'); return; }
-        window.location.href = `cadastro.html?modo=manual&cargo=ritmista&bateria_id=${u.bateria_id}`;
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { alert('Bateria não encontrada para este usuário.'); return; }
+        window.location.href = `cadastro.html?modo=manual&cargo=ritmista&bateria_id=${bateriaId}`;
     }
 
 
@@ -1867,6 +2261,22 @@
     async function iniciarUsuario() {
         const usuario = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!usuario) { window.location.href = 'login.html'; return; }
+
+        // Super Admin: sem bateria própria, sem trava de modo_piloto -- cai na
+        // barra lateral (Dashboard/Escolas/Configurações/Privacidade), nunca
+        // no contexto de uma escola até escolher uma em "Escolas".
+        if (usuario.perfil === 'super_admin') {
+            souSuperAdmin = true;
+            document.getElementById('headerNome').textContent = usuario.nome || 'Super Admin';
+            document.getElementById('headerNomeWrap').style.cursor = 'pointer';
+            document.getElementById('headerNomeWrap').onclick = abrirMeuPerfilSA;
+            document.getElementById('headerNomeWrap').title = 'Meu Perfil';
+            ajustarAlturaHeaderAdmin();
+            mostrarShellSA();
+            trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
+            return;
+        }
+
         // Trava da fase piloto: Mestre/Diretor de bateria com modo_piloto ligado não vê o painel, mesmo digitando a URL direto.
         if (usuario.modo_piloto) { window.location.href = 'carteirinha.html'; return; }
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
@@ -1882,6 +2292,9 @@
         await carregarNomeEscolaBateria(usuario.bateria_id);
         aplicarConfigEscola();
         renderizarLinksCadastroAdmin();
+        document.getElementById('navAbasEscola').style.display = 'flex';
+        document.getElementById('mainEscola').style.display = 'block';
+        carregarRitmistas();
     }
 
     // Preenche configEscola.nomeEscola/nomeBateria com dado real -- antes desse
@@ -1921,9 +2334,8 @@
     function renderizarLinksCadastroAdmin() {
         const div = document.getElementById('linksCadastroAdmin');
         if (!div) return;
-        const usuario = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        const codigo = codigoConviteBateria || (usuario ? usuario.bateria_id : null);
-        if (!codigo) { div.innerHTML = '<p style="font-size:13px;color:#999;">Não foi possível montar os links agora.</p>'; return; }
+        const codigo = codigoConviteBateria || bateriaIdContexto();
+        if (!codigo) { div.innerHTML = '<p style="font-size:13px;color:#999;">Cadastre uma bateria primeiro, em "Dados da Bateria".</p>'; return; }
         const base = `${window.location.origin}/cadastro.html?bateria=${codigo}`;
         const linhas = [
             { label: 'Ritmista', url: base },
@@ -2180,21 +2592,1231 @@
         renderizarConfigMedidas();
     }
 
-    // ── MODO SUPER ADMIN ─────────────────────────────────────────────
-    (function() {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('superadmin') === 'true') {
-            const banner = document.getElementById('banner-superadmin');
-            banner.style.display = 'flex';
-            const nome = decodeURIComponent(params.get('escola_nome') || '');
-            document.getElementById('banner-escola-nome').textContent = nome;
+    // ══════════════════════════════════════════════════════════════════
+    // SUPER ADMIN — portado de super-admin.html (Etapa 2 da unificação,
+    // 18/ago/2026). Tudo abaixo só é acionado quando souSuperAdmin===true.
+    // Nesta etapa: sem capacidades/RLS novas -- Super Admin sempre vê tudo,
+    // Admin comum continua vendo exatamente as mesmas 6 abas de sempre.
+    // ══════════════════════════════════════════════════════════════════
+    let souSuperAdmin = false;
+    let dentroDeEscolaSA = false;
+    let meuPerfilSoloSA = false;
+    let saAbaAtual = 'dashboard';
+    let escolaSelecionadaId = null;
+    let escolaAtualData = null;
+    let bateriaAtualData = null;
+    let escolasCache = [];
+    let bateriasCache = [];
+    let logoPendente = { escolaNova: null, escolaEdicao: null, bateria: null };
+
+    // Mede a altura real do cabeçalho pra barra lateral do Super Admin nunca
+    // ficar por baixo dele (mesmo truque de super-admin.html, 21/jul/2026).
+    function ajustarAlturaHeaderAdmin() {
+        const header = document.getElementById('pageHeader');
+        if (header) document.documentElement.style.setProperty('--altura-header-admin', header.offsetHeight + 'px');
+    }
+    window.addEventListener('resize', ajustarAlturaHeaderAdmin);
+
+    function esc(val) {
+        if (!val) return '';
+        return String(val).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function mostrarToast(msg, tipo = 'ok') {
+        const t = document.getElementById('toast');
+        t.textContent = tipo === 'ok' ? '✓  ' + msg : '✕  ' + msg;
+        t.className = 'toast visivel ' + tipo;
+        setTimeout(() => { t.className = 'toast'; }, 3500);
+    }
+
+    function fecharSeForaModal(event, overlayId, fecharFn) {
+        if (event.target.id === overlayId) window[fecharFn]();
+    }
+
+    // ── UPLOAD DE LOGO (escola e bateria) ──────────────────────────────
+    const LOGO_PREVIEW_IDS = { escolaNova: 'nova-escola-logo-preview', escolaEdicao: 'escola-logo-preview', bateria: 'bat-logo-preview' };
+    function previewLogo(input, contexto) {
+        if (!input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                const MAX = 500;
+                let w = img.width, h = img.height;
+                if (w > MAX || h > MAX) {
+                    const escala = Math.min(MAX / w, MAX / h);
+                    w = Math.round(w * escala); h = Math.round(h * escala);
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const base64 = canvas.toDataURL('image/png');
+                logoPendente[contexto] = base64;
+                document.getElementById(LOGO_PREVIEW_IDS[contexto]).innerHTML = `<img src="${base64}">`;
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    // ── PREVIEW DE COR ──────────────────────────────────────────────────
+    function montarPreviewCores(idsCores) {
+        const cores = idsCores.map(id => document.getElementById(id)?.value.trim() || '').filter(Boolean);
+        if (!cores.length) return `<span style="font-size:13px;color:#999">Sem cores definidas</span>`;
+        const circulos = cores.map(c => `<div class="preview-circulo" style="background:${c}"></div>`).join('');
+        return `${circulos}<span class="preview-texto">Cores da escola</span>`;
+    }
+    function atualizarPreviewEscola() {
+        const preview = document.getElementById('preview-escola');
+        if (!preview) return;
+        preview.innerHTML = montarPreviewCores(['escola-cor-primaria','escola-cor-secundaria','escola-cor-terciaria','escola-cor-quaternaria']);
+    }
+    function atualizarPreviewNovaEscola() {
+        const preview = document.getElementById('preview-nova-escola');
+        if (!preview) return;
+        preview.innerHTML = montarPreviewCores(['nova-escola-cor-primaria','nova-escola-cor-secundaria','nova-escola-cor-terciaria','nova-escola-cor-quaternaria']);
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // NAVEGAÇÃO SUPER ADMIN — barra lateral (Dashboard/Escolas/
+    // Configurações/Privacidade) vs. contexto de escola (barra horizontal
+    // que Admin comum já usa, com 4 abas extras só pra Super Admin).
+    // ══════════════════════════════════════════════════════════════════
+    function mostrarShellSA() {
+        dentroDeEscolaSA = false;
+        meuPerfilSoloSA = false;
+        document.getElementById('saSidebar').style.display = 'flex';
+        document.getElementById('saMain').style.display = 'block';
+        document.getElementById('navAbasEscola').style.display = 'none';
+        document.getElementById('mainEscola').style.display = 'none';
+        document.getElementById('btnVoltarEscolasHeader').style.display = 'none';
+        document.getElementById('headerEscolaNome').textContent = '';
+        document.getElementById('headerBateriaSep').style.display = 'none';
+        document.getElementById('headerBateriaNome').textContent = 'Super Admin';
+        document.getElementById('btnMinhaCarteirinhaHeader').style.display = 'none';
+    }
+
+    function trocarSaAba(aba, el) {
+        window.scrollTo(0, 0);
+        saAbaAtual = aba;
+        document.querySelectorAll('.sa-sidebar-item').forEach(x => x.classList.remove('ativa'));
+        if (el) el.classList.add('ativa');
+        document.querySelectorAll('.sa-painel').forEach(p => p.classList.remove('ativo'));
+        const alvo = document.getElementById('sa-painel-' + aba);
+        if (alvo) alvo.classList.add('ativo');
+        if (aba === 'dashboard') carregarDashboard();
+        if (aba === 'escolas') carregarEscolas();
+        if (aba === 'privacidade') carregarPrivacidade();
+        if (aba === 'configuracoes-globais') voltarConfigListaSA();
+    }
+
+    // Entra no contexto de uma escola -- reaproveita 100% o que admin.html já
+    // usa pro próprio Mestre/Diretor (carregarRitmistas, carregarDiretoria,
+    // renderizarLinksCadastroAdmin, aplicarConfigEscola etc), só trocando de
+    // onde vem o bateria_id (ver bateriaIdContexto()).
+    async function entrarContextoEscolaSA(escolaId) {
+        window.scrollTo(0, 0);
+        escolaSelecionadaId = escolaId;
+        dentroDeEscolaSA = true;
+        meuPerfilSoloSA = false;
+
+        const resE = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${escolaId}`, { headers: authHeaders });
+        const dadosE = await resE.json();
+        escolaAtualData = Array.isArray(dadosE) && dadosE[0] ? dadosE[0] : null;
+
+        await carregarBaterias(escolaId);
+        bateriaAtualData = bateriasCache[0] || null;
+        diretoriaCarregada = false; // troca de escola invalida o cache de Diretoria da escola anterior
+
+        document.getElementById('saSidebar').style.display = 'none';
+        document.getElementById('saMain').style.display = 'none';
+        document.getElementById('navAbasEscola').style.display = 'flex';
+        document.getElementById('mainEscola').style.display = 'block';
+        document.getElementById('btnVoltarEscolasHeader').textContent = '← Escolas';
+        document.getElementById('btnVoltarEscolasHeader').style.display = 'block';
+        document.getElementById('btnMinhaCarteirinhaHeader').style.display = 'none';
+        document.querySelectorAll('.aba-btn-sa').forEach(el => el.style.display = '');
+        document.getElementById('headerBateriaSep').style.display = '';
+        document.getElementById('headerCargo').textContent = 'Super Admin';
+
+        await carregarBibliotecaInstrumentos();
+        await carregarBateriaInstrumentos();
+        construirMultiSelect();
+
+        if (bateriaAtualData) {
+            await carregarNomeEscolaBateria(bateriaAtualData.id);
+        } else {
+            configEscola.nomeEscola = escolaAtualData ? (escolaAtualData.sigla || escolaAtualData.nome || '') : '';
+            configEscola.nomeBateria = '(sem bateria cadastrada)';
+            configEscola.temaPersonalizadoAtivo = false;
         }
-    })();
+        aplicarConfigEscola();
+        renderizarLinksCadastroAdmin();
+
+        if (niveisAcessoCache.length === 0) await carregarNiveisAcesso();
+        await carregarPerfisEscolaSA();
+
+        renderizarDadosEscolaTab();
+        renderizarDadosBateriaTab();
+        renderizarModoVendaTab();
+
+        trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
+        carregarRitmistas();
+    }
+
+    function voltarParaEscolasSA() {
+        window.scrollTo(0, 0);
+        if (meuPerfilSoloSA) { mostrarShellSA(); trocarSaAba(saAbaAtual, document.querySelector('.sa-sidebar-item[data-sa="' + saAbaAtual + '"]')); return; }
+        escolaSelecionadaId = null; escolaAtualData = null; bateriaAtualData = null;
+        mostrarShellSA();
+        trocarSaAba('escolas', document.querySelector('.sa-sidebar-item[data-sa="escolas"]'));
+    }
+
+    // Atalho do Dashboard: "X pendentes" de uma bateria já abre direto em Diretoria.
+    async function irParaAcessosDaBateria(escolaId) {
+        await entrarContextoEscolaSA(escolaId);
+        trocarAba('diretoria', document.querySelector('.aba-btn[data-aba="diretoria"]'));
+    }
+
+    // Clicar no nome no cabeçalho abre Meu Perfil -- se já estiver dentro de
+    // uma escola, só troca de aba; se estiver no painel geral (Dashboard/
+    // Escolas/Configurações/Privacidade), abre Meu Perfil "avulso".
+    function abrirMeuPerfilSA() {
+        if (!souSuperAdmin) return;
+        if (dentroDeEscolaSA) { trocarAba('meu-perfil', document.querySelector('.aba-btn[data-aba="meu-perfil"]')); return; }
+        meuPerfilSoloSA = true;
+        document.getElementById('saSidebar').style.display = 'none';
+        document.getElementById('saMain').style.display = 'none';
+        document.getElementById('navAbasEscola').style.display = 'none';
+        document.getElementById('mainEscola').style.display = 'block';
+        document.getElementById('btnVoltarEscolasHeader').textContent = '← Voltar';
+        document.getElementById('btnVoltarEscolasHeader').style.display = 'block';
+        document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
+        document.getElementById('painel-meu-perfil').classList.add('ativo');
+        iniciarMeuPerfilAba();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // DASHBOARD (agregado, todas as escolas)
+    // ══════════════════════════════════════════════════════════════════
+    async function carregarDashboard() {
+        const kpisEl = document.getElementById('dashboard-kpis');
+        const atencaoEl = document.getElementById('dashboard-atencao');
+        const container = document.getElementById('dashboard-lista-baterias');
+        const [resBaterias, resEscolas, resVinculos] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/baterias?select=id,nome,escola_id&order=nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/escolas?select=id,nome,temporada_atual`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/vinculos?select=bateria_id,status`, { headers: authHeaders })
+        ]);
+        const baterias = await resBaterias.json();
+        const escolas = await resEscolas.json();
+        const vinculos = await resVinculos.json();
+        const escolaPorId = Object.fromEntries((escolas || []).map(e => [e.id, e]));
+
+        if (!baterias || baterias.length === 0) {
+            kpisEl.innerHTML = ''; atencaoEl.innerHTML = '';
+            container.innerHTML = `<div class="estado-vazio"><div class="estado-vazio-icone">📊</div>Nenhuma bateria cadastrada ainda.</div>`;
+            return;
+        }
+
+        const totalAtivos = vinculos.filter(v => v.status === 'aprovado').length;
+        const totalPendentes = vinculos.filter(v => v.status === 'pendente').length;
+        kpisEl.innerHTML = `
+            <div class="kpi"><div class="n">${(escolas || []).length}</div><div class="l">Escolas</div></div>
+            <div class="kpi"><div class="n">${baterias.length}</div><div class="l">Baterias</div></div>
+            <div class="kpi ok"><div class="n">${totalAtivos}</div><div class="l">Pessoas ativas</div></div>
+            <div class="kpi${totalPendentes > 0 ? ' atencao' : ''}"><div class="n">${totalPendentes}</div><div class="l">Pendências</div></div>`;
+
+        const pendentesPorBateria = baterias
+            .map(b => ({ bateria: b, escola: escolaPorId[b.escola_id], pendentes: vinculos.filter(v => v.bateria_id === b.id && v.status === 'pendente').length }))
+            .filter(x => x.pendentes > 0);
+        atencaoEl.innerHTML = pendentesPorBateria.length === 0 ? '' : `
+            <div class="atencao-box">
+                <div class="atencao-titulo">Precisa de você</div>
+                ${pendentesPorBateria.map(x => `
+                    <div class="atencao-item" onclick="irParaAcessosDaBateria(${x.bateria.escola_id})">
+                        <span>${x.pendentes} pendente${x.pendentes === 1 ? '' : 's'} — ${esc(x.escola?.nome) || ''} (${esc(x.bateria.nome)})</span>
+                        <span class="seta">Revisar ›</span>
+                    </div>`).join('')}
+            </div>`;
+
+        container.innerHTML = baterias.map(b => {
+            const pendentes = vinculos.filter(v => v.bateria_id === b.id && v.status === 'pendente').length;
+            const ativos = vinculos.filter(v => v.bateria_id === b.id && v.status === 'aprovado').length;
+            const escola = escolaPorId[b.escola_id];
+            const temporada = escola?.temporada_atual;
+            return `<div class="bateria-card" onclick="irParaAcessosDaBateria(${b.escola_id})">
+                <div class="bc-nome">${esc(b.nome)}</div>
+                <div class="bc-escola">${esc(escola?.nome) || ''}${temporada ? ` · ${esc(temporada)}` : ''}</div>
+                <div class="bc-stats">
+                    <div class="bc-stat"><div class="n">${ativos}</div><div class="l">Ativos</div></div>
+                    <div class="bc-stat"><div class="n${pendentes > 0 ? ' aviso' : ''}">${pendentes}</div><div class="l">Pendentes</div></div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // ESCOLAS — LISTAGEM + NOVA ESCOLA
+    // ══════════════════════════════════════════════════════════════════
+    async function carregarEscolas() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?order=nome`, { headers: authHeaders });
+        escolasCache = res.ok ? await res.json() : [];
+        renderizarListaEscolas(escolasCache);
+    }
+
+    function renderizarListaEscolas(lista) {
+        const div = document.getElementById('lista-escolas');
+        if (!lista.length) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Nenhuma escola cadastrada ainda.</div>'; return; }
+        div.innerHTML = lista.map(e => `
+            <div class="item-card" style="cursor:pointer" onclick="entrarContextoEscolaSA(${e.id})">
+                <div class="item-info">
+                    <div class="item-nome">${esc(e.sigla || e.nome)}</div>
+                    <div class="item-detalhe">${esc(e.nome)}</div>
+                </div>
+                <div class="item-acoes">
+                    ${e.tipo === 'demo' ? '<span class="badge-tag-demo">DEMO</span>' : ''}
+                    <span class="${e.ativa !== false ? 'badge-ativo' : 'badge-inativo'}">${e.ativa !== false ? 'Ativa' : 'Inativa'}</span>
+                </div>
+            </div>`).join('');
+    }
+
+    function abrirNovaEscolaSA() {
+        window.scrollTo(0, 0);
+        trocarSaAba('nova-escola', null);
+        ['nova-escola-nome','nova-escola-sigla','nova-escola-temporada','nova-escola-validade',
+         'nova-escola-cor-primaria','nova-escola-cor-secundaria','nova-escola-cor-terciaria','nova-escola-cor-quaternaria'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.value = '';
+        });
+        document.getElementById('nova-escola-tema-ativo').checked = false;
+        logoPendente.escolaNova = null;
+        document.getElementById('nova-escola-logo-preview').innerHTML = '<span class="logo-box-vazio">Sem logo</span>';
+        atualizarPreviewNovaEscola();
+    }
+
+    async function salvarNovaEscola() {
+        const nome = document.getElementById('nova-escola-nome').value.trim();
+        const sigla = document.getElementById('nova-escola-sigla').value.trim();
+        if (!nome) { mostrarToast('Informe o nome da escola.', 'erro'); return; }
+        if (!sigla) { mostrarToast('Informe a sigla da escola.', 'erro'); return; }
+
+        const payload = {
+            nome, sigla,
+            logo_url: logoPendente.escolaNova || null,
+            temporada_atual: document.getElementById('nova-escola-temporada').value.trim() || null,
+            validade_carteirinha: document.getElementById('nova-escola-validade').value || null,
+            cor_primaria: document.getElementById('nova-escola-cor-primaria').value.trim() || null,
+            cor_secundaria: document.getElementById('nova-escola-cor-secundaria').value.trim() || null,
+            cor_terciaria: document.getElementById('nova-escola-cor-terciaria').value.trim() || null,
+            cor_quaternaria: document.getElementById('nova-escola-cor-quaternaria').value.trim() || null,
+            tema_personalizado_ativo: document.getElementById('nova-escola-tema-ativo').checked,
+            ativa: true
+        };
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify(payload) });
+        if (res.ok) {
+            const [escolaCriada] = await res.json();
+            if (niveisAcessoCache.length === 0) await carregarNiveisAcesso();
+            const total = niveisAcessoCache.find(n => n.nome === 'Total');
+            if (total) {
+                await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders },
+                    body: JSON.stringify({ escola_id: escolaCriada.id, origem_nivel_id: total.id, nome: total.nome, capacidades: total.capacidades, ativo: true })
+                });
+            }
+            mostrarToast('Escola cadastrada!');
+            await carregarEscolas();
+            trocarSaAba('escolas', document.querySelector('.sa-sidebar-item[data-sa="escolas"]'));
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // DADOS DA ESCOLA (aba, só Super Admin nesta etapa)
+    // ══════════════════════════════════════════════════════════════════
+    function renderizarDadosEscolaTab(modoEdicao = false) {
+        const e = escolaAtualData;
+        const container = document.getElementById('dadosEscolaConteudo');
+        if (!container) return;
+        const ativa = e && e.ativa !== false;
+        const visEdit = modoEdicao ? 'display:block' : 'display:none';
+        const visView = modoEdicao ? 'display:none' : '';
+
+        const rodape = modoEdicao ? `
+            <div class="form-rodape">
+                <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarDadosEscola()">Salvar</button></div>
+                <button class="btn-ficha" onclick="renderizarDadosEscolaTab(false)">Cancelar</button>
+            </div>` : `
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-editar" onclick="renderizarDadosEscolaTab(true)">Editar</button>
+                    <button class="btn-ficha btn-ficha-danger" onclick="confirmarToggleEscola(${e ? e.id : 'null'},${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
+                </div>
+            </div>`;
+
+        const campo = (label, id, valor, opts = {}) => `
+            <div class="ficha-campo${opts.full ? ' full' : ''}">
+                <span>${label}</span>
+                <strong style="${visView}">${opts.tipo === 'data' ? (typeof fpFormatarData === 'function' ? fpFormatarData(valor) : (valor || '—')) : (valor ? esc(valor) : '—')}</strong>
+                <input type="${opts.tipo === 'data' ? 'date' : 'text'}" id="${id}" class="fc-input" value="${e ? esc(valor || '') : ''}" style="${visEdit}" ${opts.placeholder ? `placeholder="${opts.placeholder}"` : ''} ${opts.extra || ''}>
+            </div>`;
+
+        container.innerHTML = `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Dados da Escola</div>
+                <div class="ficha-grid">
+                    ${campo('Nome Completo *', 'de-nome', e && e.nome, { full: true, placeholder: 'Ex: Grêmio Recreativo...' })}
+                    ${campo('Sigla *', 'de-sigla', e && e.sigla, { full: true, placeholder: 'Ex: Imperatriz' })}
+                </div>
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Logo</div>
+                <div class="logo-area">
+                    <div class="logo-box ${modoEdicao ? '' : 'desabilitado'}" id="escola-logo-preview" ${modoEdicao ? `onclick="document.getElementById('escola-logo-input').click()"` : ''}>
+                        ${e && e.logo_url ? `<img src="${esc(e.logo_url)}">` : '<span class="logo-box-vazio">Sem logo</span>'}
+                    </div>
+                    ${modoEdicao ? `<div class="logo-hint">Clique no quadro para trocar o logo.<br>Funciona melhor em PNG com fundo transparente, formato quadrado, mín. 300×300px.</div>` : ''}
+                </div>
+                <input type="file" id="escola-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'escolaEdicao')">
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Temporada e cores</div>
+                <div class="ficha-grid">
+                    ${campo('Temporada Atual', 'de-temporada', e && e.temporada_atual, { full: true, placeholder: 'Ex: Carnaval 2027' })}
+                    ${campo('Validade da Carteirinha', 'de-validade', e && e.validade_carteirinha, { full: true, tipo: 'data' })}
+                    ${campo('Cor Primária', 'de-cor-primaria', e && e.cor_primaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewDadosEscola()"' })}
+                    ${campo('Cor Secundária', 'de-cor-secundaria', e && e.cor_secundaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewDadosEscola()"' })}
+                    ${campo('Cor Terciária', 'de-cor-terciaria', e && e.cor_terciaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewDadosEscola()"' })}
+                    ${campo('Cor Quaternária', 'de-cor-quaternaria', e && e.cor_quaternaria, { placeholder: '#000000', extra: 'oninput="atualizarPreviewDadosEscola()"' })}
+                </div>
+                <div class="preview-cores" id="preview-dados-escola" style="margin-top:12px;"></div>
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Cores da Escola no Painel de Gestão</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="de-tema-ativo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${e && e.tema_personalizado_ativo ? 'checked' : ''} ${modoEdicao ? '' : 'disabled'}>
+                    <label for="de-tema-ativo" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
+                </div>
+                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o cabeçalho do painel de gestão (Mestre/Diretor) usa a cor primária e o logo da escola no lugar da marca TumTu.</div>
+            </div>
+            ${rodape}`;
+        logoPendente.escolaEdicao = null;
+        atualizarPreviewDadosEscola();
+    }
+    function atualizarPreviewDadosEscola() {
+        const preview = document.getElementById('preview-dados-escola');
+        if (!preview) return;
+        preview.innerHTML = montarPreviewCores(['de-cor-primaria','de-cor-secundaria','de-cor-terciaria','de-cor-quaternaria']);
+    }
+
+    async function salvarDadosEscola() {
+        const id = escolaAtualData ? escolaAtualData.id : null;
+        const nome = document.getElementById('de-nome').value.trim();
+        const sigla = document.getElementById('de-sigla').value.trim();
+        if (!nome) { mostrarToast('Informe o nome da escola.', 'erro'); return; }
+        if (!sigla) { mostrarToast('Informe a sigla.', 'erro'); return; }
+
+        const payload = {
+            nome, sigla,
+            logo_url: logoPendente.escolaEdicao || (escolaAtualData ? escolaAtualData.logo_url : null) || null,
+            temporada_atual: document.getElementById('de-temporada').value.trim() || null,
+            validade_carteirinha: document.getElementById('de-validade').value || null,
+            cor_primaria: document.getElementById('de-cor-primaria').value.trim() || null,
+            cor_secundaria: document.getElementById('de-cor-secundaria').value.trim() || null,
+            cor_terciaria: document.getElementById('de-cor-terciaria').value.trim() || null,
+            cor_quaternaria: document.getElementById('de-cor-quaternaria').value.trim() || null,
+            tema_personalizado_ativo: document.getElementById('de-tema-ativo').checked,
+        };
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify(payload) });
+        if (res.ok) {
+            const dados = await res.json();
+            escolaAtualData = dados[0];
+            const idx = escolasCache.findIndex(x => x.id === id);
+            if (idx >= 0) escolasCache[idx] = escolaAtualData;
+            renderizarDadosEscolaTab(false);
+            aplicarConfigEscola();
+            mostrarToast('Escola atualizada!');
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
+    }
+
+    let motivoEscolaIdAtual = null;
+    function confirmarToggleEscola(id, ativaAtual) {
+        if (ativaAtual) {
+            motivoEscolaIdAtual = id;
+            document.getElementById('modalDesativarEscolaNome').textContent = escolaAtualData ? (escolaAtualData.sigla || escolaAtualData.nome) : '';
+            document.getElementById('motivoDesativarEscola').value = '';
+            document.getElementById('modalDesativarEscola').classList.add('aberto');
+            return;
+        }
+        aplicarToggleEscola(id, false, null);
+    }
+    function confirmarDesativarEscola() {
+        const motivo = document.getElementById('motivoDesativarEscola').value.trim();
+        if (!motivo) { mostrarToast('Informe um motivo para desativar.', 'erro'); return; }
+        fecharModal('modalDesativarEscola');
+        aplicarToggleEscola(motivoEscolaIdAtual, true, motivo);
+    }
+    async function aplicarToggleEscola(id, ativaAtual, motivo) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders },
+            body: JSON.stringify({ ativa: !ativaAtual, motivo_inativacao: ativaAtual ? motivo : null })
+        });
+        if (res.ok) {
+            mostrarToast(ativaAtual ? 'Escola desativada.' : 'Escola ativada!');
+            const dados = await res.json();
+            escolaAtualData = dados[0];
+            const idx = escolasCache.findIndex(x => x.id === id);
+            if (idx >= 0) escolasCache[idx] = escolaAtualData;
+            renderizarDadosEscolaTab(false);
+        } else {
+            mostrarToast('Erro ao atualizar escola.', 'erro');
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // DADOS DA BATERIA (aba, só Super Admin nesta etapa) — SEM Modo
+    // Carteirinha aqui dentro (mora sozinho na aba "Modo de Venda").
+    // ══════════════════════════════════════════════════════════════════
+    async function carregarBaterias(escolaId) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?order=nome&escola_id=eq.${escolaId}`, { headers: authHeaders });
+        bateriasCache = res.ok ? await res.json() : [];
+    }
+
+    function renderizarDadosBateriaTab(modoEdicao = false) {
+        const b = bateriaAtualData;
+        const div = document.getElementById('dadosBateriaConteudo');
+        if (!div) return;
+
+        if (!b) {
+            div.innerHTML = `<div class="estado-vazio"><div class="estado-vazio-icone">🥁</div><div style="margin-bottom:16px">Nenhuma bateria cadastrada.</div>
+                <button class="btn-novo" style="display:inline-flex;margin:0 auto" onclick="renderizarNovaBateriaTab()">+ Criar Bateria</button></div>`;
+            return;
+        }
+
+        const ativa = b.ativa !== false;
+        const visEdit = modoEdicao ? 'display:block' : 'display:none';
+        const visView = modoEdicao ? 'display:none' : '';
+        const rodape = modoEdicao ? `
+            <div class="form-rodape">
+                <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarDadosBateria()">Salvar</button></div>
+                <button class="btn-ficha" onclick="renderizarDadosBateriaTab(false)">Cancelar</button>
+            </div>` : `
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-editar" onclick="renderizarDadosBateriaTab(true)">Editar</button>
+                    <button class="btn-ficha btn-ficha-danger" onclick="toggleBateriaAtiva(${b.id},${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
+                </div>
+            </div>`;
+        const campo = (label, id, valor) => `
+            <div class="ficha-campo full">
+                <span>${label}</span>
+                <strong style="${visView}">${valor ? esc(valor) : '—'}</strong>
+                <input type="text" id="${id}" class="fc-input" value="${esc(valor || '')}" style="${visEdit}">
+            </div>`;
+
+        div.innerHTML = `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Dados da Bateria</div>
+                <div class="ficha-grid">
+                    ${campo('Nome da Bateria *', 'db-nome', b.nome)}
+                    ${campo('Instagram', 'db-instagram', b.instagram)}
+                </div>
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Logo</div>
+                <div class="logo-area">
+                    <div class="logo-box ${modoEdicao ? '' : 'desabilitado'}" id="bat-logo-preview" ${modoEdicao ? `onclick="document.getElementById('bat-logo-input').click()"` : ''}>
+                        ${b.logo_url ? `<img src="${esc(b.logo_url)}">` : '<span class="logo-box-vazio">Sem logo</span>'}
+                    </div>
+                    ${modoEdicao ? `<div class="logo-hint">Clique no quadro para trocar o logo.<br>Aparece no verso da carteirinha.</div>` : ''}
+                </div>
+                <input type="file" id="bat-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'bateria')">
+            </div>
+            ${rodape}`;
+        logoPendente.bateria = null;
+    }
+
+    function renderizarNovaBateriaTab() {
+        bateriaAtualData = null;
+        logoPendente.bateria = null;
+        document.getElementById('dadosBateriaConteudo').innerHTML = `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Nova Bateria</div>
+                <div class="ficha-grid">
+                    <div class="ficha-campo full"><span>Nome da Bateria *</span><input type="text" id="db-nome" class="fc-input" style="display:block;" placeholder="Ex: Swing da Leopoldina"></div>
+                    <div class="ficha-campo full"><span>Instagram</span><input type="text" id="db-instagram" class="fc-input" style="display:block;" placeholder="@nomeDaBateria"></div>
+                </div>
+            </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Logo</div>
+                <div class="logo-area">
+                    <div class="logo-box" id="bat-logo-preview" onclick="document.getElementById('bat-logo-input').click()"><span class="logo-box-vazio">Sem logo</span></div>
+                    <div class="logo-hint">Clique no quadro para escolher a imagem do logo.<br>Aparece no verso da carteirinha.</div>
+                </div>
+                <input type="file" id="bat-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'bateria')">
+            </div>
+            <div class="form-rodape"><div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarDadosBateria()">Salvar Bateria</button></div></div>`;
+    }
+
+    async function salvarDadosBateria() {
+        const nome = document.getElementById('db-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome da bateria.', 'erro'); return; }
+        const id = bateriaAtualData ? bateriaAtualData.id : null;
+        const payload = {
+            nome, escola_id: escolaSelecionadaId,
+            instagram: document.getElementById('db-instagram').value.trim() || null,
+            logo_url: logoPendente.bateria || (bateriaAtualData ? bateriaAtualData.logo_url : null) || null,
+            ativa: true,
+        };
+        if (!id) payload.modo_piloto = false; // decisão comercial -- nasce desligada, só se muda em "Modo de Venda"
+        const res = id
+            ? await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify(payload) })
+            : await fetch(`${SUPABASE_URL}/rest/v1/baterias`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify(payload) });
+        if (res.ok) {
+            const dados = await res.json();
+            bateriaAtualData = (Array.isArray(dados) ? dados[0] : dados) || bateriaAtualData;
+            const idx = bateriasCache.findIndex(x => x.id === bateriaAtualData.id);
+            if (idx >= 0) bateriasCache[idx] = bateriaAtualData; else bateriasCache.push(bateriaAtualData);
+            renderizarDadosBateriaTab(false);
+            renderizarModoVendaTab();
+            renderizarLinksCadastroAdmin();
+            carregarRitmistas();
+            mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
+    }
+
+    async function toggleBateriaAtiva(id, ativaAtual) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ ativa: !ativaAtual }) });
+        if (res.ok) {
+            mostrarToast(ativaAtual ? 'Bateria desativada.' : 'Bateria ativada!');
+            await carregarBaterias(escolaSelecionadaId);
+            bateriaAtualData = bateriasCache.find(b => b.id === id) || bateriasCache[0] || null;
+            renderizarDadosBateriaTab(false);
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // MODO DE VENDA (aba independente — Modo Carteirinha/baterias.modo_piloto).
+    // Decisão comercial, nunca junto de "Dados da Bateria" (pedido explícito
+    // da Márcia, 18/ago/2026).
+    // ══════════════════════════════════════════════════════════════════
+    function renderizarModoVendaTab() {
+        const b = bateriaAtualData;
+        const div = document.getElementById('modoVendaConteudo');
+        if (!div) return;
+        if (!b) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🎟️</div>Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
+        div.innerHTML = `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Modo Carteirinha</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="mv-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${b.modo_piloto ? 'checked' : ''} onchange="salvarModoVenda(this.checked)">
+                    <label for="mv-modo-piloto" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
+                </div>
+                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de gestão. Decisão comercial (ex: vender só a carteirinha pra quem não quer o módulo de gestão completo) — não é um dado operacional da bateria.</div>
+            </div>`;
+    }
+    async function salvarModoVenda(ligado) {
+        const id = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!id) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ modo_piloto: ligado }) });
+        if (res.ok) {
+            const dados = await res.json();
+            bateriaAtualData = dados[0];
+            const idx = bateriasCache.findIndex(x => x.id === id);
+            if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
+            mostrarToast(ligado ? 'Modo Carteirinha ligado.' : 'Modo Carteirinha desligado.');
+        } else {
+            mostrarToast('Erro ao atualizar.', 'erro');
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // PERMISSÕES POR ESCOLA (aba, só Super Admin nesta etapa) — ativa
+    // modelos da biblioteca mestre (niveis_acesso) ou cria perfis exclusivos
+    // (escola_niveis_acesso). Ainda não é lido por nenhuma tela pra
+    // esconder/travar nada -- isso é Etapa 3.
+    // ══════════════════════════════════════════════════════════════════
+    const CAPACIDADES_NIVEL_ACESSO = [
+        { chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' },
+        { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar ritmistas' },
+        { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas dos ritmistas' },
+        { chave: 'ver_acessos', label: 'Ver Mestres e Diretores da bateria' },
+        { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar Diretores' },
+        { chave: 'ver_configuracoes', label: 'Ver Configurações da bateria' },
+        { chave: 'editar_configuracoes', label: 'Editar Configurações da bateria' },
+    ];
+    let niveisAcessoCache = [];
+    let nivelEditando = null;
+    let salvandoNivel = false;
+    let perfisEscolaCacheSA = [];
+    let perfilEscolaEditando = null;
+
+    async function carregarPerfisEscolaSA() {
+        if (!escolaSelecionadaId) { perfisEscolaCacheSA = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso?escola_id=eq.${escolaSelecionadaId}&order=nome`, { headers: authHeaders });
+        perfisEscolaCacheSA = res.ok ? await res.json() : [];
+        renderizarPerfisEscolaListaSA();
+    }
+    function renderizarPerfisEscolaListaSA() {
+        const container = document.getElementById('pe-perfis-lista');
+        if (!container) return;
+        if (perfisEscolaCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum perfil de permissão ativado ainda nesta escola.</div>'; return; }
+        container.innerHTML = perfisEscolaCacheSA.map(n => {
+            const capsLigadas = CAPACIDADES_NIVEL_ACESSO.filter(c => n.capacidades && n.capacidades[c.chave]);
+            return `<div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(n.nome)} ${n.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
+                    <div class="item-detalhe">${capsLigadas.length > 0 ? esc(capsLigadas.map(c => c.label).join(', ')) : 'Nenhuma capacidade ligada'}</div>
+                </div>
+                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarPerfilEscolaSA(${n.id})">Editar</button></div>
+            </div>`;
+        }).join('');
+    }
+    function abrirAtivarPerfilEscolaSA() {
+        document.getElementById('pe-editor').style.display = 'none';
+        const container = document.getElementById('pe-ativar-lista');
+        const jaAtivos = new Set(perfisEscolaCacheSA.map(n => n.origem_nivel_id).filter(Boolean));
+        const disponiveis = niveisAcessoCache.filter(n => !jaAtivos.has(n.id));
+        container.innerHTML = disponiveis.length === 0
+            ? '<div class="estado-vazio">Todos os perfis da biblioteca já foram ativados nesta escola.</div>'
+            : `<div class="card-form"><div class="card-form-titulo">Ativar da biblioteca</div>${disponiveis.map(n => `
+                <div class="item-card" style="margin-bottom:8px;">
+                    <div class="item-info"><div class="item-nome">${esc(n.nome)}</div></div>
+                    <div class="item-acoes"><button class="btn-ficha btn-ficha-editar" onclick="ativarPerfilGlobalSA(${n.id})">Ativar</button></div>
+                </div>`).join('')}</div>`;
+        container.style.display = 'block';
+    }
+    async function ativarPerfilGlobalSA(nivelGlobalId) {
+        const nivel = niveisAcessoCache.find(n => n.id === nivelGlobalId);
+        if (!nivel || !escolaSelecionadaId) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ escola_id: escolaSelecionadaId, origem_nivel_id: nivel.id, nome: nivel.nome, capacidades: nivel.capacidades, ativo: true })
+        });
+        if (res.ok) { mostrarToast('Perfil ativado nesta escola!'); document.getElementById('pe-ativar-lista').style.display = 'none'; await carregarPerfisEscolaSA(); }
+        else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
+    }
+    function abrirNovoPerfilEscolaSA() {
+        document.getElementById('pe-ativar-lista').style.display = 'none';
+        perfilEscolaEditando = { id: null, nome: '', capacidades: {} };
+        renderizarEditorPerfilEscolaSA();
+    }
+    function abrirEditarPerfilEscolaSA(id) {
+        document.getElementById('pe-ativar-lista').style.display = 'none';
+        const n = perfisEscolaCacheSA.find(x => x.id === id);
+        if (!n) return;
+        perfilEscolaEditando = { id: n.id, nome: n.nome, capacidades: { ...(n.capacidades || {}) } };
+        renderizarEditorPerfilEscolaSA();
+    }
+    function renderizarEditorPerfilEscolaSA() {
+        const pe = perfilEscolaEditando;
+        const editor = document.getElementById('pe-editor');
+        if (!editor) return;
+        if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${pe.id ? 'Editar Perfil' : 'Novo Perfil Exclusivo'}</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="pe-edit-nome" value="${esc(pe.nome)}" placeholder="Ex: Diretora das Baianas"></div>
+                <div class="campo campo-full"><label>O que esse perfil pode ver/fazer</label>
+                    ${CAPACIDADES_NIVEL_ACESSO.map(c => `
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                            <input type="checkbox" id="pe-cap-${c.chave}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
+                            <label for="pe-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
+                        </div>`).join('')}
+                </div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarPerfilEscolaSA()">Salvar</button>
+                    ${pe.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirPerfilEscolaSA(${pe.id})">Excluir</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorPerfilEscolaSA()">Cancelar</button>
+            </div>
+        </div>`;
+    }
+    function fecharEditorPerfilEscolaSA() { perfilEscolaEditando = null; renderizarEditorPerfilEscolaSA(); }
+    async function salvarPerfilEscolaSA() {
+        const nome = document.getElementById('pe-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do perfil.', 'erro'); return; }
+        const capacidades = {};
+        CAPACIDADES_NIVEL_ACESSO.forEach(c => { capacidades[c.chave] = document.getElementById('pe-cap-' + c.chave).checked; });
+        const res = perfilEscolaEditando.id
+            ? await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso?id=eq.${perfilEscolaEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, capacidades }) })
+            : await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ escola_id: escolaSelecionadaId, nome, capacidades, ativo: true }) });
+        if (res.ok) { mostrarToast(perfilEscolaEditando.id ? 'Perfil atualizado!' : 'Perfil criado!'); perfilEscolaEditando = null; await carregarPerfisEscolaSA(); renderizarEditorPerfilEscolaSA(); }
+        else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
+    }
+    async function excluirPerfilEscolaSA(id) {
+        if (!confirm('Excluir este perfil? Quem já tiver esse perfil atribuído fica sem nível definido.')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
+        mostrarToast('Perfil excluído.'); perfilEscolaEditando = null; await carregarPerfisEscolaSA(); renderizarEditorPerfilEscolaSA();
+    }
+    function niveisAcessoOpcoesHTML(selecionadoId = '') {
+        if (perfisEscolaCacheSA.length === 0) return '<option value="">Nenhum perfil ativado — ative um em Permissões</option>';
+        const opts = perfisEscolaCacheSA.map(n => `<option value="${n.id}"${n.id === selecionadoId ? ' selected' : ''}>${esc(n.nome)}</option>`).join('');
+        return `<option value="">Selecione...</option>${opts}`;
+    }
+
+    // ── Configurações globais → Perfis de Permissão (biblioteca mestre) ──
+    async function carregarNiveisAcesso() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso?order=nome`, { headers: authHeaders });
+        niveisAcessoCache = res.ok ? await res.json() : [];
+        renderizarNiveisAcessoLista();
+    }
+    function renderizarNiveisAcessoLista() {
+        const container = document.getElementById('sa-niveis-lista');
+        if (!container) return;
+        if (niveisAcessoCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum nível de acesso cadastrado ainda.</div>'; return; }
+        container.innerHTML = niveisAcessoCache.map(n => {
+            const capsLigadas = CAPACIDADES_NIVEL_ACESSO.filter(c => n.capacidades && n.capacidades[c.chave]);
+            return `<div class="item-card">
+                <div class="item-info"><div class="item-nome">${esc(n.nome)}</div><div class="item-detalhe">${capsLigadas.length > 0 ? esc(capsLigadas.map(c => c.label).join(', ')) : 'Nenhuma capacidade ligada'}</div></div>
+                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarNivel(${n.id})">Editar</button></div>
+            </div>`;
+        }).join('');
+    }
+    function abrirNovoNivel() { nivelEditando = { id: null, nome: '', capacidades: {} }; renderizarEditorNivel(); }
+    function abrirEditarNivel(id) {
+        const n = niveisAcessoCache.find(x => x.id === id);
+        if (!n) return;
+        nivelEditando = { id: n.id, nome: n.nome, capacidades: { ...(n.capacidades || {}) } };
+        renderizarEditorNivel();
+    }
+    function renderizarEditorNivel() {
+        const ne = nivelEditando;
+        const editor = document.getElementById('sa-nivel-editor');
+        if (!editor) return;
+        if (!ne) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${ne.id ? 'Editar Nível de Acesso' : 'Novo Nível de Acesso'}</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="nivel-edit-nome" value="${esc(ne.nome)}" placeholder="Ex: Diretor Admin"></div>
+                <div class="campo campo-full"><label>O que esse nível pode ver/fazer</label>
+                    ${CAPACIDADES_NIVEL_ACESSO.map(c => `
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                            <input type="checkbox" id="nivel-cap-${c.chave}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ne.capacidades[c.chave] ? 'checked' : ''}>
+                            <label for="nivel-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
+                        </div>`).join('')}
+                </div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button id="nivel-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarNivel()">Salvar</button>
+                    ${ne.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirNivel(${ne.id})">Excluir nível</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorNivel()">Cancelar</button>
+            </div>
+        </div>`;
+    }
+    function fecharEditorNivel() { nivelEditando = null; renderizarEditorNivel(); }
+    async function salvarNivel() {
+        if (salvandoNivel) return;
+        const nome = document.getElementById('nivel-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do nível de acesso.', 'erro'); return; }
+        const capacidades = {};
+        CAPACIDADES_NIVEL_ACESSO.forEach(c => { capacidades[c.chave] = document.getElementById('nivel-cap-' + c.chave).checked; });
+        salvandoNivel = true;
+        try {
+            if (nivelEditando.id) await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso?id=eq.${nivelEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, capacidades }) });
+            else await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, capacidades }) });
+            mostrarToast(nivelEditando.id ? 'Nível de acesso atualizado!' : 'Nível de acesso criado!');
+            nivelEditando = null; await carregarNiveisAcesso(); renderizarEditorNivel();
+        } catch (e) { mostrarToast('Não foi possível salvar.', 'erro'); }
+        finally { salvandoNivel = false; }
+    }
+    async function excluirNivel(id) {
+        if (!confirm('Excluir este nível de acesso?')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
+        mostrarToast('Nível de acesso excluído.'); nivelEditando = null; await carregarNiveisAcesso(); renderizarEditorNivel();
+    }
+
+    // ── Configurações globais → Instrumentos (biblioteca mestre) ─────────
+    let categoriasCache = [];
+    let categoriaEditando = null;
+    let salvandoCategoria = false;
+    function abrirConfigTelaSA(nome) {
+        document.getElementById('sa-config-lista').style.display = 'none';
+        document.getElementById('sa-config-tela-' + nome).style.display = 'block';
+        if (nome === 'instrumentos') { fecharEditorCategoria(); carregarCategorias().then(renderizarCategoriasLista); }
+        if (nome === 'medidas') { fecharEditorTamanho(); carregarTamanhosSA().then(renderizarTamanhosListaSA); }
+        if (nome === 'permissoes') { fecharEditorNivel(); carregarNiveisAcesso(); }
+    }
+    function voltarConfigListaSA() {
+        document.querySelectorAll('#sa-painel-configuracoes-globais .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('sa-config-lista').style.display = 'block';
+    }
+    async function carregarCategorias() {
+        const [resCat, resNom] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?order=ordem`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?order=ordem`, { headers: authHeaders })
+        ]);
+        const categorias = await resCat.json();
+        const nomenclaturas = await resNom.json();
+        categoriasCache = (categorias || []).map(c => ({ ...c, nomenclaturas: (nomenclaturas || []).filter(n => n.categoria_id === c.id) }));
+    }
+    function renderizarCategoriasLista() {
+        const container = document.getElementById('sa-categorias-lista');
+        if (categoriasCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Nenhuma categoria cadastrada ainda.</div>'; return; }
+        const grupos = [['tradicional', 'Tradicionais'], ['especial', 'Especiais']];
+        container.innerHTML = grupos.map(([chave, label]) => {
+            const itens = categoriasCache.filter(c => c.grupo === chave).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+            if (itens.length === 0) return '';
+            return `<div class="config-grupo-titulo">${label}</div>` + itens.map(c => `
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-nome">${esc(c.nome)} ${c.ativo === false ? '<span class="badge-inativo">Inativa</span>' : ''}</div>
+                        <div class="item-detalhe">${c.nomenclaturas.length > 0 ? esc([...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => n.nome).join(', ')) : 'Sem nomenclaturas alternativas'}</div>
+                    </div>
+                    <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarCategoria(${c.id})">Editar</button></div>
+                </div>`).join('');
+        }).join('');
+    }
+    function abrirNovaCategoria() { categoriaEditando = { id: null, nome: '', grupo: 'tradicional', ativo: true, nomenclaturas: [], removidas: [] }; renderizarEditorCategoria(); }
+    function abrirEditarCategoria(id) {
+        const c = categoriasCache.find(x => x.id === id);
+        if (!c) return;
+        categoriaEditando = { id: c.id, nome: c.nome, grupo: c.grupo, ativo: c.ativo !== false, nomenclaturas: [...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => ({ id: n.id, nome: n.nome })), removidas: [] };
+        renderizarEditorCategoria();
+    }
+    function renderizarEditorCategoria() {
+        const ce = categoriaEditando;
+        const editor = document.getElementById('sa-categoria-editor');
+        if (!editor) return;
+        if (!ce) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${ce.id ? 'Editar Categoria' : 'Nova Categoria'}</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="cat-edit-nome" value="${esc(ce.nome)}" placeholder="Ex: Surdo de Marcação"></div>
+                <div class="campo"><label>Grupo</label><select id="cat-edit-grupo">
+                    <option value="tradicional" ${ce.grupo === 'tradicional' ? 'selected' : ''}>Tradicional</option>
+                    <option value="especial" ${ce.grupo === 'especial' ? 'selected' : ''}>Especial</option>
+                </select></div>
+                <div class="campo"><label>Status</label><select id="cat-edit-ativo">
+                    <option value="true" ${ce.ativo ? 'selected' : ''}>Ativa</option>
+                    <option value="false" ${!ce.ativo ? 'selected' : ''}>Inativa</option>
+                </select></div>
+                <div class="campo campo-full">
+                    <label>Nomenclaturas (nomes que a bateria pode escolher)</label>
+                    <div id="cat-edit-nomenclaturas">
+                        ${ce.nomenclaturas.map((n, i) => `<div class="cat-edit-nom-linha">
+                            <input type="text" class="cat-edit-nom-nome" data-idx="${i}" value="${esc(n.nome)}" placeholder="Nome da nomenclatura">
+                            <button type="button" class="cat-edit-nom-remover" onclick="removerLinhaNomenclatura(${i})">×</button>
+                        </div>`).join('')}
+                    </div>
+                    <span class="cat-edit-nom-add" onclick="adicionarLinhaNomenclatura()">+ Adicionar nomenclatura</span>
+                </div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button id="cat-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarCategoria()">Salvar</button>
+                    ${ce.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirCategoria(${ce.id})">Excluir categoria</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorCategoria()">Cancelar</button>
+            </div>
+        </div>`;
+    }
+    function sincronizarNomenclaturasDoDOM() {
+        if (!categoriaEditando) return;
+        document.querySelectorAll('.cat-edit-nom-nome').forEach(input => {
+            const idx = Number(input.dataset.idx);
+            if (categoriaEditando.nomenclaturas[idx]) categoriaEditando.nomenclaturas[idx].nome = input.value;
+        });
+    }
+    function adicionarLinhaNomenclatura() { sincronizarNomenclaturasDoDOM(); categoriaEditando.nomenclaturas.push({ id: null, nome: '' }); renderizarEditorCategoria(); }
+    function removerLinhaNomenclatura(idx) {
+        sincronizarNomenclaturasDoDOM();
+        const removida = categoriaEditando.nomenclaturas.splice(idx, 1)[0];
+        if (removida && removida.id) categoriaEditando.removidas.push(removida.id);
+        renderizarEditorCategoria();
+    }
+    function fecharEditorCategoria() { categoriaEditando = null; renderizarEditorCategoria(); }
+    async function salvarCategoria() {
+        if (salvandoCategoria) return;
+        sincronizarNomenclaturasDoDOM();
+        const nome = document.getElementById('cat-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome da categoria.', 'erro'); return; }
+        const grupo = document.getElementById('cat-edit-grupo').value;
+        const ativo = document.getElementById('cat-edit-ativo').value === 'true';
+        salvandoCategoria = true;
+        try {
+            let categoriaId = categoriaEditando.id;
+            if (categoriaId) {
+                await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?id=eq.${categoriaId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo, ativo }) });
+            } else {
+                const ordem = Math.max(0, ...categoriasCache.map(c => c.ordem || 0)) + 1;
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ nome, grupo, ativo, ordem }) });
+                const dados = await res.json();
+                categoriaId = dados[0].id;
+            }
+            for (const id of categoriaEditando.removidas) await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+            let ordemNom = 1;
+            for (const n of categoriaEditando.nomenclaturas) {
+                const nomeNom = (n.nome || '').trim();
+                if (!nomeNom) { ordemNom++; continue; }
+                if (n.id) await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?id=eq.${n.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome: nomeNom, ordem: ordemNom }) });
+                else await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ categoria_id: categoriaId, nome: nomeNom, ordem: ordemNom }) });
+                ordemNom++;
+            }
+            mostrarToast(categoriaEditando.id ? 'Categoria atualizada!' : 'Categoria criada!');
+            categoriaEditando = null;
+            await carregarCategorias();
+            renderizarEditorCategoria();
+            renderizarCategoriasLista();
+        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
+        finally { salvandoCategoria = false; }
+    }
+    async function excluirCategoria(id) {
+        if (!confirm('Excluir esta categoria? Isso remove também suas nomenclaturas. Se alguma bateria já usa esse instrumento, prefira marcar como "Inativa".')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
+        mostrarToast('Categoria excluída.'); categoriaEditando = null; await carregarCategorias(); renderizarEditorCategoria(); renderizarCategoriasLista();
+    }
+
+    // ── Configurações globais → Medidas (biblioteca mestre) ──────────────
+    let tamanhosCacheSA = [];
+    let tamanhoEditando = null;
+    let salvandoTamanho = false;
+    async function carregarTamanhosSA() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders });
+        tamanhosCacheSA = res.ok ? await res.json() : [];
+    }
+    function renderizarTamanhosListaSA() {
+        const container = document.getElementById('sa-tamanhos-lista');
+        if (tamanhosCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum tamanho cadastrado ainda.</div>'; return; }
+        container.innerHTML = TIPOS_MEDIDA.map(([chave, label]) => {
+            const itens = tamanhosCacheSA.filter(t => t.tipo === chave).sort((a, b) => a.ordem - b.ordem);
+            if (itens.length === 0) return '';
+            return `<div class="config-grupo-titulo">${label}</div>` + itens.map(t => `
+                <div class="item-card">
+                    <div class="item-info"><div class="item-nome">${esc(t.nome)} ${t.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div></div>
+                    <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarTamanho(${t.id})">Editar</button></div>
+                </div>`).join('');
+        }).join('');
+    }
+    function abrirNovoTamanho() { tamanhoEditando = { id: null, tipo: 'camisa', nome: '', ativo: true }; renderizarEditorTamanho(); }
+    function abrirEditarTamanho(id) {
+        const t = tamanhosCacheSA.find(x => x.id === id);
+        if (!t) return;
+        tamanhoEditando = { id: t.id, tipo: t.tipo, nome: t.nome, ativo: t.ativo !== false };
+        renderizarEditorTamanho();
+    }
+    function renderizarEditorTamanho() {
+        const te = tamanhoEditando;
+        const editor = document.getElementById('sa-tamanho-editor');
+        if (!editor) return;
+        if (!te) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${te.id ? 'Editar Tamanho' : 'Novo Tamanho'}</div>
+            <div class="form-grid">
+                <div class="campo"><label>Tipo</label><select id="tam-edit-tipo">${TIPOS_MEDIDA.map(([chave, label]) => `<option value="${chave}" ${te.tipo === chave ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
+                <div class="campo"><label>Nome *</label><input type="text" id="tam-edit-nome" value="${esc(te.nome)}" placeholder="Ex: GG"></div>
+                <div class="campo"><label>Status</label><select id="tam-edit-ativo">
+                    <option value="true" ${te.ativo ? 'selected' : ''}>Ativo</option>
+                    <option value="false" ${!te.ativo ? 'selected' : ''}>Inativo</option>
+                </select></div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button id="tam-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarTamanho()">Salvar</button>
+                    ${te.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirTamanho(${te.id})">Excluir tamanho</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorTamanho()">Cancelar</button>
+            </div>
+        </div>`;
+    }
+    function fecharEditorTamanho() { tamanhoEditando = null; renderizarEditorTamanho(); }
+    async function salvarTamanho() {
+        if (salvandoTamanho) return;
+        const tipo = document.getElementById('tam-edit-tipo').value;
+        const nome = document.getElementById('tam-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do tamanho.', 'erro'); return; }
+        const ativo = document.getElementById('tam-edit-ativo').value === 'true';
+        salvandoTamanho = true;
+        try {
+            if (tamanhoEditando.id) await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${tamanhoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ tipo, nome, ativo }) });
+            else {
+                const ordem = Math.max(0, ...tamanhosCacheSA.filter(t => t.tipo === tipo).map(t => t.ordem || 0)) + 1;
+                await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ tipo, nome, ativo, ordem }) });
+            }
+            mostrarToast(tamanhoEditando.id ? 'Tamanho atualizado!' : 'Tamanho criado!');
+            tamanhoEditando = null; await carregarTamanhosSA(); renderizarEditorTamanho(); renderizarTamanhosListaSA();
+        } catch (e) { mostrarToast('Não foi possível salvar.', 'erro'); }
+        finally { salvandoTamanho = false; }
+    }
+    async function excluirTamanho(id) {
+        if (!confirm('Excluir este tamanho? Se alguma bateria já usa, prefira marcar como "Inativo".')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
+        mostrarToast('Tamanho excluído.'); tamanhoEditando = null; await carregarTamanhosSA(); renderizarEditorTamanho(); renderizarTamanhosListaSA();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // HISTÓRICO (por escola/bateria, só Super Admin nesta etapa)
+    // ══════════════════════════════════════════════════════════════════
+    const HIST_STATUS_LABEL = { pendente: 'Pendente', aprovado: 'Aprovado', rejeitado: 'Rejeitado', suspenso: 'Suspenso', desligado: 'Desligado', inativo: 'Inativo' };
+    function histStatusLabel(s) { return HIST_STATUS_LABEL[s] || s || '—'; }
+    function histPerfilLabel(p) { return p === 'ritmista' ? 'Ritmista' : labelPerfilSA(p); }
+    function labelPerfilSA(p) { if (p === 'mestre') return 'Mestre de Bateria'; if (p === 'diretor') return 'Diretor'; return p; }
+    function histDataHora(iso) { return iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—'; }
+    async function carregarHistoricoEscolaSA() {
+        const container = document.getElementById('lista-historico-escola');
+        const idsBaterias = bateriasCache.map(b => b.id);
+        if (idsBaterias.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
+        const url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome),decisor:decidido_por(nome),bateria:bateria_id(nome)&bateria_id=in.(${idsBaterias.join(',')})&order=criado_em.desc&limit=200`;
+        const res = await fetch(url, { headers: authHeaders });
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Não foi possível carregar o histórico.</div>'; return; }
+        const eventos = await res.json();
+        if (!eventos.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
+        container.innerHTML = eventos.map(ev => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(ev.pessoa?.nome || '—')}<span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · ${histPerfilLabel(ev.perfil)}</span></div>
+                    <div class="item-detalhe" style="margin-top:5px">
+                        ${histStatusLabel(ev.status_anterior)} → ${histStatusLabel(ev.status_novo)} · por ${esc(ev.decisor?.nome || '—')} · ${esc(ev.bateria?.nome || '—')} · ${histDataHora(ev.criado_em)}
+                        ${ev.motivo ? ` · "${esc(ev.motivo)}"` : ''}
+                    </div>
+                </div>
+            </div>`).join('');
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // PRIVACIDADE (exclusão de dados sob pedido — LGPD)
+    // ══════════════════════════════════════════════════════════════════
+    let exclusaoLgpdPendente = null;
+    function carregarPrivacidade() {
+        const select = document.getElementById('priv-select-escola');
+        select.innerHTML = '<option value="">Selecione a escola...</option>' + escolasCache.map(e => `<option value="${e.id}">${esc(e.nome)}</option>`).join('');
+        document.getElementById('priv-resultado-pessoa').innerHTML = '';
+        document.getElementById('priv-busca-pessoa').value = '';
+        carregarLogExclusoes();
+    }
+    async function buscarPessoaExclusao() {
+        const termo = document.getElementById('priv-busca-pessoa').value.trim();
+        const container = document.getElementById('priv-resultado-pessoa');
+        if (!termo) { container.innerHTML = ''; return; }
+        container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔎</div>Buscando...</div>';
+        const filtro = `or=(nome.ilike.*${encodeURIComponent(termo)}*,cpf.ilike.*${encodeURIComponent(termo)}*,email.ilike.*${encodeURIComponent(termo)}*)`;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/pessoas?${filtro}&select=id,nome,cpf,email,super_admin&order=nome&limit=20`, { headers: authHeaders });
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio">Não foi possível buscar.</div>'; return; }
+        const lista = await res.json();
+        if (!lista.length) { container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse termo.</div>'; return; }
+        container.innerHTML = lista.map(p => `
+            <div class="item-card">
+                <div class="item-info"><div class="item-nome">${esc(p.nome)}</div><div class="item-detalhe" style="margin-top:5px">CPF ${esc(p.cpf) || '—'} · ${esc(p.email) || '—'}</div></div>
+                <div class="item-acoes">${p.super_admin ? '<span style="font-size:12px;color:var(--cor-texto-muted)">Super Admin — protegida</span>' : `<button class="btn-ficha btn-ficha-danger" onclick='abrirConfirmacaoExclusaoPessoa(${p.id}, ${JSON.stringify(p.nome)})'>Excluir</button>`}</div>
+            </div>`).join('');
+    }
+    function abrirConfirmacaoExclusaoPessoa(id, nome) {
+        exclusaoLgpdPendente = { tipo: 'pessoa', id, nome };
+        document.getElementById('excluir-lgpd-titulo').textContent = 'Excluir dados de ' + nome;
+        document.getElementById('excluir-lgpd-descricao').textContent = 'Isso apaga a ficha pessoal e a conta de login de ' + nome + ' por completo, de todas as baterias. Não tem volta.';
+        abrirModalExclusaoLgpd();
+    }
+    function prepararExclusaoEscola() {
+        const select = document.getElementById('priv-select-escola');
+        const id = select.value;
+        if (!id) { mostrarToast('Selecione uma escola primeiro.', 'erro'); return; }
+        const nome = select.options[select.selectedIndex].textContent;
+        exclusaoLgpdPendente = { tipo: 'escola', id: Number(id), nome };
+        document.getElementById('excluir-lgpd-titulo').textContent = 'Excluir a escola ' + nome;
+        document.getElementById('excluir-lgpd-descricao').textContent = 'Isso apaga a escola, todas as baterias dela e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas. Não tem volta.';
+        abrirModalExclusaoLgpd();
+    }
+    function abrirModalExclusaoLgpd() {
+        const ehPessoa = exclusaoLgpdPendente && exclusaoLgpdPendente.tipo === 'pessoa';
+        document.getElementById('excluir-lgpd-motivo-pessoa-wrap').style.display = ehPessoa ? '' : 'none';
+        document.getElementById('excluir-lgpd-motivo-outro-wrap').style.display = 'none';
+        document.getElementById('excluir-lgpd-motivo-escola-wrap').style.display = ehPessoa ? 'none' : '';
+        document.getElementById('excluir-lgpd-motivo-select').value = '';
+        document.getElementById('excluir-lgpd-motivo-outro').value = '';
+        document.getElementById('excluir-lgpd-motivo').value = '';
+        document.getElementById('excluir-lgpd-solicitante').value = '';
+        document.getElementById('excluir-lgpd-confirmacao').value = '';
+        document.getElementById('excluir-lgpd-btn-confirmar').disabled = true;
+        document.getElementById('modal-excluir-lgpd-overlay').classList.add('aberto');
+    }
+    function fecharConfirmacaoExclusao() { exclusaoLgpdPendente = null; document.getElementById('modal-excluir-lgpd-overlay').classList.remove('aberto'); }
+    function onMudarMotivoExclusaoPessoa() {
+        const select = document.getElementById('excluir-lgpd-motivo-select').value;
+        document.getElementById('excluir-lgpd-motivo-outro-wrap').style.display = select === 'outro' ? '' : 'none';
+        onDigitarConfirmacaoExclusao();
+    }
+    function onDigitarConfirmacaoExclusao() {
+        const confirmacao = document.getElementById('excluir-lgpd-confirmacao').value.trim().toUpperCase();
+        const ehPessoa = exclusaoLgpdPendente && exclusaoLgpdPendente.tipo === 'pessoa';
+        let motivoOk;
+        if (ehPessoa) {
+            const select = document.getElementById('excluir-lgpd-motivo-select').value;
+            motivoOk = select !== '' && (select !== 'outro' || document.getElementById('excluir-lgpd-motivo-outro').value.trim() !== '');
+        } else {
+            motivoOk = document.getElementById('excluir-lgpd-motivo').value.trim() !== '';
+        }
+        document.getElementById('excluir-lgpd-btn-confirmar').disabled = !(motivoOk && confirmacao === 'EXCLUIR');
+    }
+    async function executarExclusaoConfirmada() {
+        if (!exclusaoLgpdPendente) return;
+        const btn = document.getElementById('excluir-lgpd-btn-confirmar');
+        btn.disabled = true; btn.textContent = 'Excluindo...';
+        const LABELS_MOTIVO_PESSOA = { pedido_pessoa: 'A pedido da própria pessoa', perda_acesso: 'Perda de acesso — vai se cadastrar de novo' };
+        let motivo;
+        if (exclusaoLgpdPendente.tipo === 'pessoa') {
+            const select = document.getElementById('excluir-lgpd-motivo-select').value;
+            motivo = select === 'outro' ? document.getElementById('excluir-lgpd-motivo-outro').value.trim() : LABELS_MOTIVO_PESSOA[select];
+        } else {
+            motivo = document.getElementById('excluir-lgpd-motivo').value.trim();
+        }
+        const solicitado_por = document.getElementById('excluir-lgpd-solicitante').value.trim() || null;
+        const funcao = exclusaoLgpdPendente.tipo === 'pessoa' ? 'admin-excluir-pessoa' : 'admin-excluir-escola';
+        const payload = exclusaoLgpdPendente.tipo === 'pessoa' ? { pessoa_id: exclusaoLgpdPendente.id, motivo, solicitado_por } : { escola_id: exclusaoLgpdPendente.id, motivo, solicitado_por };
+        try {
+            const res = await fetch(`${SUPABASE_URL}/functions/v1/${funcao}`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify(payload) });
+            const resultado = await res.json();
+            if (!res.ok || !resultado.ok) { mostrarToast('Erro: ' + (resultado.error || 'não foi possível excluir.'), 'erro'); btn.disabled = false; btn.textContent = 'Excluir de vez'; return; }
+            mostrarToast(resultado.aviso || 'Excluído com sucesso.');
+            fecharConfirmacaoExclusao();
+            if (exclusaoLgpdPendente?.tipo === 'pessoa' || funcao === 'admin-excluir-pessoa') {
+                document.getElementById('priv-resultado-pessoa').innerHTML = '';
+                document.getElementById('priv-busca-pessoa').value = '';
+            } else { await carregarEscolas(); carregarPrivacidade(); }
+            carregarLogExclusoes();
+        } catch (e) { mostrarToast('Erro de conexão ao excluir.', 'erro'); btn.disabled = false; btn.textContent = 'Excluir de vez'; }
+    }
+    async function carregarLogExclusoes() {
+        const container = document.getElementById('priv-lista-log');
+        const url = `${SUPABASE_URL}/rest/v1/exclusoes_lgpd?select=*,decisor:decidido_por(nome)&order=criado_em.desc&limit=100`;
+        const res = await fetch(url, { headers: authHeaders });
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio">Não foi possível carregar o histórico de exclusões.</div>'; return; }
+        const lista = await res.json();
+        if (!lista.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Nenhuma exclusão registrada ainda.</div>'; return; }
+        container.innerHTML = lista.map(ex => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(ex.alvo_nome)}<span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · ${ex.tipo === 'pessoa' ? 'Pessoa' : 'Escola'}</span></div>
+                    <div class="item-detalhe" style="margin-top:5px">
+                        ${esc(ex.resumo)} · autorizado por ${esc(ex.decisor?.nome || '—')} · ${histDataHora(ex.criado_em)}
+                        ${ex.solicitado_por ? ` · pedido por ${esc(ex.solicitado_por)}` : ''}${ex.motivo ? ` · "${esc(ex.motivo)}"` : ''}
+                    </div>
+                </div>
+            </div>`).join('');
+    }
 
     (async () => {
         await iniciarSessaoAuth();
         await iniciarUsuario();
-        carregarRitmistas();
     })();
 </script>
 
@@ -2215,12 +3837,8 @@
     // ── MEU PERFIL (aba) ──────────────────────────────────────────────────────
 
     async function iniciarMeuPerfilAba() {
-        const params = new URLSearchParams(window.location.search);
-        const isSuperAdmin = params.get('superadmin') === 'true';
-
-        document.getElementById('mpSuperAdminAviso').style.display = isSuperAdmin ? 'block' : 'none';
-        document.getElementById('fp-container-meuperfil').style.display = isSuperAdmin ? 'none' : 'block';
-        if (isSuperAdmin) return;
+        document.getElementById('mpSuperAdminAviso').style.display = 'none';
+        document.getElementById('fp-container-meuperfil').style.display = 'block';
 
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!u) return;
@@ -2343,8 +3961,39 @@
         await fpMontar(document.getElementById('fp-container-admin'));
         fpIniciar(a, usuarioAtual ? usuarioAtual.perfil : null, usuarioAtual ? usuarioAtual.pessoa_id : null, { aoSalvar: () => { diretoriaCarregada = false; carregarDiretoria(); } });
 
+        // Nível de Acesso -- só Super Admin define quem tem qual perfil de
+        // permissão (a atribuição em si não passa pelo motor único de ficha,
+        // que não conhece esse campo). Injetado no mesmo hook que a
+        // declaração do responsável usa em Ritmistas.
+        const extraAdmin = document.querySelector('#fp-container-admin #fp-extra-conteudo');
+        if (extraAdmin) {
+            if (souSuperAdmin) {
+                if (perfisEscolaCacheSA.length === 0) await carregarPerfisEscolaSA();
+                extraAdmin.innerHTML = `
+                    <div class="ficha-secao">
+                        <div class="ficha-secao-titulo">Nível de Acesso</div>
+                        <select id="fc-nivel-acesso-admin" class="fc-input" style="display:block;">${niveisAcessoOpcoesHTML(a.nivel_acesso_id)}</select>
+                        <button class="btn-ficha btn-ficha-salvar" style="margin-top:8px;" onclick="salvarNivelAcessoAdmin(${a.id})">Salvar Nível de Acesso</button>
+                    </div>`;
+            } else {
+                extraAdmin.innerHTML = '';
+            }
+        }
+
         document.getElementById('modalAdmin').style.display = 'block';
         document.body.style.overflow = 'hidden';
+    }
+
+    async function salvarNivelAcessoAdmin(vinculoId) {
+        const select = document.querySelector('#fp-container-admin #fc-nivel-acesso-admin');
+        const nivelAcessoId = select ? select.value : '';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${vinculoId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ nivel_acesso_id: nivelAcessoId ? Number(nivelAcessoId) : null })
+        });
+        if (res.ok) { mostrarToast('Nível de Acesso atualizado!'); diretoriaCarregada = false; }
+        else { mostrarToast('Erro ao salvar Nível de Acesso.', 'erro'); }
     }
 
     function fecharModalAdmin() {
@@ -2360,7 +4009,7 @@
     // ── TROCAR ABA (atualizado) ───────────────────────────────────────────────
     function trocarAba(aba, btn) {
         window.scrollTo(0, 0);
-        document.querySelectorAll('.painel').forEach(p => p.classList.remove('ativo'));
+        document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
         document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
         document.getElementById('painel-' + aba).classList.add('ativo');
         if (btn) btn.classList.add('ativa');
@@ -2368,6 +4017,11 @@
         if (aba === 'diretoria') carregarDiretoria();
         if (aba === 'meu-perfil') iniciarMeuPerfilAba();
         if (aba === 'configuracoes') iniciarConfiguracoesAba();
+        if (aba === 'dados-escola') renderizarDadosEscolaTab(false);
+        if (aba === 'dados-bateria') renderizarDadosBateriaTab(false);
+        if (aba === 'modo-venda') renderizarModoVendaTab();
+        if (aba === 'permissoes') { perfilEscolaEditando = null; document.getElementById('pe-ativar-lista').style.display = 'none'; renderizarEditorPerfilEscolaSA(); carregarPerfisEscolaSA(); }
+        if (aba === 'historico') carregarHistoricoEscolaSA();
     }
 </script>
 </body>

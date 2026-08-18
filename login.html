@@ -335,7 +335,7 @@
         if (!session) { localStorage.removeItem('ritmista'); mostrarFormularioLogin(); return; }
 
         if (cache.super_admin) {
-            window.location.href = 'super-admin.html';
+            window.location.href = 'admin.html';
             return;
         }
 
@@ -633,7 +633,7 @@
         }
         if (pessoa.super_admin) {
             localStorage.setItem('ritmista', JSON.stringify({ pessoa_id: pessoa.id, id: pessoa.id, super_admin: true, perfil: 'super_admin', nome: pessoa.nome }));
-            window.location.href = 'super-admin.html';
+            window.location.href = 'admin.html';
             return;
         }
 
