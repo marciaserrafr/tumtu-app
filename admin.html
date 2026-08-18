@@ -397,6 +397,11 @@
             .card-nome { font-size: 14px; }
             .btn-card-acao { font-size: 11px; padding: 6px 10px; }
 
+            /* Mesmo tratamento que .ficha-grid já recebe em outras telas do
+               app (carteirinha, cadastro) -- aqui nunca tinha sido aplicado,
+               achado junto da correção da modal cortada, 18/ago/2026. */
+            .modal-admin-grid { grid-template-columns: 1fr; }
+
             .filtros { gap: 6px; }
             .btn-filtro { font-size: 12px; padding: 6px 12px; }
 
@@ -459,7 +464,7 @@
             padding: 24px 16px 40px; overflow-y: auto;
         }
         .modal-admin-box {
-            background: #fff; border-radius: 20px; padding: 28px;
+            background: #fff; border-radius: 20px;
             width: 100%; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,0.25);
             /* Ficha completa (Dados Pessoais + Instrumento + Endereço +
                Medidas + Saúde + Emergência) é bem alta -- sem um limite de
@@ -469,6 +474,14 @@
                resto). Agora a caixa em si vira a área que rola. */
             max-height: calc(100vh - 48px);
             overflow-y: auto;
+            /* Padding de baixo soma env(safe-area-inset-bottom) -- mesma
+               correção já aplicada hoje na barra do Meu Perfil: sem isso, no
+               app instalado (PWA) o iPhone não reserva espaço pra barrinha
+               de gesto de baixo, e os botões "Fechar"/"Ver carteirinha" (bem
+               no fim do conteúdo que agora rola) ficariam espremidos contra
+               ela. Aplicando de propósito, sem esperar achar o mesmo bug de
+               novo no celular. */
+            padding: 28px 28px calc(28px + env(safe-area-inset-bottom)) 28px;
         }
         .modal-admin-titulo { font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 4px; }
         .modal-admin-sub { font-size: 13px; color: #8b88a0; margin-bottom: 20px; }
