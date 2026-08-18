@@ -1151,6 +1151,10 @@
 <!-- PAINEL DIRETORIA -->
 <div class="painel" id="painel-diretoria">
     <div class="painel-titulo">Diretoria</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+        <button class="btn-novo" onclick="irParaCadastroManualDiretoria('mestre')">+ Cadastrar Mestre</button>
+        <button class="btn-novo" onclick="irParaCadastroManualDiretoria('diretor')">+ Cadastrar Diretor</button>
+    </div>
     <div id="listaDiretoria" style="min-height:200px;">
         <div class="vazio">Carregando...</div>
     </div>
@@ -2062,6 +2066,11 @@
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { alert('Bateria não encontrada para este usuário.'); return; }
         window.location.href = `cadastro.html?modo=manual&cargo=ritmista&bateria_id=${bateriaId}`;
+    }
+    function irParaCadastroManualDiretoria(cargo) {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { alert('Bateria não encontrada para este usuário.'); return; }
+        window.location.href = `cadastro.html?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}`;
     }
 
 
