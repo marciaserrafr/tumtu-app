@@ -306,6 +306,19 @@
         .btn-modal-confirmar.azul { background: var(--cor-fundo-escuro); }
 
         /* MODAL — AÇÕES DO CADASTRO */
+        /* .ficha-modal-acoes (barra flutuante de Editar/Salvar/Cancelar, do
+           motor de ficha) usa --cor-fundo-claro por padrão -- certo pra
+           quando ela fica direto na página (aba Meu Perfil, fundo cinza
+           claro do painel), mas dentro de um modal (caixa branca) esse
+           mesmo cinza aparece como um retângulo estranho colado atrás dos
+           botões, sem parecer barra nenhuma (achado da Márcia, 18/ago/2026,
+           print mostrando o fundo cinza). Sobrescrito pra branco só aqui
+           dentro dos modais, igual já é feito pro tema escuro do Meu Perfil
+           em carteirinha.html (components.css). */
+        #modalCadastroOverlay .ficha-modal-acoes,
+        #modalAdmin .ficha-modal-acoes {
+            background: white;
+        }
         .btn-ficha {
             padding: 5px 12px; border-radius: 8px; cursor: pointer;
             font-size: 12px; font-weight: 600; border: 1px solid #e0e0e0;
