@@ -324,12 +324,32 @@
         .modal-overlay {
             display: none; position: fixed; inset: 0;
             background: rgba(0,0,0,0.5); z-index: 1000;
-            align-items: center; justify-content: center;
+            align-items: flex-start; justify-content: center;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 24px 16px calc(24px + env(safe-area-inset-bottom)) 16px;
+            /* Achado real, 18/ago/2026: este era o modal que a Márcia via
+               cortado sem rolar (aberto ao clicar num ritmista) -- eu tinha
+               corrigido só o OUTRO modal (.modal-admin-overlay/#modalAdmin,
+               usado só na aba Diretoria), sem perceber que a lista de
+               Ritmistas abre este aqui (.modal-overlay/#modalCadastroOverlay)
+               por baixo. Este nunca teve tratamento de rolagem nenhum. Mesma
+               solução já validada no outro modal: quem rola é o overlay
+               (tamanho real da tela), a caixa cresce livre -- sem cálculo de
+               altura, à prova do "100vh" mentiroso do celular com barra de
+               endereço visível. align-items muda de center pra flex-start de
+               propósito -- centralizar verticalmente E permitir rolagem ao
+               mesmo tempo é inconsistente entre navegadores (o conteúdo que
+               "sobra" pra cima da centralização pode ficar impossível de
+               alcançar rolando). Efeito colateral pequeno e aceitável: os
+               modais curtos (Suspender/Desligar/Exportar) que usam esta
+               mesma classe deixam de ficar bem no centro da tela e passam a
+               abrir ancorados perto do topo. */
         }
         .modal-overlay.aberto { display: flex; }
         .modal {
             background: white; border-radius: 16px; padding: 28px;
-            width: 100%; max-width: 420px; margin: 20px;
+            width: 100%; max-width: 420px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         .modal h2 { font-size: 18px; color: var(--cor-texto-principal); margin-bottom: 6px; }
