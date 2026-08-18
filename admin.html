@@ -3878,6 +3878,10 @@
         }
         const usuarioAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');
         const souMestre = !!usuarioAtual && usuarioAtual.perfil === 'mestre';
+        // Super Admin aprova qualquer um (Mestre ou Diretor) -- só um Mestre de
+        // verdade fica restrito à regra de pares (Mestre aprova Diretor, nunca
+        // outro Mestre).
+        const podeAprovar = a => souSuperAdmin || (souMestre && a.perfil === 'diretor');
 
         const cardHTML = a => {
             const inicial = (a.nome || 'A')[0].toUpperCase();
@@ -3890,7 +3894,7 @@
             let statusBadge, acoes = '';
             if (a.status === 'pendente') {
                 statusBadge = `<span class="dir-badge-pendente">Pendente</span>`;
-                if (souMestre && a.perfil === 'diretor') {
+                if (podeAprovar(a)) {
                     acoes = `
                     <button class="btn-ficha btn-ficha-ativar" onclick="event.stopPropagation();aprovarDiretor(${a.id})">Aprovar</button>
                     <button class="btn-ficha btn-ficha-rejeitar" onclick="event.stopPropagation();rejeitarDiretor(${a.id})">Rejeitar</button>`;
