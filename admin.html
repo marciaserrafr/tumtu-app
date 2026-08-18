@@ -463,36 +463,27 @@
         .modal-admin-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000;
             display: flex; align-items: flex-start; justify-content: center;
-            padding: 24px 16px 40px;
-            /* NÃO tem overflow-y aqui de propósito -- só a caixa (abaixo)
-               rola. A primeira tentativa deixava overlay E caixa com
-               overflow-y:auto ao mesmo tempo, dois "containers" de rolagem
-               aninhados competindo pelo mesmo gesto de rolar -- o resultado
-               na prática era continuar parecendo travado (achado real da
-               Márcia, 18/ago/2026, segunda vez testando). Um scroll container
-               só, sem ambiguidade. */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 24px 16px calc(40px + env(safe-area-inset-bottom)) 16px;
+            /* Terceira tentativa (18/ago/2026, achado real da Márcia num
+               celular de verdade). As duas primeiras calculavam uma altura
+               máxima pra caixa a partir de 100vh -- só que no navegador do
+               celular "100vh" conta o espaço atrás da barra de endereço, que
+               nem sempre está visível: a caixa achava que tinha mais espaço
+               do que a tela realmente mostrava, ficava cortada, e não tinha
+               ninguém rolando o pedaço que sobrava pra fora. Solução mais
+               simples e à prova de barra de endereço: o overlay (essa div,
+               do tamanho real da tela) é quem rola, e a caixa cresce do
+               tamanho que o conteúdo pedir, sem limite próprio -- é o mesmo
+               jeito que uma página comprida rola, sem cálculo de altura
+               nenhum. Continua sendo só UM scroll container (não dois). */
         }
         .modal-admin-box {
             background: #fff; border-radius: 20px;
             width: 100%; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,0.25);
-            /* Ficha completa (Dados Pessoais + Instrumento + Endereço +
-               Medidas + Saúde + Emergência) é bem alta -- sem um limite de
-               altura próprio, a caixa crescia mais que a tela e ficava
-               impossível de rolar até o fim (bug grave, achado da Márcia,
-               18/ago/2026 -- modal travada, sem jeito de fechar nem ver o
-               resto). Altura descontando exatamente o padding vertical do
-               overlay (24px + 40px = 64px), pra caber certinho sem sobrar
-               nem faltar 1px -- a caixa em si é a única área que rola. */
-            max-height: calc(100vh - 64px);
-            overflow-y: auto;
-            /* Padding de baixo soma env(safe-area-inset-bottom) -- mesma
-               correção já aplicada hoje na barra do Meu Perfil: sem isso, no
-               app instalado (PWA) o iPhone não reserva espaço pra barrinha
-               de gesto de baixo, e os botões "Fechar"/"Ver carteirinha" (bem
-               no fim do conteúdo que agora rola) ficariam espremidos contra
-               ela. Aplicando de propósito, sem esperar achar o mesmo bug de
-               novo no celular. */
-            padding: 28px 28px calc(28px + env(safe-area-inset-bottom)) 28px;
+            padding: 28px;
+            margin: auto 0;
         }
         .modal-admin-titulo { font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 4px; }
         .modal-admin-sub { font-size: 13px; color: #8b88a0; margin-bottom: 20px; }
