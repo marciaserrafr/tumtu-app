@@ -12,4 +12,12 @@ const configEscola = {
   corPrimaria:      null, // null = usa escuro padrão do TumTu (#12101a)
   mestreDeBateria:  "",   // ex: "Mestre Augusto"
   temporadaAtual:   "",   // ex: "Carnaval 2027"
+
+  // Tema do painel de gestão (admin.html) -- opcional, ligado por escola no
+  // Super Admin (escolas.tema_personalizado_ativo). Ver aplicarConfigEscola()
+  // em admin.html. Nunca usado em super-admin.html (visão não presa a uma
+  // escola só).
+  temaPersonalizadoAtivo: false,
+  corPrimariaEscola: null,
+  logoEscola:        null,
 };

@@ -726,6 +726,10 @@
                 <div class="campo"><label>Cor Terciária</label><input type="text" id="nova-escola-cor-terciaria" value="" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
                 <div class="campo"><label>Cor Quaternária</label><input type="text" id="nova-escola-cor-quaternaria" value="" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
                 <div class="campo campo-full"><label>Preview</label><div class="preview-cores" id="preview-nova-escola"><span style="font-size:13px;color:#999">Sem cores definidas</span></div></div>
+                <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="nova-escola-tema-ativo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;">
+                    <label for="nova-escola-tema-ativo" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Ligar cores da escola no painel de gestão</label>
+                </div>
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -1762,6 +1766,7 @@
             cor_secundaria: document.getElementById('nova-escola-cor-secundaria').value.trim() || null,
             cor_terciaria: document.getElementById('nova-escola-cor-terciaria').value.trim() || null,
             cor_quaternaria: document.getElementById('nova-escola-cor-quaternaria').value.trim() || null,
+            tema_personalizado_ativo: document.getElementById('nova-escola-tema-ativo').checked,
             ativa: true
         };
 
@@ -1860,6 +1865,14 @@
                 </div>
                 <div class="preview-cores" id="preview-escola" style="margin-top:12px;"></div>
             </div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Cores da Escola no Painel de Gestão</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="escola-cor-tema-ativo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${e && e.tema_personalizado_ativo ? 'checked' : ''} ${modoEdicao ? '' : 'disabled'}>
+                    <label for="escola-cor-tema-ativo" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
+                </div>
+                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o cabeçalho do painel de gestão (Mestre/Diretor) usa a cor primária e o logo da escola no lugar da marca TumTu. Desligado por padrão — recomendado testar a legibilidade antes de ligar, principalmente em escolas com cor primária vermelha ou muito saturada.</div>
+            </div>
             <input type="hidden" id="escola-cor-id" value="${e ? e.id : ''}">
             ${rodape}`;
         logoPendente.escolaEdicao = null;
@@ -1882,6 +1895,7 @@
             cor_secundaria: document.getElementById('escola-cor-secundaria').value.trim() || null,
             cor_terciaria: document.getElementById('escola-cor-terciaria').value.trim() || null,
             cor_quaternaria: document.getElementById('escola-cor-quaternaria').value.trim() || null,
+            tema_personalizado_ativo: document.getElementById('escola-cor-tema-ativo').checked,
         };
 
         const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, {
