@@ -16,8 +16,8 @@ const configEscola = {
   // Tema do painel de gestão (admin.html) -- opcional, ligado por escola no
   // Super Admin (escolas.tema_personalizado_ativo). Ver aplicarConfigEscola()
   // em admin.html. Nunca usado em super-admin.html (visão não presa a uma
-  // escola só).
+  // escola só). logoEscola (acima) é reaproveitado pra esse mesmo fim.
   temaPersonalizadoAtivo: false,
   corPrimariaEscola: null,
-  logoEscola:        null,
+  coresEscola:       [], // [primária, secundária, terciária, quaternária], só as cadastradas -- usado por escolherCorBordaLogo() pra escolher a cor do anel da logo
 };

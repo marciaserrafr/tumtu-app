@@ -47,13 +47,15 @@
             font-size: 15px; font-weight: 700; letter-spacing: 0; text-transform: none; margin-top: 0;
         }
         .header-marca { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
-        /* Redonda, com halo branco -- mesma identidade da logo da escola na
-           carteirinha (.v-logo: círculo + anel), pedido da Márcia,
-           18/ago/2026, "manter a identidade do todo". */
+        /* Redonda, com anel na cor real da escola -- mesma identidade e
+           mesma lógica de cor da logo na carteirinha (.v-logo/
+           escolherCorBordaLogo), pedido da Márcia, 18/ago/2026. Cor do
+           anel setada via JS (aplicarConfigEscola); fallback dourado aqui
+           é só pro caso raríssimo do JS não rodar a tempo. */
         .header-marca-logo-wrap {
             width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
             background: rgba(255,255,255,0.92);
-            box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+            box-shadow: 0 0 0 2px #D4AF37;
             overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
         .header-marca-logo { width: 100%; height: 100%; object-fit: contain; }
@@ -461,7 +463,14 @@
         .modal-admin-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000;
             display: flex; align-items: flex-start; justify-content: center;
-            padding: 24px 16px 40px; overflow-y: auto;
+            padding: 24px 16px 40px;
+            /* NÃO tem overflow-y aqui de propósito -- só a caixa (abaixo)
+               rola. A primeira tentativa deixava overlay E caixa com
+               overflow-y:auto ao mesmo tempo, dois "containers" de rolagem
+               aninhados competindo pelo mesmo gesto de rolar -- o resultado
+               na prática era continuar parecendo travado (achado real da
+               Márcia, 18/ago/2026, segunda vez testando). Um scroll container
+               só, sem ambiguidade. */
         }
         .modal-admin-box {
             background: #fff; border-radius: 20px;
@@ -471,8 +480,10 @@
                altura próprio, a caixa crescia mais que a tela e ficava
                impossível de rolar até o fim (bug grave, achado da Márcia,
                18/ago/2026 -- modal travada, sem jeito de fechar nem ver o
-               resto). Agora a caixa em si vira a área que rola. */
-            max-height: calc(100vh - 48px);
+               resto). Altura descontando exatamente o padding vertical do
+               overlay (24px + 40px = 64px), pra caber certinho sem sobrar
+               nem faltar 1px -- a caixa em si é a única área que rola. */
+            max-height: calc(100vh - 64px);
             overflow-y: auto;
             /* Padding de baixo soma env(safe-area-inset-bottom) -- mesma
                correção já aplicada hoje na barra do Meu Perfil: sem isso, no
@@ -510,7 +521,7 @@
             <span class="header-user" id="headerNome"></span>
             <span id="headerCargo" style="font-size:10px;color:rgba(212,175,55,0.6);letter-spacing:0.5px;text-transform:uppercase;"></span>
         </div>
-        <button id="btnMinhaCarteirinhaHeader" onclick="window.location.href='carteirinha.html?voltar=admin'" style="background:#D4AF37;border:none;color:#12101a;padding:5px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;">Minha Carteirinha</button>
+        <button id="btnMinhaCarteirinhaHeader" onclick="window.location.href='carteirinha.html?voltar=admin'" style="background:#D4AF37;border:none;color:#12101a;padding:5px 15px;border-radius:999px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;">Minha Carteirinha</button>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
@@ -768,7 +779,7 @@
 </div>
 
 
-<script src="config-escola.js?v=2"></script>
+<script src="config-escola.js?v=3"></script>
 <script src="config-suporte.js?v=1"></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
@@ -1386,7 +1397,8 @@
             // se a escola tiver logo cadastrada -- sem logo ainda enviada, a
             // marca TumTu continua ali (com a cor ajustada), nunca fica vazio.
             if (marca && cfg.logoEscola) {
-                marca.innerHTML = `<div class="header-marca-logo-wrap"><img src="${cfg.logoEscola}" class="header-marca-logo" alt="Logo"></div>`;
+                const corAnel = escolherCorBordaLogo(cfg.coresEscola || []);
+                marca.innerHTML = `<div class="header-marca-logo-wrap" style="box-shadow:0 0 0 2px ${corAnel};"><img src="${cfg.logoEscola}" class="header-marca-logo" alt="Logo"></div>`;
                 if (headerEsquerda) headerEsquerda.classList.add('com-logo-escola');
             }
         }
@@ -1408,6 +1420,27 @@
         const b = canal(parseInt(full.slice(4, 6), 16));
         const luminancia = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         return luminancia > (limiar ?? 0.42);
+    }
+
+    // Duplicadas de carteirinha.html -- mesma lógica de anel colorido ao
+    // redor da logo (.v-logo/box-shadow), pedido da Márcia, 18/ago/2026:
+    // "a logo pode ter a mesma lógica da carteirinha... borda da cor".
+    function corEhBranca(hex) {
+        if (!hex) return true;
+        const h = hex.replace('#', '');
+        const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+        if (full.length !== 6) return false;
+        const r = parseInt(full.slice(0, 2), 16);
+        const g = parseInt(full.slice(2, 4), 16);
+        const b = parseInt(full.slice(4, 6), 16);
+        return r > 240 && g > 240 && b > 240;
+    }
+    function escolherCorBordaLogo(cores) {
+        if (!Array.isArray(cores)) return '#D4AF37';
+        for (let i = cores.length - 1; i >= 1; i--) {
+            if (cores[i] && !corEhBranca(cores[i])) return cores[i];
+        }
+        return '#D4AF37';
     }
 
     async function iniciarUsuario() {
@@ -1444,13 +1477,16 @@
             configEscola.nomeBateria = bateria.nome || '';
             codigoConviteBateria = bateria.codigo_convite || bateriaId;
             if (bateria.escola_id) {
-                const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,cor_primaria,logo_url,tema_personalizado_ativo`, { headers: authHeaders });
+                const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url,tema_personalizado_ativo`, { headers: authHeaders });
                 const escolas = await resEscola.json();
                 const escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
                 configEscola.nomeEscola = escola ? (escola.sigla || escola.nome || '') : '';
                 configEscola.temaPersonalizadoAtivo = !!(escola && escola.tema_personalizado_ativo);
                 configEscola.corPrimariaEscola = (escola && escola.cor_primaria) || null;
                 configEscola.logoEscola = (escola && escola.logo_url) || null;
+                configEscola.coresEscola = escola
+                    ? [escola.cor_primaria, escola.cor_secundaria, escola.cor_terciaria, escola.cor_quaternaria].filter(Boolean)
+                    : [];
             }
         } catch (e) {
             // Sem dado real, header cai de volta pro vazio de fábrica -- não quebra a tela.
@@ -1746,7 +1782,7 @@
         <div class="modal-admin-box">
             <div id="fp-container-admin"></div>
             <div class="modal-admin-acoes">
-                <button onclick="verCarteirinhaAdmin()" style="background:#D4AF37;border:none;color:#12101a;padding:9px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Ver carteirinha ↗</button>
+                <button onclick="verCarteirinhaAdmin()" style="background:#D4AF37;border:none;color:#12101a;padding:9px 22px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Ver carteirinha ↗</button>
                 <button onclick="fecharModalAdmin()" style="background:transparent;border:1.5px solid #e8e6f0;color:#5a5770;padding:9px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Fechar</button>
             </div>
         </div>
