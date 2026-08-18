@@ -14,7 +14,7 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=14">
+    <link rel="stylesheet" href="styles/components.css?v=15">
     <script src="config-escola.js?v=3"></script>
     <script src="config-suporte.js?v=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -115,6 +115,8 @@
             align-items: center;
             gap: 6px;
         }
+        .foto-obrigatorio-texto { font-size: 12px; color: #a39fc0; margin-top: 10px; }
+        .foto-aviso-manual { font-size: 12px; color: #a39fc0; margin-top: 10px; max-width: 320px; text-align: center; line-height: 1.5; }
         .secao {
             font-size: 12px;
             font-weight: bold;
@@ -180,6 +182,14 @@
             </div>
             <input type="file" id="inputFoto" accept="image/*" style="display:none" onchange="previewFoto(this)">
             <button type="button" class="btn-foto" onclick="document.getElementById('inputFoto').click()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Trocar foto</button>
+            <!-- Obrigatória só no autocadastro (a própria pessoa preenchendo)
+                 -- no modo manual não tem como exigir, quem cadastra pode não
+                 ter a foto em mãos. inicializarModoManual() troca pra o aviso
+                 abaixo quando detecta ?modo=manual (18/ago/2026, pedido da
+                 Márcia: usada na carteirinha e pra diretoria identificar a
+                 pessoa no sistema). -->
+            <div id="fotoObrigatorioTexto" class="foto-obrigatorio-texto">Foto obrigatória <span class="obrigatorio">*</span></div>
+            <div id="fotoAvisoManual" class="foto-aviso-manual" style="display:none">Recomendamos adicionar a foto agora, se tiver em mãos — ela aparece na carteirinha e ajuda a diretoria a identificar a pessoa no sistema. Se não for possível, dá pra completar depois em "Meu Perfil".</div>
         </div>
 
         <div class="secao oculto-pessoa-existente">Dados Pessoais</div>
@@ -668,15 +678,37 @@
         }
     });
 
+    // Guarda a foto em base64 pra ir junto no cadastro -- antes só existia a
+    // prévia visual (this.innerHTML), o arquivo nunca era enviado de
+    // verdade (achado real, 18/ago/2026, avaliando como tornar a foto
+    // obrigatória: a trava não faria sentido nenhum sobre um campo que não
+    // salvava nada). Mesma técnica de redimensionar antes de converter
+    // (máximo 1000px, JPEG 80%) já usada em ficha-perfil.js -- fotos de
+    // celular sem redimensionar facilmente passam de vários MB.
+    let fotoBase64 = null;
+
     function previewFoto(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
+        if (!input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                const MAX = 1000;
+                const escala = Math.min(1, MAX / Math.max(img.width, img.height));
+                const w = Math.round(img.width * escala);
+                const h = Math.round(img.height * escala);
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                fotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
                 const preview = document.querySelector('.foto-preview');
-                preview.innerHTML = `<img src="${e.target.result}">`;
+                preview.innerHTML = `<img src="${fotoBase64}">`;
+                const erroFoto = document.querySelector('.foto-area .erro-inline');
+                if (erroFoto) erroFoto.textContent = '';
             };
-            reader.readAsDataURL(input.files[0]);
-        }
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
     }
 
     const ICONE_OLHO_ABERTO = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -1002,6 +1034,9 @@
             const el = document.getElementById(id);
             if (el) el.required = false;
         });
+        // Pessoa já tem ficha (só está entrando numa bateria nova) -- pode
+        // já ter foto salva de antes, não faz sentido exigir de novo.
+        if (!modoManualAtual) document.getElementById('fotoObrigatorioTexto').style.display = 'none';
     }
 
     function desativarModoPessoaExistente() {
@@ -1015,6 +1050,7 @@
             const el = document.getElementById(id);
             if (el) el.required = true;
         });
+        if (!modoManualAtual) document.getElementById('fotoObrigatorioTexto').style.display = 'block';
     }
 
     // ── CADASTRO MANUAL (?modo=manual) — Super Admin / Mestre / Diretor ─
@@ -1060,6 +1096,12 @@
         // acima), não a própria pessoa — esconde o checkbox de "li e concordo",
         // que não se aplica quando é outra pessoa preenchendo o formulário.
         document.getElementById('bloco-politica-privacidade').style.display = 'none';
+        // Foto não pode ser obrigatória aqui -- quem está cadastrando é
+        // outra pessoa (Mestre/Diretor/Super Admin), pode não ter a foto em
+        // mãos na hora. Troca o "obrigatória" pelo aviso explicando por que
+        // vale a pena adicionar mesmo assim, se der.
+        document.getElementById('fotoObrigatorioTexto').style.display = 'none';
+        document.getElementById('fotoAvisoManual').style.display = 'block';
     }
 
     function mostrarErroCampo(campo, mensagem) {
@@ -1094,6 +1136,11 @@
                 if (!primeiroCampo) primeiroCampo = campo;
             }
         });
+        if (!modoManualAtual && !pessoaExistente && !fotoBase64) {
+            mostrarErroFoto();
+            valido = false;
+            if (!primeiroCampo) primeiroCampo = document.querySelector('.foto-area');
+        }
         if (primeiroCampo) primeiroCampo.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return valido;
     }
@@ -1110,6 +1157,23 @@
         6: 'Acesso',
     };
 
+    // Foto não é um <input required> comum (o input de arquivo fica
+    // escondido, e o valor de verdade é fotoBase64) -- validação própria,
+    // só quando não é cadastro manual (ver inicializarModoManual). Mesmo
+    // padrão visual de mostrarErroCampo, só que preso na área da foto em
+    // vez de um input.
+    function mostrarErroFoto() {
+        const area = document.querySelector('.foto-area');
+        let span = area.querySelector('.erro-inline');
+        if (!span) {
+            span = document.createElement('span');
+            span.className = 'erro-inline';
+            span.style.cssText = 'font-size:12px;color:#dc3545;margin-top:8px;display:block;text-align:center;';
+            area.appendChild(span);
+        }
+        span.textContent = 'Adicione uma foto pra continuar.';
+    }
+
     function validarCamposEtapa(n) {
         const container = document.querySelector(`.form-step[data-step="${n}"]`);
         const obrigatorios = container.querySelectorAll('input[required], select[required]');
@@ -1122,6 +1186,11 @@
                 if (!primeiroCampo) primeiroCampo = campo;
             }
         });
+        if (n === 1 && !modoManualAtual && !pessoaExistente && !fotoBase64) {
+            mostrarErroFoto();
+            valido = false;
+            if (!primeiroCampo) primeiroCampo = document.querySelector('.foto-area');
+        }
         if (primeiroCampo) primeiroCampo.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return valido;
     }
@@ -1226,6 +1295,7 @@
         }
 
         const dados = {
+            foto_url: fotoBase64,
             nome: document.getElementById('nome').value.trim(),
             apelido: document.getElementById('apelido').value.trim() || null,
             genero: document.getElementById('genero').value || null,
@@ -1368,6 +1438,7 @@
             tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
             const dadosPessoa = {
                 auth_user_id: authData.user.id,
+                foto_url: dados.foto_url,
                 nome: dados.nome, apelido: dados.apelido, genero: dados.genero, genero_personalizado: dados.genero_personalizado,
                 nacionalidade: dados.nacionalidade, cpf: dados.cpf,
                 tipo_documento: dados.tipo_documento, numero_documento: dados.numero_documento, nascimento: dados.nascimento,
