@@ -47,7 +47,16 @@
             font-size: 15px; font-weight: 700; letter-spacing: 0; text-transform: none; margin-top: 0;
         }
         .header-marca { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
-        .header-marca-logo { max-height: 52px; max-width: 200px; object-fit: contain; display: block; }
+        /* Redonda, com halo branco -- mesma identidade da logo da escola na
+           carteirinha (.v-logo: círculo + anel), pedido da Márcia,
+           18/ago/2026, "manter a identidade do todo". */
+        .header-marca-logo-wrap {
+            width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(255,255,255,0.92);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .header-marca-logo { width: 100%; height: 100%; object-fit: contain; }
         .header-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(212,175,55,0.7); margin-top: 7px; }
         .header-acoes { display: flex; gap: 12px; align-items: center; }
         .header-user { font-size: 13px; color: rgba(255,255,255,0.6); }
@@ -65,9 +74,12 @@
             text-align: center; padding: 28px 24px 26px; margin-top: 12px;
             border-top: 1px solid var(--cor-borda);
         }
-        .rodape-tumtu .tt-logo { font-size: 15px; }
+        /* .tt-m tem border-bottom (o traço terracota do "m") -- 3px de gap
+           não dava respiro nenhum pro traço antes do texto de baixo, ficava
+           parecendo cortar a legenda (achado da Márcia, 18/ago/2026). */
+        .rodape-tumtu .tt-logo { font-size: 15px; display: inline-block; }
         .rodape-tumtu .rodape-tagline {
-            display: block; margin-top: 3px; font-size: 10.5px; font-weight: 600;
+            display: block; margin-top: 12px; font-size: 10.5px; font-weight: 600;
             letter-spacing: 0.8px; text-transform: uppercase; color: var(--cor-texto-muted);
         }
         /* NAV ABAS */
@@ -449,6 +461,14 @@
         .modal-admin-box {
             background: #fff; border-radius: 20px; padding: 28px;
             width: 100%; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+            /* Ficha completa (Dados Pessoais + Instrumento + Endereço +
+               Medidas + Saúde + Emergência) é bem alta -- sem um limite de
+               altura próprio, a caixa crescia mais que a tela e ficava
+               impossível de rolar até o fim (bug grave, achado da Márcia,
+               18/ago/2026 -- modal travada, sem jeito de fechar nem ver o
+               resto). Agora a caixa em si vira a área que rola. */
+            max-height: calc(100vh - 48px);
+            overflow-y: auto;
         }
         .modal-admin-titulo { font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 4px; }
         .modal-admin-sub { font-size: 13px; color: #8b88a0; margin-bottom: 20px; }
@@ -477,7 +497,7 @@
             <span class="header-user" id="headerNome"></span>
             <span id="headerCargo" style="font-size:10px;color:rgba(212,175,55,0.6);letter-spacing:0.5px;text-transform:uppercase;"></span>
         </div>
-        <button id="btnMinhaCarteirinhaHeader" onclick="window.location.href='carteirinha.html?voltar=admin'" style="background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);padding:5px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">Minha Carteirinha</button>
+        <button id="btnMinhaCarteirinhaHeader" onclick="window.location.href='carteirinha.html?voltar=admin'" style="background:#D4AF37;border:none;color:#12101a;padding:5px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;">Minha Carteirinha</button>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
@@ -1337,11 +1357,13 @@
             document.getElementById('headerCargo').style.color = corTexto;
             document.getElementById('headerCargo').style.opacity = '0.7';
 
-            // Botões: fundo sólido claro em vez de contorno translúcido -- fica
-            // nítido em cima de qualquer cor, sem depender de acertar o
-            // contraste cor a cor (era o que estava "não nítido" antes).
-            const btnCarteirinha = document.getElementById('btnMinhaCarteirinhaHeader');
-            if (btnCarteirinha) btnCarteirinha.classList.add('btn-header-tematico');
+            // "Minha Carteirinha" já é a pílula dourada de ação principal
+            // (mesmo padrão de botão primário do resto do app) -- dourado já
+            // fica nítido em cima de qualquer cor, não precisa de ajuste.
+            // Só "Sair" (ação secundária) ganha fundo sólido claro em vez de
+            // contorno translúcido -- era o que estava "sem graça"/pouco
+            // nítido antes, e os dois botões ficavam parecidos demais em
+            // cor e peso (achado da Márcia, 18/ago/2026).
             document.querySelector('.btn-sair').classList.add('btn-header-tematico');
 
             // Logo GRANDE ao lado do nome da escola/bateria (não mais empilhada
@@ -1351,7 +1373,7 @@
             // se a escola tiver logo cadastrada -- sem logo ainda enviada, a
             // marca TumTu continua ali (com a cor ajustada), nunca fica vazio.
             if (marca && cfg.logoEscola) {
-                marca.innerHTML = `<img src="${cfg.logoEscola}" class="header-marca-logo" alt="Logo">`;
+                marca.innerHTML = `<div class="header-marca-logo-wrap"><img src="${cfg.logoEscola}" class="header-marca-logo" alt="Logo"></div>`;
                 if (headerEsquerda) headerEsquerda.classList.add('com-logo-escola');
             }
         }
