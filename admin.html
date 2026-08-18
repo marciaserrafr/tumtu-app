@@ -1264,6 +1264,35 @@
         });
     }
 
+    // Linha de título dentro da própria planilha (A1, em negrito) -- pedido
+    // da Márcia, 18/ago/2026: "relatório de ritmistas: agogô?" -- pra ficar
+    // claro o que é aquela aba mesmo se for impressa ou reaproveitada fora
+    // do Excel, sem depender só do nome pequeno da aba lá embaixo. Reflete
+    // também o filtro de status já aplicado na tela (ex: "Ativos"), porque
+    // o pedido real do Diretor sempre envolve os dois juntos (instrumento +
+    // status) -- reaproveita o mesmo texto que já aparece no filtro da
+    // tela, sem duplicar a lista de rótulos.
+    function planilhaComTitulo(linhas, titulo) {
+        const planilha = XLSX.utils.aoa_to_sheet([[titulo]]);
+        planilha['A1'].s = { font: { bold: true, sz: 13 } };
+        XLSX.utils.sheet_add_json(planilha, linhas, { origin: 'A3' });
+        return planilha;
+    }
+
+    function tituloRelatorio(ehRitmistas, sufixoInstrumento) {
+        // statusSelectLabel é o filtro da aba Ritmistas -- Diretoria não tem
+        // filtro de status próprio nessa tela, então só olha esse texto
+        // quando o relatório é mesmo de Ritmistas (senão pegaria o filtro
+        // errado, sobrando de uma aba que nem é essa).
+        let titulo = ehRitmistas ? 'Relatório de Ritmistas' : 'Relatório de Diretoria';
+        if (ehRitmistas) {
+            const statusLabel = document.getElementById('statusSelectLabel').textContent.trim();
+            if (statusLabel && statusLabel !== 'Todos os status') titulo += ` — ${statusLabel}`;
+        }
+        if (sufixoInstrumento) titulo += ` — ${sufixoInstrumento}`;
+        return titulo;
+    }
+
     async function confirmarExportarExcel() {
         const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
         const lista = ehRitmistas ? listaFiltradaAtual : listaDiretoriaAtual;
@@ -1301,11 +1330,13 @@
                 let sufixo = 2;
                 while (usados.has(aba)) { aba = `${nomeAbaExcel(nomeInstrumento).slice(0, 28)} (${sufixo++})`; }
                 usados.add(aba);
-                const planilha = XLSX.utils.json_to_sheet(linhasExportacao(grupos[nomeInstrumento], todosCampos, marcados));
+                const linhas = linhasExportacao(grupos[nomeInstrumento], todosCampos, marcados);
+                const planilha = planilhaComTitulo(linhas, tituloRelatorio(ehRitmistas, nomeInstrumento));
                 XLSX.utils.book_append_sheet(livro, planilha, aba);
             });
         } else {
-            const planilha = XLSX.utils.json_to_sheet(linhasExportacao(lista, todosCampos, marcados));
+            const linhas = linhasExportacao(lista, todosCampos, marcados);
+            const planilha = planilhaComTitulo(linhas, tituloRelatorio(ehRitmistas, null));
             XLSX.utils.book_append_sheet(livro, planilha, nomeAba);
         }
 
