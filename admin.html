@@ -903,7 +903,6 @@
             <div class="vg-secao-titulo" style="margin-bottom:16px;">Ajustes que valem para todas as escolas.</div>
             <div class="config-item" onclick="abrirConfigTelaSA('instrumentos')"><span>Instrumentos</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Medidas</span><span class="config-item-seta">›</span></div>
-            <div class="config-item" onclick="abrirConfigTelaSA('permissoes')"><span>Perfis de Permissão</span><span class="config-item-seta">›</span></div>
         </div>
 
         <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
@@ -922,15 +921,6 @@
             <button class="btn-novo" onclick="abrirNovoTamanho()">+ Novo Tamanho</button>
             <div id="sa-tamanho-editor" style="display:none;"></div>
             <div id="sa-tamanhos-lista"></div>
-        </div>
-
-        <div id="sa-config-tela-permissoes" class="config-subtela" style="display:none;">
-            <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
-            <div class="painel-titulo">Perfis de Permissão</div>
-            <p class="config-sub-desc">Biblioteca mestre — modelos prontos que qualquer escola pode ativar (e ajustar) na própria aba "Permissões". Editar um modelo aqui não muda o que uma escola já ativou.</p>
-            <button class="btn-novo" onclick="abrirNovoNivel()">+ Novo Perfil</button>
-            <div id="sa-nivel-editor" style="display:none;"></div>
-            <div id="sa-niveis-lista"></div>
         </div>
     </div>
 
@@ -974,6 +964,7 @@
     <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
     <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)">Diretoria</button>
     <button class="aba-btn" data-aba="convites" onclick="trocarAba('convites', this)">Convites</button>
+    <button class="aba-btn" data-aba="relatorios" onclick="trocarAba('relatorios', this)">Relatórios</button>
     <button class="aba-btn-sa aba-btn" data-aba="permissoes" onclick="trocarAba('permissoes', this)" style="display:none">Permissões</button>
     <button class="aba-btn-sa aba-btn" data-aba="historico" onclick="trocarAba('historico', this)" style="display:none">Histórico</button>
     <button class="aba-btn" data-aba="configuracoes" onclick="trocarAba('configuracoes', this)">Configurações</button>
@@ -1006,14 +997,10 @@
     </div>
 </div>
 
-<!-- PAINEL PERMISSÕES (por escola, só Super Admin nesta etapa) -->
+<!-- PAINEL PERMISSÕES (por escola) -->
 <div class="painel" id="painel-permissoes">
     <div class="painel-titulo">Permissões</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-        <button class="btn-novo" onclick="abrirAtivarPerfilEscolaSA()">+ Ativar Perfil da Biblioteca</button>
-        <button class="btn-secundario" onclick="abrirNovoPerfilEscolaSA()">+ Criar Perfil Exclusivo</button>
-    </div>
-    <div id="pe-ativar-lista" style="display:none;margin-bottom:20px;"></div>
+    <div class="vg-secao-titulo" style="margin-bottom:16px;text-transform:none;letter-spacing:0;font-weight:400;">Escolha uma pessoa da Diretoria e marque direto o que ela pode ver e editar. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
     <div id="pe-editor" style="display:none;"></div>
     <div id="pe-perfis-lista"></div>
 </div>
@@ -1034,7 +1021,6 @@
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
         <button class="btn-novo" onclick="irParaCadastroManualRitmista()">+ Cadastrar Ritmista</button>
-        <button onclick="abrirModalExportar('ritmistas')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Excel</button>
     </div>
 
     <!-- BUSCA -->
@@ -1165,11 +1151,17 @@
 <!-- PAINEL DIRETORIA -->
 <div class="painel" id="painel-diretoria">
     <div class="painel-titulo">Diretoria</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-        <button onclick="abrirModalExportar('diretoria')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Diretoria</button>
-    </div>
     <div id="listaDiretoria" style="min-height:200px;">
         <div class="vazio">Carregando...</div>
+    </div>
+</div>
+
+<!-- PAINEL RELATÓRIOS -->
+<div class="painel" id="painel-relatorios">
+    <div class="painel-titulo">Relatórios</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button onclick="abrirModalExportar('ritmistas')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Ritmistas</button>
+        <button onclick="abrirModalExportar('diretoria')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Diretoria</button>
     </div>
 </div>
 
@@ -1548,7 +1540,7 @@
                 rejeitado: `<span class="badge badge-rejeitado">Rejeitado</span>`,
             }[status] || '';
 
-            const direita = status === 'pendente'
+            const direita = (status === 'pendente' && tenhoCapacidade('aprovar_ritmistas'))
                 ? `${badgeStatus}
                    <button class="btn-card-acao btn-card-ativar" onclick="event.stopPropagation();atualizarStatus(${r.id},'aprovado')">Ativar</button>
                    <button class="btn-card-acao btn-card-rejeitar" onclick="event.stopPropagation();atualizarStatus(${r.id},'rejeitado')">Rejeitar</button>`
@@ -2331,6 +2323,27 @@
         await carregarNomeEscolaBateria(usuario.bateria_id);
         aplicarConfigEscola();
         renderizarLinksCadastroAdmin();
+
+        // Carrega bateria/escola completas -- não só o resumo de
+        // carregarNomeEscolaBateria() (que só preenche configEscola pro
+        // header) -- pra Dados da Escola/Dados da Bateria/Comercial
+        // funcionarem pra Admin comum também, se a Márcia liberar essas
+        // capacidades pra ele (antes, só Super Admin via essas abas).
+        const resB = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${usuario.bateria_id}`, { headers: authHeaders });
+        const bs = await resB.json();
+        bateriaAtualData = Array.isArray(bs) && bs[0] ? bs[0] : null;
+        if (bateriaAtualData && bateriaAtualData.escola_id) {
+            const resE = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateriaAtualData.escola_id}`, { headers: authHeaders });
+            const es = await resE.json();
+            escolaAtualData = Array.isArray(es) && es[0] ? es[0] : null;
+        }
+        renderizarDadosEscolaTab();
+        renderizarDadosBateriaTab();
+        renderizarComercialTab();
+
+        await carregarMinhasCapacidades(usuario.bateria_id);
+        aplicarGatingAbas();
+
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'block';
         carregarRitmistas();
@@ -2634,8 +2647,7 @@
     // ══════════════════════════════════════════════════════════════════
     // SUPER ADMIN — portado de super-admin.html (Etapa 2 da unificação,
     // 18/ago/2026). Tudo abaixo só é acionado quando souSuperAdmin===true.
-    // Nesta etapa: sem capacidades/RLS novas -- Super Admin sempre vê tudo,
-    // Admin comum continua vendo exatamente as mesmas 6 abas de sempre.
+    // Super Admin sempre vê tudo, sem checagem de capacidade nenhuma.
     // ══════════════════════════════════════════════════════════════════
     let souSuperAdmin = false;
     let dentroDeEscolaSA = false;
@@ -2643,6 +2655,64 @@
     let saAbaAtual = 'dashboard';
     let escolaSelecionadaId = null;
     let escolaAtualData = null;
+
+    // Capacidades da PESSOA LOGADA (não a de quem está sendo visualizada) --
+    // resolvidas uma vez ao entrar no contexto da bateria, usadas pra
+    // esconder aba/ação que ela não tem. Super Admin nunca passa por isso
+    // (bypassa tudo, ver souSuperAdmin acima). Etapa 3 da unificação,
+    // 19/ago/2026 -- antes disso nenhuma aba era travada por permissão pra
+    // Admin comum.
+    let minhasCapacidades = {};
+    async function carregarMinhasCapacidades(bateriaId) {
+        minhasCapacidades = {};
+        if (souSuperAdmin || !bateriaId) return;
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        if (!u || !u.pessoa_id) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?pessoa_id=eq.${u.pessoa_id}&bateria_id=eq.${bateriaId}&select=capacidades`, { headers: authHeaders });
+        if (res.ok) {
+            const dados = await res.json();
+            minhasCapacidades = (dados && dados[0] && dados[0].capacidades) || {};
+        }
+    }
+    function tenhoCapacidade(chave) {
+        return souSuperAdmin || !!minhasCapacidades[chave];
+    }
+
+    // Mapa aba -> capacidade de "ver" exigida. Abas fora deste mapa (Meu
+    // Perfil) ficam sempre visíveis, pra qualquer pessoa logada.
+    const CAPACIDADE_DA_ABA = {
+        'dados-escola': 'ver_dados_escola',
+        'dados-bateria': 'ver_dados_bateria',
+        'comercial': 'ver_comercial',
+        'visao': 'ver_visao_geral',
+        'ritmistas': 'ver_ritmistas',
+        'diretoria': 'ver_acessos',
+        'convites': 'ver_convites',
+        'relatorios': 'ver_relatorios',
+        'permissoes': 'ver_permissoes',
+        'historico': 'ver_historico',
+        'configuracoes': 'ver_configuracoes',
+    };
+
+    // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
+    // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
+    // chama isso de verdade (sempre vê tudo, ver entrarContextoEscolaSA).
+    function aplicarGatingAbas() {
+        if (souSuperAdmin) return;
+        let primeiraVisivel = null;
+        document.querySelectorAll('#navAbasEscola .aba-btn').forEach(btn => {
+            const aba = btn.dataset.aba;
+            const capacidade = CAPACIDADE_DA_ABA[aba];
+            const visivel = !capacidade || tenhoCapacidade(capacidade);
+            btn.style.display = visivel ? '' : 'none';
+            if (visivel && !primeiraVisivel) primeiraVisivel = aba;
+        });
+        const abaAtivaEl = document.querySelector('#navAbasEscola .aba-btn.ativa');
+        const abaAtivaEscondida = abaAtivaEl && abaAtivaEl.style.display === 'none';
+        if (abaAtivaEscondida || !abaAtivaEl) {
+            trocarAba(primeiraVisivel || 'meu-perfil', document.querySelector(`.aba-btn[data-aba="${primeiraVisivel || 'meu-perfil'}"]`));
+        }
+    }
     let bateriaAtualData = null;
     let escolasCache = [];
     let bateriasCache = [];
@@ -2793,9 +2863,6 @@
         aplicarConfigEscola();
         renderizarLinksCadastroAdmin();
 
-        if (niveisAcessoCache.length === 0) await carregarNiveisAcesso();
-        await carregarPerfisEscolaSA();
-
         renderizarDadosEscolaTab();
         renderizarDadosBateriaTab();
         renderizarComercialTab();
@@ -2845,30 +2912,41 @@
         const container = document.getElementById('dashboard-lista-baterias');
         const [resBaterias, resEscolas, resVinculos] = await Promise.all([
             fetch(`${SUPABASE_URL}/rest/v1/baterias?select=id,nome,escola_id&order=nome`, { headers: authHeaders }),
-            fetch(`${SUPABASE_URL}/rest/v1/escolas?select=id,nome,temporada_atual`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/escolas?select=id,nome,temporada_atual,tipo`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/vinculos?select=bateria_id,status`, { headers: authHeaders })
         ]);
-        const baterias = await resBaterias.json();
-        const escolas = await resEscolas.json();
+        const todasEscolas = await resEscolas.json();
+        const todasBaterias = await resBaterias.json();
         const vinculos = await resVinculos.json();
-        const escolaPorId = Object.fromEntries((escolas || []).map(e => [e.id, e]));
+        const escolaPorId = Object.fromEntries((todasEscolas || []).map(e => [e.id, e]));
+
+        // Dashboard geral conta só escola real -- escola DEMO nunca soma nos
+        // números principais (ela existe pra demonstração, não pode inflar o
+        // que a Márcia acompanha de verdade). Pedido dela, 19/ago/2026.
+        const escolasReais = (todasEscolas || []).filter(e => e.tipo !== 'demo');
+        const escolasDemoCount = (todasEscolas || []).length - escolasReais.length;
+        const idsEscolasReais = new Set(escolasReais.map(e => e.id));
+        const baterias = (todasBaterias || []).filter(b => idsEscolasReais.has(b.escola_id));
+        const idsBateriasReais = new Set(baterias.map(b => b.id));
+        const vinculosReais = vinculos.filter(v => idsBateriasReais.has(v.bateria_id));
 
         if (!baterias || baterias.length === 0) {
             kpisEl.innerHTML = ''; atencaoEl.innerHTML = '';
-            container.innerHTML = `<div class="estado-vazio"><div class="estado-vazio-icone">📊</div>Nenhuma bateria cadastrada ainda.</div>`;
+            container.innerHTML = `<div class="estado-vazio"><div class="estado-vazio-icone">📊</div>Nenhuma bateria real cadastrada ainda.</div>`;
             return;
         }
 
-        const totalAtivos = vinculos.filter(v => v.status === 'aprovado').length;
-        const totalPendentes = vinculos.filter(v => v.status === 'pendente').length;
+        const totalAtivos = vinculosReais.filter(v => v.status === 'aprovado').length;
+        const totalPendentes = vinculosReais.filter(v => v.status === 'pendente').length;
         kpisEl.innerHTML = `
-            <div class="kpi"><div class="n">${(escolas || []).length}</div><div class="l">Escolas</div></div>
+            <div class="kpi"><div class="n">${escolasReais.length}</div><div class="l">Escolas reais</div></div>
             <div class="kpi"><div class="n">${baterias.length}</div><div class="l">Baterias</div></div>
             <div class="kpi ok"><div class="n">${totalAtivos}</div><div class="l">Pessoas ativas</div></div>
-            <div class="kpi${totalPendentes > 0 ? ' atencao' : ''}"><div class="n">${totalPendentes}</div><div class="l">Pendências</div></div>`;
+            <div class="kpi${totalPendentes > 0 ? ' atencao' : ''}"><div class="n">${totalPendentes}</div><div class="l">Pendências</div></div>
+            ${escolasDemoCount > 0 ? `<div class="kpi" style="opacity:0.55;"><div class="n">${escolasDemoCount}</div><div class="l">Escolas DEMO (fora da contagem)</div></div>` : ''}`;
 
         const pendentesPorBateria = baterias
-            .map(b => ({ bateria: b, escola: escolaPorId[b.escola_id], pendentes: vinculos.filter(v => v.bateria_id === b.id && v.status === 'pendente').length }))
+            .map(b => ({ bateria: b, escola: escolaPorId[b.escola_id], pendentes: vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'pendente').length }))
             .filter(x => x.pendentes > 0);
         atencaoEl.innerHTML = pendentesPorBateria.length === 0 ? '' : `
             <div class="atencao-box">
@@ -2881,8 +2959,8 @@
             </div>`;
 
         container.innerHTML = baterias.map(b => {
-            const pendentes = vinculos.filter(v => v.bateria_id === b.id && v.status === 'pendente').length;
-            const ativos = vinculos.filter(v => v.bateria_id === b.id && v.status === 'aprovado').length;
+            const pendentes = vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'pendente').length;
+            const ativos = vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'aprovado').length;
             const escola = escolaPorId[b.escola_id];
             const temporada = escola?.temporada_atual;
             return `<div class="bateria-card" onclick="irParaAcessosDaBateria(${b.escola_id})">
@@ -2955,15 +3033,6 @@
 
         const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify(payload) });
         if (res.ok) {
-            const [escolaCriada] = await res.json();
-            if (niveisAcessoCache.length === 0) await carregarNiveisAcesso();
-            const total = niveisAcessoCache.find(n => n.nome === 'Total');
-            if (total) {
-                await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders },
-                    body: JSON.stringify({ escola_id: escolaCriada.id, origem_nivel_id: total.id, nome: total.nome, capacidades: total.capacidades, ativo: true })
-                });
-            }
             mostrarToast('Escola cadastrada!');
             await carregarEscolas();
             trocarSaAba('escolas', document.querySelector('.sa-sidebar-item[data-sa="escolas"]'));
@@ -2984,17 +3053,18 @@
         const visEdit = modoEdicao ? 'display:block' : 'display:none';
         const visView = modoEdicao ? 'display:none' : '';
 
+        const podeEditar = tenhoCapacidade('editar_dados_escola');
         const rodape = modoEdicao ? `
             <div class="form-rodape">
                 <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarDadosEscola()">Salvar</button></div>
                 <button class="btn-ficha" onclick="renderizarDadosEscolaTab(false)">Cancelar</button>
-            </div>` : `
+            </div>` : (podeEditar ? `
             <div class="form-rodape">
                 <div class="form-rodape-esq">
                     <button class="btn-ficha btn-ficha-editar" onclick="renderizarDadosEscolaTab(true)">Editar</button>
-                    <button class="btn-ficha btn-ficha-danger" onclick="confirmarToggleEscola(${e ? e.id : 'null'},${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
+                    ${souSuperAdmin ? `<button class="btn-ficha btn-ficha-danger" onclick="confirmarToggleEscola(${e ? e.id : 'null'},${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>` : ''}
                 </div>
-            </div>`;
+            </div>` : '');
 
         const campo = (label, id, valor, opts = {}) => `
             <div class="ficha-campo${opts.full ? ' full' : ''}">
@@ -3041,6 +3111,15 @@
                 </div>
                 <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o cabeçalho do painel de gestão (Mestre/Diretor) usa a cor primária e o logo da escola no lugar da marca TumTu.</div>
             </div>
+            ${souSuperAdmin ? `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Classificação comercial</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="de-tipo-demo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${e && e.tipo === 'demo' ? 'checked' : ''} ${modoEdicao ? '' : 'disabled'}>
+                    <label for="de-tipo-demo" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Escola DEMO (demonstração)</label>
+                </div>
+                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Escolas DEMO ficam de fora da contagem do Dashboard geral — sempre exclusivo do Super Admin, mesmo que "Editar Dados da Escola" esteja liberado pra alguém.</div>
+            </div>` : ''}
             ${rodape}`;
         logoPendente.escolaEdicao = null;
         atualizarPreviewDadosEscola();
@@ -3069,6 +3148,12 @@
             cor_quaternaria: document.getElementById('de-cor-quaternaria').value.trim() || null,
             tema_personalizado_ativo: document.getElementById('de-tema-ativo').checked,
         };
+        // "tipo" (real/demo) só existe no formulário pro Super Admin -- o
+        // gatilho no banco (aplicar_matriz_edicao_escolas) já rejeitaria a
+        // mudança de qualquer outra pessoa mesmo assim, isso aqui é só pra
+        // não mandar um campo que não existe na tela.
+        const campoTipo = document.getElementById('de-tipo-demo');
+        if (campoTipo) payload.tipo = campoTipo.checked ? 'demo' : 'real';
         const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify(payload) });
         if (res.ok) {
             const dados = await res.json();
@@ -3139,19 +3224,20 @@
         }
 
         const ativa = b.ativa !== false;
+        const podeEditar = tenhoCapacidade('editar_dados_bateria');
         const visEdit = modoEdicao ? 'display:block' : 'display:none';
         const visView = modoEdicao ? 'display:none' : '';
         const rodape = modoEdicao ? `
             <div class="form-rodape">
                 <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarDadosBateria()">Salvar</button></div>
                 <button class="btn-ficha" onclick="renderizarDadosBateriaTab(false)">Cancelar</button>
-            </div>` : `
+            </div>` : (podeEditar ? `
             <div class="form-rodape">
                 <div class="form-rodape-esq">
                     <button class="btn-ficha btn-ficha-editar" onclick="renderizarDadosBateriaTab(true)">Editar</button>
-                    <button class="btn-ficha btn-ficha-danger" onclick="toggleBateriaAtiva(${b.id},${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>
+                    ${souSuperAdmin ? `<button class="btn-ficha btn-ficha-danger" onclick="toggleBateriaAtiva(${b.id},${ativa})">${ativa ? 'Desativar' : 'Ativar'}</button>` : ''}
                 </div>
-            </div>`;
+            </div>` : '');
         const campo = (label, id, valor) => `
             <div class="ficha-campo full">
                 <span>${label}</span>
@@ -3253,11 +3339,12 @@
         const div = document.getElementById('comercialConteudo');
         if (!div) return;
         if (!b) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🎟️</div>Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
+        const podeEditar = tenhoCapacidade('editar_comercial');
         div.innerHTML = `
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Modo Carteirinha</div>
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <input type="checkbox" id="mv-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${b.modo_piloto ? 'checked' : ''} onchange="salvarComercial(this.checked)">
+                    <input type="checkbox" id="mv-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${b.modo_piloto ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="salvarComercial(this.checked)">
                     <label for="mv-modo-piloto" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
                 </div>
                 <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de gestão. Decisão comercial (ex: vender só a carteirinha pra quem não quer o módulo de gestão completo) — não é um dado operacional da bateria.</div>
@@ -3279,207 +3366,98 @@
     }
 
     // ══════════════════════════════════════════════════════════════════
-    // PERMISSÕES POR ESCOLA (aba, só Super Admin nesta etapa) — ativa
-    // modelos da biblioteca mestre (niveis_acesso) ou cria perfis exclusivos
-    // (escola_niveis_acesso). Ainda não é lido por nenhuma tela pra
-    // esconder/travar nada -- isso é Etapa 3.
+    // PERMISSÕES (aba própria, isolada da ficha de Diretoria) — cada
+    // capacidade é marcada DIRETO no vínculo da pessoa (vinculos.capacidades,
+    // jsonb), sem perfil nomeado no meio. Mudança de rumo pedida pela
+    // Márcia, 19/ago/2026, depois de testar o modelo antigo (perfil
+    // nomeado, niveis_acesso/escola_niveis_acesso) e achar indireto demais
+    // -- e depois apontar que isso NUNCA pode morar dentro da ficha de
+    // Diretoria (qualquer um com acesso a Diretoria veria a permissão de
+    // todo mundo). Aba só visível pra quem tiver ver_permissoes/
+    // editar_permissoes -- ter acesso a Diretoria não dá acesso a isso.
     // ══════════════════════════════════════════════════════════════════
-    const CAPACIDADES_NIVEL_ACESSO = [
-        { chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' },
-        { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar ritmistas' },
-        { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas dos ritmistas' },
-        { chave: 'ver_acessos', label: 'Ver Mestres e Diretores da bateria' },
-        { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar Diretores' },
-        { chave: 'ver_configuracoes', label: 'Ver Configurações da bateria' },
-        { chave: 'editar_configuracoes', label: 'Editar Configurações da bateria' },
+    const GRUPOS_CAPACIDADES = [
+        { grupo: 'Visão Geral', itens: [{ chave: 'ver_visao_geral', label: 'Ver' }] },
+        { grupo: 'Dados da Escola', itens: [{ chave: 'ver_dados_escola', label: 'Ver' }, { chave: 'editar_dados_escola', label: 'Editar' }] },
+        { grupo: 'Dados da Bateria', itens: [{ chave: 'ver_dados_bateria', label: 'Ver' }, { chave: 'editar_dados_bateria', label: 'Editar' }] },
+        { grupo: 'Comercial', itens: [{ chave: 'ver_comercial', label: 'Ver' }, { chave: 'editar_comercial', label: 'Editar' }] },
+        { grupo: 'Ritmistas', itens: [{ chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' }, { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar' }, { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas' }] },
+        { grupo: 'Diretoria', itens: [{ chave: 'ver_acessos', label: 'Ver Mestres e Diretores' }, { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar' }] },
+        { grupo: 'Convites', itens: [{ chave: 'ver_convites', label: 'Ver' }] },
+        { grupo: 'Relatórios', itens: [{ chave: 'ver_relatorios', label: 'Ver' }] },
+        { grupo: 'Configurações', itens: [{ chave: 'ver_configuracoes', label: 'Ver' }, { chave: 'editar_configuracoes', label: 'Editar' }] },
+        { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Ver' }] },
+        { grupo: 'Permissões', itens: [{ chave: 'ver_permissoes', label: 'Ver' }, { chave: 'editar_permissoes', label: 'Editar' }] },
     ];
-    let niveisAcessoCache = [];
-    let nivelEditando = null;
-    let salvandoNivel = false;
-    let perfisEscolaCacheSA = [];
-    let perfilEscolaEditando = null;
+    const TODAS_CAPACIDADES = GRUPOS_CAPACIDADES.flatMap(g => g.itens.map(i => i.chave));
 
-    async function carregarPerfisEscolaSA() {
-        if (!escolaSelecionadaId) { perfisEscolaCacheSA = []; return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso?escola_id=eq.${escolaSelecionadaId}&order=nome`, { headers: authHeaders });
-        perfisEscolaCacheSA = res.ok ? await res.json() : [];
-        renderizarPerfisEscolaListaSA();
-    }
-    function renderizarPerfisEscolaListaSA() {
+    let permissoesPessoaCache = [];
+    let permissoesPessoaEditando = null;
+
+    async function carregarPermissoesEscola() {
         const container = document.getElementById('pe-perfis-lista');
         if (!container) return;
-        if (perfisEscolaCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum perfil de permissão ativado ainda nesta escola.</div>'; return; }
-        container.innerHTML = perfisEscolaCacheSA.map(n => {
-            const capsLigadas = CAPACIDADES_NIVEL_ACESSO.filter(c => n.capacidades && n.capacidades[c.chave]);
+        const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!bateriaId) { permissoesPessoaCache = []; container.innerHTML = '<div class="estado-vazio">Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,capacidades`, { headers: authHeaders });
+        permissoesPessoaCache = res.ok ? await res.json() : [];
+        renderizarListaPermissoesPessoas();
+    }
+    function renderizarListaPermissoesPessoas() {
+        const container = document.getElementById('pe-perfis-lista');
+        if (!container) return;
+        if (permissoesPessoaCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum Mestre ou Diretor nesta bateria ainda.</div>'; return; }
+        container.innerHTML = permissoesPessoaCache.map(p => {
+            const caps = p.capacidades || {};
+            const ligadas = TODAS_CAPACIDADES.filter(c => caps[c]);
+            const cargo = p.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
             return `<div class="item-card">
                 <div class="item-info">
-                    <div class="item-nome">${esc(n.nome)} ${n.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
-                    <div class="item-detalhe">${capsLigadas.length > 0 ? esc(capsLigadas.map(c => c.label).join(', ')) : 'Nenhuma capacidade ligada'}</div>
+                    <div class="item-nome">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
+                    <div class="item-detalhe">${cargo} — ${ligadas.length === 0 ? 'nenhuma capacidade ligada' : ligadas.length + ' capacidade' + (ligadas.length === 1 ? '' : 's') + ' ligada' + (ligadas.length === 1 ? '' : 's')}</div>
                 </div>
-                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarPerfilEscolaSA(${n.id})">Editar</button></div>
+                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditorPermissoesPessoa(${p.id})">Editar</button></div>
             </div>`;
         }).join('');
     }
-    function abrirAtivarPerfilEscolaSA() {
-        document.getElementById('pe-editor').style.display = 'none';
-        const container = document.getElementById('pe-ativar-lista');
-        const jaAtivos = new Set(perfisEscolaCacheSA.map(n => n.origem_nivel_id).filter(Boolean));
-        const disponiveis = niveisAcessoCache.filter(n => !jaAtivos.has(n.id));
-        container.innerHTML = disponiveis.length === 0
-            ? '<div class="estado-vazio">Todos os perfis da biblioteca já foram ativados nesta escola.</div>'
-            : `<div class="card-form"><div class="card-form-titulo">Ativar da biblioteca</div>${disponiveis.map(n => `
-                <div class="item-card" style="margin-bottom:8px;">
-                    <div class="item-info"><div class="item-nome">${esc(n.nome)}</div></div>
-                    <div class="item-acoes"><button class="btn-ficha btn-ficha-editar" onclick="ativarPerfilGlobalSA(${n.id})">Ativar</button></div>
-                </div>`).join('')}</div>`;
-        container.style.display = 'block';
+    function abrirEditorPermissoesPessoa(vinculoId) {
+        const p = permissoesPessoaCache.find(x => x.id === vinculoId);
+        if (!p) return;
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: p.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor', capacidades: { ...(p.capacidades || {}) } };
+        renderizarEditorPermissoesPessoa();
     }
-    async function ativarPerfilGlobalSA(nivelGlobalId) {
-        const nivel = niveisAcessoCache.find(n => n.id === nivelGlobalId);
-        if (!nivel || !escolaSelecionadaId) return;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders },
-            body: JSON.stringify({ escola_id: escolaSelecionadaId, origem_nivel_id: nivel.id, nome: nivel.nome, capacidades: nivel.capacidades, ativo: true })
-        });
-        if (res.ok) { mostrarToast('Perfil ativado nesta escola!'); document.getElementById('pe-ativar-lista').style.display = 'none'; await carregarPerfisEscolaSA(); }
-        else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
-    }
-    function abrirNovoPerfilEscolaSA() {
-        document.getElementById('pe-ativar-lista').style.display = 'none';
-        perfilEscolaEditando = { id: null, nome: '', capacidades: {} };
-        renderizarEditorPerfilEscolaSA();
-    }
-    function abrirEditarPerfilEscolaSA(id) {
-        document.getElementById('pe-ativar-lista').style.display = 'none';
-        const n = perfisEscolaCacheSA.find(x => x.id === id);
-        if (!n) return;
-        perfilEscolaEditando = { id: n.id, nome: n.nome, capacidades: { ...(n.capacidades || {}) } };
-        renderizarEditorPerfilEscolaSA();
-    }
-    function renderizarEditorPerfilEscolaSA() {
-        const pe = perfilEscolaEditando;
+    function renderizarEditorPermissoesPessoa() {
+        const pe = permissoesPessoaEditando;
         const editor = document.getElementById('pe-editor');
         if (!editor) return;
         if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
         editor.innerHTML = `<div class="card-form">
-            <div class="card-form-titulo">${pe.id ? 'Editar Perfil' : 'Novo Perfil Exclusivo'}</div>
-            <div class="form-grid">
-                <div class="campo campo-full"><label>Nome *</label><input type="text" id="pe-edit-nome" value="${esc(pe.nome)}" placeholder="Ex: Diretora das Baianas"></div>
-                <div class="campo campo-full"><label>O que esse perfil pode ver/fazer</label>
-                    ${CAPACIDADES_NIVEL_ACESSO.map(c => `
-                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                            <input type="checkbox" id="pe-cap-${c.chave}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
-                            <label for="pe-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
+            <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
+            ${GRUPOS_CAPACIDADES.map(g => `
+                <div class="ficha-secao" style="margin-top:14px;">
+                    <div class="ficha-secao-titulo">${esc(g.grupo)}</div>
+                    ${g.itens.map(c => `
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                            <input type="checkbox" id="pp-cap-${c.chave}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
+                            <label for="pp-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
                         </div>`).join('')}
-                </div>
-            </div>
+                </div>`).join('')}
             <div class="form-rodape">
-                <div class="form-rodape-esq">
-                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarPerfilEscolaSA()">Salvar</button>
-                    ${pe.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirPerfilEscolaSA(${pe.id})">Excluir</button>` : ''}
-                </div>
-                <button class="btn-ficha" onclick="fecharEditorPerfilEscolaSA()">Cancelar</button>
+                <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button></div>
+                <button class="btn-ficha" onclick="fecharEditorPermissoesPessoa()">Cancelar</button>
             </div>
         </div>`;
     }
-    function fecharEditorPerfilEscolaSA() { perfilEscolaEditando = null; renderizarEditorPerfilEscolaSA(); }
-    async function salvarPerfilEscolaSA() {
-        const nome = document.getElementById('pe-edit-nome').value.trim();
-        if (!nome) { mostrarToast('Informe o nome do perfil.', 'erro'); return; }
+    function fecharEditorPermissoesPessoa() { permissoesPessoaEditando = null; renderizarEditorPermissoesPessoa(); }
+    async function salvarPermissoesPessoa() {
+        const pe = permissoesPessoaEditando;
+        if (!pe) return;
         const capacidades = {};
-        CAPACIDADES_NIVEL_ACESSO.forEach(c => { capacidades[c.chave] = document.getElementById('pe-cap-' + c.chave).checked; });
-        const res = perfilEscolaEditando.id
-            ? await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso?id=eq.${perfilEscolaEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, capacidades }) })
-            : await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ escola_id: escolaSelecionadaId, nome, capacidades, ativo: true }) });
-        if (res.ok) { mostrarToast(perfilEscolaEditando.id ? 'Perfil atualizado!' : 'Perfil criado!'); perfilEscolaEditando = null; await carregarPerfisEscolaSA(); renderizarEditorPerfilEscolaSA(); }
+        TODAS_CAPACIDADES.forEach(c => { capacidades[c] = document.getElementById('pp-cap-' + c).checked; });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades }) });
+        if (res.ok) { mostrarToast('Permissões atualizadas!'); permissoesPessoaEditando = null; await carregarPermissoesEscola(); renderizarEditorPermissoesPessoa(); }
         else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
-    }
-    async function excluirPerfilEscolaSA(id) {
-        if (!confirm('Excluir este perfil? Quem já tiver esse perfil atribuído fica sem nível definido.')) return;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/escola_niveis_acesso?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
-        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
-        mostrarToast('Perfil excluído.'); perfilEscolaEditando = null; await carregarPerfisEscolaSA(); renderizarEditorPerfilEscolaSA();
-    }
-    function niveisAcessoOpcoesHTML(selecionadoId = '') {
-        if (perfisEscolaCacheSA.length === 0) return '<option value="">Nenhum perfil ativado — ative um em Permissões</option>';
-        const opts = perfisEscolaCacheSA.map(n => `<option value="${n.id}"${n.id === selecionadoId ? ' selected' : ''}>${esc(n.nome)}</option>`).join('');
-        return `<option value="">Selecione...</option>${opts}`;
-    }
-
-    // ── Configurações globais → Perfis de Permissão (biblioteca mestre) ──
-    async function carregarNiveisAcesso() {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso?order=nome`, { headers: authHeaders });
-        niveisAcessoCache = res.ok ? await res.json() : [];
-        renderizarNiveisAcessoLista();
-    }
-    function renderizarNiveisAcessoLista() {
-        const container = document.getElementById('sa-niveis-lista');
-        if (!container) return;
-        if (niveisAcessoCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum nível de acesso cadastrado ainda.</div>'; return; }
-        container.innerHTML = niveisAcessoCache.map(n => {
-            const capsLigadas = CAPACIDADES_NIVEL_ACESSO.filter(c => n.capacidades && n.capacidades[c.chave]);
-            return `<div class="item-card">
-                <div class="item-info"><div class="item-nome">${esc(n.nome)}</div><div class="item-detalhe">${capsLigadas.length > 0 ? esc(capsLigadas.map(c => c.label).join(', ')) : 'Nenhuma capacidade ligada'}</div></div>
-                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarNivel(${n.id})">Editar</button></div>
-            </div>`;
-        }).join('');
-    }
-    function abrirNovoNivel() { nivelEditando = { id: null, nome: '', capacidades: {} }; renderizarEditorNivel(); }
-    function abrirEditarNivel(id) {
-        const n = niveisAcessoCache.find(x => x.id === id);
-        if (!n) return;
-        nivelEditando = { id: n.id, nome: n.nome, capacidades: { ...(n.capacidades || {}) } };
-        renderizarEditorNivel();
-    }
-    function renderizarEditorNivel() {
-        const ne = nivelEditando;
-        const editor = document.getElementById('sa-nivel-editor');
-        if (!editor) return;
-        if (!ne) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
-        editor.style.display = 'block';
-        editor.innerHTML = `<div class="card-form">
-            <div class="card-form-titulo">${ne.id ? 'Editar Nível de Acesso' : 'Novo Nível de Acesso'}</div>
-            <div class="form-grid">
-                <div class="campo campo-full"><label>Nome *</label><input type="text" id="nivel-edit-nome" value="${esc(ne.nome)}" placeholder="Ex: Diretor Admin"></div>
-                <div class="campo campo-full"><label>O que esse nível pode ver/fazer</label>
-                    ${CAPACIDADES_NIVEL_ACESSO.map(c => `
-                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                            <input type="checkbox" id="nivel-cap-${c.chave}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ne.capacidades[c.chave] ? 'checked' : ''}>
-                            <label for="nivel-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
-                        </div>`).join('')}
-                </div>
-            </div>
-            <div class="form-rodape">
-                <div class="form-rodape-esq">
-                    <button id="nivel-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarNivel()">Salvar</button>
-                    ${ne.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirNivel(${ne.id})">Excluir nível</button>` : ''}
-                </div>
-                <button class="btn-ficha" onclick="fecharEditorNivel()">Cancelar</button>
-            </div>
-        </div>`;
-    }
-    function fecharEditorNivel() { nivelEditando = null; renderizarEditorNivel(); }
-    async function salvarNivel() {
-        if (salvandoNivel) return;
-        const nome = document.getElementById('nivel-edit-nome').value.trim();
-        if (!nome) { mostrarToast('Informe o nome do nível de acesso.', 'erro'); return; }
-        const capacidades = {};
-        CAPACIDADES_NIVEL_ACESSO.forEach(c => { capacidades[c.chave] = document.getElementById('nivel-cap-' + c.chave).checked; });
-        salvandoNivel = true;
-        try {
-            if (nivelEditando.id) await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso?id=eq.${nivelEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, capacidades }) });
-            else await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, capacidades }) });
-            mostrarToast(nivelEditando.id ? 'Nível de acesso atualizado!' : 'Nível de acesso criado!');
-            nivelEditando = null; await carregarNiveisAcesso(); renderizarEditorNivel();
-        } catch (e) { mostrarToast('Não foi possível salvar.', 'erro'); }
-        finally { salvandoNivel = false; }
-    }
-    async function excluirNivel(id) {
-        if (!confirm('Excluir este nível de acesso?')) return;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/niveis_acesso?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
-        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
-        mostrarToast('Nível de acesso excluído.'); nivelEditando = null; await carregarNiveisAcesso(); renderizarEditorNivel();
     }
 
     // ── Configurações globais → Instrumentos (biblioteca mestre) ─────────
@@ -3491,7 +3469,6 @@
         document.getElementById('sa-config-tela-' + nome).style.display = 'block';
         if (nome === 'instrumentos') { fecharEditorCategoria(); carregarCategorias().then(renderizarCategoriasLista); }
         if (nome === 'medidas') { fecharEditorTamanho(); carregarTamanhosSA().then(renderizarTamanhosListaSA); }
-        if (nome === 'permissoes') { fecharEditorNivel(); carregarNiveisAcesso(); }
     }
     function voltarConfigListaSA() {
         document.querySelectorAll('#sa-painel-configuracoes-globais .config-subtela').forEach(el => el.style.display = 'none');
@@ -3916,12 +3893,11 @@
             lista.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👤</div>Nenhum membro da diretoria encontrado.</div>';
             return;
         }
-        const usuarioAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        const souMestre = !!usuarioAtual && usuarioAtual.perfil === 'mestre';
-        // Super Admin aprova qualquer um (Mestre ou Diretor) -- só um Mestre de
-        // verdade fica restrito à regra de pares (Mestre aprova Diretor, nunca
-        // outro Mestre).
-        const podeAprovar = a => souSuperAdmin || (souMestre && a.perfil === 'diretor');
+        // Aprovar/rejeitar Mestre ou Diretor pendente exige a capacidade
+        // aprovar_acessos -- não é mais "só quem é Mestre" hardcoded (pedido
+        // da Márcia, 19/ago/2026: quer poder criar um "Diretor Admin" com
+        // mais poder que os outros Diretores). Super Admin sempre pode.
+        const podeAprovar = a => tenhoCapacidade('aprovar_acessos');
 
         const cardHTML = a => {
             const inicial = (a.nome || 'A')[0].toUpperCase();
@@ -4005,39 +3981,15 @@
         await fpMontar(document.getElementById('fp-container-admin'));
         fpIniciar(a, usuarioAtual ? usuarioAtual.perfil : null, usuarioAtual ? usuarioAtual.pessoa_id : null, { aoSalvar: () => { diretoriaCarregada = false; carregarDiretoria(); } });
 
-        // Nível de Acesso -- só Super Admin define quem tem qual perfil de
-        // permissão (a atribuição em si não passa pelo motor único de ficha,
-        // que não conhece esse campo). Injetado no mesmo hook que a
-        // declaração do responsável usa em Ritmistas.
+        // Permissões dessa pessoa NÃO aparecem aqui de propósito -- moram
+        // isoladas na aba "Permissões" (ver_permissoes/editar_permissoes),
+        // pra ninguém com acesso só à Diretoria enxergar o que outra pessoa
+        // pode ou não fazer. Ver GRUPOS_CAPACIDADES / carregarPermissoesEscola.
         const extraAdmin = document.querySelector('#fp-container-admin #fp-extra-conteudo');
-        if (extraAdmin) {
-            if (souSuperAdmin) {
-                if (perfisEscolaCacheSA.length === 0) await carregarPerfisEscolaSA();
-                extraAdmin.innerHTML = `
-                    <div class="ficha-secao">
-                        <div class="ficha-secao-titulo">Nível de Acesso</div>
-                        <select id="fc-nivel-acesso-admin" class="fc-input" style="display:block;">${niveisAcessoOpcoesHTML(a.nivel_acesso_id)}</select>
-                        <button class="btn-ficha btn-ficha-salvar" style="margin-top:8px;" onclick="salvarNivelAcessoAdmin(${a.id})">Salvar Nível de Acesso</button>
-                    </div>`;
-            } else {
-                extraAdmin.innerHTML = '';
-            }
-        }
+        if (extraAdmin) extraAdmin.innerHTML = '';
 
         document.getElementById('modalAdmin').style.display = 'block';
         document.body.style.overflow = 'hidden';
-    }
-
-    async function salvarNivelAcessoAdmin(vinculoId) {
-        const select = document.querySelector('#fp-container-admin #fc-nivel-acesso-admin');
-        const nivelAcessoId = select ? select.value : '';
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${vinculoId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', ...authHeaders },
-            body: JSON.stringify({ nivel_acesso_id: nivelAcessoId ? Number(nivelAcessoId) : null })
-        });
-        if (res.ok) { mostrarToast('Nível de Acesso atualizado!'); diretoriaCarregada = false; }
-        else { mostrarToast('Erro ao salvar Nível de Acesso.', 'erro'); }
     }
 
     function fecharModalAdmin() {
@@ -4052,6 +4004,11 @@
 
     // ── TROCAR ABA (atualizado) ───────────────────────────────────────────────
     function trocarAba(aba, btn) {
+        // Reforço na tela (a segurança de verdade é o RLS -- mesmo se alguém
+        // forçar isso via console, os dados não carregam) -- evita cair numa
+        // aba vazia/quebrada que a pessoa não tem capacidade pra ver.
+        const capacidadeExigida = CAPACIDADE_DA_ABA[aba];
+        if (capacidadeExigida && !tenhoCapacidade(capacidadeExigida)) return;
         window.scrollTo(0, 0);
         document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
         document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
@@ -4064,7 +4021,7 @@
         if (aba === 'dados-escola') renderizarDadosEscolaTab(false);
         if (aba === 'dados-bateria') renderizarDadosBateriaTab(false);
         if (aba === 'comercial') renderizarComercialTab();
-        if (aba === 'permissoes') { perfilEscolaEditando = null; document.getElementById('pe-ativar-lista').style.display = 'none'; renderizarEditorPerfilEscolaSA(); carregarPerfisEscolaSA(); }
+        if (aba === 'permissoes') { permissoesPessoaEditando = null; renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'historico') carregarHistoricoEscolaSA();
     }
 </script>
