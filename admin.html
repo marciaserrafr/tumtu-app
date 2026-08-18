@@ -860,8 +860,21 @@
     <div class="modal" style="max-width:460px;">
         <h2 style="margin-bottom:6px;">Exportar Excel</h2>
         <p id="exportResumoLista" style="margin-bottom:14px;"></p>
-        <!-- Só aparece pra Ritmistas (Diretoria não tem instrumento) --
-             pedido real de um Diretor, 18/ago/2026: pra montar a lista de
+        <!-- Filtro de status/instrumento embutido no próprio modal -- só
+             pra Ritmistas (Diretoria não tem instrumento). Antes dependia
+             só do filtro já aplicado na lista lá fora, escondido demais
+             (achado da Márcia, 18/ago/2026: "não vi a opção de escolher por
+             status e instrumento"). Nasce com os mesmos valores já
+             marcados na lista (ponto de partida familiar), mas é livre pra
+             mudar aqui dentro sem precisar fechar o modal. -->
+        <div id="exportFiltrosContainer" style="margin-bottom:16px; display:none;">
+            <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Quem exportar</div>
+            <div style="font-size:12px;font-weight:600;color:#555;margin:8px 0 4px;">Status</div>
+            <div id="exportStatusChecks" style="display:flex;flex-wrap:wrap;gap:4px 16px;"></div>
+            <div style="font-size:12px;font-weight:600;color:#555;margin:12px 0 4px;">Instrumento</div>
+            <div id="exportInstrumentoChecks" style="display:flex;flex-wrap:wrap;gap:4px 16px;"></div>
+        </div>
+        <!-- Pedido real de um Diretor, 18/ago/2026: pra montar a lista de
              camisas por instrumento, precisava exportar, filtrar por
              instrumento na lista, exportar de novo, repetir pra cada
              instrumento -- um arquivo com uma aba por instrumento resolve
@@ -965,7 +978,7 @@
     function onChangeStatus() {
         const checks = document.querySelectorAll('#statusSelectDropdown input[type=checkbox]:checked');
         filtroStatusSelecionados = Array.from(checks).map(c => c.value);
-        const labels = { pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', desligado: 'Desligados', rejeitado: 'Rejeitados', menor: 'Menores' };
+        const labels = LABELS_STATUS_FILTRO;
         const label = document.getElementById('statusSelectLabel');
         label.textContent = filtroStatusSelecionados.length === 0
             ? 'Todos os status'
@@ -1185,6 +1198,10 @@
         ]},
     ];
     const LABELS_STATUS_EXPORT = { pendente: 'Pendente', aprovado: 'Ativo', suspenso: 'Suspenso', rejeitado: 'Rejeitado', desligado: 'Desligado' };
+    // Mesmos rótulos do filtro de status da lista (era só um objeto solto
+    // dentro de onChangeStatus()) -- reaproveitado agora também no filtro
+    // "Quem exportar" do modal de Excel, pra não duplicar a lista de novo.
+    const LABELS_STATUS_FILTRO = { pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', desligado: 'Desligados', rejeitado: 'Rejeitados', menor: 'Menores' };
     // Mesmos campos/labels já usados no export de Diretoria do Super Admin
     // (super-admin.html) -- só falta essa opção existir aqui também.
     const CAMPOS_EXPORTAVEIS_DIRETORIA = [
@@ -1209,17 +1226,73 @@
             document.head.appendChild(script);
         });
     }
+    // Checkbox de status/instrumento pra dentro do modal (não usa mais o
+    // filtro da lista lá fora, que era o único jeito de restringir o
+    // export e ficava escondido demais -- achado da Márcia, 18/ago/2026).
+    // Nasce marcado igual ao que já estava filtrado na lista (ponto de
+    // partida familiar); se a lista não tinha filtro nenhum (= "todos"),
+    // nasce tudo marcado aqui também, nunca vazio.
+    function popularFiltrosExportacao() {
+        const statusesReais = ['aprovado', 'pendente', 'suspenso', 'rejeitado', 'desligado'];
+        const statusPre = filtroStatusSelecionados.length > 0 ? filtroStatusSelecionados : statusesReais;
+        document.getElementById('exportStatusChecks').innerHTML = statusesReais.map(s => `
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;color:#333;cursor:pointer;">
+                <input type="checkbox" class="export-status-check" value="${s}" ${statusPre.includes(s) ? 'checked' : ''} onchange="atualizarResumoExport()">
+                ${LABELS_STATUS_FILTRO[s]}
+            </label>`).join('');
+
+        const instrumentos = instrumentosAtivosDaBateria();
+        const idsInstrumentos = instrumentos.map(i => String(i.id));
+        const instrPre = filtroInstrumentosSelecionados.length > 0
+            ? filtroInstrumentosSelecionados.map(String)
+            : [...idsInstrumentos, 'sem'];
+        const optsInstrumento = instrumentos.map(i => ({ valor: String(i.id), rotulo: i.nome }))
+            .concat([{ valor: 'sem', rotulo: 'Sem instrumento' }]);
+        document.getElementById('exportInstrumentoChecks').innerHTML = optsInstrumento.map(o => `
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;color:#333;cursor:pointer;">
+                <input type="checkbox" class="export-instrumento-check" value="${o.valor}" ${instrPre.includes(o.valor) ? 'checked' : ''} onchange="atualizarResumoExport()">
+                ${o.rotulo}
+            </label>`).join('');
+    }
+
+    // Recalcula a lista de Ritmistas a exportar a partir dos checkboxes do
+    // próprio modal (status + instrumento), não mais da lista de fora.
+    function listaFiltradaExportacao() {
+        const statusMarcados = Array.from(document.querySelectorAll('.export-status-check:checked')).map(c => c.value);
+        const instrumentoMarcados = Array.from(document.querySelectorAll('.export-instrumento-check:checked')).map(c => c.value);
+        let lista = todosRitmistas;
+        if (statusMarcados.length > 0) lista = lista.filter(r => statusMarcados.includes(r.status || 'pendente'));
+        if (instrumentoMarcados.length > 0) {
+            lista = lista.filter(r => r.bateria_instrumento_id
+                ? instrumentoMarcados.includes(String(r.bateria_instrumento_id))
+                : instrumentoMarcados.includes('sem'));
+        }
+        return lista;
+    }
+
+    function atualizarResumoExport() {
+        if (tipoExportacaoAtual !== 'ritmistas') return;
+        const total = listaFiltradaExportacao().length;
+        document.getElementById('exportResumoLista').textContent = total === 1
+            ? '1 ritmista será exportado(a) com os filtros marcados acima.'
+            : `${total} ritmistas serão exportados com os filtros marcados acima.`;
+    }
+
     function abrirModalExportar(tipo) {
         tipoExportacaoAtual = tipo;
         const ehRitmistas = tipo === 'ritmistas';
-        const lista = ehRitmistas ? listaFiltradaAtual : listaDiretoriaAtual;
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
-        const substantivo = ehRitmistas ? 'ritmista' : 'pessoa da diretoria';
 
-        const total = lista.length;
-        document.getElementById('exportResumoLista').textContent = total === 1
-            ? `1 ${substantivo} será exportado(a) (conforme os filtros aplicados na lista).`
-            : `${total} ${ehRitmistas ? 'ritmistas serão exportados' : 'pessoas da diretoria serão exportadas'} (conforme os filtros aplicados na lista).`;
+        document.getElementById('exportFiltrosContainer').style.display = ehRitmistas ? 'block' : 'none';
+        if (ehRitmistas) {
+            popularFiltrosExportacao();
+            atualizarResumoExport();
+        } else {
+            const total = listaDiretoriaAtual.length;
+            document.getElementById('exportResumoLista').textContent = total === 1
+                ? '1 pessoa da diretoria será exportada.'
+                : `${total} pessoas da diretoria serão exportadas.`;
+        }
 
         document.getElementById('exportFormatoContainer').style.display = ehRitmistas ? 'block' : 'none';
         document.querySelector('input[name="exportFormato"][value="unico"]').checked = true;
@@ -1279,15 +1352,22 @@
         return planilha;
     }
 
+    // Rótulo de status a partir dos checkboxes do próprio modal (não mais
+    // do filtro da lista lá fora). Com tudo marcado (as 5 opções = "todos",
+    // ponto de partida padrão) não aparece nada no título -- só entra
+    // quando é mesmo um recorte, senão o título ficaria enorme listando
+    // as 5 opções à toa.
+    function statusLabelExportacao() {
+        const marcados = Array.from(document.querySelectorAll('.export-status-check:checked')).map(c => c.value);
+        if (marcados.length === 0 || marcados.length === 5) return '';
+        return marcados.map(s => LABELS_STATUS_FILTRO[s]).join(', ');
+    }
+
     function tituloRelatorio(ehRitmistas, sufixoInstrumento) {
-        // statusSelectLabel é o filtro da aba Ritmistas -- Diretoria não tem
-        // filtro de status próprio nessa tela, então só olha esse texto
-        // quando o relatório é mesmo de Ritmistas (senão pegaria o filtro
-        // errado, sobrando de uma aba que nem é essa).
         let titulo = ehRitmistas ? 'Relatório de Ritmistas' : 'Relatório de Diretoria';
         if (ehRitmistas) {
-            const statusLabel = document.getElementById('statusSelectLabel').textContent.trim();
-            if (statusLabel && statusLabel !== 'Todos os status') titulo += ` — ${statusLabel}`;
+            const statusLabel = statusLabelExportacao();
+            if (statusLabel) titulo += ` — ${statusLabel}`;
         }
         if (sufixoInstrumento) titulo += ` — ${sufixoInstrumento}`;
         return titulo;
@@ -1295,7 +1375,9 @@
 
     async function confirmarExportarExcel() {
         const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
-        const lista = ehRitmistas ? listaFiltradaAtual : listaDiretoriaAtual;
+        // Ritmistas: recalcula a partir dos checkboxes do próprio modal
+        // (status + instrumento), não mais da lista de fora.
+        const lista = ehRitmistas ? listaFiltradaExportacao() : listaDiretoriaAtual;
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
         const nomeAba = ehRitmistas ? 'Ritmistas' : 'Diretoria';
         const porInstrumento = ehRitmistas &&
@@ -1303,7 +1385,7 @@
 
         const marcados = Array.from(document.querySelectorAll('.export-campo-check:checked')).map(c => c.value);
         if (marcados.length === 0) { alert('Marque pelo menos um campo para exportar.'); return; }
-        if (lista.length === 0) { alert('Não há registros para exportar com os filtros atuais.'); return; }
+        if (lista.length === 0) { alert('Não há registros para exportar com os filtros marcados.'); return; }
 
         const todosCampos = campos.flatMap(g => g.campos);
 
