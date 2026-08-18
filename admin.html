@@ -425,7 +425,6 @@
            o texto do rótulo pra longe (achado da Márcia, 18/ago/2026, print da modal
            de exportar toda desalinhada). */
         .modal input[type="checkbox"], .modal input[type="radio"] { width: auto; margin-bottom: 0; }
-        .modal label.export-campo-label { display: flex; margin-bottom: 0; }
         .modal-acoes { display: flex; gap: 10px; justify-content: flex-end; }
         .btn-modal-cancelar { background: #f0f0f0; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; }
         .btn-modal-confirmar { border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; color: white; }
@@ -433,6 +432,61 @@
         .btn-modal-confirmar.laranja { background: #fd7e14; }
         .btn-modal-confirmar.vermelho { background: #dc3545; }
         .btn-modal-confirmar.azul { background: var(--cor-fundo-escuro); }
+
+        /* MODAL EXPORTAR EXCEL -- redesign, 18/ago/2026 (achado da Márcia:
+           "não gostei desse modelo", checkboxes soltos em fileira não
+           davam pra entender como 3 decisões separadas). Cada bloco de
+           decisão (quem/formato/campos) vira uma seção com respiro e
+           divisória própria; status/instrumento viram etiquetas clicáveis
+           (mesma linguagem visual dos filtros da lista de Ritmistas,
+           .btn-filtro) em vez de checkbox+texto; formato do arquivo vira
+           dois cartões escolhíveis em vez de rádio solto. */
+        .modal-exportar { max-width: 520px; }
+        .modal-exportar .subtitulo-resumo { font-size: 13px; color: #666; margin-bottom: 22px; }
+        .modal-exportar .subtitulo-resumo strong { color: var(--cor-texto-principal); }
+        .exp-secao { margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid #f0eef5; }
+        .exp-secao-titulo-linha { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .exp-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .exp-secao-titulo-linha .exp-secao-titulo { margin-bottom: 0; }
+        .exp-secao-acoes { font-size: 12px; color: #888; font-weight: 500; }
+        .exp-secao-acoes span[onclick] { cursor: pointer; }
+        .exp-secao-acoes span[onclick]:hover { color: var(--cor-texto-principal); }
+        .exp-subtitulo { font-size: 12px; font-weight: 600; color: #555; margin: 14px 0 8px; }
+        .exp-subtitulo:first-child { margin-top: 0; }
+        .exp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        /* Especificidade ".modal label.xxx" de propósito -- ".modal label"
+           (linha 416) já é class+elemento; uma classe sozinha (".exp-chip")
+           perderia esse empate e o display:block do rótulo genérico
+           vazaria por cima (mesma causa-raiz do bug de checkbox/rádio
+           esticado corrigido hoje mais cedo). */
+        .modal label.exp-chip {
+            display: inline-flex; align-items: center;
+            padding: 7px 15px; border-radius: 20px;
+            border: 1.5px solid #cbd5e1; background: white;
+            color: #475569; font-size: 13px; font-weight: 500; cursor: pointer;
+            user-select: none; margin-bottom: 0; transition: background 0.1s, border-color 0.1s, color 0.1s;
+        }
+        .exp-chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .exp-chip:has(input:checked) { background: var(--cor-fundo-escuro); border-color: var(--cor-fundo-escuro); color: white; }
+        .exp-chip:has(input:focus-visible) { outline: 2px solid var(--cor-destaque); outline-offset: 2px; }
+        .exp-formato-opcoes { display: flex; flex-direction: column; gap: 8px; }
+        .modal label.exp-formato-card {
+            display: flex; flex-direction: column; gap: 2px;
+            padding: 12px 14px; border-radius: 10px;
+            border: 1.5px solid #e0e0e0; cursor: pointer; margin-bottom: 0;
+        }
+        .exp-formato-card input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .exp-formato-titulo { font-size: 13px; font-weight: 700; color: #333; }
+        .exp-formato-desc { font-size: 12px; color: #888; font-weight: normal; }
+        .exp-formato-card:has(input:checked) { border-color: var(--cor-destaque); background: #fdf8ea; }
+        .exp-formato-card:has(input:checked) .exp-formato-titulo { color: #8a6d1a; }
+        .exp-formato-card:has(input:focus-visible) { outline: 2px solid var(--cor-destaque); outline-offset: 2px; }
+        .exp-campos { max-height: 280px; overflow-y: auto; border: 1px solid #f0eef5; border-radius: 10px; padding: 2px 14px; }
+        .exp-campos-grupo-titulo { font-size: 10.5px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 0 6px; }
+        .exp-campos-grupo-titulo:first-child { padding-top: 12px; }
+        .modal label.exp-campo-linha { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 13px; font-weight: normal; color: #333; cursor: pointer; margin-bottom: 0; border-top: 1px solid #f7f6fb; }
+        .exp-campos-grupo-titulo + .exp-campo-linha { border-top: none; }
+        .exp-campo-linha input { accent-color: var(--cor-destaque); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
 
         /* MODAL CADASTRO COMPLETO */
         .modal-cadastro { max-width: 480px; padding: 20px 24px; }
@@ -860,45 +914,58 @@
 
 <!-- MODAL EXPORTAR EXCEL -->
 <div class="modal-overlay" id="modalExportarExcel">
-    <div class="modal" style="max-width:460px;">
-        <h2 style="margin-bottom:6px;">Exportar Excel</h2>
-        <p id="exportResumoLista" style="margin-bottom:14px;"></p>
+    <div class="modal modal-exportar">
+        <h2 style="margin-bottom:4px;">Exportar Excel</h2>
+        <p id="exportResumoLista" class="subtitulo-resumo"></p>
         <!-- Filtro de status/instrumento embutido no próprio modal -- só
              pra Ritmistas (Diretoria não tem instrumento). Antes dependia
              só do filtro já aplicado na lista lá fora, escondido demais
              (achado da Márcia, 18/ago/2026: "não vi a opção de escolher por
              status e instrumento"). Nasce com os mesmos valores já
              marcados na lista (ponto de partida familiar), mas é livre pra
-             mudar aqui dentro sem precisar fechar o modal. -->
-        <div id="exportFiltrosContainer" style="margin-bottom:16px; display:none;">
-            <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Quem exportar</div>
-            <div style="font-size:12px;font-weight:600;color:#555;margin:8px 0 4px;">Status</div>
-            <div id="exportStatusChecks" style="display:flex;flex-wrap:wrap;gap:4px 16px;"></div>
-            <div style="font-size:12px;font-weight:600;color:#555;margin:12px 0 4px;">Instrumento</div>
-            <div id="exportInstrumentoChecks" style="display:flex;flex-wrap:wrap;gap:4px 16px;"></div>
+             mudar aqui dentro sem precisar fechar o modal. Etiquetas
+             clicáveis (não checkbox+texto) -- redesign 18/ago/2026, achado
+             "não gostei desse modelo". -->
+        <div id="exportFiltrosContainer" class="exp-secao" style="display:none;">
+            <div class="exp-secao-titulo">Quem exportar</div>
+            <div class="exp-subtitulo">Status</div>
+            <div id="exportStatusChecks" class="exp-chips"></div>
+            <div class="exp-subtitulo">Instrumento</div>
+            <div id="exportInstrumentoChecks" class="exp-chips"></div>
         </div>
         <!-- Pedido real de um Diretor, 18/ago/2026: pra montar a lista de
              camisas por instrumento, precisava exportar, filtrar por
              instrumento na lista, exportar de novo, repetir pra cada
              instrumento -- um arquivo com uma aba por instrumento resolve
-             isso num clique só. -->
-        <div id="exportFormatoContainer" style="margin-bottom:16px; display:none;">
-            <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Como você quer o arquivo</div>
-            <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;color:#333;cursor:pointer;">
-                <input type="radio" name="exportFormato" value="unico" checked>
-                Tudo numa aba só
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;color:#333;cursor:pointer;">
-                <input type="radio" name="exportFormato" value="por-instrumento">
-                Separado por instrumento <span style="color:#888;">(uma aba por instrumento, no mesmo arquivo)</span>
-            </label>
+             isso num clique só. Vira cartão escolhível (era rádio solto,
+             ficava desalinhado e pouco claro qual das duas opções pesava
+             mais na decisão). -->
+        <div id="exportFormatoContainer" class="exp-secao" style="display:none;">
+            <div class="exp-secao-titulo">Como você quer o arquivo</div>
+            <div class="exp-formato-opcoes">
+                <label class="exp-formato-card">
+                    <input type="radio" name="exportFormato" value="unico" checked>
+                    <span class="exp-formato-titulo">Tudo numa aba só</span>
+                    <span class="exp-formato-desc">Uma lista única, com todo mundo junto</span>
+                </label>
+                <label class="exp-formato-card">
+                    <input type="radio" name="exportFormato" value="por-instrumento">
+                    <span class="exp-formato-titulo">Separado por instrumento</span>
+                    <span class="exp-formato-desc">Uma aba pra cada instrumento, no mesmo arquivo</span>
+                </label>
+            </div>
         </div>
-        <div style="text-align:right;margin-bottom:8px;">
-            <span onclick="exportSelecionarTodos(true)" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Marcar todos</span>
-            <span style="color:#ccc;margin:0 6px;">|</span>
-            <span onclick="exportSelecionarTodos(false)" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar seleção</span>
+        <div class="exp-secao" style="border-bottom:none; margin-bottom:20px; padding-bottom:0;">
+            <div class="exp-secao-titulo-linha">
+                <div class="exp-secao-titulo">Quais dados incluir</div>
+                <div class="exp-secao-acoes">
+                    <span onclick="exportSelecionarTodos(true)">Marcar todos</span>
+                    <span style="color:#ccc;">·</span>
+                    <span onclick="exportSelecionarTodos(false)">Limpar</span>
+                </div>
+            </div>
+            <div id="exportCamposContainer" class="exp-campos"></div>
         </div>
-        <div id="exportCamposContainer" style="max-height:320px;overflow-y:auto;margin-bottom:16px;"></div>
         <div class="modal-acoes">
             <button class="btn-modal-cancelar" onclick="fecharModal('modalExportarExcel')">Cancelar</button>
             <button class="btn-modal-confirmar verde" onclick="confirmarExportarExcel()">Exportar</button>
@@ -1239,7 +1306,7 @@
         const statusesReais = ['aprovado', 'pendente', 'suspenso', 'rejeitado', 'desligado'];
         const statusPre = filtroStatusSelecionados.length > 0 ? filtroStatusSelecionados : statusesReais;
         document.getElementById('exportStatusChecks').innerHTML = statusesReais.map(s => `
-            <label style="display:flex;align-items:center;gap:5px;font-size:13px;color:#333;cursor:pointer;">
+            <label class="exp-chip">
                 <input type="checkbox" class="export-status-check" value="${s}" ${statusPre.includes(s) ? 'checked' : ''} onchange="atualizarResumoExport()">
                 ${LABELS_STATUS_FILTRO[s]}
             </label>`).join('');
@@ -1252,7 +1319,7 @@
         const optsInstrumento = instrumentos.map(i => ({ valor: String(i.id), rotulo: i.nome }))
             .concat([{ valor: 'sem', rotulo: 'Sem instrumento' }]);
         document.getElementById('exportInstrumentoChecks').innerHTML = optsInstrumento.map(o => `
-            <label style="display:flex;align-items:center;gap:5px;font-size:13px;color:#333;cursor:pointer;">
+            <label class="exp-chip">
                 <input type="checkbox" class="export-instrumento-check" value="${o.valor}" ${instrPre.includes(o.valor) ? 'checked' : ''} onchange="atualizarResumoExport()">
                 ${o.rotulo}
             </label>`).join('');
@@ -1276,9 +1343,9 @@
     function atualizarResumoExport() {
         if (tipoExportacaoAtual !== 'ritmistas') return;
         const total = listaFiltradaExportacao().length;
-        document.getElementById('exportResumoLista').textContent = total === 1
-            ? '1 ritmista será exportado(a) com os filtros marcados acima.'
-            : `${total} ritmistas serão exportados com os filtros marcados acima.`;
+        document.getElementById('exportResumoLista').innerHTML = total === 1
+            ? '<strong>1 ritmista</strong> será exportado(a) com os filtros marcados acima.'
+            : `<strong>${total} ritmistas</strong> serão exportados com os filtros marcados acima.`;
     }
 
     function abrirModalExportar(tipo) {
@@ -1292,9 +1359,9 @@
             atualizarResumoExport();
         } else {
             const total = listaDiretoriaAtual.length;
-            document.getElementById('exportResumoLista').textContent = total === 1
-                ? '1 pessoa da diretoria será exportada.'
-                : `${total} pessoas da diretoria serão exportadas.`;
+            document.getElementById('exportResumoLista').innerHTML = total === 1
+                ? '<strong>1 pessoa</strong> da diretoria será exportada.'
+                : `<strong>${total} pessoas</strong> da diretoria serão exportadas.`;
         }
 
         document.getElementById('exportFormatoContainer').style.display = ehRitmistas ? 'block' : 'none';
@@ -1302,15 +1369,13 @@
 
         const container = document.getElementById('exportCamposContainer');
         container.innerHTML = campos.map(grupo => `
-            <div style="margin-bottom:14px;">
-                <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">${grupo.grupo}</div>
-                ${grupo.campos.map(c => `
-                    <label class="export-campo-label" style="align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#333;cursor:pointer;">
-                        <input type="checkbox" class="export-campo-check" value="${c.chave}">
-                        ${c.label}
-                    </label>
-                `).join('')}
-            </div>
+            <div class="exp-campos-grupo-titulo">${grupo.grupo}</div>
+            ${grupo.campos.map(c => `
+                <label class="exp-campo-linha">
+                    <input type="checkbox" class="export-campo-check" value="${c.chave}">
+                    ${c.label}
+                </label>
+            `).join('')}
         `).join('');
 
         document.getElementById('modalExportarExcel').classList.add('aberto');
