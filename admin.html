@@ -455,6 +455,9 @@
         .exp-secao-acoes span[onclick]:hover { color: var(--cor-texto-principal); }
         .exp-subtitulo { font-size: 12px; font-weight: 600; color: #555; margin: 14px 0 8px; }
         .exp-subtitulo:first-child { margin-top: 0; }
+        .exp-subtitulo-linha { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 8px; }
+        .exp-subtitulo-linha:first-child { margin-top: 0; }
+        .exp-subtitulo-linha .exp-subtitulo { margin: 0; }
         /* Grade alinhada (não flex-wrap) -- cada checkbox cai numa coluna
            certinha, sem ficar torto conforme o texto do vizinho é maior ou
            menor. */
@@ -925,9 +928,23 @@
              cara de algo que possa ser selecionável". -->
         <div id="exportFiltrosContainer" class="exp-secao" style="display:none;">
             <div class="exp-secao-titulo">Quem exportar</div>
-            <div class="exp-subtitulo">Status</div>
+            <div class="exp-subtitulo-linha">
+                <span class="exp-subtitulo">Status</span>
+                <span class="exp-secao-acoes">
+                    <span onclick="exportSelecionarGrupo('status', true)">Marcar todos</span>
+                    <span style="color:#ccc;">·</span>
+                    <span onclick="exportSelecionarGrupo('status', false)">Limpar</span>
+                </span>
+            </div>
             <div id="exportStatusChecks" class="exp-grid-checks"></div>
-            <div class="exp-subtitulo">Instrumento</div>
+            <div class="exp-subtitulo-linha">
+                <span class="exp-subtitulo">Instrumento</span>
+                <span class="exp-secao-acoes">
+                    <span onclick="exportSelecionarGrupo('instrumento', true)">Marcar todos</span>
+                    <span style="color:#ccc;">·</span>
+                    <span onclick="exportSelecionarGrupo('instrumento', false)">Limpar</span>
+                </span>
+            </div>
             <div id="exportInstrumentoChecks" class="exp-grid-checks"></div>
         </div>
         <!-- Pedido real de um Diretor, 18/ago/2026: pra montar a lista de
@@ -1314,11 +1331,13 @@
 
         const instrumentos = instrumentosAtivosDaBateria();
         const idsInstrumentos = instrumentos.map(i => String(i.id));
+        // "Sem instrumento" tirado da lista, 18/ago/2026 -- instrumento é
+        // obrigatório pra todo ritmista, achado da Márcia não é um estado
+        // real (só sobrava de dado de teste antigo).
         const instrPre = filtroInstrumentosSelecionados.length > 0
             ? filtroInstrumentosSelecionados.map(String)
-            : [...idsInstrumentos, 'sem'];
-        const optsInstrumento = instrumentos.map(i => ({ valor: String(i.id), rotulo: i.nome }))
-            .concat([{ valor: 'sem', rotulo: 'Sem instrumento' }]);
+            : idsInstrumentos;
+        const optsInstrumento = instrumentos.map(i => ({ valor: String(i.id), rotulo: i.nome }));
         document.getElementById('exportInstrumentoChecks').innerHTML = optsInstrumento.map(o => `
             <label class="exp-campo-linha">
                 <input type="checkbox" class="export-instrumento-check" value="${o.valor}" ${instrPre.includes(o.valor) ? 'checked' : ''} onchange="atualizarResumoExport()">
@@ -1333,11 +1352,7 @@
         const instrumentoMarcados = Array.from(document.querySelectorAll('.export-instrumento-check:checked')).map(c => c.value);
         let lista = todosRitmistas;
         if (statusMarcados.length > 0) lista = lista.filter(r => statusMarcados.includes(r.status || 'pendente'));
-        if (instrumentoMarcados.length > 0) {
-            lista = lista.filter(r => r.bateria_instrumento_id
-                ? instrumentoMarcados.includes(String(r.bateria_instrumento_id))
-                : instrumentoMarcados.includes('sem'));
-        }
+        if (instrumentoMarcados.length > 0) lista = lista.filter(r => instrumentoMarcados.includes(String(r.bateria_instrumento_id)));
         return lista;
     }
 
@@ -1383,6 +1398,14 @@
     }
     function exportSelecionarTodos(marcar) {
         document.querySelectorAll('.export-campo-check').forEach(c => c.checked = marcar);
+    }
+    // Pedido da Márcia, 18/ago/2026: com muitos instrumentos cadastrados,
+    // marcar/desmarcar um por um pra filtrar só 1 ou 2 é trabalhoso -- mesmo
+    // atalho "Marcar todos/Limpar" já usado em "Quais dados incluir".
+    function exportSelecionarGrupo(tipo, marcar) {
+        const seletor = tipo === 'status' ? '.export-status-check' : '.export-instrumento-check';
+        document.querySelectorAll(seletor).forEach(c => c.checked = marcar);
+        atualizarResumoExport();
     }
     // Nome de aba do Excel tem regra própria: máximo 31 caracteres, sem
     // \ / ? * [ ]. "Sem instrumento" cobre ritmista sem instrumento
