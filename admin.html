@@ -29,9 +29,23 @@
            scroll da página inteira -- funcionava visualmente (ele gruda no
            topo), mas a barra de rolagem em si ainda contava a altura do
            cabeçalho, cortando por dentro dele. */
+        /* html tem scrollbar-gutter:stable global (styles/tokens.css) --
+           reserva uma faixa (~15px) pra barra de rolagem vertical sempre,
+           mesmo sem rolagem, pra outras telas não "pularem" de largura ao
+           trocar de conteúdo curto pra longo. Enquanto era o body que
+           rolava, essa faixa reservada E a barra de verdade eram a mesma
+           coisa, sem gap visível. Agora que o body não rola mais (só o
+           .conteudo-rolavel rola), essa faixa continuava reservada no html
+           mesmo assim -- sobrava um vão vazio na borda direita, cortando o
+           cabeçalho (achado da Márcia, 18/ago/2026, print mostrando o vão).
+           Solução: desliga a reserva no html (não rola mesmo, não precisa)
+           e liga ela só em .conteudo-rolavel (que é quem rola de verdade
+           agora) -- mantém o mesmo benefício de não "pular" de largura,
+           só que no lugar certo. */
+        html { scrollbar-gutter: auto; }
         body { background: var(--cor-fundo-claro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
         .container { flex: 1; }
-        .conteudo-rolavel { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+        .conteudo-rolavel { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; display: flex; flex-direction: column; }
 
         /* HEADER */
         .header {
@@ -292,20 +306,6 @@
         .btn-modal-confirmar.azul { background: var(--cor-fundo-escuro); }
 
         /* MODAL — AÇÕES DO CADASTRO */
-        /* Sticky no fundo da área que rola (.modal-overlay), mesmo padrão já
-           usado em .ficha-modal-acoes (components.css) -- pedido da Márcia,
-           18/ago/2026: "lembra dos botões flutuantes no meu perfil? vai
-           funcionar aqui tb?". Funciona pelo mesmo motivo: .modal-overlay é
-           quem tem overflow-y:auto agora (corrigido hoje mais cedo), então a
-           barra gruda sozinha no fundo dela. Padding de baixo soma
-           env(safe-area-inset-bottom) -- mesma razão de sempre (iPhone
-           instalado como PWA não reserva espaço pra barrinha de gesto). */
-        .modal-acoes-ficha {
-            display: flex; gap: 8px; flex-wrap: wrap;
-            padding: 14px 0 calc(14px + env(safe-area-inset-bottom));
-            border-top: 1px solid #f0f0f0; margin-top: 16px;
-            position: sticky; bottom: 0; background: white;
-        }
         .btn-ficha {
             padding: 5px 12px; border-radius: 8px; cursor: pointer;
             font-size: 12px; font-weight: 600; border: 1px solid #e0e0e0;
@@ -475,7 +475,6 @@
 
             .modal { padding: 20px 16px; margin: 12px; }
             .ficha-grid { grid-template-columns: 1fr; }
-            .modal-acoes-ficha { gap: 6px; }
         }
 
         /* MEU PERFIL (.mp-*) agora vive em styles/components.css, compartilhado com super-admin.html */
@@ -797,17 +796,19 @@
             <span id="fc-status-badge"></span>
         </div>
 
+        <!-- "Declaração do responsável" e os botões de ação (Ativar/Rejeitar/
+             Suspender/Desligar/Fechar) são injetados dentro de
+             #fp-extra-conteudo/#fp-acoes-extra, que já existem dentro de
+             #fp-container-ritmista (ver abrirCadastro()) -- não como blocos
+             separados aqui fora. Motivo: dois botões "sticky bottom"
+             independentes no mesmo modal competem pelo mesmo lugar, e só o
+             que vem depois no HTML consegue flutuar de verdade -- Editar
+             (de dentro de #fp-container-ritmista) ficava sempre perdendo
+             essa disputa pro botão Fechar antigo (bug relatado pela Márcia,
+             18/ago/2026: "o botão editar tá fixo, não está flutuante").
+             Um bloco só, um hook só, resolve de vez -- mesmo padrão que
+             carteirinha.html já usa pro botão Fechar do Meu Perfil. -->
         <div id="fp-container-ritmista"></div>
-
-        <div id="fc-secao-menor" class="ficha-secao" style="display:none;">
-            <div class="ficha-secao-titulo">Declaração do responsável</div>
-            <div id="fc-declaracao-area"></div>
-        </div>
-
-        <div class="modal-acoes-ficha" style="align-items:center; justify-content:space-between;">
-            <div id="modalCadastroAcoes" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
-            <button class="btn-ficha" onclick="fecharModal('modalCadastroOverlay')">Fechar</button>
-        </div>
     </div>
 </div>
 
@@ -1296,18 +1297,35 @@
         await fpMontar(document.getElementById('fp-container-ritmista'));
         fpIniciar(r, meu ? meu.perfil : null, meu ? meu.pessoa_id : null, { aoSalvar: () => carregarRitmistas() });
 
-        // Menor — declaração
+        // Menor — declaração. Injetada em #fp-extra-conteudo (hook dentro de
+        // #fp-container-ritmista, ANTES do bloco de ações) -- fica no mesmo
+        // fluxo de rolagem da ficha, então nunca "atrasa" o bloco de ações
+        // conseguir flutuar (ver comentário grande logo abaixo).
         const menor = idade !== null && idade < 18;
-        const secaoMenor = document.getElementById('fc-secao-menor');
+        const extraConteudo = document.getElementById('fp-extra-conteudo');
         if (menor) {
-            secaoMenor.style.display = 'block';
+            extraConteudo.innerHTML = `
+                <div class="ficha-secao">
+                    <div class="ficha-secao-titulo">Declaração do responsável</div>
+                    <div id="fc-declaracao-area"></div>
+                </div>`;
             renderToggleDeclaracao(r.id, r.declaracao_responsavel);
         } else {
-            secaoMenor.style.display = 'none';
+            extraConteudo.innerHTML = '';
         }
 
-        // Botões de ação de status (sem ícones)
-        const acoesDiv = document.getElementById('modalCadastroAcoes');
+        // Botões de ação de status + Fechar. Injetados em #fp-acoes-extra
+        // (hook dentro de #fp-container-ritmista, mesmo padrão já usado em
+        // carteirinha.html pro botão Fechar do Meu Perfil) -- não numa barra
+        // própria separada como antes. Motivo: duas barras "sticky bottom"
+        // competindo no mesmo scroll não funcionam de verdade, só a que vem
+        // depois no HTML consegue flutuar -- o botão Editar (que mora dentro
+        // de #fp-container-ritmista) sempre perdia essa disputa pro Fechar
+        // antigo, ficando "preso" no meio do conteúdo em vez de flutuar
+        // (bug relatado pela Márcia, 18/ago/2026). fpAtivarEdicao()/
+        // fpCancelarEdicao() já escondem/mostram esse hook sozinhas durante
+        // a edição, então também resolve Editar/Salvar/Cancelar sem
+        // precisar de nenhum código extra aqui.
         let btns = '';
         if (status === 'pendente') {
             btns = `<button class="btn-ficha btn-ficha-ativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Ativar</button>
@@ -1321,7 +1339,8 @@
         } else {
             btns = `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Reativar</button>`;
         }
-        acoesDiv.innerHTML = btns;
+        btns += `<button class="btn-ficha" onclick="fecharModal('modalCadastroOverlay')">Fechar</button>`;
+        document.getElementById('fp-acoes-extra').innerHTML = btns;
 
         // Só edita dados de ritmista ativo/suspenso (regra já existia antes do motor único)
         if (status !== 'aprovado' && status !== 'suspenso') {
