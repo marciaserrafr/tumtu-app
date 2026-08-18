@@ -2112,8 +2112,40 @@
             .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
     }
 
+    // Desfaz qualquer tema de escola aplicado no header (fundo, logo, cores de
+    // texto) -- devolve tudo ao padrão TumTu. Precisa existir separado de
+    // aplicarConfigEscola() porque o Super Admin pode voltar da tela de uma
+    // escola (tema aplicado) pro próprio painel (Dashboard/Escolas/Config/
+    // Privacidade), onde NUNCA deve sobrar tema de escola nenhuma -- achado
+    // real da Márcia, 19/ago/2026: header ficava preso na cor/logo da última
+    // escola visitada mesmo depois de voltar pro Super Admin.
+    function resetTemaHeaderPadrao() {
+        const header = document.getElementById('pageHeader');
+        const marca = document.getElementById('headerMarca');
+        const headerEsquerda = document.querySelector('.header-esquerda');
+        if (header) header.style.background = '';
+        if (marca) {
+            marca.innerHTML = '<span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u';
+            marca.style.color = '';
+            marca.style.textShadow = '';
+        }
+        if (headerEsquerda) headerEsquerda.classList.remove('com-logo-escola');
+        const badge = document.getElementById('headerBateria');
+        if (badge) { badge.style.color = ''; badge.style.textShadow = ''; }
+        const nome = document.getElementById('headerNome');
+        if (nome) { nome.style.color = ''; nome.style.opacity = ''; nome.style.textShadow = ''; }
+        const cargo = document.getElementById('headerCargo');
+        if (cargo) { cargo.style.color = ''; cargo.style.opacity = ''; }
+        const btnSair = document.querySelector('.btn-sair');
+        if (btnSair) btnSair.classList.remove('btn-header-tematico');
+    }
+
     function aplicarConfigEscola() {
         const cfg = (typeof configEscola !== 'undefined') ? configEscola : {};
+        // Sempre reseta primeiro -- sem isso, trocar de uma escola com tema
+        // ligado pra outra sem tema (ou pro próprio painel do Super Admin)
+        // deixava cor/logo "grudadas" da escola anterior.
+        resetTemaHeaderPadrao();
 
         // Header: escola — bateria abaixo da marca TumTu (mesmo padrão já usado
         // no e-mail de aprovação, 15/ago/2026) -- nome da bateria sozinho nem
@@ -2692,6 +2724,7 @@
     function mostrarShellSA() {
         dentroDeEscolaSA = false;
         meuPerfilSoloSA = false;
+        resetTemaHeaderPadrao();
         document.getElementById('saSidebar').style.display = 'flex';
         document.getElementById('saMain').style.display = 'block';
         document.getElementById('navAbasEscola').style.display = 'none';
