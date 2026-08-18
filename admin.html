@@ -21,8 +21,17 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
         button, .badge { display: inline-flex; align-items: center; gap: 5px; }
-        body { background: var(--cor-fundo-claro); min-height: 100vh; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* body nunca rola de verdade -- fica travado do tamanho exato da tela
+           (100dvh, correto em celular). Quem rola é só o .conteudo-rolavel
+           (abaixo), então a barra de rolagem do navegador aparece só ali,
+           nunca atravessando o cabeçalho. Achado da Márcia, 18/ago/2026 (2ª
+           vez pedindo isso): antes o cabeçalho era só "sticky" dentro do
+           scroll da página inteira -- funcionava visualmente (ele gruda no
+           topo), mas a barra de rolagem em si ainda contava a altura do
+           cabeçalho, cortando por dentro dele. */
+        body { background: var(--cor-fundo-claro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
         .container { flex: 1; }
+        .conteudo-rolavel { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
 
         /* HEADER */
         .header {
@@ -32,8 +41,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
+            flex-shrink: 0;
             z-index: 100;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
@@ -99,9 +107,12 @@
             letter-spacing: 0.8px; text-transform: uppercase; color: var(--cor-texto-muted);
         }
         /* NAV ABAS */
+        /* top:0 (era 56px) -- agora é o primeiro item de dentro de
+           .conteudo-rolavel, não tem mais cabeçalho no mesmo scroll pra
+           descontar (o cabeçalho virou uma faixa fixa fora do scroll). */
         .nav-abas {
             display: flex; gap: 0; padding: 0 24px;
-            background: white; position: sticky; top: 56px; z-index: 90;
+            background: white; position: sticky; top: 0; z-index: 90;
             border-bottom: 2px solid #e8e6f0;
         }
         .aba-btn {
@@ -585,6 +596,8 @@
     </div>
 </div>
 
+<div class="conteudo-rolavel">
+
 <!-- NAV ABAS -->
 <nav class="nav-abas">
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)">Visão Geral</button>
@@ -774,6 +787,8 @@
     <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
     <span class="rodape-tagline">Sistema de gestão de bateria</span>
 </footer>
+
+</div><!-- /conteudo-rolavel -->
 
 <!-- MODAL CADASTRO COMPLETO -->
 <div class="modal-overlay" id="modalCadastroOverlay">
