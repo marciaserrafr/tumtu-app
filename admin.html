@@ -2986,7 +2986,7 @@
     function renderizarListaEscolas(lista) {
         const div = document.getElementById('lista-escolas');
         if (!lista.length) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Nenhuma escola cadastrada ainda.</div>'; return; }
-        div.innerHTML = lista.map(e => `
+        const cardEscolaHTML = e => `
             <div class="item-card" style="cursor:pointer" onclick="entrarContextoEscolaSA(${e.id})">
                 <div class="item-info">
                     <div class="item-nome">${esc(e.sigla || e.nome)}</div>
@@ -2996,7 +2996,14 @@
                     ${e.tipo === 'demo' ? '<span class="badge-tag-demo">DEMO</span>' : ''}
                     <span class="${e.ativa !== false ? 'badge-ativo' : 'badge-inativo'}">${e.ativa !== false ? 'Ativa' : 'Inativa'}</span>
                 </div>
-            </div>`).join('');
+            </div>`;
+        // Reais sem título (mesmo padrão que Diretoria usa pra Mestres/Diretores,
+        // pedido da Márcia 19/ago/2026) -- demo separada embaixo, com título.
+        const reais = lista.filter(e => e.tipo !== 'demo');
+        const demo = lista.filter(e => e.tipo === 'demo');
+        let html = reais.map(cardEscolaHTML).join('');
+        if (demo.length) html += '<div class="secao-titulo">DEMO</div>' + demo.map(cardEscolaHTML).join('');
+        div.innerHTML = html;
     }
 
     function abrirNovaEscolaSA() {
