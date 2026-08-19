@@ -957,56 +957,66 @@
 
 <!-- NAV ABAS (contexto de uma escola — Mestre/Diretor sempre; Super Admin depois de entrar numa escola) -->
 <nav class="nav-abas" id="navAbasEscola" style="display:none">
-    <button class="aba-btn-sa aba-btn" data-aba="dados-escola" onclick="trocarAba('dados-escola', this)" style="display:none">Dados da Escola</button>
-    <button class="aba-btn-sa aba-btn" data-aba="dados-bateria" onclick="trocarAba('dados-bateria', this)" style="display:none">Dados da Bateria</button>
-    <button class="aba-btn-sa aba-btn" data-aba="comercial" onclick="trocarAba('comercial', this)" style="display:none">Comercial</button>
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)">Visão Geral</button>
     <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
     <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)">Diretoria</button>
-    <button class="aba-btn" data-aba="convites" onclick="trocarAba('convites', this)">Convites</button>
     <button class="aba-btn" data-aba="relatorios" onclick="trocarAba('relatorios', this)">Relatórios</button>
-    <button class="aba-btn-sa aba-btn" data-aba="permissoes" onclick="trocarAba('permissoes', this)" style="display:none">Permissões</button>
-    <button class="aba-btn-sa aba-btn" data-aba="historico" onclick="trocarAba('historico', this)" style="display:none">Histórico</button>
     <button class="aba-btn" data-aba="configuracoes" onclick="trocarAba('configuracoes', this)">Configurações</button>
+    <button class="aba-btn-sa aba-btn" data-aba="administrativo" onclick="trocarAba('administrativo', this)" style="display:none">Administrativo</button>
     <button class="aba-btn" data-aba="meu-perfil" onclick="trocarAba('meu-perfil', this)">Meu Perfil</button>
 </nav>
 
 <div class="main" id="mainEscola" style="display:none">
 
-<!-- PAINEL DADOS DA ESCOLA (só Super Admin, nesta etapa) -->
+<!-- PAINEL ADMINISTRATIVO (lista lançadora — agrupa os módulos usados com
+     menos frequência, pra não empilhar aba demais na barra horizontal.
+     Pedido da Márcia, 19/ago/2026: "o menu tá muito extenso... no celular
+     fica bem complicado". Cada item aqui é filtrado por capacidade em
+     renderizarAdministrativoLista(); Super Admin sempre vê todos. -->
+<div class="painel" id="painel-administrativo">
+    <div class="painel-titulo">Administrativo</div>
+    <div id="admListaConteudo"></div>
+</div>
+
+<!-- PAINEL DADOS DA ESCOLA (dentro de Administrativo) -->
 <div class="painel" id="painel-dados-escola">
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
     <div class="painel-titulo">Dados da Escola</div>
     <div id="dadosEscolaConteudo">
         <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
     </div>
 </div>
 
-<!-- PAINEL DADOS DA BATERIA (só Super Admin, nesta etapa) -->
+<!-- PAINEL DADOS DA BATERIA (dentro de Administrativo) -->
 <div class="painel" id="painel-dados-bateria">
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
     <div class="painel-titulo">Dados da Bateria</div>
     <div id="dadosBateriaConteudo">
         <div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Carregando...</div>
     </div>
 </div>
 
-<!-- PAINEL COMERCIAL (só Super Admin — decisão comercial, nunca junto de "Dados da Bateria") -->
+<!-- PAINEL COMERCIAL (dentro de Administrativo — decisão comercial, nunca junto de "Dados da Bateria") -->
 <div class="painel" id="painel-comercial">
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
     <div class="painel-titulo">Comercial</div>
     <div id="comercialConteudo">
         <div class="estado-vazio"><div class="estado-vazio-icone">🎟️</div>Carregando...</div>
     </div>
 </div>
 
-<!-- PAINEL PERMISSÕES (por escola) -->
+<!-- PAINEL PERMISSÕES (dentro de Administrativo) -->
 <div class="painel" id="painel-permissoes">
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
     <div class="painel-titulo">Permissões</div>
     <div class="vg-secao-titulo" style="margin-bottom:16px;text-transform:none;letter-spacing:0;font-weight:400;">Escolha uma pessoa da Diretoria e marque direto o que ela pode ver e editar. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
     <div id="pe-editor" style="display:none;"></div>
     <div id="pe-perfis-lista"></div>
 </div>
 
-<!-- PAINEL HISTÓRICO (por escola, só Super Admin nesta etapa) -->
+<!-- PAINEL HISTÓRICO (dentro de Administrativo) -->
 <div class="painel" id="painel-historico">
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
     <div class="painel-titulo">Histórico</div>
     <div class="vg-secao-titulo" style="margin-bottom:20px;text-transform:none;letter-spacing:0;font-weight:400;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta bateria, e quando.</div>
     <div id="lista-historico-escola">
@@ -1022,6 +1032,11 @@
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
         <button class="btn-novo" onclick="irParaCadastroManualRitmista()">+ Cadastrar Ritmista</button>
     </div>
+
+    <!-- Link de cadastro (era a aba "Convites", incorporado aqui em
+         19/ago/2026 -- o link de Ritmista mora junto de quem já lida com
+         Ritmista, em vez de numa aba própria isolada). -->
+    <div id="linkCadastroRitmista" style="margin-bottom:20px;"></div>
 
     <!-- BUSCA -->
     <div style="margin-bottom:20px;">
@@ -1155,6 +1170,10 @@
         <button class="btn-novo" onclick="irParaCadastroManualDiretoria('mestre')">+ Cadastrar Mestre</button>
         <button class="btn-novo" onclick="irParaCadastroManualDiretoria('diretor')">+ Cadastrar Diretor</button>
     </div>
+    <!-- Links de cadastro (era a aba "Convites", incorporado aqui em
+         19/ago/2026 -- os links de Mestre/Diretor moram junto de quem já
+         lida com Diretoria, em vez de numa aba própria isolada). -->
+    <div id="linksCadastroDiretoria" style="margin-bottom:20px;"></div>
     <div id="listaDiretoria" style="min-height:200px;">
         <div class="vazio">Carregando...</div>
     </div>
@@ -1166,16 +1185,6 @@
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button onclick="abrirModalExportar('ritmistas')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Ritmistas</button>
         <button onclick="abrirModalExportar('diretoria')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Diretoria</button>
-    </div>
-</div>
-
-<!-- PAINEL CONVITES -->
-<div class="painel" id="painel-convites">
-    <div class="painel-titulo">Convites</div>
-    <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
-        <div style="font-size:12px;font-weight:700;color:#5a5770;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Links de cadastro</div>
-        <p style="font-size:12px;color:#5a5770;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
-        <div id="linksCadastroAdmin"></div>
     </div>
 </div>
 
@@ -2331,7 +2340,8 @@
         construirMultiSelect();
         await carregarNomeEscolaBateria(usuario.bateria_id);
         aplicarConfigEscola();
-        renderizarLinksCadastroAdmin();
+        renderizarLinkCadastroRitmista();
+        renderizarLinksCadastroDiretoria();
 
         // Carrega bateria/escola completas -- não só o resumo de
         // carregarNomeEscolaBateria() (que só preenche configEscola pro
@@ -2389,26 +2399,41 @@
         }
     }
 
-    // Convites: visível pra Mestre e Diretor (antes só existia o link de
-    // convidar Diretor, e só pro Mestre ver -- achado da Márcia, 17/ago/2026,
-    // pedindo os 3 links pros dois cargos, mesmo padrão do Super Admin).
-    function renderizarLinksCadastroAdmin() {
-        const div = document.getElementById('linksCadastroAdmin');
+    // Links de cadastro: antes viviam numa aba própria ("Convites"), agora
+    // moram dentro de Ritmistas/Diretoria (19/ago/2026 -- pedido da Márcia,
+    // junto do enxugamento do menu: o link de cada cargo fica onde quem já
+    // lida com aquele cargo está, em vez de numa aba isolada).
+    function caixaLinkCadastro(titulo, linhas) {
+        return `
+            <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
+                <div style="font-size:12px;font-weight:700;color:#5a5770;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">${titulo}</div>
+                <p style="font-size:12px;color:#5a5770;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
+                ${linhas.map((l, i) => `
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;${i > 0 ? 'margin-top:10px;' : ''}">
+                    <label style="width:120px;flex-shrink:0;font-size:12px;color:#5a5770;font-weight:600;">${l.label}</label>
+                    <input type="text" readonly value="${l.url}" style="flex:1;min-width:200px;padding:9px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;color:#333;">
+                    <button class="btn-modal-confirmar verde" onclick="copiarLinkCadastroAdmin(this)">Copiar</button>
+                </div>`).join('')}
+            </div>`;
+    }
+    function renderizarLinkCadastroRitmista() {
+        const div = document.getElementById('linkCadastroRitmista');
         if (!div) return;
         const codigo = codigoConviteBateria || bateriaIdContexto();
-        if (!codigo) { div.innerHTML = '<p style="font-size:13px;color:#999;">Cadastre uma bateria primeiro, em "Dados da Bateria".</p>'; return; }
+        if (!codigo) { div.innerHTML = ''; return; }
         const base = `${window.location.origin}/cadastro.html?bateria=${codigo}`;
-        const linhas = [
-            { label: 'Ritmista', url: base },
+        div.innerHTML = caixaLinkCadastro('Link de cadastro', [{ label: 'Ritmista', url: base }]);
+    }
+    function renderizarLinksCadastroDiretoria() {
+        const div = document.getElementById('linksCadastroDiretoria');
+        if (!div) return;
+        const codigo = codigoConviteBateria || bateriaIdContexto();
+        if (!codigo) { div.innerHTML = ''; return; }
+        const base = `${window.location.origin}/cadastro.html?bateria=${codigo}`;
+        div.innerHTML = caixaLinkCadastro('Links de cadastro', [
             { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },
             { label: 'Diretor', url: `${base}&cargo=diretor` }
-        ];
-        div.innerHTML = linhas.map((l, i) => `
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;${i > 0 ? 'margin-top:10px;' : ''}">
-                <label style="width:120px;flex-shrink:0;font-size:12px;color:#5a5770;font-weight:600;">${l.label}</label>
-                <input type="text" readonly value="${l.url}" style="flex:1;min-width:200px;padding:9px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;color:#333;">
-                <button class="btn-modal-confirmar verde" onclick="copiarLinkCadastroAdmin(this)">Copiar</button>
-            </div>`).join('');
+        ]);
     }
 
     function copiarLinkCadastroAdmin(btn) {
@@ -2696,12 +2721,16 @@
         'visao': 'ver_visao_geral',
         'ritmistas': 'ver_ritmistas',
         'diretoria': 'ver_acessos',
-        'convites': 'ver_convites',
         'relatorios': 'ver_relatorios',
         'permissoes': 'ver_permissoes',
         'historico': 'ver_historico',
         'configuracoes': 'ver_configuracoes',
     };
+    // Sub-módulos agrupados dentro da aba "Administrativo" (19/ago/2026,
+    // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
+    // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
+    // das capacidades dos itens que ela agrupa.
+    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'permissoes', 'historico'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -2711,8 +2740,9 @@
         let primeiraVisivel = null;
         document.querySelectorAll('#navAbasEscola .aba-btn').forEach(btn => {
             const aba = btn.dataset.aba;
-            const capacidade = CAPACIDADE_DA_ABA[aba];
-            const visivel = !capacidade || tenhoCapacidade(capacidade);
+            const visivel = aba === 'administrativo'
+                ? ABAS_ADMINISTRATIVO.some(a => tenhoCapacidade(CAPACIDADE_DA_ABA[a]))
+                : (!CAPACIDADE_DA_ABA[aba] || tenhoCapacidade(CAPACIDADE_DA_ABA[aba]));
             btn.style.display = visivel ? '' : 'none';
             if (visivel && !primeiraVisivel) primeiraVisivel = aba;
         });
@@ -2722,6 +2752,30 @@
             trocarAba(primeiraVisivel || 'meu-perfil', document.querySelector(`.aba-btn[data-aba="${primeiraVisivel || 'meu-perfil'}"]`));
         }
     }
+
+    // Lista lançadora da aba "Administrativo" -- cada linha só aparece se a
+    // pessoa tiver a capacidade daquele módulo (Super Admin vê todas).
+    const ADMINISTRATIVO_ITENS = [
+        { aba: 'dados-escola', label: 'Dados da Escola' },
+        { aba: 'dados-bateria', label: 'Dados da Bateria' },
+        { aba: 'comercial', label: 'Comercial' },
+        { aba: 'permissoes', label: 'Permissões' },
+        { aba: 'historico', label: 'Histórico' },
+    ];
+    function renderizarAdministrativoLista() {
+        const div = document.getElementById('admListaConteudo');
+        if (!div) return;
+        const abaAdmBtn = document.querySelector('.aba-btn[data-aba="administrativo"]');
+        const itens = ADMINISTRATIVO_ITENS.filter(i => souSuperAdmin || tenhoCapacidade(CAPACIDADE_DA_ABA[i.aba]));
+        if (!itens.length) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Nenhum módulo disponível pra você aqui.</div>'; return; }
+        div.innerHTML = itens.map(i => `
+            <div class="config-item" onclick="trocarAba('${i.aba}', document.querySelector('.aba-btn[data-aba=administrativo]'))">
+                <span>${i.label}</span>
+                <span class="config-item-seta">›</span>
+            </div>`).join('');
+        if (abaAdmBtn) abaAdmBtn.classList.add('ativa');
+    }
+
     let bateriaAtualData = null;
     let escolasCache = [];
     let bateriasCache = [];
@@ -2831,8 +2885,9 @@
 
     // Entra no contexto de uma escola -- reaproveita 100% o que admin.html já
     // usa pro próprio Mestre/Diretor (carregarRitmistas, carregarDiretoria,
-    // renderizarLinksCadastroAdmin, aplicarConfigEscola etc), só trocando de
-    // onde vem o bateria_id (ver bateriaIdContexto()).
+    // renderizarLinkCadastroRitmista, renderizarLinksCadastroDiretoria,
+    // aplicarConfigEscola etc), só trocando de onde vem o bateria_id (ver
+    // bateriaIdContexto()).
     async function entrarContextoEscolaSA(escolaId) {
         window.scrollTo(0, 0);
         escolaSelecionadaId = escolaId;
@@ -2870,7 +2925,8 @@
             configEscola.temaPersonalizadoAtivo = false;
         }
         aplicarConfigEscola();
-        renderizarLinksCadastroAdmin();
+        renderizarLinkCadastroRitmista();
+        renderizarLinksCadastroDiretoria();
 
         renderizarDadosEscolaTab();
         renderizarDadosBateriaTab();
@@ -3307,7 +3363,8 @@
             if (idx >= 0) bateriasCache[idx] = bateriaAtualData; else bateriasCache.push(bateriaAtualData);
             renderizarDadosBateriaTab(false);
             renderizarComercialTab();
-            renderizarLinksCadastroAdmin();
+            renderizarLinkCadastroRitmista();
+            renderizarLinksCadastroDiretoria();
             carregarRitmistas();
             mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
         } else {
@@ -3434,7 +3491,6 @@
         { grupo: 'Comercial', itens: [{ chave: 'ver_comercial', label: 'Ver' }, { chave: 'editar_comercial', label: 'Editar' }] },
         { grupo: 'Ritmistas', itens: [{ chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' }, { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar' }, { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas' }] },
         { grupo: 'Diretoria', itens: [{ chave: 'ver_acessos', label: 'Ver Mestres e Diretores' }, { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar' }] },
-        { grupo: 'Convites', itens: [{ chave: 'ver_convites', label: 'Ver' }] },
         { grupo: 'Relatórios', itens: [{ chave: 'ver_relatorios', label: 'Ver' }] },
         { grupo: 'Configurações', itens: [{ chave: 'ver_configuracoes', label: 'Ver' }, { chave: 'editar_configuracoes', label: 'Editar' }] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Ver' }] },
@@ -4074,6 +4130,7 @@
         if (aba === 'comercial') renderizarComercialTab();
         if (aba === 'permissoes') { permissoesPessoaEditando = null; renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'historico') carregarHistoricoEscolaSA();
+        if (aba === 'administrativo') renderizarAdministrativoLista();
     }
 </script>
 </body>
