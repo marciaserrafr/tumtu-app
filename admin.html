@@ -778,15 +778,20 @@
         .toast.visivel { display: flex; }
 
         /* Botão "← Escolas", só aparece pra Super Admin dentro do contexto de
-           uma escola -- mora na barra de abas (sempre neutra, branca), não
-           mais dentro do cabeçalho colorido: lá em cima ficava ilegível
-           quando a escola tinha tema próprio (achado da Márcia, 19/ago/2026). */
-        .btn-voltar-escolas {
-            padding: 14px 16px 14px 20px; background: none; border: none; cursor: pointer;
-            font-size: 13px; font-weight: 700; color: #D4AF37; font-family: inherit;
-            border-right: 1px solid #e8e6f0; margin-right: 4px; flex-shrink: 0;
+           uma escola. Não pode morar nem no cabeçalho (pega a cor da escola,
+           ilegível) nem na barra de abas (a Márcia apontou, 19/ago/2026, que
+           precisa ver a tela o mais parecida possível com a visão real do
+           Diretor -- que nunca tem esse botão). Vira uma pílula flutuante,
+           sobreposta por cima do cabeçalho, fora do fluxo normal da tela --
+           mesmo princípio da pílula "‹ Voltar pro App" do iPhone. */
+        .pilula-voltar-escolas {
+            position: fixed; top: calc(14px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 200;
+            background: rgba(0,0,0,0.55); color: #fff; border: none;
+            padding: 7px 16px; border-radius: 999px; font-size: 12px; font-weight: 700;
+            font-family: inherit; cursor: pointer; backdrop-filter: blur(6px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-        .btn-voltar-escolas:hover { color: #b8941f; }
+        .pilula-voltar-escolas:hover { background: rgba(0,0,0,0.72); }
 
         @media (max-width: 560px) {
             .sa-sidebar {
@@ -962,8 +967,9 @@
 </div><!-- /saMain -->
 
 <!-- NAV ABAS (contexto de uma escola — Mestre/Diretor sempre; Super Admin depois de entrar numa escola) -->
+<button id="btnVoltarEscolasHeader" class="pilula-voltar-escolas" onclick="voltarParaEscolasSA()" style="display:none">‹ Escolas</button>
+
 <nav class="nav-abas" id="navAbasEscola" style="display:none">
-    <button id="btnVoltarEscolasHeader" class="btn-voltar-escolas" onclick="voltarParaEscolasSA()" style="display:none">← Escolas</button>
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)">Visão Geral</button>
     <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
     <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)">Diretoria</button>
@@ -2934,7 +2940,7 @@
         document.getElementById('saMain').style.display = 'none';
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'block';
-        document.getElementById('btnVoltarEscolasHeader').textContent = '← Escolas';
+        document.getElementById('btnVoltarEscolasHeader').textContent = '‹ Escolas';
         document.getElementById('btnVoltarEscolasHeader').style.display = 'block';
         document.getElementById('btnMinhaCarteirinhaHeader').style.display = 'none';
         document.querySelectorAll('.aba-btn-sa').forEach(el => el.style.display = '');
@@ -2989,7 +2995,7 @@
         document.getElementById('saMain').style.display = 'none';
         document.getElementById('navAbasEscola').style.display = 'none';
         document.getElementById('mainEscola').style.display = 'block';
-        document.getElementById('btnVoltarEscolasHeader').textContent = '← Voltar';
+        document.getElementById('btnVoltarEscolasHeader').textContent = '‹ Voltar';
         document.getElementById('btnVoltarEscolasHeader').style.display = 'block';
         document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
         document.getElementById('painel-meu-perfil').classList.add('ativo');
