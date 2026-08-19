@@ -781,17 +781,20 @@
            uma escola. Não pode morar nem no cabeçalho (pega a cor da escola,
            ilegível) nem na barra de abas (a Márcia apontou, 19/ago/2026, que
            precisa ver a tela o mais parecida possível com a visão real do
-           Diretor -- que nunca tem esse botão). Vira uma pílula flutuante,
-           sobreposta por cima do cabeçalho, fora do fluxo normal da tela --
-           mesmo princípio da pílula "‹ Voltar pro App" do iPhone. */
+           Diretor -- que nunca tem esse botão). Tentativa de sobrepor no
+           canto superior esquerdo foi descartada (cobria a logo da escola,
+           que sempre mora ali) -- vira um botão flutuante no canto inferior
+           esquerdo, mesmo princípio de FAB (botão de ação flutuante) usado
+           em apps: fora do cabeçalho e da barra de abas, num canto que
+           nenhuma outra coisa da tela ocupa.  */
         .pilula-voltar-escolas {
-            position: fixed; top: calc(14px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 200;
-            background: rgba(0,0,0,0.55); color: #fff; border: none;
-            padding: 7px 16px; border-radius: 999px; font-size: 12px; font-weight: 700;
+            position: fixed; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); left: 16px; z-index: 200;
+            background: rgba(18,16,26,0.85); color: #fff; border: none;
+            padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 700;
             font-family: inherit; cursor: pointer; backdrop-filter: blur(6px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.35);
         }
-        .pilula-voltar-escolas:hover { background: rgba(0,0,0,0.72); }
+        .pilula-voltar-escolas:hover { background: rgba(18,16,26,0.95); }
 
         @media (max-width: 560px) {
             .sa-sidebar {
