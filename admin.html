@@ -806,6 +806,20 @@
             #overlayCarregandoEscola .spinner { animation-duration: 2.2s; }
         }
 
+        /* Versão pequena do mesmo spinner, pros "Carregando..." de dentro de
+           uma tela já visível (lista, card) -- antes cada painel usava um
+           emoji diferente (🏫🔒🥁🎟️📋) ali, pedido da Márcia, 19/ago/2026,
+           pra unificar num símbolo só, igual ao spinner grande de tela
+           inteira. Reaproveita o mesmo desenho (<use>), só menor. */
+        .spinner-mini {
+            width: 28px; height: 28px; margin: 0 auto 10px; display: block;
+            animation: tt-girar 1.1s linear infinite;
+        }
+        .estado-vazio-icone .spinner-mini { margin-bottom: 0; }
+        @media (prefers-reduced-motion: reduce) {
+            .spinner-mini { animation-duration: 2.2s; }
+        }
+
         /* Botão "← Escolas", só aparece pra Super Admin dentro do contexto de
            uma escola. Não pode morar nem no cabeçalho (pega a cor da escola,
            ilegível) nem na barra de abas (a Márcia apontou, 19/ago/2026, que
@@ -846,8 +860,16 @@
 </head>
 <body>
 
+<!-- Desenho do spinner dourado (identidade única de carregamento do
+     sistema, mesmo de login.html/carteirinha.html) definido uma vez só
+     aqui -- todo uso (grande ou pequeno) referencia via <use>, em vez de
+     repetir esse caminho gigante em cada lugar que precisa de um spinner. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="tt-spinner-caminho" viewBox="0 0 56 56"><path d="M 33.81 4.71 L 36.68 5.63 L 39.42 6.89 L 41.98 8.49 L 44.32 10.40 L 46.40 12.59 L 48.18 15.02 L 49.65 17.65 L 50.78 20.45 L 51.55 23.37 L 51.94 26.36 L 51.96 29.38 L 51.60 32.37 L 50.86 35.30 L 49.77 38.11 L 48.33 40.76 L 46.56 43.21 L 44.51 45.42 L 42.19 47.35 L 39.65 48.98 L 36.93 50.28 L 34.06 51.22 L 31.10 51.80 L 28.09 52.00 L 25.08 51.82 L 22.11 51.27 L 19.24 50.34 L 16.50 49.07 L 13.95 47.46 L 11.62 45.54 L 9.55 43.35 L 7.77 40.91 L 6.31 38.27 L 5.19 35.47 L 4.43 32.55 L 4.05 29.55 L 4.04 26.53 L 4.42 23.54 L 5.16 20.62 L 6.27 17.81 L 7.72 15.16 L 9.49 12.72 L 11.56 10.52 L 13.88 8.59 L 16.43 6.98 L 19.16 5.69 L 22.02 4.76 L 24.99 4.19 L 28.00 4.00 A 4.00 4.00 0 0 1 28.00 12.00 L 25.96 11.89 L 23.90 12.04 L 21.84 12.47 L 19.83 13.16 L 17.90 14.12 L 16.09 15.34 L 14.43 16.80 L 12.95 18.47 L 11.68 20.35 L 10.66 22.39 L 9.89 24.58 L 9.40 26.86 L 9.21 29.22 L 9.33 31.60 L 9.75 33.97 L 10.48 36.30 L 11.51 38.52 L 12.82 40.62 L 14.41 42.55 L 16.24 44.28 L 18.30 45.77 L 20.55 46.99 L 22.95 47.93 L 25.48 48.55 L 28.08 48.85 L 30.71 48.82 L 33.34 48.45 L 35.91 47.74 L 38.39 46.70 L 40.72 45.35 L 42.88 43.70 L 44.82 41.79 L 46.51 39.62 L 47.92 37.25 L 49.02 34.71 L 49.78 32.04 L 50.21 29.28 L 50.28 26.47 L 49.98 23.68 L 49.34 20.93 L 48.34 18.28 L 47.01 15.77 L 45.36 13.45 L 43.43 11.35 L 41.24 9.52 L 38.84 7.97 L 36.24 6.75 L 33.52 5.88 Z" fill="#D4AF37"></path></symbol>
+</svg>
+
 <div id="overlayCarregandoEscola">
-    <svg class="spinner" viewBox="0 0 56 56" role="status" aria-label="Carregando"><path d="M 33.81 4.71 L 36.68 5.63 L 39.42 6.89 L 41.98 8.49 L 44.32 10.40 L 46.40 12.59 L 48.18 15.02 L 49.65 17.65 L 50.78 20.45 L 51.55 23.37 L 51.94 26.36 L 51.96 29.38 L 51.60 32.37 L 50.86 35.30 L 49.77 38.11 L 48.33 40.76 L 46.56 43.21 L 44.51 45.42 L 42.19 47.35 L 39.65 48.98 L 36.93 50.28 L 34.06 51.22 L 31.10 51.80 L 28.09 52.00 L 25.08 51.82 L 22.11 51.27 L 19.24 50.34 L 16.50 49.07 L 13.95 47.46 L 11.62 45.54 L 9.55 43.35 L 7.77 40.91 L 6.31 38.27 L 5.19 35.47 L 4.43 32.55 L 4.05 29.55 L 4.04 26.53 L 4.42 23.54 L 5.16 20.62 L 6.27 17.81 L 7.72 15.16 L 9.49 12.72 L 11.56 10.52 L 13.88 8.59 L 16.43 6.98 L 19.16 5.69 L 22.02 4.76 L 24.99 4.19 L 28.00 4.00 A 4.00 4.00 0 0 1 28.00 12.00 L 25.96 11.89 L 23.90 12.04 L 21.84 12.47 L 19.83 13.16 L 17.90 14.12 L 16.09 15.34 L 14.43 16.80 L 12.95 18.47 L 11.68 20.35 L 10.66 22.39 L 9.89 24.58 L 9.40 26.86 L 9.21 29.22 L 9.33 31.60 L 9.75 33.97 L 10.48 36.30 L 11.51 38.52 L 12.82 40.62 L 14.41 42.55 L 16.24 44.28 L 18.30 45.77 L 20.55 46.99 L 22.95 47.93 L 25.48 48.55 L 28.08 48.85 L 30.71 48.82 L 33.34 48.45 L 35.91 47.74 L 38.39 46.70 L 40.72 45.35 L 42.88 43.70 L 44.82 41.79 L 46.51 39.62 L 47.92 37.25 L 49.02 34.71 L 49.78 32.04 L 50.21 29.28 L 50.28 26.47 L 49.98 23.68 L 49.34 20.93 L 48.34 18.28 L 47.01 15.77 L 45.36 13.45 L 43.43 11.35 L 41.24 9.52 L 38.84 7.97 L 36.24 6.75 L 33.52 5.88 Z" fill="#D4AF37"></path></svg>
+    <svg class="spinner" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg>
 </div>
 
 <div class="header" id="pageHeader">
@@ -900,7 +922,7 @@
         <div class="vg-secao-titulo" style="margin-bottom:16px;">Selecione uma escola para gerenciar seu cadastro, bateria e acessos.</div>
         <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaEscolaSA()">+ Nova Escola</button>
         <div id="lista-escolas" class="lista-cards">
-            <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
+            <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>Carregando...</div>
         </div>
     </div>
 
@@ -996,7 +1018,7 @@
         <div class="ficha-secao-titulo" style="margin-top:28px;">Histórico de exclusões (prova)</div>
         <div class="vg-secao-titulo" style="margin:0 0 10px;text-transform:none;letter-spacing:0;font-weight:400;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
         <div id="priv-lista-log">
-            <div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Carregando...</div>
+            <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>Carregando...</div>
         </div>
     </div>
 
@@ -1031,7 +1053,7 @@
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
     <div class="painel-titulo">Dados da Escola</div>
     <div id="dadosEscolaConteudo">
-        <div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Carregando...</div>
+        <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>Carregando...</div>
     </div>
 </div>
 
@@ -1040,7 +1062,7 @@
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
     <div class="painel-titulo">Dados da Bateria</div>
     <div id="dadosBateriaConteudo">
-        <div class="estado-vazio"><div class="estado-vazio-icone">🥁</div>Carregando...</div>
+        <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>Carregando...</div>
     </div>
 </div>
 
@@ -1049,7 +1071,7 @@
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
     <div class="painel-titulo">Comercial</div>
     <div id="comercialConteudo">
-        <div class="estado-vazio"><div class="estado-vazio-icone">🎟️</div>Carregando...</div>
+        <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>Carregando...</div>
     </div>
 </div>
 
@@ -1068,7 +1090,7 @@
     <div class="painel-titulo">Histórico</div>
     <div class="vg-secao-titulo" style="margin-bottom:20px;text-transform:none;letter-spacing:0;font-weight:400;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta bateria, e quando.</div>
     <div id="lista-historico-escola">
-        <div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Carregando...</div>
+        <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>Carregando...</div>
     </div>
 </div>
 
@@ -1130,7 +1152,7 @@
     </div>
 
     <div class="cards" id="listaRitmistas" style="min-height:300px;">
-        <div class="vazio">Carregando...</div>
+        <div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg>Carregando...</div>
     </div>
 
 </div>
@@ -1160,7 +1182,7 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Instrumentos</div>
         <p class="config-sub-desc">Ative os instrumentos que sua bateria usa. Quando houver mais de um nome possível, escolha o que sua bateria usa.</p>
-        <div id="config-instrumentos-lista"><div class="vazio">Carregando...</div></div>
+        <div id="config-instrumentos-lista"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg>Carregando...</div></div>
     </div>
 
     <!-- Sub-tela: Vagas de Ritmistas -->
@@ -1168,7 +1190,7 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Vagas de Ritmistas</div>
         <p class="config-sub-desc">Defina o limite de ritmistas por instrumento ativo. Use 0 para sem limite.</p>
-        <div id="config-vagas-lista"><div class="vazio">Carregando...</div></div>
+        <div id="config-vagas-lista"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg>Carregando...</div></div>
     </div>
 
     <!-- Sub-tela: Medidas -->
@@ -1176,7 +1198,7 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Medidas</div>
         <p class="config-sub-desc">Ative os tamanhos que sua bateria usa em cada tipo. Só os tamanhos ativos aparecem no cadastro dos ritmistas.</p>
-        <div id="config-medidas-lista"><div class="vazio">Carregando...</div></div>
+        <div id="config-medidas-lista"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg>Carregando...</div></div>
     </div>
 
 </div>
@@ -1199,7 +1221,7 @@
 
     <div class="vg-card">
         <div class="vg-secao-titulo">🎂 Aniversariantes do mês</div>
-        <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;">Carregando...</div></div>
+        <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg>Carregando...</div></div>
     </div>
 
     <div class="vg-placeholder">
@@ -1225,7 +1247,7 @@
          lida com Diretoria, em vez de numa aba própria isolada). -->
     <div id="linksCadastroDiretoria" style="margin-bottom:20px;"></div>
     <div id="listaDiretoria" style="min-height:200px;">
-        <div class="vazio">Carregando...</div>
+        <div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg>Carregando...</div>
     </div>
 </div>
 
@@ -4072,7 +4094,7 @@
         if (diretoriaCarregada) return;
         const bateriaId = bateriaIdContexto();
         const lista = document.getElementById('listaDiretoria');
-        lista.innerHTML = '<div class="vazio">Carregando...</div>';
+        lista.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg>Carregando...</div>';
 
         if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
         const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=*`;
