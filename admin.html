@@ -2403,10 +2403,17 @@
     // moram dentro de Ritmistas/Diretoria (19/ago/2026 -- pedido da Márcia,
     // junto do enxugamento do menu: o link de cada cargo fica onde quem já
     // lida com aquele cargo está, em vez de numa aba isolada).
-    function caixaLinkCadastro(titulo, linhas) {
+    // Caixa do link de cadastro vira retrátil (19/ago/2026, pedido da Márcia
+    // olhando no celular) -- mesmo padrão visual dos itens de Configurações
+    // (.config-item, cartão com seta), só que abre/fecha em vez de navegar
+    // pra outra tela, já que o conteúdo é curto.
+    function caixaLinkCadastro(id, titulo, linhas) {
         return `
-            <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
-                <div style="font-size:12px;font-weight:700;color:#5a5770;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">${titulo}</div>
+            <div class="config-item" onclick="toggleLinkCadastro('${id}')">
+                <span>${titulo}</span>
+                <span class="config-item-seta" id="seta-${id}">›</span>
+            </div>
+            <div id="${id}" style="display:none;background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;margin-top:-2px;">
                 <p style="font-size:12px;color:#5a5770;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
                 ${linhas.map((l, i) => `
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;${i > 0 ? 'margin-top:10px;' : ''}">
@@ -2416,13 +2423,21 @@
                 </div>`).join('')}
             </div>`;
     }
+    function toggleLinkCadastro(id) {
+        const div = document.getElementById(id);
+        const seta = document.getElementById('seta-' + id);
+        if (!div) return;
+        const abrindo = div.style.display === 'none';
+        div.style.display = abrindo ? 'block' : 'none';
+        if (seta) seta.textContent = abrindo ? '⌄' : '›';
+    }
     function renderizarLinkCadastroRitmista() {
         const div = document.getElementById('linkCadastroRitmista');
         if (!div) return;
         const codigo = codigoConviteBateria || bateriaIdContexto();
         if (!codigo) { div.innerHTML = ''; return; }
         const base = `${window.location.origin}/cadastro.html?bateria=${codigo}`;
-        div.innerHTML = caixaLinkCadastro('Link de cadastro', [{ label: 'Ritmista', url: base }]);
+        div.innerHTML = caixaLinkCadastro('linkCadastroRitmista-box', 'Link de cadastro', [{ label: 'Ritmista', url: base }]);
     }
     function renderizarLinksCadastroDiretoria() {
         const div = document.getElementById('linksCadastroDiretoria');
@@ -2430,7 +2445,7 @@
         const codigo = codigoConviteBateria || bateriaIdContexto();
         if (!codigo) { div.innerHTML = ''; return; }
         const base = `${window.location.origin}/cadastro.html?bateria=${codigo}`;
-        div.innerHTML = caixaLinkCadastro('Links de cadastro', [
+        div.innerHTML = caixaLinkCadastro('linksCadastroDiretoria-box', 'Links de cadastro', [
             { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },
             { label: 'Diretor', url: `${base}&cargo=diretor` }
         ]);
