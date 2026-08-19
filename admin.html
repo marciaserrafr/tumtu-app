@@ -226,6 +226,7 @@
         .vg-instrumento-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; color: var(--cor-texto-principal); }
         .vg-instrumento-linha:last-child { border-bottom: none; }
         .vg-instrumento-qtd { font-weight: 800; color: #D4AF37; }
+        .vg-instrumento-qtd.excedeu { color: #b3261e; }
 
         /* CONTADOR */
         .contador { font-size: 13px; color: #666; margin-bottom: 20px; }
@@ -584,6 +585,10 @@
         .config-vaga-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; }
         .config-vaga-nome { font-size: 13.5px; color: var(--cor-texto-principal); }
         .config-vaga-contagem { color: #999; font-weight: 400; }
+        /* Vermelho quando o número de ritmistas ativos passa da vaga
+           cadastrada -- pedido da Márcia, 19/ago/2026, mesmo vermelho já
+           usado pros badges "Desligado"/"Rejeitado" no resto do app. */
+        .config-vaga-contagem.excedeu { color: #b3261e; font-weight: 700; }
         .config-vaga-input { width: 64px; padding: 6px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; text-align: center; }
 
         /* Título de seção genérico -- mesmo padrão já usado no Super Admin
@@ -2154,14 +2159,23 @@
         }
         const contagem = {};
         ativos.forEach(r => {
-            const nome = r.instrumento_nome || 'Sem instrumento';
-            contagem[nome] = (contagem[nome] || 0) + 1;
+            const chave = r.bateria_instrumento_id || 'sem-instrumento';
+            contagem[chave] = (contagem[chave] || 0) + 1;
         });
-        const linhas = Object.entries(contagem).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-        div.innerHTML = linhas.map(([nome, qtd]) => `
+        // Mesma trava de vaga já usada em Configurações -> Vagas de
+        // Ritmistas (bateriaInstrumentosCache[].vagas) -- vermelho quando o
+        // número de ativos passa da vaga cadastrada. Pedido da Márcia,
+        // 19/ago/2026.
+        const linhas = Object.entries(contagem).map(([chave, qtd]) => {
+            const bi = chave !== 'sem-instrumento' ? bateriaInstrumentosCache.find(b => String(b.id) === String(chave)) : null;
+            const nome = bi ? nomeExibicaoBateriaInstrumento(bi) : 'Sem instrumento';
+            const vagas = bi ? (bi.vagas || 0) : 0;
+            return { nome, qtd, vagas, excedeu: vagas > 0 && qtd > vagas };
+        }).sort((a, b) => b.qtd - a.qtd || a.nome.localeCompare(b.nome, 'pt-BR'));
+        div.innerHTML = linhas.map(l => `
             <div class="vg-instrumento-linha">
-                <span>${esc(nome)}</span>
-                <span class="vg-instrumento-qtd">${qtd}</span>
+                <span>${esc(l.nome)}</span>
+                <span class="vg-instrumento-qtd${l.excedeu ? ' excedeu' : ''}">${l.qtd}${l.vagas > 0 ? ' / ' + l.vagas : ''}</span>
             </div>`).join('');
     }
 
@@ -2734,9 +2748,10 @@
             .sort((a, b) => nomeExibicaoBateriaInstrumento(a).localeCompare(nomeExibicaoBateriaInstrumento(b), 'pt-BR'))
             .map(bi => {
                 const atual = contagem[bi.id] || 0;
+                const excedeu = bi.vagas > 0 && atual > bi.vagas;
                 return `
                 <div class="config-vaga-linha">
-                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)} <span class="config-vaga-contagem">(${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''})</span></span>
+                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)} <span class="config-vaga-contagem${excedeu ? ' excedeu' : ''}">(${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''})</span></span>
                     <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
                 </div>`;
             }).join('');
