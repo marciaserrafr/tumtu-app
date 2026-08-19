@@ -390,7 +390,17 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 14px 18px 14px;
+  /* padding-top 14px -> 20px em 19/ago/2026 -- achado da Márcia: a logo
+     ficava colada demais no topo do cartão. Ajuste sutil de propósito
+     (pedido dela): a logo já é grande (100px) num cartão de 300px de
+     largura, então mesmo um respiro pequeno já é perceptível. Só o topo
+     muda (o vão logo->Mestre, cuidadosamente calculado em .v-content,
+     continua intocado); o espaço extra é "descontado" automaticamente
+     do ::after flexível lá embaixo (antes da Validade), que existe
+     exatamente pra absorver esse tipo de ajuste -- por isso QR, Mestre
+     e Validade descem juntos a mesma distância, sem precisar recalcular
+     nada mais, e o cartão continua com 540px de altura, como sempre. */
+  padding: 20px 18px 14px;
   flex-shrink: 0;
   position: relative;
   z-index: 2;
