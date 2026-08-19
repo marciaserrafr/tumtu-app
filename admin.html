@@ -223,6 +223,9 @@
         .vg-aniversariante:last-child { border-bottom: none; }
         .vg-aniv-nome { font-weight: 700; color: var(--cor-texto-principal); }
         .vg-aniv-detalhe { font-size: 12px; color: #888; }
+        .vg-instrumento-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; color: var(--cor-texto-principal); }
+        .vg-instrumento-linha:last-child { border-bottom: none; }
+        .vg-instrumento-qtd { font-weight: 800; color: #D4AF37; }
 
         /* CONTADOR */
         .contador { font-size: 13px; color: #666; margin-bottom: 20px; }
@@ -1226,6 +1229,11 @@
     </div>
 
     <div class="vg-card">
+        <div class="vg-secao-titulo">🥁 Ritmistas por Instrumento</div>
+        <div id="vg-instrumentos"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+    </div>
+
+    <div class="vg-card">
         <div class="vg-secao-titulo">🎂 Aniversariantes do mês</div>
         <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
@@ -1516,7 +1524,7 @@
 
     async function carregarRitmistas() {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); return; }
+        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=*&order=created_at.desc`, {
             headers: authHeaders
         });
@@ -1524,6 +1532,7 @@
         aplicarFiltros();
         atualizarTotalizadores();
         renderizarVisaoGeral();
+        renderizarContagemInstrumentos();
     }
 
     function toggleStatusSelect() {
@@ -2128,6 +2137,32 @@
                 </div>
             </div>`;
         }).join('');
+    }
+
+    // Quantos ritmistas ATIVOS tocam cada instrumento -- pedido da Márcia,
+    // 19/ago/2026, pra ter esse número na Visão Geral sem precisar de mais
+    // uma aba/menu só pra isso. Só conta status=aprovado (mesmo critério de
+    // "Ritmistas ativos" no topo do painel); ordenado do instrumento com
+    // mais gente pro com menos.
+    function renderizarContagemInstrumentos() {
+        const div = document.getElementById('vg-instrumentos');
+        if (!div) return;
+        const ativos = todosRitmistas.filter(r => r.status === 'aprovado');
+        if (ativos.length === 0) {
+            div.innerHTML = '<div style="color:#bbb;font-size:13px;padding:8px 0;">Nenhum ritmista ativo ainda.</div>';
+            return;
+        }
+        const contagem = {};
+        ativos.forEach(r => {
+            const nome = r.instrumento_nome || 'Sem instrumento';
+            contagem[nome] = (contagem[nome] || 0) + 1;
+        });
+        const linhas = Object.entries(contagem).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+        div.innerHTML = linhas.map(([nome, qtd]) => `
+            <div class="vg-instrumento-linha">
+                <span>${esc(nome)}</span>
+                <span class="vg-instrumento-qtd">${qtd}</span>
+            </div>`).join('');
     }
 
     // Fechar modal clicando fora
