@@ -784,10 +784,15 @@
            Mestre/Diretor em 18/ago via cache, mas nunca corrigido pro Super
            Admin entrando numa escola escolhida na hora -- não tem cache
            possível aqui, pode ser qualquer escola). Cobre a tela inteira até
-           o tema estar 100% pronto -- nunca revela o cabeçalho pela metade. */
+           o tema estar 100% pronto -- nunca revela o cabeçalho pela metade.
+           Fundo CLARO (não o escuro do login/carteirinha, que são telas de
+           autenticação à parte) -- a Márcia notou que um fundo escuro no
+           meio do app claro parecia "sair do app e voltar", ainda mais
+           estranho que o piscar original. Só o giro dourado é o elemento
+           de identidade compartilhado, o fundo acompanha a tela de verdade. */
         #overlayCarregandoEscola {
             display: none; position: fixed; inset: 0; z-index: 3000;
-            background: var(--cor-fundo-escuro, #12101a);
+            background: var(--cor-fundo-claro, #f7f6fb);
             align-items: center; justify-content: center;
         }
         #overlayCarregandoEscola.visivel { display: flex; }
