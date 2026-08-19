@@ -2948,7 +2948,7 @@
         const totalAtivos = vinculosReais.filter(v => v.status === 'aprovado').length;
         const totalPendentes = vinculosReais.filter(v => v.status === 'pendente').length;
         kpisEl.innerHTML = `
-            <div class="kpi"><div class="n">${escolasReais.length}</div><div class="l">Escolas reais</div></div>
+            <div class="kpi"><div class="n">${escolasReais.length}</div><div class="l">Escolas</div></div>
             <div class="kpi"><div class="n">${baterias.length}</div><div class="l">Baterias</div></div>
             <div class="kpi ok"><div class="n">${totalAtivos}</div><div class="l">Pessoas ativas</div></div>
             <div class="kpi${totalPendentes > 0 ? ' atencao' : ''}"><div class="n">${totalPendentes}</div><div class="l">Pendências</div></div>
