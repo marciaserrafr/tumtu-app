@@ -960,7 +960,6 @@
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)">Visão Geral</button>
     <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
     <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)">Diretoria</button>
-    <button class="aba-btn" data-aba="relatorios" onclick="trocarAba('relatorios', this)">Relatórios</button>
     <button class="aba-btn" data-aba="configuracoes" onclick="trocarAba('configuracoes', this)">Configurações</button>
     <button class="aba-btn-sa aba-btn" data-aba="administrativo" onclick="trocarAba('administrativo', this)" style="display:none">Administrativo</button>
     <button class="aba-btn" data-aba="meu-perfil" onclick="trocarAba('meu-perfil', this)">Meu Perfil</button>
@@ -1031,6 +1030,7 @@
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
         <button class="btn-novo" onclick="irParaCadastroManualRitmista()">+ Cadastrar Ritmista</button>
+        <button id="btnExportarRitmistas" onclick="abrirModalExportar('ritmistas')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar</button>
     </div>
 
     <!-- Link de cadastro (era a aba "Convites", incorporado aqui em
@@ -1169,6 +1169,7 @@
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
         <button class="btn-novo" onclick="irParaCadastroManualDiretoria('mestre')">+ Cadastrar Mestre</button>
         <button class="btn-novo" onclick="irParaCadastroManualDiretoria('diretor')">+ Cadastrar Diretor</button>
+        <button id="btnExportarDiretoria" onclick="abrirModalExportar('diretoria')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar</button>
     </div>
     <!-- Links de cadastro (era a aba "Convites", incorporado aqui em
          19/ago/2026 -- os links de Mestre/Diretor moram junto de quem já
@@ -1180,14 +1181,6 @@
 </div>
 
 <!-- PAINEL RELATÓRIOS -->
-<div class="painel" id="painel-relatorios">
-    <div class="painel-titulo">Relatórios</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button onclick="abrirModalExportar('ritmistas')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Ritmistas</button>
-        <button onclick="abrirModalExportar('diretoria')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar Diretoria</button>
-    </div>
-</div>
-
 <!-- PAINEL MEU PERFIL -->
 <div class="painel" id="painel-meu-perfil">
     <div class="painel-titulo">Meu Perfil</div>
@@ -2362,6 +2355,7 @@
 
         await carregarMinhasCapacidades(usuario.bateria_id);
         aplicarGatingAbas();
+        aplicarGatingBotoesExportar();
 
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'block';
@@ -2736,7 +2730,6 @@
         'visao': 'ver_visao_geral',
         'ritmistas': 'ver_ritmistas',
         'diretoria': 'ver_acessos',
-        'relatorios': 'ver_relatorios',
         'permissoes': 'ver_permissoes',
         'historico': 'ver_historico',
         'configuracoes': 'ver_configuracoes',
@@ -2766,6 +2759,19 @@
         if (abaAtivaEscondida || !abaAtivaEl) {
             trocarAba(primeiraVisivel || 'meu-perfil', document.querySelector(`.aba-btn[data-aba="${primeiraVisivel || 'meu-perfil'}"]`));
         }
+    }
+
+    // Botões de Exportar (dentro de Ritmistas/Diretoria, era a aba
+    // "Relatórios" -- incorporados em 19/ago/2026) continuam com trava
+    // própria (ver_relatorios), separada de só poder ver a lista: exportar
+    // tira dado sensível (CPF, endereço...) de dentro do sistema.
+    function aplicarGatingBotoesExportar() {
+        if (souSuperAdmin) return;
+        const podeExportar = tenhoCapacidade('ver_relatorios');
+        const br = document.getElementById('btnExportarRitmistas');
+        const bd = document.getElementById('btnExportarDiretoria');
+        if (br) br.style.display = podeExportar ? '' : 'none';
+        if (bd) bd.style.display = podeExportar ? '' : 'none';
     }
 
     // Lista lançadora da aba "Administrativo" -- cada linha só aparece se a
