@@ -777,9 +777,16 @@
         .toast.erro { border-left: 4px solid #ef4444; }
         .toast.visivel { display: flex; }
 
-        /* Botão "← Escolas", só aparece pra Super Admin dentro do contexto de uma escola */
-        .btn-voltar-escolas { background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.75); padding: 0; font-family: inherit; margin-bottom: 4px; text-align: left; }
-        .btn-voltar-escolas:hover { color: #fff; text-decoration: underline; }
+        /* Botão "← Escolas", só aparece pra Super Admin dentro do contexto de
+           uma escola -- mora na barra de abas (sempre neutra, branca), não
+           mais dentro do cabeçalho colorido: lá em cima ficava ilegível
+           quando a escola tinha tema próprio (achado da Márcia, 19/ago/2026). */
+        .btn-voltar-escolas {
+            padding: 14px 16px 14px 20px; background: none; border: none; cursor: pointer;
+            font-size: 13px; font-weight: 700; color: #D4AF37; font-family: inherit;
+            border-right: 1px solid #e8e6f0; margin-right: 4px; flex-shrink: 0;
+        }
+        .btn-voltar-escolas:hover { color: #b8941f; }
 
         @media (max-width: 560px) {
             .sa-sidebar {
@@ -804,7 +811,6 @@
 
 <div class="header" id="pageHeader">
     <div class="header-esquerda">
-        <button id="btnVoltarEscolasHeader" class="btn-voltar-escolas" onclick="voltarParaEscolasSA()" style="display:none">← Escolas</button>
         <div class="header-marca tt-logo" id="headerMarca"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
         <div class="header-badge" id="headerBateria"><span id="headerEscolaNome" class="hb-escola"></span><span id="headerBateriaSep" class="hb-sep"> — </span><span id="headerBateriaNome" class="hb-bateria"></span></div>
     </div>
@@ -957,6 +963,7 @@
 
 <!-- NAV ABAS (contexto de uma escola — Mestre/Diretor sempre; Super Admin depois de entrar numa escola) -->
 <nav class="nav-abas" id="navAbasEscola" style="display:none">
+    <button id="btnVoltarEscolasHeader" class="btn-voltar-escolas" onclick="voltarParaEscolasSA()" style="display:none">← Escolas</button>
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)">Visão Geral</button>
     <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
     <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)">Diretoria</button>
