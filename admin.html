@@ -2370,6 +2370,17 @@
 
         // Trava da fase piloto: Mestre/Diretor de bateria com modo_piloto ligado não vê o painel, mesmo digitando a URL direto.
         if (usuario.modo_piloto) { window.location.href = 'carteirinha.html'; return; }
+
+        // Mesmo spinner/overlay do Super Admin entrando numa escola (ver
+        // entrarContextoEscolaSA) -- rede de segurança pro caso raro do
+        // cache (aplicarCacheConfigEscolaAntecipado) ainda não existir
+        // (celular novo, cache limpo): sem isso, o cabeçalho ficava preto
+        // durante toda a busca de instrumentos/bateria/escola e só virava a
+        // cor da escola no final -- achado da Márcia, 19/ago/2026, "isso é
+        // perceptível sim". Quando o cache já existe (caso comum), o
+        // overlay só pisca rápido, sem custo perceptível.
+        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
         document.getElementById('headerNome').textContent = usuario.nome || 'Admin';
         const perfil = usuario.perfil || '';
@@ -2409,6 +2420,8 @@
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'block';
         carregarRitmistas();
+
+        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
 
     // Preenche configEscola.nomeEscola/nomeBateria com dado real -- antes desse
