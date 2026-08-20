@@ -834,21 +834,18 @@
         .toast.visivel { display: flex; }
 
         /* Spinner dourado único do sistema (login.html/carteirinha.html) --
-           pedido da Márcia, 19/ago/2026, depois de reparar que o Super Admin
-           via o cabeçalho nascer preto/TumTu por um instante e só depois
-           virar a cor da escola (mesmo bug já corrigido pro login normal de
-           Mestre/Diretor em 18/ago via cache, mas nunca corrigido pro Super
-           Admin entrando numa escola escolhida na hora -- não tem cache
-           possível aqui, pode ser qualquer escola). Cobre a tela inteira até
-           o tema estar 100% pronto -- nunca revela o cabeçalho pela metade.
-           Fundo CLARO (não o escuro do login/carteirinha, que são telas de
-           autenticação à parte) -- a Márcia notou que um fundo escuro no
-           meio do app claro parecia "sair do app e voltar", ainda mais
-           estranho que o piscar original. Só o giro dourado é o elemento
-           de identidade compartilhado, o fundo acompanha a tela de verdade. */
+           pedido da Márcia, 19/ago/2026. Cobre a tela inteira até os dados
+           estarem 100% prontos -- nunca revela a tela pela metade. Usado
+           em 3 momentos: Super Admin entrando numa escola, login normal
+           de Mestre/Diretor (rede de segurança pro cache), e o próprio
+           Dashboard do Super Admin ao logar.
+           Fundo ESCURO -- ela testou claro primeiro (fazia sentido, já
+           que o app é claro), mas pediu de volta o escuro pra ficar igual
+           nos 3 lugares: "não gostei" do claro depois de ver ao vivo.
+           Decisão final, não reabrir sem ela pedir de novo. */
         #overlayCarregandoEscola {
             display: none; position: fixed; inset: 0; z-index: 3000;
-            background: var(--cor-fundo-claro, #f7f6fb);
+            background: var(--cor-fundo-escuro, #12101a);
             align-items: center; justify-content: center;
         }
         #overlayCarregandoEscola.visivel { display: flex; }
