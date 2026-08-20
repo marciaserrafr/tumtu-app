@@ -2685,17 +2685,21 @@
     // moram dentro de Ritmistas/Diretoria (19/ago/2026 -- pedido da Márcia,
     // junto do enxugamento do menu: o link de cada cargo fica onde quem já
     // lida com aquele cargo está, em vez de numa aba isolada).
-    // Caixa do link de cadastro vira retrátil (19/ago/2026, pedido da Márcia
-    // olhando no celular) -- mesmo padrão visual dos itens de Configurações
-    // (.config-item, cartão com seta), só que abre/fecha em vez de navegar
-    // pra outra tela, já que o conteúdo é curto.
+    // Título + caixa do link sempre visíveis, sem clique/seta próprios
+    // (20/ago/2026, correção da Márcia: era cartão retrátil dentro de
+    // outro cartão retrátil "Cadastro", exigindo dois cliques -- "é para
+    // clicar uma vez no card e aparecer as duas coisas dentro... mantém
+    // tudo como existe hoje, só muda o fato de ter que clicar duas
+    // vezes"). Aparência do título igual à de antes (.config-item, sem a
+    // seta que sugeria algo clicável); quem controla mostrar/esconder
+    // agora é só o "Cadastro" por fora (toggleCadastroRitmista/
+    // toggleCadastroDiretoria).
     function caixaLinkCadastro(id, titulo, linhas) {
         return `
-            <div class="config-item" onclick="toggleLinkCadastro('${id}')">
+            <div class="config-item" style="cursor:default;">
                 <span>${titulo}</span>
-                <span class="config-item-seta" id="seta-${id}">›</span>
             </div>
-            <div id="${id}" style="display:none;background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;margin-top:-2px;">
+            <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;margin-top:-2px;">
                 <p style="font-size:12px;color:#5a5770;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
                 ${linhas.map((l, i) => `
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;${i > 0 ? 'margin-top:10px;' : ''}">
@@ -2704,14 +2708,6 @@
                     <button class="btn-modal-confirmar verde" onclick="copiarLinkCadastroAdmin(this)">Copiar</button>
                 </div>`).join('')}
             </div>`;
-    }
-    function toggleLinkCadastro(id) {
-        const div = document.getElementById(id);
-        const seta = document.getElementById('seta-' + id);
-        if (!div) return;
-        const abrindo = div.style.display === 'none';
-        div.style.display = abrindo ? 'block' : 'none';
-        if (seta) seta.textContent = abrindo ? '⌄' : '›';
     }
     // "Cadastro" recolhido (Ritmistas/Diretoria) -- pedido da Márcia,
     // 20/ago/2026: "não vamos ficar toda hora cadastrando gente", então
