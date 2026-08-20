@@ -226,18 +226,19 @@
         .vg-instrumento-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; color: var(--cor-texto-principal); }
         .vg-instrumento-linha:last-child { border-bottom: none; }
         /* Pílula com os dois números juntos (ativos / vagas) -- mesma
-           receita do sistema de badges que já existe no app (.badge/
-           .badge-desligado: fundo claro + texto forte + borda na mesma
-           cor). Aplicada em toda linha, não só na que estourou, pra ser
-           um desenho coerente -- só a cor muda quando excede a vaga
-           cadastrada (mesmo vermelho do badge "Desligado"). Pedido da
-           Márcia, 19/ago/2026: "uma forma que daria pra entender quantas
-           vagas são e quantas pessoas tem... sinalizasse com uma pílula". */
+           receita do sistema de badges que já existe no app (fundo claro +
+           texto forte + borda na mesma cor). Aplicada em toda linha, pra
+           ser um desenho coerente. Três estados, pedido da Márcia,
+           19/ago/2026: neutro (cinza, mesmo tom de .pill-instrumento) tem
+           vaga sobrando ou sem vaga definida; verde (mesmo do badge
+           "Ativo") quando bate certinho no número; vermelho (mesmo do
+           badge "Desligado") quando passa da vaga. */
         .vg-instrumento-qtd {
             display: inline-flex; align-items: center;
             padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 800;
-            background: #fdf6e3; color: #8a6d1a; border: 1px solid #f0dfa0;
+            background: #e8e6f0; color: #5a5770; border: 1px solid #d8d5e3;
         }
+        .vg-instrumento-qtd.completo { background: #f0faf4; color: #2d7a4f; border-color: #b8ddc8; }
         .vg-instrumento-qtd.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
 
         /* CONTADOR */
@@ -590,6 +591,13 @@
         .config-sub-desc { font-size: 13px; color: #8b88a0; margin: -10px 0 16px; }
         .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
+        /* Listas de Configurações (Instrumentos/Vagas/Medidas) são linhas
+           rótulo+controle -- ficam ruins esticadas na largura toda de
+           .main (1040px desde o ajuste de hoje): o controle (input/select)
+           ia parar longe do rótulo, com um vão vazio enorme no meio.
+           Achado da Márcia, 19/ago/2026, com print. Trava numa largura de
+           lista de configuração, não da tela toda. */
+        .config-subtela { max-width: 480px; }
         .config-instrumento-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; flex-wrap: wrap; }
         .config-instrumento-check { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--cor-texto-principal); cursor: pointer; }
         .config-instrumento-check input { accent-color: var(--cor-destaque); width: 16px; height: 16px; cursor: pointer; }
@@ -601,8 +609,9 @@
         .config-vaga-contagem {
             display: inline-flex; align-items: center; margin-left: 4px;
             padding: 2px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 800;
-            background: #fdf6e3; color: #8a6d1a; border: 1px solid #f0dfa0;
+            background: #e8e6f0; color: #5a5770; border: 1px solid #d8d5e3;
         }
+        .config-vaga-contagem.completo { background: #f0faf4; color: #2d7a4f; border-color: #b8ddc8; }
         .config-vaga-contagem.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
         .config-vaga-input { width: 64px; padding: 6px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; text-align: center; }
 
@@ -2178,19 +2187,21 @@
             contagem[chave] = (contagem[chave] || 0) + 1;
         });
         // Mesma trava de vaga já usada em Configurações -> Vagas de
-        // Ritmistas (bateriaInstrumentosCache[].vagas) -- vermelho quando o
-        // número de ativos passa da vaga cadastrada. Pedido da Márcia,
-        // 19/ago/2026.
+        // Ritmistas (bateriaInstrumentosCache[].vagas). Três estados,
+        // pedido da Márcia, 19/ago/2026: neutro (tem vaga sobrando ou sem
+        // vaga definida), verde quando bate certinho no número (ex: "1/1"
+        // -- mesmo verde do badge "Ativo"), vermelho quando passa (mesmo
+        // vermelho do badge "Desligado").
         const linhas = Object.entries(contagem).map(([chave, qtd]) => {
             const bi = chave !== 'sem-instrumento' ? bateriaInstrumentosCache.find(b => String(b.id) === String(chave)) : null;
             const nome = bi ? nomeExibicaoBateriaInstrumento(bi) : 'Sem instrumento';
             const vagas = bi ? (bi.vagas || 0) : 0;
-            return { nome, qtd, vagas, excedeu: vagas > 0 && qtd > vagas };
+            return { nome, qtd, vagas, excedeu: vagas > 0 && qtd > vagas, completo: vagas > 0 && qtd === vagas };
         }).sort((a, b) => b.qtd - a.qtd || a.nome.localeCompare(b.nome, 'pt-BR'));
         div.innerHTML = linhas.map(l => `
             <div class="vg-instrumento-linha">
                 <span>${esc(l.nome)}</span>
-                <span class="vg-instrumento-qtd${l.excedeu ? ' excedeu' : ''}">${l.qtd}${l.vagas > 0 ? ' / ' + l.vagas : ''}</span>
+                <span class="vg-instrumento-qtd${l.excedeu ? ' excedeu' : l.completo ? ' completo' : ''}">${l.qtd}${l.vagas > 0 ? ' / ' + l.vagas : ''}</span>
             </div>`).join('');
     }
 
@@ -2764,9 +2775,10 @@
             .map(bi => {
                 const atual = contagem[bi.id] || 0;
                 const excedeu = bi.vagas > 0 && atual > bi.vagas;
+                const completo = bi.vagas > 0 && atual === bi.vagas;
                 return `
                 <div class="config-vaga-linha">
-                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)} <span class="config-vaga-contagem${excedeu ? ' excedeu' : ''}">${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''}</span></span>
+                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)} <span class="config-vaga-contagem${excedeu ? ' excedeu' : completo ? ' completo' : ''}">${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''}</span></span>
                     <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
                 </div>`;
             }).join('');
