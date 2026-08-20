@@ -599,7 +599,7 @@
             padding: 0 20px 8px; font-size: 11px; font-weight: 700; color: #888;
             text-transform: uppercase; letter-spacing: 0.5px;
         }
-        .config-lista-cabecalho-controles { display: flex; align-items: center; gap: 10px; }
+        .config-lista-cabecalho-controles { display: flex; align-items: center; gap: 32px; }
         .config-lista-cabecalho-controles span:first-child { min-width: 56px; text-align: center; }
         .config-lista-cabecalho-controles span:last-child { width: 64px; text-align: center; }
         .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
@@ -625,6 +625,13 @@
         .config-vaga-contagem.completo { background: #f0faf4; color: #2d7a4f; border-color: #b8ddc8; }
         .config-vaga-contagem.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
         .config-vaga-input { width: 64px; padding: 6px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; text-align: center; }
+        /* .item-acoes é compartilhado com o resto do app (Ritmistas,
+           Diretoria) com gap de 8px, pensado pra botões/badges coladinhos
+           -- aqui são 2 colunas de dado de verdade, precisam de mais
+           respiro entre si (mesmo gap do cabeçalho acima). Achado da
+           Márcia, 19/ago/2026, com print: "precisa ficar tão colado?".
+           Só dentro dessa lista, não mexe no resto do app. */
+        #config-vagas-lista .item-acoes { gap: 32px; }
 
         /* Título de seção genérico -- mesmo padrão já usado no Super Admin
            (aba Acessos, "Mestres"/"Diretores"), reaproveitado aqui pra
