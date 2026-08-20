@@ -2184,21 +2184,23 @@
             contagem[chave] = (contagem[chave] || 0) + 1;
         });
         // Mesma trava de vaga já usada em Configurações -> Vagas de
-        // Ritmistas (bateriaInstrumentosCache[].vagas). Três estados,
-        // pedido da Márcia, 19/ago/2026: neutro (tem vaga sobrando ou sem
-        // vaga definida), verde quando bate certinho no número (ex: "1/1"
-        // -- mesmo verde do badge "Ativo"), vermelho quando passa (mesmo
-        // vermelho do badge "Desligado").
+        // Ritmistas (bateriaInstrumentosCache[].vagas). Pedido da Márcia,
+        // 19/ago/2026: sem vaga cadastrada mostra "N / -" (não "N / 0",
+        // que parecia capacidade zero) e fica VERMELHO de propósito --
+        // pressiona quem gerencia a preencher a vaga, mesmo vermelho de
+        // quando excede. Verde só quando bate certinho no número (mesmo
+        // do badge "Ativo").
         const linhas = Object.entries(contagem).map(([chave, qtd]) => {
             const bi = chave !== 'sem-instrumento' ? bateriaInstrumentosCache.find(b => String(b.id) === String(chave)) : null;
             const nome = bi ? nomeExibicaoBateriaInstrumento(bi) : 'Sem instrumento';
             const vagas = bi ? (bi.vagas || 0) : 0;
-            return { nome, qtd, vagas, excedeu: vagas > 0 && qtd > vagas, completo: vagas > 0 && qtd === vagas };
+            const semVaga = vagas === 0;
+            return { nome, qtd, vagas, semVaga, excedeu: !semVaga && qtd > vagas, completo: !semVaga && qtd === vagas };
         }).sort((a, b) => b.qtd - a.qtd || a.nome.localeCompare(b.nome, 'pt-BR'));
         div.innerHTML = linhas.map(l => `
             <div class="vg-instrumento-linha">
                 <span>${esc(l.nome)}</span>
-                <span class="vg-instrumento-qtd${l.excedeu ? ' excedeu' : l.completo ? ' completo' : ''}">${l.qtd}${l.vagas > 0 ? ' / ' + l.vagas : ''}</span>
+                <span class="vg-instrumento-qtd${(l.excedeu || l.semVaga) ? ' excedeu' : l.completo ? ' completo' : ''}">${l.qtd} / ${l.semVaga ? '-' : l.vagas}</span>
             </div>`).join('');
     }
 
@@ -2771,15 +2773,16 @@
             .sort((a, b) => nomeExibicaoBateriaInstrumento(a).localeCompare(nomeExibicaoBateriaInstrumento(b), 'pt-BR'))
             .map(bi => {
                 const atual = contagem[bi.id] || 0;
-                const excedeu = bi.vagas > 0 && atual > bi.vagas;
-                const completo = bi.vagas > 0 && atual === bi.vagas;
+                const semVaga = !bi.vagas || bi.vagas === 0;
+                const excedeu = !semVaga && atual > bi.vagas;
+                const completo = !semVaga && atual === bi.vagas;
                 return `
                 <div class="item-card">
                     <div class="item-info">
                         <div class="item-nome">${nomeExibicaoBateriaInstrumento(bi)}</div>
                     </div>
                     <div class="item-acoes">
-                        <span class="config-vaga-contagem${excedeu ? ' excedeu' : completo ? ' completo' : ''}">${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''}</span>
+                        <span class="config-vaga-contagem${(excedeu || semVaga) ? ' excedeu' : completo ? ' completo' : ''}">${atual} / ${semVaga ? '-' : bi.vagas}</span>
                         <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
                     </div>
                 </div>`;
