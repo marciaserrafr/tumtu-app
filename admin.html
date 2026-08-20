@@ -577,9 +577,19 @@
             .total-card { padding: 12px 14px; }
             .total-numero { font-size: 24px; }
 
-            .card-ritmista { padding: 12px 14px; gap: 10px; }
+            /* Card de Ritmistas/Diretoria quebra em 2 linhas no celular --
+               achado real da Márcia, 20/ago/2026, testando de verdade:
+               numa tela estreita, o nome, o apelido E o badge/botões de
+               ação brigavam pela mesma linha (justify-content:space-between
+               do .card-ritmista original) -- o apelido nunca encolhe
+               (flex-shrink:0), sobrava zero espaço pro nome, que sumia
+               por completo. Nome/apelido ganham a linha inteira pra si;
+               badge+botões vão pra uma segunda linha, alinhados com o
+               texto (não com a foto). */
+            .card-ritmista { padding: 12px 14px; gap: 10px; flex-wrap: wrap; }
             .card-nome { font-size: 14px; }
             .btn-card-acao { font-size: 11px; padding: 6px 10px; }
+            .card-direita { width: 100%; justify-content: flex-end; padding-left: 54px; margin-top: 2px; }
 
             /* Mesmo tratamento que .ficha-grid já recebe em outras telas do
                app (carteirinha, cadastro) -- aqui nunca tinha sido aplicado,
@@ -923,11 +933,15 @@
             .aba-btn.ativa { background: none; }
             .main { margin-left: 0; padding: 16px 12px 82px; }
             /* "‹ Escolas" não entra no rodapé (ficaria apertado como 6º
-               item) -- vira um link discreto no topo, perto do
-               cabeçalho, fora do fluxo da barra (avaliação da Márcia,
-               20/ago/2026). */
+               item). Primeira tentativa foi no topo, perto do cabeçalho --
+               achado da Márcia, 20/ago/2026, testando de verdade: ficou
+               "no alto por cima de um monte da tela", cabeçalho + pílula
+               empilhados pesando demais logo de cara. Volta pro
+               bottom-left -- mesmo lugar/estilo já aprovado antes desse
+               menu novo existir -- só empurrada pra cima o suficiente pra
+               não ficar embaixo do rodapé fixo novo. */
             .nav-abas-voltar {
-                position: fixed; top: calc(var(--altura-header-admin, 68px) + 10px); left: 12px; z-index: 150;
+                position: fixed; top: auto; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); left: 12px; z-index: 150;
                 width: auto; background: rgba(18,16,26,0.85); color: #fff;
                 padding: 7px 14px; border-radius: 999px; font-size: 12px;
                 backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0,0,0,0.35);
