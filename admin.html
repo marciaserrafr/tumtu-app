@@ -2140,7 +2140,7 @@
         // flutuante) -- pedido da Márcia, 20/ago/2026: no celular, a barra
         // flutuante com status+carteirinha+Fechar juntos ficava apertada.
         document.getElementById('fp-container-ritmista').querySelector('#fp-ver-carteirinha').innerHTML =
-            `<button class="btn-ficha btn-ficha-carteirinha" style="width:100%;" onclick="abrirCarteirinha(${r.id})">Ver carteirinha ↗</button>`;
+            `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${r.id})">Ver carteirinha ↗</button>`;
 
         // Só edita dados de ritmista ativo/suspenso (regra já existia antes do motor único)
         if (status !== 'aprovado' && status !== 'suspenso') {
@@ -4354,7 +4354,7 @@
         // "Ver carteirinha" fica fixo no fim do conteúdo (não na barra
         // flutuante) -- mesmo ajuste feito em abrirCadastro() (Ritmistas).
         document.querySelector('#fp-container-admin #fp-ver-carteirinha').innerHTML =
-            `<button class="btn-ficha btn-ficha-carteirinha" style="width:100%;" onclick="abrirCarteirinha(${a.id})">Ver carteirinha ↗</button>`;
+            `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${a.id})">Ver carteirinha ↗</button>`;
 
         // Só edita dados de quem está ativo/suspenso (mesma regra do Ritmista)
         if (a.status !== 'aprovado' && a.status !== 'suspenso') {
