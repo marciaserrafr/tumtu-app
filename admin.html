@@ -1345,7 +1345,7 @@
 <!-- MODAL SUSPENDER -->
 <div class="modal-overlay" id="modalSuspender">
     <div class="modal">
-        <h2>Suspender Ritmista</h2>
+        <h2 id="modalSuspenderTitulo">Suspender Ritmista</h2>
         <p id="modalSuspenderNome"></p>
         <label>Motivo (opcional)</label>
         <textarea id="motivoSuspensao" rows="3" placeholder="Ex: lesão, problemas pessoais..."></textarea>
@@ -1359,7 +1359,7 @@
 <!-- MODAL DESLIGAR -->
 <div class="modal-overlay" id="modalDesligar">
     <div class="modal">
-        <h2>Desligar Ritmista</h2>
+        <h2 id="modalDesligarTitulo">Desligar Ritmista</h2>
         <p id="modalDesligarNome"></p>
         <label>Motivo (opcional)</label>
         <textarea id="motivoDesligamento" rows="3" placeholder="Ex: comportamento inadequado, desistência..."></textarea>
@@ -2039,6 +2039,7 @@
     function abrirModalSuspender(id, nome, rotulo = 'Ritmista', recarregar = carregarRitmistas) {
         acaoAtualId = id;
         acaoAtualRecarregar = recarregar;
+        document.getElementById('modalSuspenderTitulo').textContent = `Suspender ${rotulo}`;
         document.getElementById('modalSuspenderNome').textContent = `${rotulo}: ${nome}`;
         document.getElementById('motivoSuspensao').value = '';
         document.getElementById('modalSuspender').classList.add('aberto');
@@ -2052,6 +2053,7 @@
     function abrirModalDesligar(id, nome, rotulo = 'Ritmista', recarregar = carregarRitmistas) {
         acaoAtualId = id;
         acaoAtualRecarregar = recarregar;
+        document.getElementById('modalDesligarTitulo').textContent = `Desligar ${rotulo}`;
         document.getElementById('modalDesligarNome').textContent = `${rotulo}: ${nome}`;
         document.getElementById('motivoDesligamento').value = '';
         document.getElementById('modalDesligar').classList.add('aberto');
