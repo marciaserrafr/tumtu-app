@@ -2344,6 +2344,7 @@
     async function sair() {
         await sb.auth.signOut();
         localStorage.removeItem('ritmista');
+        localStorage.removeItem('tumtu_admin_estado');
         window.location.href = 'login.html';
     }
 
@@ -2605,7 +2606,24 @@
             // pro dashboard".
             document.getElementById('overlayCarregandoEscola').classList.add('visivel');
             mostrarShellSA();
-            await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
+            // Volta pro mesmo lugar de antes de atualizar a página -- achado
+            // da Márcia, 20/ago/2026: "sempre que eu atualizo a página, ela
+            // me leva para o dashboard... isso é um bug sério". Se a escola
+            // salva não existe mais (ex: apagada), cai no dashboard normal.
+            const estadoSalvo = lerEstadoNavegacaoSalvo();
+            if (estadoSalvo && estadoSalvo.contexto === 'sa-escola' && estadoSalvo.escolaId) {
+                await entrarContextoEscolaSA(estadoSalvo.escolaId);
+                if (escolaAtualData) {
+                    trocarAba(estadoSalvo.aba || 'visao', document.querySelector(`.aba-btn[data-aba="${estadoSalvo.aba || 'visao'}"]`));
+                } else {
+                    mostrarShellSA();
+                    await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
+                }
+            } else if (estadoSalvo && estadoSalvo.contexto === 'sa-shell' && estadoSalvo.aba) {
+                await trocarSaAba(estadoSalvo.aba, document.querySelector(`.sa-sidebar-item[data-sa="${estadoSalvo.aba}"]`));
+            } else {
+                await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
+            }
             document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
             return;
         }
@@ -2670,6 +2688,14 @@
         document.getElementById('mainEscola').style.display = 'block';
         ajustarAlturaNavMobile();
         carregarRitmistas();
+
+        // Volta pra mesma aba de antes de atualizar a página (mesmo achado
+        // da Márcia, 20/ago/2026, aplicado aqui também) -- "visao" já é o
+        // padrão de fábrica da tela, só troca se salvou outra coisa.
+        const estadoSalvoMD = lerEstadoNavegacaoSalvo();
+        if (estadoSalvoMD && estadoSalvoMD.contexto === 'mestre-diretor' && estadoSalvoMD.aba && estadoSalvoMD.aba !== 'visao') {
+            trocarAba(estadoSalvoMD.aba, document.querySelector(`.aba-btn[data-aba="${estadoSalvoMD.aba}"]`));
+        }
 
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
@@ -3158,6 +3184,23 @@
     }
     window.addEventListener('resize', ajustarAlturaNavMobile);
 
+    // Lembra onde a pessoa estava (aba, e escola no caso do Super Admin)
+    // pra atualizar a página não jogar todo mundo de volta pro início --
+    // achado da Márcia, 20/ago/2026: "sempre que eu atualizo a página,
+    // ela me leva para o dashboard... isso é um bug sério". Guardado em
+    // localStorage (mesma chave some no sair(), pra nunca vazar pra
+    // outra conta que logar depois no mesmo aparelho).
+    function salvarEstadoNavegacao(contexto, aba, escolaId) {
+        try {
+            localStorage.setItem('tumtu_admin_estado', JSON.stringify({ contexto, aba, escolaId: escolaId || null }));
+        } catch (e) {}
+    }
+    function lerEstadoNavegacaoSalvo() {
+        try {
+            return JSON.parse(localStorage.getItem('tumtu_admin_estado') || 'null');
+        } catch (e) { return null; }
+    }
+
     function esc(val) {
         if (!val) return '';
         return String(val).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -3242,6 +3285,7 @@
     function trocarSaAba(aba, el) {
         window.scrollTo(0, 0);
         saAbaAtual = aba;
+        salvarEstadoNavegacao('sa-shell', aba);
         document.querySelectorAll('.sa-sidebar-item').forEach(x => x.classList.remove('ativa'));
         if (el) el.classList.add('ativa');
         document.querySelectorAll('.sa-painel').forEach(p => p.classList.remove('ativo'));
@@ -4549,6 +4593,7 @@
         document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
         document.getElementById('painel-' + aba).classList.add('ativo');
         if (btn) btn.classList.add('ativa');
+        salvarEstadoNavegacao(souSuperAdmin ? 'sa-escola' : 'mestre-diretor', aba, souSuperAdmin ? escolaSelecionadaId : null);
 
         if (aba === 'diretoria') carregarDiretoria();
         if (aba === 'meu-perfil') iniciarMeuPerfilAba();
