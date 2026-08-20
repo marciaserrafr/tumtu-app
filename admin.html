@@ -300,11 +300,18 @@
         }
         .card-apelido-inline { font-size: 15px; font-weight: 700; font-style: italic; color: #D4AF37; flex-shrink: 0; white-space: nowrap; }
         .card-linha2 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+        /* Mesma "caixa" do .badge (padding, borda de 1px, line-height) de
+           propósito -- pedido da Márcia, 20/ago/2026, depois de duas
+           tentativas que ainda deixavam diferença de altura entre
+           computador e celular (herança de line-height varia por
+           navegador/aparelho): "TEM QUE SER UNIFICADO". Border na
+           mesma cor do próprio fundo -- ocupa o mesmo espaço do badge,
+           mas fica invisível, sem mudar a aparência de antes. */
         .pill-instrumento {
             display: inline-flex; align-items: center; gap: 5px;
-            background: #e8e6f0; color: #5a5770;
+            background: #e8e6f0; color: #5a5770; border: 1px solid #e8e6f0;
             padding: 3px 10px; border-radius: 20px;
-            font-size: 12px; font-weight: 600;
+            font-size: 12px; font-weight: 600; line-height: 1;
         }
         .card-direita { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
         .btn-card-acao {
