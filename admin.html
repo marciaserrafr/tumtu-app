@@ -366,6 +366,8 @@
         .btn-ficha-editar:hover { background: #B8922A; }
         .btn-ficha-salvar    { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
         .btn-ficha-salvar:hover { background: #B8922A; }
+        .btn-ficha-carteirinha { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
+        .btn-ficha-carteirinha:hover { background: #B8922A; }
 
         /* INPUTS DE EDIÇÃO NO MODAL */
         .fc-input {
@@ -686,7 +688,6 @@
         .modal-admin-campo span { font-size: 11px; font-weight: 600; color: #8b88a0; text-transform: uppercase; letter-spacing: 0.5px; }
         .modal-admin-campo strong { font-size: 14px; color: #12101a; margin-top: 2px; }
         .modal-admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
-        .modal-admin-acoes { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid #f0f0f0; padding-top: 16px; }
 
         /* ══════════════════════════════════════════════════════════════
            UNIFICAÇÃO ADMIN + SUPER ADMIN (Etapa 2) — tudo abaixo é novo.
@@ -1288,7 +1289,7 @@
          19/ago/2026 -- os links de Mestre/Diretor moram junto de quem já
          lida com Diretoria, em vez de numa aba própria isolada). -->
     <div id="linksCadastroDiretoria" style="margin-bottom:20px;"></div>
-    <div id="listaDiretoria" style="min-height:200px;">
+    <div class="cards" id="listaDiretoria" style="min-height:200px;">
         <div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>
     </div>
 </div>
@@ -1707,7 +1708,7 @@
         container.innerHTML = html;
     }
 
-    async function atualizarStatus(id, status, motivo = null) {
+    async function atualizarStatus(id, status, motivo = null, recarregar = carregarRitmistas) {
         const body = { status };
         if (motivo !== null) body.motivo_status = motivo;
         if (status === 'aprovado') body.motivo_status = null;
@@ -1717,7 +1718,7 @@
             body: JSON.stringify(body)
         });
         if (status === 'aprovado') notificarAprovacao(id);
-        await carregarRitmistas();
+        await recarregar();
     }
 
     // E-mail de "seu cadastro foi aprovado" -- best-effort, nunca trava
@@ -2033,28 +2034,32 @@
     }
 
     // MODAIS
-    function abrirModalSuspender(id, nome) {
+    let acaoAtualRecarregar = carregarRitmistas;
+
+    function abrirModalSuspender(id, nome, rotulo = 'Ritmista', recarregar = carregarRitmistas) {
         acaoAtualId = id;
-        document.getElementById('modalSuspenderNome').textContent = `Ritmista: ${nome}`;
+        acaoAtualRecarregar = recarregar;
+        document.getElementById('modalSuspenderNome').textContent = `${rotulo}: ${nome}`;
         document.getElementById('motivoSuspensao').value = '';
         document.getElementById('modalSuspender').classList.add('aberto');
     }
     function confirmarSuspender() {
         const motivo = document.getElementById('motivoSuspensao').value.trim() || null;
         fecharModal('modalSuspender');
-        atualizarStatus(acaoAtualId, 'suspenso', motivo);
+        atualizarStatus(acaoAtualId, 'suspenso', motivo, acaoAtualRecarregar);
     }
 
-    function abrirModalDesligar(id, nome) {
+    function abrirModalDesligar(id, nome, rotulo = 'Ritmista', recarregar = carregarRitmistas) {
         acaoAtualId = id;
-        document.getElementById('modalDesligarNome').textContent = `Ritmista: ${nome}`;
+        acaoAtualRecarregar = recarregar;
+        document.getElementById('modalDesligarNome').textContent = `${rotulo}: ${nome}`;
         document.getElementById('motivoDesligamento').value = '';
         document.getElementById('modalDesligar').classList.add('aberto');
     }
     function confirmarDesligar() {
         const motivo = document.getElementById('motivoDesligamento').value.trim() || null;
         fecharModal('modalDesligar');
-        atualizarStatus(acaoAtualId, 'desligado', motivo);
+        atualizarStatus(acaoAtualId, 'desligado', motivo, acaoAtualRecarregar);
     }
 
     function fecharModal(id) {
@@ -2126,8 +2131,9 @@
         } else {
             btns = `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Reativar</button>`;
         }
+        btns += `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${r.id})">Ver carteirinha ↗</button>`;
         btns += `<button class="btn-ficha" onclick="fecharModal('modalCadastroOverlay')">Fechar</button>`;
-        document.getElementById('fp-acoes-extra').innerHTML = btns;
+        document.getElementById('fp-container-ritmista').querySelector('#fp-acoes-extra').innerHTML = btns;
 
         // Só edita dados de ritmista ativo/suspenso (regra já existia antes do motor único)
         if (status !== 'aprovado' && status !== 'suspenso') {
@@ -4166,10 +4172,6 @@
     <div class="modal-admin-overlay" onclick="if(event.target===this)fecharModalAdmin()">
         <div class="modal-admin-box">
             <div id="fp-container-admin"></div>
-            <div class="modal-admin-acoes">
-                <button onclick="verCarteirinhaAdmin()" style="background:#D4AF37;border:none;color:#12101a;padding:9px 22px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Ver carteirinha ↗</button>
-                <button onclick="fecharModalAdmin()" style="background:transparent;border:1.5px solid #e8e6f0;color:#5a5770;padding:9px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Fechar</button>
-            </div>
         </div>
     </div>
 </div>
@@ -4190,7 +4192,6 @@
 
     // ── DIRETORIA ─────────────────────────────────────────────────────────────
     let diretoriaCarregada = false;
-    let adminSelecionado = null;
     let listaDiretoriaAtual = [];
 
     async function carregarDiretoria() {
@@ -4209,6 +4210,14 @@
         listaDiretoriaAtual = admins || [];
         renderizarDiretoria(admins);
         diretoriaCarregada = true;
+    }
+
+    // Mesma carregarDiretoria(), mas força ignorar o cache (diretoriaCarregada)
+    // -- usada depois de qualquer ação que muda status (Suspender/Desligar/
+    // Reativar), senão a lista fica presa no estado antigo em tela.
+    function recarregarDiretoria() {
+        diretoriaCarregada = false;
+        return carregarDiretoria();
     }
 
     function renderizarDiretoria(admins) {
@@ -4299,7 +4308,6 @@
         const admins = window._adminsCache || [];
         const a = admins.find(x => x.id === id);
         if (!a) return;
-        adminSelecionado = a;
 
         const usuarioAtual = JSON.parse(localStorage.getItem('ritmista') || 'null');
         await fpMontar(document.getElementById('fp-container-admin'));
@@ -4312,6 +4320,36 @@
         const extraAdmin = document.querySelector('#fp-container-admin #fp-extra-conteudo');
         if (extraAdmin) extraAdmin.innerHTML = '';
 
+        // Botões de ação de status + Ver carteirinha + Fechar -- mesmo
+        // padrão de abrirCadastro() (Ritmistas), pedido da Márcia,
+        // 20/ago/2026: Diretoria nunca teve Suspender/Desligar em lugar
+        // nenhum da tela, só Aprovar/Rejeitar (pendente). Reaproveita os
+        // mesmos modais de motivo (abrirModalSuspender/abrirModalDesligar),
+        // só passando o rótulo certo e qual lista recarregar depois.
+        const rotulo = a.perfil === 'mestre' ? 'Mestre' : 'Diretor';
+        const nomeEscapado = (a.nome || '').replace(/'/g, "\\'");
+        let btns = '';
+        if (a.status === 'pendente') {
+            btns = `<button class="btn-ficha btn-ficha-ativar" onclick="fecharModalAdmin();aprovarDiretor(${a.id})">Aprovar</button>
+                    <button class="btn-ficha btn-ficha-rejeitar" onclick="fecharModalAdmin();rejeitarDiretor(${a.id})">Rejeitar</button>`;
+        } else if (a.status === 'aprovado') {
+            btns = `<button class="btn-ficha btn-ficha-suspender" onclick="fecharModalAdmin();abrirModalSuspender(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Suspender</button>
+                    <button class="btn-ficha btn-ficha-desligar" onclick="fecharModalAdmin();abrirModalDesligar(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Desligar</button>`;
+        } else if (a.status === 'suspenso') {
+            btns = `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModalAdmin();atualizarStatus(${a.id},'aprovado',null,recarregarDiretoria)">Reativar</button>
+                    <button class="btn-ficha btn-ficha-desligar" onclick="fecharModalAdmin();abrirModalDesligar(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Desligar</button>`;
+        } else {
+            btns = `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModalAdmin();atualizarStatus(${a.id},'aprovado',null,recarregarDiretoria)">Reativar</button>`;
+        }
+        btns += `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${a.id})">Ver carteirinha ↗</button>`;
+        btns += `<button class="btn-ficha" onclick="fecharModalAdmin()">Fechar</button>`;
+        document.querySelector('#fp-container-admin #fp-acoes-extra').innerHTML = btns;
+
+        // Só edita dados de quem está ativo/suspenso (mesma regra do Ritmista)
+        if (a.status !== 'aprovado' && a.status !== 'suspenso') {
+            document.getElementById('fp-container-admin').querySelector('#fp-btn-editar').style.display = 'none';
+        }
+
         document.getElementById('modalAdmin').style.display = 'block';
         document.body.style.overflow = 'hidden';
     }
@@ -4321,9 +4359,8 @@
         document.body.style.overflow = '';
     }
 
-    function verCarteirinhaAdmin() {
-        if (!adminSelecionado) return;
-        window.open(`carteirinha.html?id=${adminSelecionado.id}`, '_blank');
+    function abrirCarteirinha(id) {
+        window.open(`carteirinha.html?id=${id}`, '_blank');
     }
 
     // ── TROCAR ABA (atualizado) ───────────────────────────────────────────────
