@@ -120,23 +120,42 @@
             display: block; margin-top: 8px; font-size: 10px; font-weight: 600;
             letter-spacing: 0.8px; text-transform: uppercase; color: var(--cor-texto-muted);
         }
-        /* NAV ABAS */
-        /* top:0 (era 56px) -- agora é o primeiro item de dentro de
-           .conteudo-rolavel, não tem mais cabeçalho no mesmo scroll pra
-           descontar (o cabeçalho virou uma faixa fixa fora do scroll). */
+        /* NAV ABAS -- lateral fixa no computador, rodapé fixo no celular.
+           Mesmo padrão visual e comportamento responsivo de .sa-sidebar
+           (Super Admin), reaproveitado aqui pro contexto de uma escola,
+           pedido da Márcia, 20/ago/2026: a barra horizontal antiga era
+           rolável sem nenhum aviso visual de sobra -- no celular parecia
+           que os itens (Ritmistas, Diretoria...) tinham simplesmente
+           sumido. Override mobile fica junto do de .sa-sidebar, dentro
+           de @media (max-width: 560px), lá embaixo. */
         .nav-abas {
-            display: flex; gap: 0; padding: 0 24px;
-            background: white; position: sticky; top: 0; z-index: 90;
-            border-bottom: 2px solid #e8e6f0;
+            display: flex; flex-direction: column; gap: 2px;
+            background: var(--cor-fundo-medio); padding: 16px 12px;
+            position: fixed; top: var(--altura-header-admin, 68px);
+            left: 0; bottom: 0; width: 210px; overflow-y: auto; z-index: 90;
         }
         .aba-btn {
-            padding: 14px 20px; background: none; border: none; cursor: pointer;
-            font-size: 13px; font-weight: 500; color: #5a5770;
-            border-bottom: 2px solid transparent; margin-bottom: -2px;
-            transition: color 0.15s; white-space: nowrap;
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+            background: none; border: none; cursor: pointer; font-family: inherit;
+            font-size: 13.5px; font-weight: 600; text-align: left; color: rgba(255,255,255,0.7);
+            transition: color 0.15s, background 0.15s; white-space: nowrap;
         }
-        .aba-btn:hover { color: #12101a; }
-        .aba-btn.ativa { color: #12101a; border-bottom-color: #12101a; }
+        .aba-btn .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
+        .aba-btn:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
+        .aba-btn.ativa { color: var(--cor-destaque); background: rgba(212,175,55,0.16); font-weight: 700; }
+        /* "‹ Escolas" (Super Admin, dentro de uma escola) -- mesma
+           aparência de .aba-btn (pedido dela: fica como se fosse mais um
+           item da lista, "abaixo do Mais"), classe própria só pra ficar
+           fora da checagem de capacidade que .aba-btn leva em
+           aplicarGatingAbas(). */
+        .nav-abas-voltar {
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+            background: none; border: none; cursor: pointer; font-family: inherit; width: 100%;
+            font-size: 13.5px; font-weight: 600; text-align: left; color: rgba(255,255,255,0.7);
+            transition: color 0.15s, background 0.15s; white-space: nowrap;
+        }
+        .nav-abas-voltar .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
+        .nav-abas-voltar:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
         .painel { display: none; }
         .painel.ativo { display: block; }
 
@@ -146,8 +165,10 @@
            dos dois lados numa tela larga. 1040px é o padrão comum em
            painéis do mesmo tipo (Stripe, Notion, admin do Shopify),
            pedido da Márcia, 19/ago/2026. Vale igual pra Super Admin e pra
-           Mestre/Diretor comum -- é o mesmo bloco pros dois. */
-        .main { flex: 1; padding: 32px 24px; max-width: 1040px; width: 100%; margin: 0 auto; }
+           Mestre/Diretor comum -- é o mesmo bloco pros dois. margin-left
+           reserva espaço pra barra lateral nova (210px) sem perder a
+           centralização de antes em telas bem largas. */
+        .main { flex: 1; padding: 32px 24px; max-width: 1040px; width: 100%; margin-left: max(210px, calc((100vw - 1040px) / 2)); margin-right: auto; }
 
         /* TÍTULO DE PAINEL (padrão super-admin) */
         .painel-titulo { font-size: 20px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 20px; }
@@ -544,9 +565,6 @@
 
         /* MOBILE */
         @media (max-width: 600px) {
-            .nav-abas { padding: 0 12px; overflow-x: auto; -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%); mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%); }
-            .aba-btn { padding: 12px 14px; font-size: 12px; }
-
             .header { padding: 12px 16px; gap: 8px; }
             .header-marca { font-size: 18px; }
             .header-badge { font-size: 9px; }
@@ -892,6 +910,30 @@
             .form-grid .campo-full { grid-column: 1; }
             .item-card { flex-direction: column; align-items: flex-start; gap: 12px; }
             .item-acoes { width: 100%; justify-content: flex-end; }
+
+            /* NAV ABAS -- mesmo comportamento de .sa-sidebar aqui em cima:
+               vira barra fixa embaixo, ícone em cima do texto. */
+            .nav-abas {
+                flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+                position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: 100%;
+                background: var(--cor-fundo-escuro); justify-content: space-around; z-index: 200;
+            }
+            .aba-btn { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
+            .aba-btn .aba-ic { font-size: 18px; width: auto; }
+            .aba-btn.ativa { background: none; }
+            .main { margin-left: 0; padding: 16px 12px 82px; }
+            /* "‹ Escolas" não entra no rodapé (ficaria apertado como 6º
+               item) -- vira um link discreto no topo, perto do
+               cabeçalho, fora do fluxo da barra (avaliação da Márcia,
+               20/ago/2026). */
+            .nav-abas-voltar {
+                position: fixed; top: calc(var(--altura-header-admin, 68px) + 10px); left: 12px; z-index: 150;
+                width: auto; background: rgba(18,16,26,0.85); color: #fff;
+                padding: 7px 14px; border-radius: 999px; font-size: 12px;
+                backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+            }
+            .nav-abas-voltar .aba-ic { font-size: 13px; width: auto; }
+            .nav-abas-voltar:hover { background: rgba(18,16,26,0.95); }
         }
     </style>
 </head>
@@ -1061,33 +1103,59 @@
 
 </div><!-- /saMain -->
 
-<!-- NAV ABAS (contexto de uma escola — Mestre/Diretor sempre; Super Admin depois de entrar numa escola) -->
-<button id="btnVoltarEscolasHeader" class="pilula-voltar-escolas" onclick="voltarParaEscolasSA()" style="display:none">‹ Escolas</button>
-
+<!-- NAV ABAS (contexto de uma escola — Mestre/Diretor sempre; Super Admin
+     depois de entrar numa escola). Lateral no computador, rodapé fixo no
+     celular -- mesmo padrão já aprovado na barra do Super Admin
+     (.sa-sidebar), pedido da Márcia, 20/ago/2026: "no celular a
+     visualização tá muito ruim... os menus não aparecem" (na prática, a
+     barra horizontal antiga era rolável sem nenhum aviso visual de que
+     tinha mais coisa pro lado -- parecia ter sumido). "Configurações"
+     saiu daqui e entrou dentro de "Mais" (junto de Dados da Escola/
+     Bateria/Comercial/Permissões/Histórico) -- reduz de 6 pra 5 itens,
+     cabe bem tanto na lateral quanto no rodapé. "Mais" fica por último
+     de propósito (pedido dela: "é um padrão sempre o Mais ser por
+     último"). -->
 <nav class="nav-abas" id="navAbasEscola" style="display:none">
-    <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)">Visão Geral</button>
-    <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)">Ritmistas</button>
-    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)">Diretoria</button>
-    <button class="aba-btn" data-aba="configuracoes" onclick="trocarAba('configuracoes', this)">Configurações</button>
-    <button class="aba-btn-sa aba-btn" data-aba="administrativo" onclick="trocarAba('administrativo', this)" style="display:none">Administrativo</button>
-    <button class="aba-btn" data-aba="meu-perfil" onclick="trocarAba('meu-perfil', this)">Meu Perfil</button>
+    <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)"><span class="aba-ic">📊</span><span>Visão Geral</span></button>
+    <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)"><span class="aba-ic">🥁</span><span>Ritmistas</span></button>
+    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)"><span class="aba-ic">👥</span><span>Diretoria</span></button>
+    <button class="aba-btn" data-aba="meu-perfil" onclick="trocarAba('meu-perfil', this)"><span class="aba-ic">👤</span><span>Meu Perfil</span></button>
+    <button class="aba-btn-sa aba-btn" data-aba="administrativo" onclick="trocarAba('administrativo', this)" style="display:none"><span class="aba-ic">⋯</span><span>Mais</span></button>
+    <!-- Só pro Super Admin, dentro de uma escola -- "voltar pra Escolas".
+         Classe própria (não .aba-btn) de propósito: fica fora da
+         checagem de capacidade de aplicarGatingAbas(), já que Mestre/
+         Diretor nunca tem esse conceito. No computador vira o último
+         item da lista, abaixo de "Mais" (pedido dela). No celular sairia
+         apertado como 6º item no rodapé -- vira um link no topo, perto
+         do cabeçalho (avaliação minha, 20/ago/2026). -->
+    <button id="btnVoltarEscolasNav" type="button" class="nav-abas-voltar" onclick="voltarParaEscolasSA()" style="display:none"><span class="aba-ic">🏫</span><span>Escolas</span></button>
 </nav>
+
+<!-- Pílula flutuante -- só usada quando o Super Admin está no "Meu Perfil"
+     solo (fora do contexto de qualquer escola, #navAbasEscola escondida)
+     -- ver meuPerfilSoloSA(). Sem conflito de posição com o menu novo
+     porque o menu não existe nesse estado específico. -->
+<button id="btnVoltarEscolasHeader" class="pilula-voltar-escolas" onclick="voltarParaEscolasSA()" style="display:none">‹ Voltar</button>
 
 <div class="main" id="mainEscola" style="display:none">
 
-<!-- PAINEL ADMINISTRATIVO (lista lançadora — agrupa os módulos usados com
-     menos frequência, pra não empilhar aba demais na barra horizontal.
-     Pedido da Márcia, 19/ago/2026: "o menu tá muito extenso... no celular
-     fica bem complicado". Cada item aqui é filtrado por capacidade em
-     renderizarAdministrativoLista(); Super Admin sempre vê todos. -->
+<!-- PAINEL MAIS (lista lançadora — agrupa os módulos usados com menos
+     frequência, pra não empilhar aba demais no menu. Pedido da Márcia,
+     19/ago/2026: "o menu tá muito extenso... no celular fica bem
+     complicado" -- renomeado de "Administrativo" pra "Mais" e ganhou
+     Configurações também, 20/ago/2026. Cada item aqui é filtrado por
+     capacidade em renderizarAdministrativoLista(); Super Admin sempre vê
+     todos. Id/data-aba internos continuam "administrativo" de propósito
+     (só o texto visível mudou) -- evita reescrever toda a lógica de
+     roteamento por um nome. -->
 <div class="painel" id="painel-administrativo">
-    <div class="painel-titulo">Administrativo</div>
+    <div class="painel-titulo">Mais</div>
     <div id="admListaConteudo"></div>
 </div>
 
 <!-- PAINEL DADOS DA ESCOLA (dentro de Administrativo) -->
 <div class="painel" id="painel-dados-escola">
-    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Dados da Escola</div>
     <div id="dadosEscolaConteudo">
         <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
@@ -1096,7 +1164,7 @@
 
 <!-- PAINEL DADOS DA BATERIA (dentro de Administrativo) -->
 <div class="painel" id="painel-dados-bateria">
-    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Dados da Bateria</div>
     <div id="dadosBateriaConteudo">
         <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
@@ -1105,7 +1173,7 @@
 
 <!-- PAINEL COMERCIAL (dentro de Administrativo — decisão comercial, nunca junto de "Dados da Bateria") -->
 <div class="painel" id="painel-comercial">
-    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Comercial</div>
     <div id="comercialConteudo">
         <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
@@ -1114,7 +1182,7 @@
 
 <!-- PAINEL PERMISSÕES (dentro de Administrativo) -->
 <div class="painel" id="painel-permissoes">
-    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Permissões</div>
     <div class="vg-secao-titulo" style="margin-bottom:16px;text-transform:none;letter-spacing:0;font-weight:400;">Escolha uma pessoa da Diretoria e marque direto o que ela pode ver e editar. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
     <div id="pe-editor" style="display:none;"></div>
@@ -1123,7 +1191,7 @@
 
 <!-- PAINEL HISTÓRICO (dentro de Administrativo) -->
 <div class="painel" id="painel-historico">
-    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Administrativo</button>
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Histórico</div>
     <div class="vg-secao-titulo" style="margin-bottom:20px;text-transform:none;letter-spacing:0;font-weight:400;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta bateria, e quando.</div>
     <div id="lista-historico-escola">
@@ -1136,15 +1204,25 @@
 
     <div class="painel-titulo">Ritmistas</div>
 
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-        <button class="btn-novo" onclick="irParaCadastroManualRitmista()">+ Cadastrar Ritmista</button>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
         <button id="btnExportarRitmistas" onclick="abrirModalExportar('ritmistas')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar</button>
     </div>
 
-    <!-- Link de cadastro (era a aba "Convites", incorporado aqui em
-         19/ago/2026 -- o link de Ritmista mora junto de quem já lida com
-         Ritmista, em vez de numa aba própria isolada). -->
-    <div id="linkCadastroRitmista" style="margin-bottom:20px;"></div>
+    <!-- "Cadastro" recolhido -- pedido da Márcia, 20/ago/2026: "não vamos
+         ficar toda hora cadastrando gente", então "+ Cadastrar Ritmista"
+         e o Link de cadastro (era a aba "Convites", incorporado aqui em
+         19/ago/2026) só aparecem depois de clicar, pra não ocupar espaço
+         fixo na tela toda vez. -->
+    <div class="config-item" onclick="toggleCadastroRitmista()">
+        <span>Cadastro</span>
+        <span class="config-item-seta" id="cadastroRitmistaSeta">›</span>
+    </div>
+    <div id="cadastroRitmistaConteudo" style="display:none;margin-top:12px;">
+        <div style="margin-bottom:16px;">
+            <button class="btn-novo" onclick="irParaCadastroManualRitmista()">+ Cadastrar Ritmista</button>
+        </div>
+        <div id="linkCadastroRitmista" style="margin-bottom:20px;"></div>
+    </div>
 
     <!-- BUSCA -->
     <div style="margin-bottom:20px;">
@@ -1194,11 +1272,14 @@
 
 </div>
 
-<!-- PAINEL CONFIGURAÇÕES -->
+<!-- PAINEL CONFIGURAÇÕES (dentro de Mais, 20/ago/2026 -- "não é algo que
+     vai ser usado o tempo inteiro"). data-aba continua "configuracoes"
+     de propósito, só deixou de ter aba própria na barra. -->
 <div class="painel" id="painel-configuracoes">
 
     <!-- Lista (nível 1, estilo Configurações do Google) -->
     <div id="config-lista">
+        <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
         <div class="painel-titulo">Configurações</div>
         <div class="config-item" onclick="abrirConfigTela('instrumentos')">
             <span>Instrumentos</span>
@@ -1280,15 +1361,24 @@
 <!-- PAINEL DIRETORIA -->
 <div class="painel" id="painel-diretoria">
     <div class="painel-titulo">Diretoria</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-        <button class="btn-novo" onclick="irParaCadastroManualDiretoria('mestre')">+ Cadastrar Mestre</button>
-        <button class="btn-novo" onclick="irParaCadastroManualDiretoria('diretor')">+ Cadastrar Diretor</button>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
         <button id="btnExportarDiretoria" onclick="abrirModalExportar('diretoria')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar</button>
     </div>
-    <!-- Links de cadastro (era a aba "Convites", incorporado aqui em
-         19/ago/2026 -- os links de Mestre/Diretor moram junto de quem já
-         lida com Diretoria, em vez de numa aba própria isolada). -->
-    <div id="linksCadastroDiretoria" style="margin-bottom:20px;"></div>
+    <!-- "Cadastro" recolhido -- mesmo padrão de Ritmistas, 20/ago/2026.
+         Links de cadastro (era a aba "Convites", incorporado aqui em
+         19/ago/2026) + "+ Cadastrar Mestre/Diretor" só aparecem depois
+         de clicar. -->
+    <div class="config-item" onclick="toggleCadastroDiretoria()">
+        <span>Cadastro</span>
+        <span class="config-item-seta" id="cadastroDiretoriaSeta">›</span>
+    </div>
+    <div id="cadastroDiretoriaConteudo" style="display:none;margin-top:12px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+            <button class="btn-novo" onclick="irParaCadastroManualDiretoria('mestre')">+ Cadastrar Mestre</button>
+            <button class="btn-novo" onclick="irParaCadastroManualDiretoria('diretor')">+ Cadastrar Diretor</button>
+        </div>
+        <div id="linksCadastroDiretoria" style="margin-bottom:20px;"></div>
+    </div>
     <div class="cards" id="listaDiretoria" style="min-height:200px;">
         <div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>
     </div>
@@ -2522,6 +2612,13 @@
         construirMultiSelect();
         await carregarNomeEscolaBateria(usuario.bateria_id);
         aplicarConfigEscola();
+        // Mede a altura real do cabeçalho (depois de aplicarConfigEscola,
+        // que pode aumentar essa altura com o tema/logo da escola) -- a
+        // barra lateral nova (#navAbasEscola) precisa saber onde começar
+        // embaixo dele. Super Admin já chamava isso pra própria barra
+        // (.sa-sidebar); Mestre/Diretor nunca chamava, porque nunca teve
+        // barra lateral até agora (20/ago/2026).
+        ajustarAlturaHeaderAdmin();
         renderizarLinkCadastroRitmista();
         renderizarLinksCadastroDiretoria();
 
@@ -2612,6 +2709,24 @@
         const div = document.getElementById(id);
         const seta = document.getElementById('seta-' + id);
         if (!div) return;
+        const abrindo = div.style.display === 'none';
+        div.style.display = abrindo ? 'block' : 'none';
+        if (seta) seta.textContent = abrindo ? '⌄' : '›';
+    }
+    // "Cadastro" recolhido (Ritmistas/Diretoria) -- pedido da Márcia,
+    // 20/ago/2026: "não vamos ficar toda hora cadastrando gente", então
+    // o botão de cadastrar + o Link de cadastro só aparecem depois de
+    // clicar. Mesmo padrão de seta (›/⌄) de toggleLinkCadastro acima.
+    function toggleCadastroRitmista() {
+        const div = document.getElementById('cadastroRitmistaConteudo');
+        const seta = document.getElementById('cadastroRitmistaSeta');
+        const abrindo = div.style.display === 'none';
+        div.style.display = abrindo ? 'block' : 'none';
+        if (seta) seta.textContent = abrindo ? '⌄' : '›';
+    }
+    function toggleCadastroDiretoria() {
+        const div = document.getElementById('cadastroDiretoriaConteudo');
+        const seta = document.getElementById('cadastroDiretoriaSeta');
         const abrindo = div.style.display === 'none';
         div.style.display = abrindo ? 'block' : 'none';
         if (seta) seta.textContent = abrindo ? '⌄' : '›';
@@ -2937,7 +3052,7 @@
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
     // das capacidades dos itens que ela agrupa.
-    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'permissoes', 'historico'];
+    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'permissoes', 'historico'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -2978,6 +3093,7 @@
     const ADMINISTRATIVO_ITENS = [
         { aba: 'dados-escola', label: 'Dados da Escola' },
         { aba: 'dados-bateria', label: 'Dados da Bateria' },
+        { aba: 'configuracoes', label: 'Configurações' },
         { aba: 'comercial', label: 'Comercial' },
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
@@ -3083,6 +3199,7 @@
         document.getElementById('navAbasEscola').style.display = 'none';
         document.getElementById('mainEscola').style.display = 'none';
         document.getElementById('btnVoltarEscolasHeader').style.display = 'none';
+        document.getElementById('btnVoltarEscolasNav').style.display = 'none';
         document.getElementById('headerEscolaNome').textContent = '';
         document.getElementById('headerBateriaSep').style.display = 'none';
         document.getElementById('headerBateriaNome').textContent = 'Super Admin';
@@ -3138,8 +3255,8 @@
         document.getElementById('saMain').style.display = 'none';
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'block';
-        document.getElementById('btnVoltarEscolasHeader').textContent = '‹ Escolas';
-        document.getElementById('btnVoltarEscolasHeader').style.display = 'block';
+        document.getElementById('btnVoltarEscolasHeader').style.display = 'none';
+        document.getElementById('btnVoltarEscolasNav').style.display = 'flex';
         document.getElementById('btnMinhaCarteirinhaHeader').style.display = 'none';
         document.querySelectorAll('.aba-btn-sa').forEach(el => el.style.display = '');
         document.getElementById('headerBateriaSep').style.display = '';
@@ -3157,6 +3274,10 @@
             configEscola.temaPersonalizadoAtivo = false;
         }
         aplicarConfigEscola();
+        // Depois do tema da escola aplicado (pode mudar a altura do
+        // cabeçalho com logo/cor própria) -- a barra lateral nova
+        // (#navAbasEscola) precisa saber onde começar embaixo dele.
+        ajustarAlturaHeaderAdmin();
         renderizarLinkCadastroRitmista();
         renderizarLinksCadastroDiretoria();
 
