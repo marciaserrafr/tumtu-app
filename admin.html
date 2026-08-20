@@ -2175,7 +2175,7 @@
         div.innerHTML = linhas.map(l => `
             <div class="vg-instrumento-linha">
                 <span>${esc(l.nome)}</span>
-                <span class="vg-instrumento-qtd${l.excedeu ? ' excedeu' : ''}">${l.qtd}${l.vagas > 0 ? ' / ' + l.vagas : ''}</span>
+                <span class="vg-instrumento-qtd${l.excedeu ? ' excedeu' : ''}">${l.excedeu ? l.qtd + ' · limite ' + l.vagas : (l.qtd + (l.vagas > 0 ? ' / ' + l.vagas : ''))}</span>
             </div>`).join('');
     }
 
@@ -2751,7 +2751,7 @@
                 const excedeu = bi.vagas > 0 && atual > bi.vagas;
                 return `
                 <div class="config-vaga-linha">
-                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)} <span class="config-vaga-contagem${excedeu ? ' excedeu' : ''}">(${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''})</span></span>
+                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)} <span class="config-vaga-contagem${excedeu ? ' excedeu' : ''}">(${excedeu ? atual + ' · limite ' + bi.vagas : (atual + (bi.vagas > 0 ? ' / ' + bi.vagas : ''))})</span></span>
                     <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
                 </div>`;
             }).join('');
