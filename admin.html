@@ -595,16 +595,12 @@
         .config-instrumento-check { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--cor-texto-principal); cursor: pointer; }
         .config-instrumento-check input { accent-color: var(--cor-destaque); width: 16px; height: 16px; cursor: pointer; }
         .config-instrumento-nomenclatura { padding: 5px 8px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 12.5px; color: #333; }
-        /* Linha ocupa a largura padrão da tela (igual às outras -- nome na
-           ponta esquerda, pílula+campo colados um no outro como um grupo
-           só na ponta direita, via space-between). É o vão ENTRE a pílula
-           e o campo que causava o problema antes (os dois eram itens
-           soltos, longe um do outro); agrupados, não tem mais vão nenhum
-           ali, e a tela não precisa estreitar nem travar coluna nenhuma.
-           19/ago/2026. */
-        .config-vaga-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; }
-        .config-vaga-nome { font-size: 13.5px; color: var(--cor-texto-principal); }
-        .config-vaga-controles { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        /* Cada instrumento vira um .item-card -- o mesmo componente já
+           usado em Ritmistas/Diretoria/Escolas no resto do app (bordado,
+           nome à esquerda em .item-info, pílula+campo à direita em
+           .item-acoes). Antes essa tela usava uma linha própria, criada
+           na hora, diferente do padrão do resto do app -- daí o
+           desalinhamento. 19/ago/2026. */
         /* Mesma pílula do card "Ritmistas por Instrumento" da Visão Geral,
            pra ficar coerente -- ver .vg-instrumento-qtd. */
         .config-vaga-contagem {
@@ -1229,7 +1225,7 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Vagas de Ritmistas</div>
         <p class="config-sub-desc">Defina o limite de ritmistas por instrumento ativo. Use 0 para sem limite.</p>
-        <div id="config-vagas-lista"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+        <div id="config-vagas-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
     <!-- Sub-tela: Medidas -->
@@ -2778,9 +2774,11 @@
                 const excedeu = bi.vagas > 0 && atual > bi.vagas;
                 const completo = bi.vagas > 0 && atual === bi.vagas;
                 return `
-                <div class="config-vaga-linha">
-                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)}</span>
-                    <div class="config-vaga-controles">
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-nome">${nomeExibicaoBateriaInstrumento(bi)}</div>
+                    </div>
+                    <div class="item-acoes">
                         <span class="config-vaga-contagem${excedeu ? ' excedeu' : completo ? ' completo' : ''}">${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''}</span>
                         <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
                     </div>
