@@ -236,6 +236,23 @@
         .multi-select-option:hover { background: #f5f5f5; }
         .multi-select-option input[type=checkbox] { accent-color: var(--cor-destaque); width: 15px; height: 15px; cursor: pointer; }
 
+        /* "Novo cadastro" -- faixa clara com barra colorida na esquerda, em
+           vez do cartão branco com borda de .config-item (achado da
+           Márcia, 20/ago/2026: "meu cadastro parece solto na tela").
+           Referência visual trazida por ela (print de outro sistema):
+           faixa fina, não uma caixa pesada. Cor da barra (#12101a, a
+           mesma dos botões de ação primária) é de propósito diferente do
+           dourado dos cards de pessoa, pra nunca parecer "mais um
+           cadastro de gente". */
+        .cadastro-cabecalho {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            background: #f7f6fb; border-radius: 10px; padding: 12px 16px;
+            border-left: 4px solid #12101a; cursor: pointer;
+            font-size: 14px; font-weight: 600; color: var(--cor-texto-principal);
+            transition: background 0.15s;
+        }
+        .cadastro-cabecalho:hover { background: #efeef5; }
+
         /* VISÃO GERAL */
         .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
         .vg-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 16px; }
@@ -604,6 +621,13 @@
 
             .filtros { gap: 6px; }
             .btn-filtro { font-size: 12px; padding: 6px 12px; }
+            /* Instrumento/Status (e Cargo, em Diretoria) empilham em
+               largura total no celular -- mesmo visual do computador
+               (lado a lado), só reorganiza pelo tamanho da tela. Achado
+               da Márcia, 20/ago/2026: "quero que o usuário tenha a mesma
+               experiência... em todos os dispositivos". */
+            .filtros .multi-select { width: 100%; }
+            .filtros .multi-select-trigger { width: 100%; box-sizing: border-box; }
 
             .modal { padding: 20px 16px; margin: 12px; }
             .ficha-grid { grid-template-columns: 1fr; }
@@ -1235,7 +1259,7 @@
          e o Link de cadastro (era a aba "Convites", incorporado aqui em
          19/ago/2026) só aparecem depois de clicar, pra não ocupar espaço
          fixo na tela toda vez. -->
-    <div class="config-item" onclick="toggleCadastroRitmista()">
+    <div class="cadastro-cabecalho" onclick="toggleCadastroRitmista()">
         <span>Novo cadastro</span>
         <span class="config-item-seta" id="cadastroRitmistaSeta">›</span>
     </div>
@@ -1246,13 +1270,20 @@
         <div id="linkCadastroRitmista" style="margin-bottom:20px;"></div>
     </div>
 
-    <!-- BUSCA -->
-    <div style="margin-bottom:20px;">
+    <!-- BUSCA (sempre visível, "eu já sei que os diretores vão querer ver
+         os ritmistas por instrumento" -- filtro é usado com frequência,
+         20/ago/2026, então busca E filtros ficam sempre à vista, sem
+         precisar clicar em nada) -->
+    <div style="margin-bottom:16px;">
         <input type="text" id="campoBusca" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltros()"
             style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
     </div>
 
-    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <!-- Título estático (não clicável, não recolhe) -- pedido da Márcia,
+         20/ago/2026: "sinto falta de um título para os filtros", mesmo
+         sem esconder nada. -->
+    <div class="secao-titulo" style="margin-top:0;">Filtros</div>
+    <div class="filtros" style="margin-bottom:20px;">
         <!-- FILTRO INSTRUMENTO -->
         <div class="multi-select" id="multiSelectWrap">
             <div class="multi-select-trigger" id="multiSelectTrigger" onclick="toggleMultiSelect()">
@@ -1272,8 +1303,10 @@
             <!-- Padrão inicial = Ativos + Pendentes marcados (não "Todos os
                  status") -- pedido da Márcia, 18/ago/2026: lista completa
                  (com suspenso/desligado/rejeitado) polui o dia a dia, "não é
-                 legal". "Limpar filtro" continua sendo o jeito de ver todo
-                 mundo, sem filtro nenhum. -->
+                 legal". Estilo Excel, 20/ago/2026: cada checkbox controla
+                 exatamente o que aparece -- desmarcar tudo mostra lista
+                 vazia (não mais "sem filtro = mostra tudo"); "Limpar" vira
+                 "Marcar todos" quando chega em zero. -->
             <div class="multi-select-dropdown" id="statusSelectDropdown" style="display:none;">
                 <label class="multi-select-option"><input type="checkbox" value="aprovado" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
                 <label class="multi-select-option"><input type="checkbox" value="desligado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
@@ -1282,7 +1315,7 @@
                 <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
                 <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
-                    <span onclick="limparFiltroStatus()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar filtro</span>
+                    <span id="statusMarcarTudoLink" onclick="toggleMarcarTudoStatus()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
                 </div>
             </div>
         </div>
@@ -1382,7 +1415,7 @@
          Links de cadastro (era a aba "Convites", incorporado aqui em
          19/ago/2026) + "+ Cadastrar Mestre/Diretor" só aparecem depois
          de clicar. -->
-    <div class="config-item" onclick="toggleCadastroDiretoria()">
+    <div class="cadastro-cabecalho" onclick="toggleCadastroDiretoria()">
         <span>Novo cadastro</span>
         <span class="config-item-seta" id="cadastroDiretoriaSeta">›</span>
     </div>
@@ -1393,7 +1426,53 @@
         </div>
         <div id="linksCadastroDiretoria" style="margin-bottom:20px;"></div>
     </div>
-    <div class="cards" id="listaDiretoria" style="min-height:200px;margin-top:14px;">
+
+    <!-- BUSCA + FILTROS -- padronizado com Ritmistas, 20/ago/2026 (pedido
+         dela: "para a diretoria não tem isso e não tem o buscar...
+         precisamos padronizar essas duas telas"). Cargo (Mestre/Diretor)
+         faz o papel de "Instrumento" aqui -- mesmo padrão Excel (tudo
+         marcado por padrão, "Limpar"/"Marcar todos"). -->
+    <div style="margin:16px 0;">
+        <input type="text" id="campoBuscaDiretoria" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltrosDiretoria()"
+            style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+    </div>
+
+    <div class="secao-titulo" style="margin-top:0;">Filtros</div>
+    <div class="filtros" style="margin-bottom:20px;">
+        <!-- FILTRO CARGO -->
+        <div class="multi-select" id="cargoSelectWrap">
+            <div class="multi-select-trigger" id="cargoSelectTrigger" onclick="toggleCargoSelect()">
+                <span id="cargoSelectLabel">Mestres, Diretores</span>
+                <span id="cargoSelectArrow">▼</span>
+            </div>
+            <div class="multi-select-dropdown" id="cargoSelectDropdown" style="display:none;">
+                <label class="multi-select-option"><input type="checkbox" value="mestre" checked onchange="onChangeCargo()">Mestre de Bateria</label>
+                <label class="multi-select-option"><input type="checkbox" value="diretor" checked onchange="onChangeCargo()">Diretor</label>
+                <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
+                    <span id="cargoMarcarTudoLink" onclick="toggleMarcarTudoCargo()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+                </div>
+            </div>
+        </div>
+        <!-- FILTRO STATUS -->
+        <div class="multi-select" id="statusDiretoriaSelectWrap">
+            <div class="multi-select-trigger ativo" id="statusDiretoriaSelectTrigger" onclick="toggleStatusDiretoriaSelect()">
+                <span id="statusDiretoriaSelectLabel">Ativos, Pendentes</span>
+                <span id="statusDiretoriaSelectArrow">▼</span>
+            </div>
+            <div class="multi-select-dropdown" id="statusDiretoriaSelectDropdown" style="display:none;">
+                <label class="multi-select-option"><input type="checkbox" value="aprovado" checked onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
+                <label class="multi-select-option"><input type="checkbox" value="desligado" onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
+                <label class="multi-select-option"><input type="checkbox" value="pendente" checked onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
+                <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
+                <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
+                <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
+                    <span id="statusDiretoriaMarcarTudoLink" onclick="toggleMarcarTudoStatusDiretoria()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cards" id="listaDiretoria" style="min-height:200px;">
         <div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>
     </div>
 </div>
@@ -1676,39 +1755,46 @@
         arrow.textContent = aberto ? '▼' : '▲';
     }
 
-    function limparFiltroStatus() {
-        document.querySelectorAll('#statusSelectDropdown input[type=checkbox]').forEach(c => c.checked = false);
+    function toggleMarcarTudoStatus() {
+        const marcados = document.querySelectorAll('#statusSelectDropdown input[type=checkbox]:checked').length;
+        const novoEstado = marcados === 0;
+        document.querySelectorAll('#statusSelectDropdown input[type=checkbox]').forEach(c => c.checked = novoEstado);
         onChangeStatus();
     }
 
     function onChangeStatus() {
         const checks = document.querySelectorAll('#statusSelectDropdown input[type=checkbox]:checked');
         filtroStatusSelecionados = Array.from(checks).map(c => c.value);
+        const total = document.querySelectorAll('#statusSelectDropdown input[type=checkbox]').length;
         const labels = LABELS_STATUS_FILTRO;
         const label = document.getElementById('statusSelectLabel');
-        label.textContent = filtroStatusSelecionados.length === 0
-            ? 'Todos os status'
-            : filtroStatusSelecionados.map(v => labels[v]).join(', ');
-        document.getElementById('statusSelectTrigger').classList.toggle('ativo', filtroStatusSelecionados.length > 0);
+        if (filtroStatusSelecionados.length === total) {
+            label.textContent = 'Todos os status';
+        } else if (filtroStatusSelecionados.length === 0) {
+            label.textContent = 'Nenhum status';
+        } else {
+            label.textContent = filtroStatusSelecionados.map(v => labels[v]).join(', ');
+        }
+        document.getElementById('statusSelectTrigger').classList.toggle('ativo', filtroStatusSelecionados.length > 0 && filtroStatusSelecionados.length < total);
+        const marcarTudoEl = document.getElementById('statusMarcarTudoLink');
+        if (marcarTudoEl) marcarTudoEl.textContent = filtroStatusSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
         aplicarFiltros();
     }
 
     function aplicarFiltros() {
-        let lista = todosRitmistas;
-
-        if (filtroStatusSelecionados.length > 0) {
-            lista = lista.filter(r => {
-                const idade = calcularIdade(r.nascimento);
-                return filtroStatusSelecionados.some(f => {
-                    if (f === 'menor') return idade !== null && idade < 18;
-                    return r.status === f;
-                });
-            });
-        }
-
-        if (filtroInstrumentosSelecionados.length > 0) {
-            lista = lista.filter(r => filtroInstrumentosSelecionados.includes(r.bateria_instrumento_id));
-        }
+        // Estilo Excel, 20/ago/2026: cada checkbox controla exatamente o
+        // que aparece -- 0 marcado num grupo = ninguém passa nesse grupo
+        // (.some()/.includes() em array vazio já retornam false sozinhos,
+        // sem precisar de caso especial). Ritmista sem instrumento
+        // cadastrado (raro, dado antigo de antes do instrumento virar
+        // obrigatório) nunca é escondido pelo filtro de instrumento --
+        // não tem checkbox pra ele, então não faria sentido sumir.
+        let lista = todosRitmistas.filter(r => {
+            const idade = calcularIdade(r.nascimento);
+            const statusOk = filtroStatusSelecionados.some(f => f === 'menor' ? (idade !== null && idade < 18) : r.status === f);
+            const instrumentoOk = !r.bateria_instrumento_id || filtroInstrumentosSelecionados.includes(r.bateria_instrumento_id);
+            return statusOk && instrumentoOk;
+        });
 
         const busca = semAcento(document.getElementById('campoBusca')?.value || '');
         if (busca) {
@@ -1765,11 +1851,17 @@
                 rejeitado: `<span class="badge badge-rejeitado">Rejeitado</span>`,
             }[status] || '';
 
-            const direita = (status === 'pendente' && tenhoCapacidade('aprovar_ritmistas'))
-                ? `${badgeStatus}
-                   <button class="btn-card-acao btn-card-ativar" onclick="event.stopPropagation();atualizarStatus(${r.id},'aprovado')">Ativar</button>
+            // Botões (quando existem) vêm ANTES do badge -- badge + seta
+            // ficam sempre por último, coladas na borda direita do card,
+            // em qualquer status. Antes, o Pendente (badge + 2 botões)
+            // deixava o badge mais "pra dentro" que os outros status (só
+            // badge + seta) -- achado da Márcia, 20/ago/2026: "todos os
+            // status ficam na ponta, com exceção do pendente".
+            const acoesExtras = (status === 'pendente' && tenhoCapacidade('aprovar_ritmistas'))
+                ? `<button class="btn-card-acao btn-card-ativar" onclick="event.stopPropagation();atualizarStatus(${r.id},'aprovado')">Ativar</button>
                    <button class="btn-card-acao btn-card-rejeitar" onclick="event.stopPropagation();atualizarStatus(${r.id},'rejeitado')">Rejeitar</button>`
-                : `${badgeStatus}<span class="card-chevron">›</span>`;
+                : '';
+            const direita = `${acoesExtras}${badgeStatus}<span class="card-chevron">›</span>`;
 
             const fotoHtml = r.foto_url
                 ? `<img src="${r.foto_url}" style="object-position:${r.foto_pos_x ?? 50}% ${r.foto_pos_y ?? 50}%;">`
@@ -2792,6 +2884,11 @@
         navigator.clipboard.writeText(input.value).catch(() => {});
     }
 
+    // Estilo Excel, 20/ago/2026 (pedido da Márcia): tudo marcado por
+    // padrão -- desmarcar um item de fato tira ele da lista, em vez do
+    // padrão antigo (nada marcado = mostra tudo, meio contraintuitivo).
+    // "Limpar" desmarca tudo de uma vez; quando chega em zero, vira
+    // "Marcar todos" (mesmo texto já usado no modal de Exportar Excel).
     function construirMultiSelect() {
         const dropdown = document.getElementById('multiSelectDropdown');
         dropdown.innerHTML = '';
@@ -2801,6 +2898,7 @@
             const cb = document.createElement('input');
             cb.type = 'checkbox';
             cb.value = inst.id;
+            cb.checked = true;
             cb.addEventListener('change', onCheckInstrumento);
             label.appendChild(cb);
             label.appendChild(document.createTextNode(' ' + inst.nome));
@@ -2809,15 +2907,22 @@
         const rodape = document.createElement('div');
         rodape.style.cssText = 'border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;';
         const link = document.createElement('span');
-        link.textContent = 'Limpar filtro';
+        link.id = 'multiSelectMarcarTudo';
+        link.textContent = 'Limpar';
         link.style.cssText = 'font-size:12px;color:#888;cursor:pointer;font-weight:500;';
-        link.onclick = limparFiltroInstrumento;
+        link.onclick = toggleMarcarTudoInstrumento;
         rodape.appendChild(link);
         dropdown.appendChild(rodape);
+        filtroInstrumentosSelecionados = instrumentosAtivosDaBateria().map(i => i.id);
+        const labelEl = document.getElementById('multiSelectLabel');
+        if (labelEl) labelEl.textContent = 'Todos os instrumentos';
+        document.getElementById('multiSelectTrigger')?.classList.remove('ativo');
     }
 
-    function limparFiltroInstrumento() {
-        document.querySelectorAll('#multiSelectDropdown input[type=checkbox]').forEach(c => c.checked = false);
+    function toggleMarcarTudoInstrumento() {
+        const marcados = document.querySelectorAll('#multiSelectDropdown input[type=checkbox]:checked').length;
+        const novoEstado = marcados === 0;
+        document.querySelectorAll('#multiSelectDropdown input[type=checkbox]').forEach(c => c.checked = novoEstado);
         onCheckInstrumento();
     }
 
@@ -2834,10 +2939,16 @@
         filtroInstrumentosSelecionados = Array.from(checks).map(c => Number(c.value));
         const ativos = instrumentosAtivosDaBateria();
         const label = document.getElementById('multiSelectLabel');
-        label.textContent = filtroInstrumentosSelecionados.length === 0
-            ? 'Todos os instrumentos'
-            : filtroInstrumentosSelecionados.map(id => (ativos.find(a => a.id === id) || {}).nome || '?').join(', ');
-        document.getElementById('multiSelectTrigger').classList.toggle('ativo', filtroInstrumentosSelecionados.length > 0);
+        if (filtroInstrumentosSelecionados.length === ativos.length) {
+            label.textContent = 'Todos os instrumentos';
+        } else if (filtroInstrumentosSelecionados.length === 0) {
+            label.textContent = 'Nenhum instrumento';
+        } else {
+            label.textContent = filtroInstrumentosSelecionados.map(id => (ativos.find(a => a.id === id) || {}).nome || '?').join(', ');
+        }
+        document.getElementById('multiSelectTrigger').classList.toggle('ativo', filtroInstrumentosSelecionados.length > 0 && filtroInstrumentosSelecionados.length < ativos.length);
+        const marcarTudoEl = document.getElementById('multiSelectMarcarTudo');
+        if (marcarTudoEl) marcarTudoEl.textContent = filtroInstrumentosSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
         aplicarFiltros();
     }
 
@@ -2850,6 +2961,14 @@
         if (!document.getElementById('statusSelectWrap')?.contains(e.target)) {
             const dd = document.getElementById('statusSelectDropdown');
             if (dd) { dd.style.display = 'none'; document.getElementById('statusSelectArrow').textContent = '▼'; }
+        }
+        if (!document.getElementById('cargoSelectWrap')?.contains(e.target)) {
+            const dd = document.getElementById('cargoSelectDropdown');
+            if (dd) { dd.style.display = 'none'; document.getElementById('cargoSelectArrow').textContent = '▼'; }
+        }
+        if (!document.getElementById('statusDiretoriaSelectWrap')?.contains(e.target)) {
+            const dd = document.getElementById('statusDiretoriaSelectDropdown');
+            if (dd) { dd.style.display = 'none'; document.getElementById('statusDiretoriaSelectArrow').textContent = '▼'; }
         }
     });
 
@@ -4392,6 +4511,12 @@
     // ── DIRETORIA ─────────────────────────────────────────────────────────────
     let diretoriaCarregada = false;
     let listaDiretoriaAtual = [];
+    // Busca + Filtros (Cargo/Status) -- padronizado com Ritmistas,
+    // 20/ago/2026. Cargo faz o papel de "Instrumento" (tudo marcado por
+    // padrão, estilo Excel); Status usa o mesmo padrão inicial de
+    // Ritmistas (Ativos + Pendentes).
+    let filtroCargoDiretoriaSelecionados = ['mestre', 'diretor'];
+    let filtroStatusDiretoriaSelecionados = ['aprovado', 'pendente'];
 
     async function carregarDiretoria() {
         if (diretoriaCarregada) return;
@@ -4407,8 +4532,90 @@
         });
         const admins = await res.json();
         listaDiretoriaAtual = admins || [];
-        renderizarDiretoria(admins);
+        aplicarFiltrosDiretoria();
         diretoriaCarregada = true;
+    }
+
+    function toggleCargoSelect() {
+        const dd = document.getElementById('cargoSelectDropdown');
+        const arrow = document.getElementById('cargoSelectArrow');
+        const aberto = dd.style.display !== 'none';
+        dd.style.display = aberto ? 'none' : 'block';
+        arrow.textContent = aberto ? '▼' : '▲';
+    }
+    function toggleMarcarTudoCargo() {
+        const marcados = document.querySelectorAll('#cargoSelectDropdown input[type=checkbox]:checked').length;
+        const novoEstado = marcados === 0;
+        document.querySelectorAll('#cargoSelectDropdown input[type=checkbox]').forEach(c => c.checked = novoEstado);
+        onChangeCargo();
+    }
+    function onChangeCargo() {
+        const checks = document.querySelectorAll('#cargoSelectDropdown input[type=checkbox]:checked');
+        filtroCargoDiretoriaSelecionados = Array.from(checks).map(c => c.value);
+        const total = document.querySelectorAll('#cargoSelectDropdown input[type=checkbox]').length;
+        const labelsCargo = { mestre: 'Mestres', diretor: 'Diretores' };
+        const label = document.getElementById('cargoSelectLabel');
+        if (filtroCargoDiretoriaSelecionados.length === total) {
+            label.textContent = 'Mestres, Diretores';
+        } else if (filtroCargoDiretoriaSelecionados.length === 0) {
+            label.textContent = 'Nenhum cargo';
+        } else {
+            label.textContent = filtroCargoDiretoriaSelecionados.map(v => labelsCargo[v]).join(', ');
+        }
+        document.getElementById('cargoSelectTrigger').classList.toggle('ativo', filtroCargoDiretoriaSelecionados.length > 0 && filtroCargoDiretoriaSelecionados.length < total);
+        const marcarTudoEl = document.getElementById('cargoMarcarTudoLink');
+        if (marcarTudoEl) marcarTudoEl.textContent = filtroCargoDiretoriaSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
+        aplicarFiltrosDiretoria();
+    }
+
+    function toggleStatusDiretoriaSelect() {
+        const dd = document.getElementById('statusDiretoriaSelectDropdown');
+        const arrow = document.getElementById('statusDiretoriaSelectArrow');
+        const aberto = dd.style.display !== 'none';
+        dd.style.display = aberto ? 'none' : 'block';
+        arrow.textContent = aberto ? '▼' : '▲';
+    }
+    function toggleMarcarTudoStatusDiretoria() {
+        const marcados = document.querySelectorAll('#statusDiretoriaSelectDropdown input[type=checkbox]:checked').length;
+        const novoEstado = marcados === 0;
+        document.querySelectorAll('#statusDiretoriaSelectDropdown input[type=checkbox]').forEach(c => c.checked = novoEstado);
+        onChangeStatusDiretoria();
+    }
+    function onChangeStatusDiretoria() {
+        const checks = document.querySelectorAll('#statusDiretoriaSelectDropdown input[type=checkbox]:checked');
+        filtroStatusDiretoriaSelecionados = Array.from(checks).map(c => c.value);
+        const total = document.querySelectorAll('#statusDiretoriaSelectDropdown input[type=checkbox]').length;
+        const labels = LABELS_STATUS_FILTRO;
+        const label = document.getElementById('statusDiretoriaSelectLabel');
+        if (filtroStatusDiretoriaSelecionados.length === total) {
+            label.textContent = 'Todos os status';
+        } else if (filtroStatusDiretoriaSelecionados.length === 0) {
+            label.textContent = 'Nenhum status';
+        } else {
+            label.textContent = filtroStatusDiretoriaSelecionados.map(v => labels[v]).join(', ');
+        }
+        document.getElementById('statusDiretoriaSelectTrigger').classList.toggle('ativo', filtroStatusDiretoriaSelecionados.length > 0 && filtroStatusDiretoriaSelecionados.length < total);
+        const marcarTudoEl = document.getElementById('statusDiretoriaMarcarTudoLink');
+        if (marcarTudoEl) marcarTudoEl.textContent = filtroStatusDiretoriaSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
+        aplicarFiltrosDiretoria();
+    }
+
+    function aplicarFiltrosDiretoria() {
+        let lista = (listaDiretoriaAtual || []).filter(a => {
+            const cargoOk = filtroCargoDiretoriaSelecionados.includes(a.perfil);
+            const statusOk = filtroStatusDiretoriaSelecionados.includes(a.status);
+            return cargoOk && statusOk;
+        });
+        const busca = semAcento(document.getElementById('campoBuscaDiretoria')?.value || '');
+        if (busca) {
+            const buscaCpf = busca.replace(/\D/g,'');
+            lista = lista.filter(a =>
+                semAcento(a.nome).includes(busca) ||
+                semAcento(a.apelido).includes(busca) ||
+                (buscaCpf.length > 0 && (a.cpf || '').replace(/\D/g,'').includes(buscaCpf))
+            );
+        }
+        renderizarDiretoria(lista);
     }
 
     // Mesma carregarDiretoria(), mas força ignorar o cache (diretoriaCarregada)
@@ -4446,11 +4653,13 @@
                 rejeitado: `<span class="badge badge-rejeitado">Rejeitado</span>`,
             }[a.status] || '';
 
-            const direita = (a.status === 'pendente' && podeAprovar(a))
-                ? `${badgeStatus}
-                   <button class="btn-card-acao btn-card-ativar" onclick="event.stopPropagation();aprovarDiretor(${a.id})">Aprovar</button>
+            // Mesmo ajuste de alinhamento de Ritmistas, 20/ago/2026: botões
+            // antes do badge, badge + seta sempre por último.
+            const acoesExtras = (a.status === 'pendente' && podeAprovar(a))
+                ? `<button class="btn-card-acao btn-card-ativar" onclick="event.stopPropagation();aprovarDiretor(${a.id})">Aprovar</button>
                    <button class="btn-card-acao btn-card-rejeitar" onclick="event.stopPropagation();rejeitarDiretor(${a.id})">Rejeitar</button>`
-                : `${badgeStatus}<span class="card-chevron">›</span>`;
+                : '';
+            const direita = `${acoesExtras}${badgeStatus}<span class="card-chevron">›</span>`;
 
             return `
             <div class="card-ritmista ${a.status}" onclick="abrirFichaAdmin(${a.id})">
