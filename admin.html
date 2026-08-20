@@ -2487,8 +2487,16 @@
             document.getElementById('headerNomeWrap').onclick = abrirMeuPerfilSA;
             document.getElementById('headerNomeWrap').title = 'Meu Perfil';
             ajustarAlturaHeaderAdmin();
+            // Mesmo spinner das outras transições de tela hoje -- sem isso,
+            // o Dashboard nascia com o título "Baterias" sozinho na tela
+            // (é texto fixo no HTML, os números/lista vêm depois, via
+            // rede) antes de preencher de verdade. Achado da Márcia,
+            // 19/ago/2026: "aparece Bateria escrito e depois é que muda
+            // pro dashboard".
+            document.getElementById('overlayCarregandoEscola').classList.add('visivel');
             mostrarShellSA();
-            trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
+            await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
+            document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
             return;
         }
 
@@ -3092,10 +3100,15 @@
         document.querySelectorAll('.sa-painel').forEach(p => p.classList.remove('ativo'));
         const alvo = document.getElementById('sa-painel-' + aba);
         if (alvo) alvo.classList.add('ativo');
-        if (aba === 'dashboard') carregarDashboard();
-        if (aba === 'escolas') carregarEscolas();
-        if (aba === 'privacidade') carregarPrivacidade();
-        if (aba === 'configuracoes-globais') voltarConfigListaSA();
+        // "return" aqui não muda nada pra quem chama sem esperar (clique na
+        // barra lateral, por ex.) -- só existe pra quem PRECISA esperar
+        // terminar, como o carregamento inicial do Super Admin (ver
+        // iniciarUsuario()), que usa isso pra saber a hora certa de tirar
+        // o spinner da tela.
+        if (aba === 'dashboard') return carregarDashboard();
+        if (aba === 'escolas') return carregarEscolas();
+        if (aba === 'privacidade') return carregarPrivacidade();
+        if (aba === 'configuracoes-globais') return voltarConfigListaSA();
     }
 
     // Entra no contexto de uma escola -- reaproveita 100% o que admin.html já
