@@ -303,8 +303,8 @@
         .pill-instrumento {
             display: inline-flex; align-items: center; gap: 5px;
             background: #e8e6f0; color: #5a5770;
-            padding: 3px 10px; border-radius: 20px;
-            font-size: 12px; font-weight: 600;
+            padding: 3px 10px; border-radius: 20px; border: 1px solid transparent;
+            font-size: 12px; font-weight: 600; line-height: 1;
         }
         .card-direita { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
         .btn-card-acao {
@@ -320,7 +320,7 @@
         .card-chevron { color: #ccc; font-size: 20px; font-weight: 300; line-height: 1; }
 
         /* BADGES */
-        .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid; display: inline-flex; align-items: center; gap: 4px; line-height: 1; }
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid; display: inline-flex; align-items: center; gap: 4px; line-height: 1; }
         .badge-aprovado  { background: #f0faf4; color: #2d7a4f; border-color: #b8ddc8; }
 
         .badge-pendente  { background: #fffbf0; color: #8a6800; border-color: #ffe69c; }
@@ -938,10 +938,12 @@
                "no alto por cima de um monte da tela", cabeçalho + pílula
                empilhados pesando demais logo de cara. Volta pro
                bottom-left -- mesmo lugar/estilo já aprovado antes desse
-               menu novo existir -- só empurrada pra cima o suficiente pra
-               não ficar embaixo do rodapé fixo novo. */
+               menu novo existir. Segunda tentativa "chutou" 64px de
+               distância do rodapé -- também errou, sobrepôs o ícone de
+               Visão Geral em aparelho real. --altura-nav-mobile é medida
+               de verdade (ajustarAlturaNavMobile()), não mais chute. */
             .nav-abas-voltar {
-                position: fixed; top: auto; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); left: 12px; z-index: 150;
+                position: fixed; top: auto; bottom: calc(var(--altura-nav-mobile, 70px) + 10px); left: 12px; z-index: 150;
                 width: auto; background: rgba(18,16,26,0.85); color: #fff;
                 padding: 7px 14px; border-radius: 999px; font-size: 12px;
                 backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0,0,0,0.35);
@@ -2659,6 +2661,7 @@
 
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'block';
+        ajustarAlturaNavMobile();
         carregarRitmistas();
 
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
@@ -3135,6 +3138,19 @@
     }
     window.addEventListener('resize', ajustarAlturaHeaderAdmin);
 
+    // Mede a altura real do rodapé fixo (#navAbasEscola no celular) --
+    // achado da Márcia, 20/ago/2026: a pílula "‹ Escolas" tentou um valor
+    // "chutado" (64px + safe-area) pra ficar acima do rodapé, mas ficou
+    // sobrepondo o ícone de Visão Geral em telas reais. Medir de verdade
+    // em vez de estimar evita esse tipo de erro em qualquer aparelho.
+    function ajustarAlturaNavMobile() {
+        const nav = document.getElementById('navAbasEscola');
+        if (nav && nav.style.display !== 'none' && window.innerWidth <= 600) {
+            document.documentElement.style.setProperty('--altura-nav-mobile', nav.offsetHeight + 'px');
+        }
+    }
+    window.addEventListener('resize', ajustarAlturaNavMobile);
+
     function esc(val) {
         if (!val) return '';
         return String(val).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -3288,6 +3304,7 @@
         // cabeçalho com logo/cor própria) -- a barra lateral nova
         // (#navAbasEscola) precisa saber onde começar embaixo dele.
         ajustarAlturaHeaderAdmin();
+        ajustarAlturaNavMobile();
         renderizarLinkCadastroRitmista();
         renderizarLinksCadastroDiretoria();
 
