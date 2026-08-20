@@ -236,22 +236,24 @@
         .multi-select-option:hover { background: #f5f5f5; }
         .multi-select-option input[type=checkbox] { accent-color: var(--cor-destaque); width: 15px; height: 15px; cursor: pointer; }
 
-        /* "Novo cadastro" -- faixa clara com barra colorida na esquerda, em
-           vez do cartão branco com borda de .config-item (achado da
-           Márcia, 20/ago/2026: "meu cadastro parece solto na tela").
-           Referência visual trazida por ela (print de outro sistema):
-           faixa fina, não uma caixa pesada. Cor da barra (#12101a, a
-           mesma dos botões de ação primária) é de propósito diferente do
-           dourado dos cards de pessoa, pra nunca parecer "mais um
-           cadastro de gente". */
+        /* "Novo cadastro" -- faixa clara, reta (sem cantos arredondados,
+           sem border-left cobrindo a altura toda -- isso lia como "cartão",
+           mesma queixa duas vezes). Terceira rodada, 20/ago/2026: ela
+           mandou de novo o print da referência (barra "Search Condition"
+           de outro sistema) -- o tracinho lá é um traço curto do TAMANHO
+           DO TEXTO, do lado do título, não uma borda esticada pela altura
+           do bloco inteiro. Fundo branco liso (sem raio) igual o card de
+           pessoa, só que reto -- é o que faz ler como "faixa", não "caixa". */
         .cadastro-cabecalho {
             display: flex; align-items: center; justify-content: space-between; gap: 10px;
-            background: #f7f6fb; border-radius: 10px; padding: 12px 16px;
-            border-left: 4px solid #12101a; cursor: pointer;
+            background: #fff; padding: 12px 16px;
+            cursor: pointer;
             font-size: 14px; font-weight: 600; color: var(--cor-texto-principal);
             transition: background 0.15s;
         }
-        .cadastro-cabecalho:hover { background: #efeef5; }
+        .cadastro-cabecalho:hover { background: #fafafa; }
+        .cadastro-cabecalho-titulo { display: flex; align-items: center; gap: 8px; }
+        .cadastro-cabecalho-tracinho { display: inline-block; width: 3px; height: 14px; background: #12101a; flex-shrink: 0; }
 
         /* VISÃO GERAL */
         .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
@@ -1260,7 +1262,7 @@
          19/ago/2026) só aparecem depois de clicar, pra não ocupar espaço
          fixo na tela toda vez. -->
     <div class="cadastro-cabecalho" onclick="toggleCadastroRitmista()">
-        <span>Novo cadastro</span>
+        <span class="cadastro-cabecalho-titulo"><span class="cadastro-cabecalho-tracinho"></span>Novo cadastro</span>
         <span class="config-item-seta" id="cadastroRitmistaSeta">›</span>
     </div>
     <div id="cadastroRitmistaConteudo" style="display:none;margin-top:12px;">
@@ -1274,7 +1276,7 @@
          os ritmistas por instrumento" -- filtro é usado com frequência,
          20/ago/2026, então busca E filtros ficam sempre à vista, sem
          precisar clicar em nada) -->
-    <div style="margin-bottom:16px;">
+    <div style="margin:16px 0;">
         <input type="text" id="campoBusca" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltros()"
             style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
     </div>
@@ -1416,7 +1418,7 @@
          19/ago/2026) + "+ Cadastrar Mestre/Diretor" só aparecem depois
          de clicar. -->
     <div class="cadastro-cabecalho" onclick="toggleCadastroDiretoria()">
-        <span>Novo cadastro</span>
+        <span class="cadastro-cabecalho-titulo"><span class="cadastro-cabecalho-tracinho"></span>Novo cadastro</span>
         <span class="config-item-seta" id="cadastroDiretoriaSeta">›</span>
     </div>
     <div id="cadastroDiretoriaConteudo" style="display:none;margin-top:12px;">
