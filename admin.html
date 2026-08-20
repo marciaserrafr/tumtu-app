@@ -226,15 +226,8 @@
         .vg-instrumento-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; color: var(--cor-texto-principal); }
         .vg-instrumento-linha:last-child { border-bottom: none; }
         .vg-instrumento-qtd { font-weight: 800; color: #D4AF37; }
-        /* Selo visual de vaga excedida -- depois de duas tentativas só de
-           texto ("2/1", depois "2 · limite 1") não agradarem a Márcia,
-           19/ago/2026 ("quero uma solução mais legal, mais visual"), vira
-           um badge de verdade (fundo + ícone), não só texto colorido. */
-        .vg-instrumento-qtd.excedeu {
-            display: inline-flex; align-items: center; gap: 4px;
-            background: #fdecea; color: #b3261e; font-size: 12px; font-weight: 800;
-            padding: 3px 10px 3px 8px; border-radius: 999px;
-        }
+        /* Vermelho quando o número de ativos passa da vaga cadastrada. */
+        .vg-instrumento-qtd.excedeu { color: #b3261e; }
 
         /* CONTADOR */
         .contador { font-size: 13px; color: #666; margin-bottom: 20px; }
@@ -593,13 +586,8 @@
         .config-vaga-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; }
         .config-vaga-nome { font-size: 13.5px; color: var(--cor-texto-principal); }
         .config-vaga-contagem { color: #999; font-weight: 400; }
-        /* Selo (badge) quando o número de ritmistas ativos passa da vaga
-           cadastrada -- mesmo desenho do card da Visão Geral (.vg-instrumento-qtd.excedeu). */
-        .config-vaga-contagem.excedeu {
-            display: inline-flex; align-items: center; gap: 4px;
-            background: #fdecea; color: #b3261e; font-weight: 800; font-size: 12px;
-            padding: 3px 10px 3px 8px; border-radius: 999px;
-        }
+        /* Vermelho quando o número de ativos passa da vaga cadastrada. */
+        .config-vaga-contagem.excedeu { color: #b3261e; font-weight: 700; }
         .config-vaga-input { width: 64px; padding: 6px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; text-align: center; }
 
         /* Título de seção genérico -- mesmo padrão já usado no Super Admin
@@ -2186,7 +2174,7 @@
         div.innerHTML = linhas.map(l => `
             <div class="vg-instrumento-linha">
                 <span>${esc(l.nome)}</span>
-                <span class="vg-instrumento-qtd${l.excedeu ? ' excedeu' : ''}">${l.excedeu ? '⚠ ' + l.qtd : (l.qtd + (l.vagas > 0 ? ' / ' + l.vagas : ''))}</span>
+                <span class="vg-instrumento-qtd${l.excedeu ? ' excedeu' : ''}">${l.qtd}${l.vagas > 0 ? ' / ' + l.vagas : ''}</span>
             </div>`).join('');
     }
 
@@ -2762,7 +2750,7 @@
                 const excedeu = bi.vagas > 0 && atual > bi.vagas;
                 return `
                 <div class="config-vaga-linha">
-                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)} <span class="config-vaga-contagem${excedeu ? ' excedeu' : ''}">${excedeu ? '⚠ ' + atual : '(' + atual + (bi.vagas > 0 ? ' / ' + bi.vagas : '') + ')'}</span></span>
+                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)} <span class="config-vaga-contagem${excedeu ? ' excedeu' : ''}">(${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''})</span></span>
                     <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
                 </div>`;
             }).join('');
