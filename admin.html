@@ -2737,10 +2737,8 @@
     // toggleCadastroDiretoria).
     function caixaLinkCadastro(id, titulo, linhas) {
         return `
-            <div class="config-item" style="cursor:default;">
-                <span>${titulo}</span>
-            </div>
-            <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;margin-top:-2px;">
+            <div class="secao-titulo" style="margin-top:4px;">${titulo}</div>
+            <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
                 <p style="font-size:12px;color:#5a5770;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
                 ${linhas.map((l, i) => `
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;${i > 0 ? 'margin-top:10px;' : ''}">
