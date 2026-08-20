@@ -591,29 +591,34 @@
         .config-sub-desc { font-size: 13px; color: #8b88a0; margin: -10px 0 16px; }
         .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
-        /* Listas de Configurações (Instrumentos/Vagas/Medidas) são linhas
-           rótulo+controle -- ficam ruins esticadas na largura toda de
-           .main (1040px desde o ajuste de hoje): o controle (input/select)
-           ia parar longe do rótulo, com um vão vazio enorme no meio.
-           Achado da Márcia, 19/ago/2026, com print. Trava numa largura de
-           lista de configuração, não da tela toda. */
-        .config-subtela { max-width: 480px; }
         .config-instrumento-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; flex-wrap: wrap; }
         .config-instrumento-check { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--cor-texto-principal); cursor: pointer; }
         .config-instrumento-check input { accent-color: var(--cor-destaque); width: 16px; height: 16px; cursor: pointer; }
         .config-instrumento-nomenclatura { padding: 5px 8px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 12.5px; color: #333; }
-        .config-vaga-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; }
+        /* Virou uma grade de 3 colunas de largura fixa (nome / pílula de
+           vagas / campo de número) -- a Márcia apontou que só limitar a
+           largura da tela pra evitar o vão vazio fugia do padrão das
+           outras telas (todas em 1040px). Com colunas de largura própria
+           (não mais "esticar até a borda"), a tela continua na mesma
+           largura de sempre, e as linhas se alinham feito tabela de
+           verdade, sem vão gigante nem precisar estreitar nada.
+           19/ago/2026. */
+        .config-vaga-linha {
+            display: grid; grid-template-columns: minmax(140px, 260px) 90px 80px;
+            align-items: center; gap: 14px;
+            padding: 9px 0; border-bottom: 1px solid #f4f4f4;
+        }
         .config-vaga-nome { font-size: 13.5px; color: var(--cor-texto-principal); }
         /* Mesma pílula do card "Ritmistas por Instrumento" da Visão Geral,
            pra ficar coerente -- ver .vg-instrumento-qtd. */
         .config-vaga-contagem {
-            display: inline-flex; align-items: center; margin-left: 4px;
+            display: inline-flex; align-items: center; justify-self: start;
             padding: 2px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 800;
             background: #e8e6f0; color: #5a5770; border: 1px solid #d8d5e3;
         }
         .config-vaga-contagem.completo { background: #f0faf4; color: #2d7a4f; border-color: #b8ddc8; }
         .config-vaga-contagem.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
-        .config-vaga-input { width: 64px; padding: 6px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; text-align: center; }
+        .config-vaga-input { width: 64px; padding: 6px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; text-align: center; justify-self: start; }
 
         /* Título de seção genérico -- mesmo padrão já usado no Super Admin
            (aba Acessos, "Mestres"/"Diretores"), reaproveitado aqui pra
@@ -2778,7 +2783,8 @@
                 const completo = bi.vagas > 0 && atual === bi.vagas;
                 return `
                 <div class="config-vaga-linha">
-                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)} <span class="config-vaga-contagem${excedeu ? ' excedeu' : completo ? ' completo' : ''}">${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''}</span></span>
+                    <span class="config-vaga-nome">${nomeExibicaoBateriaInstrumento(bi)}</span>
+                    <span class="config-vaga-contagem${excedeu ? ' excedeu' : completo ? ' completo' : ''}">${atual}${bi.vagas > 0 ? ' / ' + bi.vagas : ''}</span>
                     <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
                 </div>`;
             }).join('');
