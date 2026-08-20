@@ -249,6 +249,7 @@
         .card-ritmista {
             background: white;
             border: 1px solid #e8e6f0;
+            border-left: 3px solid #D4AF37;
             border-radius: 14px;
             padding: 14px 18px;
             display: flex; align-items: center;
@@ -271,9 +272,12 @@
         }
         .card-foto img { width: 100%; height: 100%; object-fit: cover; }
         .card-esquerda { flex: 1; min-width: 0; }
-        .card-linha1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-        .card-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
-        .card-apelido-inline { font-size: 15px; font-weight: 700; font-style: italic; color: #D4AF37; }
+        .card-linha1 { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; margin-bottom: 6px; min-width: 0; }
+        .card-nome {
+            font-size: 15px; font-weight: 700; color: var(--cor-texto-principal);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+        }
+        .card-apelido-inline { font-size: 15px; font-weight: 700; font-style: italic; color: #D4AF37; flex-shrink: 0; white-space: nowrap; }
         .card-linha2 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
         .pill-instrumento {
             display: inline-flex; align-items: center; gap: 5px;
@@ -646,31 +650,10 @@
         .cards .secao-titulo { margin: 6px 0 0; }
         .cards .secao-titulo:first-child { margin-top: 0; }
 
-        /* DIRETORIA */
-        .dir-card {
-            background: white; border-radius: 12px; padding: 16px 18px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.07); border-left: 3px solid #D4AF37;
-            margin-bottom: 10px; cursor: pointer; transition: box-shadow 0.15s;
-            display: flex; align-items: center; gap: 14px;
-        }
-        .dir-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.12); }
-        /* Quadrada, não redonda -- mesmo padrão do .card-foto dos Ritmistas
-           (18/ago/2026, pedido da Márcia pra ficar igual). */
-        .dir-foto {
-            width: 44px; height: 44px; border-radius: 8px; background: #f7f6fb;
-            border: 1px solid #e8e6f0; overflow: hidden; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #8b88a0;
-        }
-        .dir-foto img { width: 100%; height: 100%; object-fit: cover; }
-        .dir-info { flex: 1; min-width: 0; }
-        .dir-nome { font-size: 14px; font-weight: 700; color: #12101a; }
-        .dir-apelido { font-size: 13px; font-weight: 700; font-style: italic; color: #D4AF37; }
-        .dir-meta { font-size: 12px; color: #8b88a0; margin-top: 4px; }
-        .dir-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-        .dir-badge-cargo { background: #e8e6f0; color: #5a5770; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
-        .dir-badge-ativo { background: #e8f5e8; color: #1f4d1f; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
-        .dir-badge-inativo { background: #f5f5f5; color: #757575; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
-        .dir-badge-pendente { background: #fff8e6; color: #9a6200; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+        /* DIRETORIA -- reaproveita o mesmo padrão visual de card dos
+           Ritmistas (.card-ritmista e companhia), pedido da Márcia,
+           20/ago/2026: "quero que o padrão visual seja o mesmo". */
+        .dir-badge-cargo { background: #e8e6f0; color: #5a5770; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
         /* Modal ficha de admin (Diretoria) */
         .modal-admin-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000;
@@ -1694,12 +1677,12 @@
                     <div class="card-linha1">
                         <span class="card-nome">${r.nome}</span>
                         ${r.apelido ? `<span class="card-apelido-inline">${r.apelido}</span>` : ''}
-                        ${menor ? `<span class="badge badge-menor">Menor · ${idade} anos</span>` : ''}
-                        ${r.nacionalidade && r.nacionalidade !== 'Brasileira' ? `<span title="${r.nacionalidade}" style="font-size:14px;">🌍</span>` : ''}
-                        ${aniversarioMes ? '<span title="Aniversário este mês">🎂</span>' : ''}
+                        ${r.nacionalidade && r.nacionalidade !== 'Brasileira' ? `<span title="${r.nacionalidade}" style="font-size:14px;flex-shrink:0;">🌍</span>` : ''}
+                        ${aniversarioMes ? '<span title="Aniversário este mês" style="flex-shrink:0;">🎂</span>' : ''}
                     </div>
                     <div class="card-linha2">
                         <span class="pill-instrumento">🥁 ${r.instrumento_nome || '—'}</span>
+                        ${menor ? `<span class="badge badge-menor">Menor · ${idade} anos</span>` : ''}
                     </div>
                 </div>
                 <div class="card-direita">${direita}</div>
@@ -4246,34 +4229,34 @@
                 ? `<img src="${a.foto_url}">`
                 : inicial;
             const cargo = a.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
-            const apelido = a.apelido ? `<span class="dir-apelido">${a.apelido}</span>` : '';
 
-            let statusBadge, acoes = '';
-            if (a.status === 'pendente') {
-                statusBadge = `<span class="dir-badge-pendente">Pendente</span>`;
-                if (podeAprovar(a)) {
-                    acoes = `
-                    <button class="btn-ficha btn-ficha-ativar" onclick="event.stopPropagation();aprovarDiretor(${a.id})">Aprovar</button>
-                    <button class="btn-ficha btn-ficha-rejeitar" onclick="event.stopPropagation();rejeitarDiretor(${a.id})">Rejeitar</button>`;
-                }
-            } else if (a.status === 'rejeitado') {
-                statusBadge = `<span class="dir-badge-inativo">Rejeitado</span>`;
-            } else {
-                statusBadge = `<span class="dir-badge-ativo">Ativo</span>`;
-            }
+            const badgeStatus = {
+                pendente:  `<span class="badge badge-pendente">Pendente</span>`,
+                aprovado:  `<span class="badge badge-aprovado">Ativo</span>`,
+                suspenso:  `<span class="badge badge-suspenso">Suspenso</span>`,
+                desligado: `<span class="badge badge-desligado">Desligado</span>`,
+                rejeitado: `<span class="badge badge-rejeitado">Rejeitado</span>`,
+            }[a.status] || '';
+
+            const direita = (a.status === 'pendente' && podeAprovar(a))
+                ? `${badgeStatus}
+                   <button class="btn-card-acao btn-card-ativar" onclick="event.stopPropagation();aprovarDiretor(${a.id})">Aprovar</button>
+                   <button class="btn-card-acao btn-card-rejeitar" onclick="event.stopPropagation();rejeitarDiretor(${a.id})">Rejeitar</button>`
+                : `${badgeStatus}<span class="card-chevron">›</span>`;
 
             return `
-            <div class="dir-card" onclick="abrirFichaAdmin(${a.id})">
-                <div class="dir-foto">${fotoHtml}</div>
-                <div class="dir-info">
-                    <div class="dir-nome">${a.nome || '—'} ${apelido}</div>
-                    <div class="dir-badges">
-                        <span class="dir-badge-cargo">${cargo}</span>
-                        ${statusBadge}
+            <div class="card-ritmista ${a.status}" onclick="abrirFichaAdmin(${a.id})">
+                <div class="card-foto">${fotoHtml}</div>
+                <div class="card-esquerda">
+                    <div class="card-linha1">
+                        <span class="card-nome">${a.nome || '—'}</span>
+                        ${a.apelido ? `<span class="card-apelido-inline">${a.apelido}</span>` : ''}
                     </div>
-                    <div class="dir-meta">${a.cpf ? 'CPF: ' + a.cpf : ''}${a.cpf && a.celular ? ' · ' : ''}${a.celular || ''}</div>
+                    <div class="card-linha2">
+                        <span class="dir-badge-cargo">${cargo}</span>
+                    </div>
                 </div>
-                ${acoes ? `<div style="display:flex;gap:6px;flex-shrink:0;" onclick="event.stopPropagation()">${acoes}</div>` : ''}
+                <div class="card-direita">${direita}</div>
             </div>`;
         };
 
