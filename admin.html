@@ -589,6 +589,16 @@
         .btn-voltar-config { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: #D4AF37; padding: 0; margin-bottom: 16px; font-family: inherit; }
         .btn-voltar-config:hover { text-decoration: underline; }
         .config-sub-desc { font-size: 13px; color: #8b88a0; margin: -10px 0 16px; }
+        /* Título das colunas acima da lista de Vagas -- pedido da Márcia,
+           19/ago/2026: "parece que está meio solto" sem indicar o que
+           cada lado da linha significa. Só nessa tela de Configurações
+           (é uma tabela de verdade, com campo editável); o card da Visão
+           Geral é só um resumo, não precisa. */
+        .config-lista-cabecalho {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px 8px; font-size: 11px; font-weight: 700; color: #888;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
         .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
         .config-instrumento-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; flex-wrap: wrap; }
@@ -1225,6 +1235,7 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Vagas de Ritmistas</div>
         <p class="config-sub-desc">Defina o limite de ritmistas por instrumento ativo. Use 0 para sem limite.</p>
+        <div class="config-lista-cabecalho"><span>Instrumento</span><span>Nº de vagas</span></div>
         <div id="config-vagas-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
