@@ -123,17 +123,16 @@
            panos). */
         .btn-header-tematico { background: rgba(255,255,255,0.94) !important; border-color: transparent !important; color: #12101a !important; font-weight: 700 !important; }
         .btn-header-tematico:hover { background: #ffffff !important; }
-        /* Volta a ficar logo depois do conteúdo (margin-top fixo, não
-           empurrado pro fim da tela) -- a tentativa de "grudar embaixo"
-           (margin-top:auto) criava um vão vazio grande em telas com pouco
-           conteúdo, ficando mais "pesado" do que o padrão comum em painel
-           de gestão (a Márcia notou, 21/ago/2026, com print: "essa
-           grossura toda"). Volta ao padrão simples, igual Notion/Linear/
-           Stripe: assinatura discreta logo após o conteúdo, sem forçar
-           posição. */
+        /* Fica logo depois do conteúdo (margin-top fixo, não empurrado pro
+           fim da tela -- isso criava um vão vazio grande em telas com
+           pouco conteúdo). Sem linha/borda em cima e sem virar uma "caixa"
+           -- achado da Márcia, 21/ago/2026: nesse tipo de tela (cabeçalho
+           fixo, só o miolo rola), o vão vazio fica todo visível de uma vez
+           (não precisa rolar pra notar), então qualquer coisa que pareça
+           um bloco separado dentro desse vazio chama atenção à toa. Sem
+           borda, texto bem discreto -- passa quase despercebido. */
         .rodape-tumtu {
             text-align: center; padding: 16px 24px 14px; margin-top: 12px;
-            border-top: 1px solid var(--cor-borda);
         }
         /* Reduzido de 28/26px pra 16/14px (18/ago/2026, achado da Márcia:
            "achei que tá muito grande o cabeçalho" -- é rodapé, mas o
