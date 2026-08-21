@@ -184,7 +184,12 @@
            Mestre/Diretor comum -- é o mesmo bloco pros dois. margin-left
            reserva espaço pra barra lateral nova (210px) sem perder a
            centralização de antes em telas bem largas. */
-        .main { flex: 1; padding: 32px 24px; max-width: 1040px; width: 100%; margin-left: max(210px, calc((100vw - 1040px) / 2)); margin-right: auto; }
+        /* Centralizar de verdade tem que descontar a barra lateral fixa de
+           210px do cálculo -- achado da Márcia, 20/ago/2026, com print:
+           a conta antiga centralizava em cima da LARGURA TOTAL da tela,
+           então a barra lateral "roubava" espaço só do lado esquerdo,
+           sobrando mais respiro do lado direito. */
+        .main { flex: 1; padding: 32px 24px; max-width: 1040px; width: 100%; margin-left: max(210px, calc((100vw - 1040px + 210px) / 2)); margin-right: auto; }
 
         /* TÍTULO DE PAINEL (padrão super-admin) */
         .painel-titulo { font-size: 20px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 20px; }
@@ -807,7 +812,11 @@
         /* Área de conteúdo do Super Admin (Dashboard/Escolas/Config/Privacidade) —
            largura toda ao lado da barra lateral, não a coluna estreita centralizada
            que .main usa pro contexto de uma escola. */
-        .sa-main { flex: 1; padding: 28px 32px; margin-left: 210px; }
+        /* Mesmo padrão de .main (largura máxima + centralizado de verdade,
+           descontando a barra lateral) -- achado da Márcia, 20/ago/2026:
+           "a tela do super admin está esticada demais, prefiro como está
+           no admin". */
+        .sa-main { flex: 1; padding: 28px 32px; max-width: 1040px; width: 100%; margin-left: max(210px, calc((100vw - 1040px + 210px) / 2)); margin-right: auto; }
         .sa-painel { display: none; }
         .sa-painel.ativo { display: block; }
 
