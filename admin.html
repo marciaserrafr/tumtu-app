@@ -93,7 +93,26 @@
         .header-badge .hb-bateria { text-transform: uppercase; letter-spacing: 0.4px; }
         .header-badge .hb-sep { opacity: 0.7; }
         .header-acoes { display: flex; gap: 12px; align-items: center; }
-        .header-user { font-size: 13px; color: rgba(255,255,255,0.6); }
+        /* Bolinha de conta no cabeçalho -- substitui nome+cargo em texto,
+           pedido da Márcia, 21/ago/2026: "no lugar do nome do usuário...
+           bolinha, com as iniciais ou a foto", igual Instagram/Google/
+           WhatsApp. Redonda de propósito (diferente do quadrado usado nas
+           fotos de ficha/carteirinha) -- aqui é indicador de conta, não
+           dado sendo exibido, papel visual diferente. Borda dourada fixa
+           (cor da marca) em vez de se adaptar ao tema da escola -- mesma
+           lógica já usada na pílula "Minha Carteirinha": dourado fica
+           nítido em cima de qualquer cor de fundo, sem precisar calcular
+           contraste. Sempre visível (inclusive no celular, ao contrário
+           do texto antigo) -- é o único caminho pra "Meu Perfil" agora
+           que o item saiu do menu (ver comentário em #navAbasEscola). */
+        .header-avatar {
+            width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+            border: 2px solid #D4AF37; cursor: pointer; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            background: #12101a; color: #f5d778;
+            font-size: 13px; font-weight: 800;
+        }
+        .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .btn-sair { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
         .btn-sair:hover { background: rgba(255,255,255,0.08); }
         /* Botões do cabeçalho quando o tema da escola está ligado -- fundo
@@ -627,7 +646,7 @@
             .header { padding: 12px 16px; gap: 8px; }
             .header-marca { font-size: 18px; }
             .header-badge { font-size: 9px; }
-            .header-user { display: none; }
+            .header-avatar { width: 30px; height: 30px; font-size: 12px; }
             .btn-sair { font-size: 11px; padding: 5px 10px; }
 
             .main { padding: 16px 12px; }
@@ -1041,10 +1060,7 @@
         <div class="header-badge" id="headerBateria"><span id="headerEscolaNome" class="hb-escola"></span><span id="headerBateriaSep" class="hb-sep"> — </span><span id="headerBateriaNome" class="hb-bateria"></span></div>
     </div>
     <div class="header-acoes">
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;" id="headerNomeWrap">
-            <span class="header-user" id="headerNome"></span>
-            <span id="headerCargo" style="font-size:10px;color:rgba(212,175,55,0.6);letter-spacing:0.5px;text-transform:uppercase;"></span>
-        </div>
+        <div id="headerAvatarWrap" class="header-avatar" title="Meu Perfil"></div>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
@@ -1207,7 +1223,10 @@
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)"><span class="aba-ic">📊</span><span>Visão Geral</span></button>
     <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)"><span class="aba-ic">🥁</span><span>Ritmistas</span></button>
     <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)"><span class="aba-ic">🏆</span><span>Diretoria</span></button>
-    <button class="aba-btn" data-aba="meu-perfil" onclick="trocarAba('meu-perfil', this)"><span class="aba-ic">👤</span><span>Meu Perfil</span></button>
+    <!-- "Meu Perfil" saiu do menu -- pedido da Márcia, 21/ago/2026: a
+         bolinha de conta no cabeçalho (#headerAvatarWrap) já leva pra lá,
+         ter os dois caminhos era redundante e ocupava espaço à toa
+         (crítico no rodapé do celular). -->
     <button class="aba-btn-sa aba-btn" id="btnMais" data-aba="administrativo" onclick="onClickMais(this)" style="display:none"><span class="aba-ic">⋯</span><span>Mais</span><span class="aba-mais-seta" id="maisSeta">›</span></button>
     <!-- Só no computador: "Mais" abre um submenu ali mesmo na barra lateral
          em vez de navegar pra uma tela própria -- pedido da Márcia,
@@ -2550,10 +2569,6 @@
         if (headerEsquerda) headerEsquerda.classList.remove('com-logo-escola');
         const badge = document.getElementById('headerBateria');
         if (badge) { badge.style.color = ''; badge.style.textShadow = ''; }
-        const nome = document.getElementById('headerNome');
-        if (nome) { nome.style.color = ''; nome.style.opacity = ''; nome.style.textShadow = ''; }
-        const cargo = document.getElementById('headerCargo');
-        if (cargo) { cargo.style.color = ''; cargo.style.opacity = ''; }
         const btnSair = document.querySelector('.btn-sair');
         if (btnSair) btnSair.classList.remove('btn-header-tematico');
     }
@@ -2621,17 +2636,11 @@
             const badge = document.getElementById('headerBateria');
             badge.style.color = corTexto;
             badge.style.textShadow = sombra;
-            const nome = document.getElementById('headerNome');
-            nome.style.color = corTexto;
-            nome.style.opacity = '0.85';
-            nome.style.textShadow = sombra;
-            document.getElementById('headerCargo').style.color = corTexto;
-            document.getElementById('headerCargo').style.opacity = '0.7';
 
-            // "Minha Carteirinha" já é a pílula dourada de ação principal
-            // (mesmo padrão de botão primário do resto do app) -- dourado já
-            // fica nítido em cima de qualquer cor, não precisa de ajuste.
-            // Só "Sair" (ação secundária) ganha fundo sólido claro em vez de
+            // A bolinha de conta (#headerAvatarWrap) e "Minha Carteirinha" já
+            // são dourado sólido (mesmo padrão de botão primário do resto do
+            // app) -- dourado fica nítido em cima de qualquer cor, não precisa
+            // de ajuste. Só "Sair" (ação secundária) ganha fundo sólido claro em vez de
             // contorno translúcido -- era o que estava "sem graça"/pouco
             // nítido antes, e os dois botões ficavam parecidos demais em
             // cor e peso (achado da Márcia, 18/ago/2026).
@@ -2715,6 +2724,21 @@
         }
     }
 
+    // Bolinha de conta no cabeçalho -- foto real se tiver (mesmo campo usado
+    // na ficha/carteirinha), senão iniciais do nome. Cores fixas (fundo
+    // escuro + borda dourada), não muda com o tema da escola.
+    function renderizarAvatarHeader(usuario) {
+        const el = document.getElementById('headerAvatarWrap');
+        if (!el) return;
+        if (usuario.foto_url) {
+            el.innerHTML = `<img src="${usuario.foto_url}" alt="">`;
+            return;
+        }
+        const partes = (usuario.nome || '').trim().split(/\s+/).filter(Boolean);
+        const iniciais = partes.length > 1 ? (partes[0][0] + partes[partes.length - 1][0]) : (partes[0] ? partes[0][0] : '?');
+        el.textContent = iniciais.toUpperCase();
+    }
+
     async function iniciarUsuario() {
         const usuario = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!usuario) { window.location.href = 'login.html'; return; }
@@ -2724,10 +2748,8 @@
         // no contexto de uma escola até escolher uma em "Escolas".
         if (usuario.perfil === 'super_admin') {
             souSuperAdmin = true;
-            document.getElementById('headerNome').textContent = usuario.nome || 'Super Admin';
-            document.getElementById('headerNomeWrap').style.cursor = 'pointer';
-            document.getElementById('headerNomeWrap').onclick = abrirMeuPerfilSA;
-            document.getElementById('headerNomeWrap').title = 'Meu Perfil';
+            renderizarAvatarHeader({ nome: usuario.nome || 'Super Admin', foto_url: usuario.foto_url });
+            document.getElementById('headerAvatarWrap').onclick = abrirMeuPerfilSA;
             ajustarAlturaHeaderAdmin();
             // Mesmo spinner das outras transições de tela hoje -- sem isso,
             // o Dashboard nascia com o título "Baterias" sozinho na tela
@@ -2773,12 +2795,8 @@
         document.getElementById('overlayCarregandoEscola').classList.add('visivel');
 
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
-        document.getElementById('headerNome').textContent = usuario.nome || 'Admin';
-        const perfil = usuario.perfil || '';
-        const femininoAdmin = usuario.genero === 'feminino';
-        const cargoLabel = perfil === 'mestre' ? (femininoAdmin ? 'Mestra de Bateria' : 'Mestre de Bateria')
-            : perfil === 'diretor' ? (femininoAdmin ? 'Diretora' : 'Diretor') : '';
-        document.getElementById('headerCargo').textContent = cargoLabel;
+        renderizarAvatarHeader({ nome: usuario.nome || 'Admin', foto_url: usuario.foto_url });
+        document.getElementById('headerAvatarWrap').onclick = () => trocarAba('meu-perfil', null);
         await carregarBibliotecaInstrumentos();
         await carregarBateriaInstrumentos();
         construirMultiSelect();
@@ -3273,7 +3291,7 @@
         const abaAtivaEl = document.querySelector('#navAbasEscola .aba-btn.ativa');
         const abaAtivaEscondida = abaAtivaEl && abaAtivaEl.style.display === 'none';
         if (abaAtivaEscondida || !abaAtivaEl) {
-            trocarAba(primeiraVisivel || 'meu-perfil', document.querySelector(`.aba-btn[data-aba="${primeiraVisivel || 'meu-perfil'}"]`));
+            trocarAba(primeiraVisivel || 'meu-perfil', primeiraVisivel ? document.querySelector(`.aba-btn[data-aba="${primeiraVisivel}"]`) : null);
         }
     }
 
@@ -3518,7 +3536,6 @@
         document.getElementById('btnVoltarEscolasNav').style.display = 'flex';
         document.querySelectorAll('.aba-btn-sa').forEach(el => el.style.display = '');
         document.getElementById('headerBateriaSep').style.display = '';
-        document.getElementById('headerCargo').textContent = 'Super Admin';
 
         await carregarBibliotecaInstrumentos();
         await carregarBateriaInstrumentos();
@@ -3569,7 +3586,7 @@
     // Escolas/Configurações/Privacidade), abre Meu Perfil "avulso".
     function abrirMeuPerfilSA() {
         if (!souSuperAdmin) return;
-        if (dentroDeEscolaSA) { trocarAba('meu-perfil', document.querySelector('.aba-btn[data-aba="meu-perfil"]')); return; }
+        if (dentroDeEscolaSA) { trocarAba('meu-perfil', null); return; }
         meuPerfilSoloSA = true;
         document.getElementById('saSidebar').style.display = 'none';
         document.getElementById('saMain').style.display = 'none';
