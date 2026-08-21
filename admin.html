@@ -123,8 +123,16 @@
            panos). */
         .btn-header-tematico { background: rgba(255,255,255,0.94) !important; border-color: transparent !important; color: #12101a !important; font-weight: 700 !important; }
         .btn-header-tematico:hover { background: #ffffff !important; }
+        /* margin-top:auto -- empurra o rodapé pro fim de .main/.sa-main
+           (que agora são flex-column). Antes o rodapé só existia logo
+           depois do conteúdo, então em telas com pouca lista ele "flutuava"
+           no meio da tela em vez de ficar grudado embaixo -- achado da
+           Márcia, 21/ago/2026: "ele anda conforme a tela ser curta ou
+           comprida". Com pouco conteúdo, o rodapé gruda no fim da área
+           visível; com lista longa, continua no fim natural do conteúdo
+           (rola junto, nunca sobrepõe nada). */
         .rodape-tumtu {
-            text-align: center; padding: 16px 24px 14px; margin-top: 12px;
+            text-align: center; padding: 16px 24px 14px; margin-top: auto;
             border-top: 1px solid var(--cor-borda);
         }
         /* Reduzido de 28/26px pra 16/14px (18/ago/2026, achado da Márcia:
@@ -207,7 +215,7 @@
            somava por cima, estourando a borda direita -- achado ao testar
            numa janela de ~1280px). Trocado por width:min(...), que nunca
            deixa o conteúdo passar do espaço disponível ao lado da barra. */
-        .main { flex: 1; padding: 32px 24px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); }
+        .main { flex: 1; padding: 32px 24px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); display: flex; flex-direction: column; }
 
         /* TÍTULO DE PAINEL (padrão super-admin) */
         .painel-titulo { font-size: 20px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 20px; }
@@ -829,7 +837,7 @@
 
         /* Mesmo padrão de .main -- 1200px máximo, centralizado de verdade,
            sem nunca estourar a tela (ver comentário completo em .main). */
-        .sa-main { flex: 1; padding: 28px 32px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); }
+        .sa-main { flex: 1; padding: 28px 32px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); display: flex; flex-direction: column; }
         .sa-painel { display: none; }
         .sa-painel.ativo { display: block; }
 
@@ -968,25 +976,6 @@
         @media (prefers-reduced-motion: reduce) {
             .spinner-mini { animation-duration: 2.2s; }
         }
-
-        /* Botão "← Escolas", só aparece pra Super Admin dentro do contexto de
-           uma escola. Não pode morar nem no cabeçalho (pega a cor da escola,
-           ilegível) nem na barra de abas (a Márcia apontou, 19/ago/2026, que
-           precisa ver a tela o mais parecida possível com a visão real do
-           Diretor -- que nunca tem esse botão). Tentativa de sobrepor no
-           canto superior esquerdo foi descartada (cobria a logo da escola,
-           que sempre mora ali) -- vira um botão flutuante no canto inferior
-           esquerdo, mesmo princípio de FAB (botão de ação flutuante) usado
-           em apps: fora do cabeçalho e da barra de abas, num canto que
-           nenhuma outra coisa da tela ocupa.  */
-        .pilula-voltar-escolas {
-            position: fixed; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); left: 16px; z-index: 200;
-            background: rgba(18,16,26,0.85); color: #fff; border: none;
-            padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 700;
-            font-family: inherit; cursor: pointer; backdrop-filter: blur(6px);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.35);
-        }
-        .pilula-voltar-escolas:hover { background: rgba(18,16,26,0.95); }
 
         @media (max-width: 560px) {
             .sa-sidebar {
@@ -1200,6 +1189,18 @@
         </div>
     </div>
 
+    <!-- MEU PERFIL (Super Admin, fora do contexto de uma escola) -- pedido
+         da Márcia, 21/ago/2026: clicar na bolinha de conta tinha um
+         comportamento diferente aqui (escondia a barra lateral toda,
+         mostrava um "‹ Voltar" flutuante) do que dentro de uma escola
+         (só troca de conteúdo, barra continua). Agora os dois se comportam
+         igual: vira só mais um painel do Super Admin, mesmo padrão de
+         Dashboard/Escolas/Configurações/Privacidade. -->
+    <div class="sa-painel" id="sa-painel-meu-perfil">
+        <div class="painel-titulo">Meu Perfil</div>
+        <div id="fp-container-sa-meuperfil"></div>
+    </div>
+
     <footer class="rodape-tumtu">
         <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
         <span class="rodape-tagline">Sistema de gestão de bateria</span>
@@ -1243,12 +1244,6 @@
          do cabeçalho (avaliação minha, 20/ago/2026). -->
     <button id="btnVoltarEscolasNav" type="button" class="nav-abas-voltar" onclick="voltarParaEscolasSA()" style="display:none"><span class="aba-ic">🏫</span><span>Escolas</span></button>
 </nav>
-
-<!-- Pílula flutuante -- só usada quando o Super Admin está no "Meu Perfil"
-     solo (fora do contexto de qualquer escola, #navAbasEscola escondida)
-     -- ver meuPerfilSoloSA(). Sem conflito de posição com o menu novo
-     porque o menu não existe nesse estado específico. -->
-<button id="btnVoltarEscolasHeader" class="pilula-voltar-escolas" onclick="voltarParaEscolasSA()" style="display:none">‹ Voltar</button>
 
 <div class="main" id="mainEscola" style="display:none">
 
@@ -2834,7 +2829,7 @@
         aplicarGatingBotoesExportar();
 
         document.getElementById('navAbasEscola').style.display = 'flex';
-        document.getElementById('mainEscola').style.display = 'block';
+        document.getElementById('mainEscola').style.display = 'flex';
         ajustarAlturaNavMobile();
         carregarRitmistas();
 
@@ -3228,7 +3223,6 @@
     // ══════════════════════════════════════════════════════════════════
     let souSuperAdmin = false;
     let dentroDeEscolaSA = false;
-    let meuPerfilSoloSA = false;
     let saAbaAtual = 'dashboard';
     let escolaSelecionadaId = null;
     let escolaAtualData = null;
@@ -3469,13 +3463,11 @@
     // ══════════════════════════════════════════════════════════════════
     function mostrarShellSA() {
         dentroDeEscolaSA = false;
-        meuPerfilSoloSA = false;
         resetTemaHeaderPadrao();
         document.getElementById('saSidebar').style.display = 'flex';
-        document.getElementById('saMain').style.display = 'block';
+        document.getElementById('saMain').style.display = 'flex';
         document.getElementById('navAbasEscola').style.display = 'none';
         document.getElementById('mainEscola').style.display = 'none';
-        document.getElementById('btnVoltarEscolasHeader').style.display = 'none';
         document.getElementById('btnVoltarEscolasNav').style.display = 'none';
         document.getElementById('headerEscolaNome').textContent = '';
         document.getElementById('headerBateriaSep').style.display = 'none';
@@ -3500,6 +3492,23 @@
         if (aba === 'escolas') return carregarEscolas();
         if (aba === 'privacidade') return carregarPrivacidade();
         if (aba === 'configuracoes-globais') return voltarConfigListaSA();
+        if (aba === 'meu-perfil') return iniciarMeuPerfilSaAba();
+    }
+
+    // Meu Perfil do Super Admin, fora do contexto de uma escola -- mesmo
+    // conteúdo/motor único de iniciarMeuPerfilAba(), só que montado no
+    // container próprio do Super Admin (#fp-container-sa-meuperfil), já
+    // que #saMain e #mainEscola são blocos irmãos independentes.
+    async function iniciarMeuPerfilSaAba() {
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        if (!u) return;
+        const container = document.getElementById('fp-container-sa-meuperfil');
+        await fpMontar(container);
+        fpIniciar(u, u.perfil, u.pessoa_id);
+        container.querySelector('#fp-ver-carteirinha').innerHTML =
+            u.status === 'aprovado'
+                ? `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${u.id})">Ver carteirinha ↗</button>`
+                : '';
     }
 
     // Entra no contexto de uma escola -- reaproveita 100% o que admin.html já
@@ -3511,7 +3520,6 @@
         window.scrollTo(0, 0);
         escolaSelecionadaId = escolaId;
         dentroDeEscolaSA = true;
-        meuPerfilSoloSA = false;
 
         // Spinner dourado cobre a tela enquanto busca a cor/logo real da
         // escola -- sem isso, o cabeçalho nascia preto/TumTu por um instante
@@ -3531,8 +3539,7 @@
         document.getElementById('saSidebar').style.display = 'none';
         document.getElementById('saMain').style.display = 'none';
         document.getElementById('navAbasEscola').style.display = 'flex';
-        document.getElementById('mainEscola').style.display = 'block';
-        document.getElementById('btnVoltarEscolasHeader').style.display = 'none';
+        document.getElementById('mainEscola').style.display = 'flex';
         document.getElementById('btnVoltarEscolasNav').style.display = 'flex';
         document.querySelectorAll('.aba-btn-sa').forEach(el => el.style.display = '');
         document.getElementById('headerBateriaSep').style.display = '';
@@ -3569,7 +3576,6 @@
 
     function voltarParaEscolasSA() {
         window.scrollTo(0, 0);
-        if (meuPerfilSoloSA) { mostrarShellSA(); trocarSaAba(saAbaAtual, document.querySelector('.sa-sidebar-item[data-sa="' + saAbaAtual + '"]')); return; }
         escolaSelecionadaId = null; escolaAtualData = null; bateriaAtualData = null;
         mostrarShellSA();
         trocarSaAba('escolas', document.querySelector('.sa-sidebar-item[data-sa="escolas"]'));
@@ -3581,22 +3587,17 @@
         trocarAba('diretoria', document.querySelector('.aba-btn[data-aba="diretoria"]'));
     }
 
-    // Clicar no nome no cabeçalho abre Meu Perfil -- se já estiver dentro de
-    // uma escola, só troca de aba; se estiver no painel geral (Dashboard/
-    // Escolas/Configurações/Privacidade), abre Meu Perfil "avulso".
+    // Clicar na bolinha de conta abre Meu Perfil -- mesmo comportamento nos
+    // dois contextos (achado da Márcia, 21/ago/2026: "quando estou no super
+    // admin... some tudo do menu... eu prefiro o primeiro comportamento
+    // para os dois"): dentro de uma escola, só troca de aba (barra
+    // continua); no painel geral (Dashboard/Escolas/Configurações/
+    // Privacidade), vira só mais uma aba da barra lateral do Super Admin,
+    // que também continua visível -- nunca mais esconde a barra inteira.
     function abrirMeuPerfilSA() {
         if (!souSuperAdmin) return;
         if (dentroDeEscolaSA) { trocarAba('meu-perfil', null); return; }
-        meuPerfilSoloSA = true;
-        document.getElementById('saSidebar').style.display = 'none';
-        document.getElementById('saMain').style.display = 'none';
-        document.getElementById('navAbasEscola').style.display = 'none';
-        document.getElementById('mainEscola').style.display = 'block';
-        document.getElementById('btnVoltarEscolasHeader').textContent = '‹ Voltar';
-        document.getElementById('btnVoltarEscolasHeader').style.display = 'block';
-        document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
-        document.getElementById('painel-meu-perfil').classList.add('ativo');
-        iniciarMeuPerfilAba();
+        trocarSaAba('meu-perfil', null);
     }
 
     // ══════════════════════════════════════════════════════════════════
