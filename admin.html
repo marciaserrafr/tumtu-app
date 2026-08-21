@@ -3238,10 +3238,15 @@
                 const semVaga = !bi.vagas || bi.vagas === 0;
                 const excedeu = !semVaga && atual > bi.vagas;
                 const completo = !semVaga && atual === bi.vagas;
+                // "Faltam N" -- mesmo sinalizador discreto da Visão Geral
+                // (21/ago/2026), reaproveitado aqui: só aparece com vaga
+                // definida e ainda não preenchida. Bateu o número, some --
+                // a pílula verde de "completo" já avisa sozinha.
+                const faltam = (!semVaga && atual < bi.vagas) ? (bi.vagas - atual) : 0;
                 return `
                 <div class="item-card">
                     <div class="item-info">
-                        <div class="item-nome">${nomeExibicaoBateriaInstrumento(bi)}</div>
+                        <div class="item-nome">${nomeExibicaoBateriaInstrumento(bi)}${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}</div>
                     </div>
                     <div class="item-acoes">
                         <span class="config-vaga-contagem${(excedeu || semVaga) ? ' excedeu' : completo ? ' completo' : ''}">${atual}</span>
