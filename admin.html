@@ -14,7 +14,7 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=15">
+    <link rel="stylesheet" href="styles/components.css?v=16">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="ficha-perfil.js?v=17"></script>
     <style>
@@ -254,6 +254,20 @@
         .cadastro-cabecalho:hover { background: #fafafa; }
         .cadastro-cabecalho-titulo { display: flex; align-items: center; gap: 8px; }
         .cadastro-cabecalho-tracinho { display: inline-block; width: 3px; height: 14px; background: #12101a; flex-shrink: 0; }
+
+        /* "Exportar" (Ritmistas/Diretoria) -- estava borda #ccc + texto #666,
+           lia como desabilitado (achado da Márcia, 20/ago/2026: função
+           importante pra gestão, mas "meio apagado"). Continua botão
+           secundário (só borda, sem fundo sólido -- ação principal da tela
+           é "Novo cadastro") mas com contraste de verdade. */
+        .btn-exportar {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: transparent; border: 1.5px solid var(--cor-texto-principal);
+            color: var(--cor-texto-principal); padding: 9px 16px; border-radius: 8px;
+            cursor: pointer; font-size: 13px; font-weight: 700;
+            transition: background 0.15s;
+        }
+        .btn-exportar:hover { background: #f5f4f8; }
 
         /* VISÃO GERAL */
         .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
@@ -1009,7 +1023,6 @@
             <span class="header-user" id="headerNome"></span>
             <span id="headerCargo" style="font-size:10px;color:rgba(212,175,55,0.6);letter-spacing:0.5px;text-transform:uppercase;"></span>
         </div>
-        <button id="btnMinhaCarteirinhaHeader" onclick="window.location.href='carteirinha.html?voltar=admin'" style="background:#D4AF37;border:none;color:#12101a;padding:5px 15px;border-radius:999px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;">Minha Carteirinha</button>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
@@ -1253,7 +1266,7 @@
     <div class="painel-titulo">Ritmistas</div>
 
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-        <button id="btnExportarRitmistas" onclick="abrirModalExportar('ritmistas')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar</button>
+        <button id="btnExportarRitmistas" class="btn-exportar" onclick="abrirModalExportar('ritmistas')">⬇ Exportar</button>
     </div>
 
     <!-- "Cadastro" recolhido -- pedido da Márcia, 20/ago/2026: "não vamos
@@ -1411,7 +1424,7 @@
 <div class="painel" id="painel-diretoria">
     <div class="painel-titulo">Diretoria</div>
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-        <button id="btnExportarDiretoria" onclick="abrirModalExportar('diretoria')" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #ccc;color:#666;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">⬇ Exportar</button>
+        <button id="btnExportarDiretoria" class="btn-exportar" onclick="abrirModalExportar('diretoria')">⬇ Exportar</button>
     </div>
     <!-- "Cadastro" recolhido -- mesmo padrão de Ritmistas, 20/ago/2026.
          Links de cadastro (era a aba "Convites", incorporado aqui em
@@ -3389,7 +3402,6 @@
         document.getElementById('headerEscolaNome').textContent = '';
         document.getElementById('headerBateriaSep').style.display = 'none';
         document.getElementById('headerBateriaNome').textContent = 'Super Admin';
-        document.getElementById('btnMinhaCarteirinhaHeader').style.display = 'none';
     }
 
     function trocarSaAba(aba, el) {
@@ -3444,7 +3456,6 @@
         document.getElementById('mainEscola').style.display = 'block';
         document.getElementById('btnVoltarEscolasHeader').style.display = 'none';
         document.getElementById('btnVoltarEscolasNav').style.display = 'flex';
-        document.getElementById('btnMinhaCarteirinhaHeader').style.display = 'none';
         document.querySelectorAll('.aba-btn-sa').forEach(el => el.style.display = '');
         document.getElementById('headerBateriaSep').style.display = '';
         document.getElementById('headerCargo').textContent = 'Super Admin';
@@ -4508,6 +4519,15 @@
 
         await fpMontar(document.getElementById('fp-container-meuperfil'));
         fpIniciar(u, u.perfil, u.pessoa_id);
+
+        // "Ver carteirinha" -- mesmo padrão da ficha de Ritmista/Diretoria,
+        // pedido da Márcia, 20/ago/2026: "é praticamente o mesmo modelo de
+        // formulário, já ficaria como padrão". Só quem está Ativo tem
+        // carteirinha pra ver.
+        document.getElementById('fp-container-meuperfil').querySelector('#fp-ver-carteirinha').innerHTML =
+            u.status === 'aprovado'
+                ? `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${u.id})">Ver carteirinha ↗</button>`
+                : '';
     }
 
     // ── DIRETORIA ─────────────────────────────────────────────────────────────

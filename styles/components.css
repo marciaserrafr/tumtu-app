@@ -221,6 +221,12 @@
    cima de fundo branco) em qualquer ficha aberta fora do carteirinha.html. */
 .ficha-modal-titulo { font-size: 18px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 4px; }
 .ficha-modal-sub { font-size: 13px; color: var(--cor-texto-secundario); margin-bottom: 16px; }
+/* "Ver carteirinha" ao lado do nome, não mais no fim da ficha -- pedido da
+   Márcia, 20/ago/2026: "ficaria aí em cima para todo mundo" (achado com ela
+   testando "Meu Perfil": botão só no fim da ficha exigia rolar tudo pra
+   achar). Mesmo motor único (ficha-perfil.partial.html) -- vale pra
+   Ritmista, Diretoria e Meu Perfil de uma vez, sem duplicar lógica. */
+.ficha-modal-header-linha { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 /* Fixa (sticky) no rodapé da tela, em vez de só no fim do conteúdo --
    sem isso, ajustar um campo (ex: arrastar a foto) lá no topo da ficha
    exigia rolar até o fim só pra achar "Salvar" (achado da Márcia,
