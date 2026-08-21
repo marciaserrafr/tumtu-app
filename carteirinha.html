@@ -257,7 +257,7 @@
 
 <div class="c-toast" id="cToast"></div>
 
-<script src="ficha-perfil.js?v=17" defer></script>
+<script src="ficha-perfil.js?v=18" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
@@ -294,9 +294,13 @@
             : 'Ritmista';
         // Cargo e instrumento viraram uma linha só sobre a foto (ex: "Ritmista · Caixa") —
         // Mestre/Diretor não têm instrumento, então ficam sozinhos, sem o "·" solto.
+        // Repique de Bossa (grupo especial dentro do Repique, não é
+        // instrumento de verdade na biblioteca) substitui o nome do
+        // instrumento quando marcado -- decisão da Márcia, 21/ago/2026.
+        const nomeInstrumentoExibido = ritmista.repique_bossa ? 'Repique de Bossa' : ritmista.instrumento_nome;
         document.getElementById('cRole').textContent =
-            (perfil === 'ritmista' && ritmista.instrumento_nome)
-                ? labelCargo + ' · ' + ritmista.instrumento_nome
+            (perfil === 'ritmista' && nomeInstrumentoExibido)
+                ? labelCargo + ' · ' + nomeInstrumentoExibido
                 : labelCargo;
 
         document.getElementById('nomeRitmista').textContent = ritmista.nome;

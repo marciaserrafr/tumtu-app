@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=16">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=17"></script>
+    <script src="ficha-perfil.js?v=18"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -1375,6 +1375,7 @@
                 <label class="multi-select-option"><input type="checkbox" value="aprovado" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
                 <label class="multi-select-option"><input type="checkbox" value="desligado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
                 <label class="multi-select-option"><input type="checkbox" value="menor" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#5b21b6;margin:0 4px;"></span>Menores</label>
+                <label class="multi-select-option"><input type="checkbox" value="repique_bossa" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0d9488;margin:0 4px;"></span>Repique de Bossa</label>
                 <label class="multi-select-option"><input type="checkbox" value="pendente" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
                 <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
                 <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
@@ -1881,7 +1882,7 @@
         // não tem checkbox pra ele, então não faria sentido sumir.
         let lista = todosRitmistas.filter(r => {
             const idade = calcularIdade(r.nascimento);
-            const statusOk = filtroStatusSelecionados.some(f => f === 'menor' ? (idade !== null && idade < 18) : r.status === f);
+            const statusOk = filtroStatusSelecionados.some(f => f === 'menor' ? (idade !== null && idade < 18) : f === 'repique_bossa' ? !!r.repique_bossa : r.status === f);
             const instrumentoOk = !r.bateria_instrumento_id || filtroInstrumentosSelecionados.includes(r.bateria_instrumento_id);
             return statusOk && instrumentoOk;
         });
@@ -1968,7 +1969,7 @@
                         ${aniversarioMes ? '<span title="Aniversário este mês" style="flex-shrink:0;">🎂</span>' : ''}
                     </div>
                     <div class="card-linha2">
-                        <span class="pill-instrumento">🥁 ${r.instrumento_nome || '—'}</span>
+                        <span class="pill-instrumento">🥁 ${r.repique_bossa ? 'Repique de Bossa' : (r.instrumento_nome || '—')}</span>
                         ${menor ? `<span class="badge badge-menor">Menor · ${idade}a</span>` : ''}
                     </div>
                 </div>
@@ -2089,7 +2090,7 @@
     // Mesmos rótulos do filtro de status da lista (era só um objeto solto
     // dentro de onChangeStatus()) -- reaproveitado agora também no filtro
     // "Quem exportar" do modal de Excel, pra não duplicar a lista de novo.
-    const LABELS_STATUS_FILTRO = { pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', desligado: 'Desligados', rejeitado: 'Rejeitados', menor: 'Menores' };
+    const LABELS_STATUS_FILTRO = { pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', desligado: 'Desligados', rejeitado: 'Rejeitados', menor: 'Menores', repique_bossa: 'Repique de Bossa' };
     // Mesmos campos/labels já usados no export de Diretoria do Super Admin
     // (super-admin.html) -- só falta essa opção existir aqui também.
     const CAMPOS_EXPORTAVEIS_DIRETORIA = [
@@ -4814,6 +4815,11 @@
                 : '';
             const direita = `${acoesExtras}${badgeStatus}<span class="card-chevron">›</span>`;
 
+            // Selo de Naipe só pra Diretor (é atributo dele, ver
+            // fpResolverSeloNaipe em ficha-perfil.js) -- só no painel, nunca
+            // na carteirinha (decisão da Márcia, 21/ago/2026).
+            const seloNaipe = a.perfil === 'diretor' ? fpResolverSeloNaipe(a.naipe) : null;
+
             return `
             <div class="card-ritmista ${a.status}" onclick="abrirFichaAdmin(${a.id})">
                 <div class="card-foto">${fotoHtml}</div>
@@ -4824,6 +4830,7 @@
                     </div>
                     <div class="card-linha2">
                         <span class="dir-badge-cargo">${cargo}</span>
+                        ${seloNaipe ? `<span class="pill-instrumento">🥁 ${seloNaipe}</span>` : ''}
                     </div>
                 </div>
                 <div class="card-direita">${direita}</div>

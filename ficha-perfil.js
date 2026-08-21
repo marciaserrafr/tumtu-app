@@ -71,7 +71,24 @@ let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: nu
 const FP_CAMPO_TABELA = {
     membro_desde: 'vinculos', bateria_instrumento_id: 'vinculos',
     tamanho_camisa: 'vinculos', tamanho_fantasia: 'vinculos', tamanho_calca: 'vinculos', tamanho_sapato: 'vinculos',
+    naipe: 'vinculos', repique_bossa: 'vinculos',
 };
+
+// Naipe (Diretor) guarda os instrumentos marcados como array de nomes --
+// aqui só resolve pra um selo único, seguindo a regra combinada com a
+// Márcia em 21/ago/2026: Primeira+Segunda vira "Surdo de Marcação",
+// qualquer combinação de 2+ variantes de Repique vira só "Repique", uma
+// opção sozinha (inclusive "Especiais") mostra o nome literal.
+const FP_NAIPE_SURDO_MARCACAO = ['Surdo de Primeira', 'Surdo de Segunda'];
+const FP_NAIPE_REPIQUE = ['Repique', 'Repique Mor', 'Repique de Bossa'];
+function fpResolverSeloNaipe(naipe) {
+    const lista = Array.isArray(naipe) ? naipe.filter(Boolean) : [];
+    if (lista.length === 0) return null;
+    if (lista.length === 1) return lista[0];
+    if (lista.length >= 2 && lista.every(n => FP_NAIPE_SURDO_MARCACAO.includes(n))) return 'Surdo de Marcação';
+    if (lista.length >= 2 && lista.every(n => FP_NAIPE_REPIQUE.includes(n))) return 'Repique';
+    return lista.join(', ');
+}
 function fpTabelaDoCampo(col) {
     return FP_CAMPO_TABELA[col] || 'pessoas';
 }
@@ -87,19 +104,23 @@ function fpEl(id) {
 // Tabela A (autoedição) + Tabela B (editando outra pessoa) — fonte única.
 function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
     if (atorPerfil === 'super_admin') {
-        return new Set(FP_CAMPOS.map(c => c.col).concat(['foto_url', 'bateria_instrumento_id']));
+        return new Set(FP_CAMPOS.map(c => c.col).concat(['foto_url', 'bateria_instrumento_id', 'naipe', 'repique_bossa']));
     }
 
     if (autoedicao) {
         const base = ['foto_url', 'nome', 'apelido', 'genero', 'genero_personalizado', 'celular', 'endereco', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'pais', 'emergencia_nome', 'emergencia_parentesco', 'emergencia_celular'];
-        if (atorPerfil === 'diretor' || atorPerfil === 'mestre') {
+        if (atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') {
             base.push('tamanho_camisa', 'tamanho_fantasia', 'tamanho_calca', 'tamanho_sapato');
         }
+        // Naipe é atributo só de Diretor -- autoeditado por enquanto (não
+        // existe ainda uma capacidade "editar outro Mestre/Diretor/Apoio"
+        // no sistema pra liberar isso pra outra pessoa também).
+        if (atorPerfil === 'diretor') base.push('naipe');
         return new Set(base);
     }
 
-    if ((atorPerfil === 'diretor' || atorPerfil === 'mestre') && alvoPerfil === 'ritmista') {
-        return new Set(['bateria_instrumento_id', 'tamanho_camisa', 'tamanho_fantasia', 'tamanho_calca', 'tamanho_sapato']);
+    if ((atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') && alvoPerfil === 'ritmista') {
+        return new Set(['bateria_instrumento_id', 'repique_bossa', 'tamanho_camisa', 'tamanho_fantasia', 'tamanho_calca', 'tamanho_sapato']);
     }
 
     return new Set();
@@ -107,7 +128,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=20');
+        const res = await fetch('ficha-perfil.partial.html?v=21');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -236,6 +257,24 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
 
     fpEl('fp-secao-instrumento').style.display = alvo.perfil === 'ritmista' ? '' : 'none';
     fpEl('fp-instrumento').textContent = alvo.instrumento_nome || '—';
+
+    // Repique de Bossa só existe pra Ritmista de Repique/Repique Mor -- some
+    // a linha inteira pro resto (mesmo critério já usado em Documento/
+    // Responsável/"Como se identifica" acima).
+    const blocoRepiqueBossa = fpEl('fp-bloco-repique-bossa');
+    if (blocoRepiqueBossa) {
+        const ehRepiqueVariante = alvo.instrumento_nome === 'Repique' || alvo.instrumento_nome === 'Repique Mor';
+        blocoRepiqueBossa.style.display = (alvo.perfil === 'ritmista' && ehRepiqueVariante) ? '' : 'none';
+        fpEl('fp-repique-bossa').textContent = alvo.repique_bossa ? 'Sim' : 'Não';
+    }
+
+    // Naipe só existe pra Diretor -- mesmo critério de esconder a seção
+    // inteira pra quem não se aplica.
+    const secaoNaipe = fpEl('fp-secao-naipe');
+    if (secaoNaipe) {
+        secaoNaipe.style.display = alvo.perfil === 'diretor' ? '' : 'none';
+        fpEl('fp-naipe').textContent = fpResolverSeloNaipe(alvo.naipe) || '—';
+    }
     // Escondida por padrão mesmo em autoedição — só aparece dentro do modo
     // "Editar" (ver fpAtivarEdicao/fpCancelarEdicao), pra ter o mesmo
     // comportamento do resto da ficha (achado 21/jul/2026: antes ficava
@@ -329,6 +368,27 @@ async function fpAtivarEdicao() {
         select.style.display = 'block';
     }
 
+    if (fpEstado.editaveis.has('repique_bossa')) {
+        fpEl('fp-repique-bossa-edit').checked = !!fpEstado.alvo.repique_bossa;
+        fpEl('fp-repique-bossa').style.display = 'none';
+        fpEl('fp-repique-bossa-edit').closest('label').style.display = 'flex';
+    }
+
+    if (fpEstado.editaveis.has('naipe')) {
+        const container = fpEl('fp-naipe-edit');
+        const opcoesInstrumento = await fpCarregarOpcoesInstrumento(fpEstado.alvo.bateria_id);
+        const nomes = Array.from(new Set(opcoesInstrumento.map(o => o.nome)));
+        nomes.push('Repique de Bossa', 'Especiais');
+        const selecionados = new Set(Array.isArray(fpEstado.alvo.naipe) ? fpEstado.alvo.naipe : []);
+        container.innerHTML = nomes.map(n => `
+            <label style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                <input type="checkbox" class="fp-naipe-check" value="${n}" ${selecionados.has(n) ? 'checked' : ''} style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;">
+                <span style="font-size:13px;">${n}</span>
+            </label>`).join('');
+        fpEl('fp-naipe').style.display = 'none';
+        container.style.display = 'block';
+    }
+
     if (FP_CAMPOS_MEDIDA.some(c => fpEstado.editaveis.has(c.col))) {
         const opcoesMedidas = await fpCarregarOpcoesMedidas(fpEstado.alvo.bateria_id);
         FP_CAMPOS_MEDIDA.forEach(({ col, tipo, id }) => {
@@ -377,6 +437,14 @@ function fpCancelarEdicao() {
     if (fpEstado.editaveis.has('bateria_instrumento_id')) {
         fpEl('fp-instrumento').style.display = '';
         fpEl('fp-instrumento-edit').style.display = 'none';
+    }
+    if (fpEstado.editaveis.has('repique_bossa')) {
+        fpEl('fp-repique-bossa').style.display = '';
+        fpEl('fp-repique-bossa-edit').closest('label').style.display = 'none';
+    }
+    if (fpEstado.editaveis.has('naipe')) {
+        fpEl('fp-naipe').style.display = '';
+        fpEl('fp-naipe-edit').style.display = 'none';
     }
     fpEl('fp-secao-senha').style.display = 'none';
     fpEl('fp-senha-nova').value = '';
@@ -539,6 +607,12 @@ async function fpSalvar() {
     if (fpEstado.editaveis.has('bateria_instrumento_id')) {
         const val = fpEl('fp-instrumento-edit').value;
         payloadVinculo.bateria_instrumento_id = val ? Number(val) : null;
+    }
+    if (fpEstado.editaveis.has('repique_bossa')) {
+        payloadVinculo.repique_bossa = fpEl('fp-repique-bossa-edit').checked;
+    }
+    if (fpEstado.editaveis.has('naipe')) {
+        payloadVinculo.naipe = Array.from(fpEstado.container.querySelectorAll('.fp-naipe-check:checked')).map(el => el.value);
     }
     if (fpFotoBase64 && fpEstado.editaveis.has('foto_url')) payloadPessoa.foto_url = fpFotoBase64;
     // Posição vale mesmo sem trocar a foto (só arrastar a existente já
