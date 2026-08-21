@@ -143,6 +143,22 @@
         .aba-btn .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
         .aba-btn:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
         .aba-btn.ativa { color: var(--cor-destaque); background: rgba(212,175,55,0.16); font-weight: 700; }
+
+        /* "Mais" no computador: acordeão que abre ali mesmo na barra lateral
+           (pedido da Márcia, 20/ago/2026), em vez de navegar pra uma tela
+           própria. .aba-mais-seta gira 90° quando aberto -- mesma ideia do
+           ">"/"v" já usado em .config-item-seta. */
+        .aba-mais-seta { margin-left: auto; transition: transform 0.15s; font-size: 12px; }
+        #btnMais.aberto .aba-mais-seta { transform: rotate(90deg); }
+        .aba-mais-submenu { display: none; flex-direction: column; gap: 2px; padding: 2px 0 2px 28px; }
+        .aba-mais-submenu.aberto { display: flex; }
+        .aba-sub-btn {
+            display: flex; align-items: center; text-align: left; background: none; border: none;
+            color: rgba(255,255,255,0.65); font-size: 13px; font-weight: 600; font-family: inherit;
+            padding: 8px 10px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+        }
+        .aba-sub-btn:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
+        .aba-sub-btn.ativa { color: var(--cor-destaque); background: rgba(212,175,55,0.16); font-weight: 700; }
         /* "‹ Escolas" (Super Admin, dentro de uma escola) -- mesma
            aparência de .aba-btn (pedido dela: fica como se fosse mais um
            item da lista, "abaixo do Mais"), classe própria só pra ficar
@@ -978,6 +994,9 @@
             .aba-btn .aba-ic { font-size: 18px; width: auto; }
             .aba-btn.ativa { background: none; }
             .main { margin-left: 0; padding: 16px 12px 82px; }
+            /* "Mais" continua indo pra tela própria no celular -- o
+               acordeão (só computador) não cabe verticalmente no rodapé. */
+            .aba-mais-seta, .aba-mais-submenu { display: none !important; }
             /* "‹ Escolas" não entra no rodapé (ficaria apertado como 6º
                item). Primeira tentativa foi no topo, perto do cabeçalho --
                achado da Márcia, 20/ago/2026, testando de verdade: ficou
@@ -1179,9 +1198,15 @@
 <nav class="nav-abas" id="navAbasEscola" style="display:none">
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)"><span class="aba-ic">📊</span><span>Visão Geral</span></button>
     <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)"><span class="aba-ic">🥁</span><span>Ritmistas</span></button>
-    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)"><span class="aba-ic">👥</span><span>Diretoria</span></button>
+    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)"><span class="aba-ic">🫡</span><span>Diretoria</span></button>
     <button class="aba-btn" data-aba="meu-perfil" onclick="trocarAba('meu-perfil', this)"><span class="aba-ic">👤</span><span>Meu Perfil</span></button>
-    <button class="aba-btn-sa aba-btn" data-aba="administrativo" onclick="trocarAba('administrativo', this)" style="display:none"><span class="aba-ic">⋯</span><span>Mais</span></button>
+    <button class="aba-btn-sa aba-btn" id="btnMais" data-aba="administrativo" onclick="onClickMais(this)" style="display:none"><span class="aba-ic">⋯</span><span>Mais</span><span class="aba-mais-seta" id="maisSeta">›</span></button>
+    <!-- Só no computador: "Mais" abre um submenu ali mesmo na barra lateral
+         em vez de navegar pra uma tela própria -- pedido da Márcia,
+         20/ago/2026 ("pensei em colocar uma seta e esse menu abrir para
+         baixo"). No celular continua indo pra tela própria (sem espaço
+         vertical no rodapé pra abrir inline) -- ver onClickMais(). -->
+    <div class="aba-mais-submenu" id="abaMaisSubmenu"></div>
     <!-- Só pro Super Admin, dentro de uma escola -- "voltar pra Escolas".
          Classe própria (não .aba-btn) de propósito: fica fora da
          checagem de capacidade de aplicarGatingAbas(), já que Mestre/
@@ -3267,11 +3292,14 @@
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
     ];
+    function itensAdministrativoVisiveis() {
+        return ADMINISTRATIVO_ITENS.filter(i => souSuperAdmin || tenhoCapacidade(CAPACIDADE_DA_ABA[i.aba]));
+    }
     function renderizarAdministrativoLista() {
         const div = document.getElementById('admListaConteudo');
         if (!div) return;
         const abaAdmBtn = document.querySelector('.aba-btn[data-aba="administrativo"]');
-        const itens = ADMINISTRATIVO_ITENS.filter(i => souSuperAdmin || tenhoCapacidade(CAPACIDADE_DA_ABA[i.aba]));
+        const itens = itensAdministrativoVisiveis();
         if (!itens.length) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Nenhum módulo disponível pra você aqui.</div>'; return; }
         div.innerHTML = itens.map(i => `
             <div class="config-item" onclick="trocarAba('${i.aba}', document.querySelector('.aba-btn[data-aba=administrativo]'))">
@@ -3279,6 +3307,30 @@
                 <span class="config-item-seta">›</span>
             </div>`).join('');
         if (abaAdmBtn) abaAdmBtn.classList.add('ativa');
+    }
+
+    // "Mais" no computador: acordeão que abre ali mesmo na barra lateral
+    // (pedido da Márcia, 20/ago/2026: "pensei em colocar uma seta e esse
+    // menu abrir para baixo"). No celular (rodapé, sem espaço vertical pra
+    // abrir inline) continua indo pra tela própria de sempre.
+    function onClickMais(el) {
+        if (window.innerWidth <= 560) { trocarAba('administrativo', el); return; }
+        const submenu = document.getElementById('abaMaisSubmenu');
+        const abrir = !submenu.classList.contains('aberto');
+        if (abrir) renderizarMaisSubmenu();
+        submenu.classList.toggle('aberto', abrir);
+        el.classList.toggle('aberto', abrir);
+    }
+    function renderizarMaisSubmenu() {
+        const div = document.getElementById('abaMaisSubmenu');
+        const itens = itensAdministrativoVisiveis();
+        div.innerHTML = itens.length
+            ? itens.map(i => `<button type="button" class="aba-sub-btn" onclick="clicarSubMais('${i.aba}', this)">${i.label}</button>`).join('')
+            : '<div style="padding:8px 10px;font-size:12px;color:rgba(255,255,255,0.45);">Nenhum módulo disponível.</div>';
+    }
+    function clicarSubMais(aba, el) {
+        trocarAba(aba, null);
+        el.classList.add('ativa');
     }
 
     let bateriaAtualData = null;
@@ -4811,6 +4863,16 @@
         window.scrollTo(0, 0);
         document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
         document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
+        document.querySelectorAll('.aba-sub-btn').forEach(b => b.classList.remove('ativa'));
+        // Navegar pra uma aba de verdade (não um item do submenu "Mais",
+        // que chama isso com btn=null) fecha o acordeão -- só fica aberto
+        // enquanto a pessoa estiver navegando dentro dele mesmo.
+        if (btn && btn.id !== 'btnMais') {
+            const submenuMais = document.getElementById('abaMaisSubmenu');
+            const btnMais = document.getElementById('btnMais');
+            if (submenuMais) submenuMais.classList.remove('aberto');
+            if (btnMais) btnMais.classList.remove('aberto');
+        }
         document.getElementById('painel-' + aba).classList.add('ativo');
         if (btn) btn.classList.add('ativa');
         salvarEstadoNavegacao(souSuperAdmin ? 'sa-escola' : 'mestre-diretor', aba, souSuperAdmin ? escolaSelecionadaId : null);
