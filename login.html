@@ -353,7 +353,7 @@
         // Super Admin, desde o último login neste aparelho) — nunca confiar
         // cegamente no cache pra decidir acesso. Reconfere rápido (consulta
         // pequena) antes de liberar pelo atalho.
-        const { data: vinculoAtual } = await sb.from('vinculos').select('status, perfil')
+        const { data: vinculoAtual } = await sb.from('vinculos').select('status, perfil, modo_carteirinha_individual')
             .eq('pessoa_id', cache.pessoa_id).eq('bateria_id', cache.bateria_id).maybeSingle();
         if (!vinculoAtual || vinculoAtual.status !== 'aprovado' || vinculoAtual.perfil !== cache.perfil) {
             await buscarEEscolherVinculos(cache.pessoa_id, false);
@@ -367,7 +367,9 @@
         // sempre nascia preto/TumTu por um instante e só depois trocava pra
         // cor da escola, porque nunca tinha cache pronto esperando).
         await prefetchConfigEscola(cache.bateria_id, session.access_token);
-        if (isAdmin && !cache.modo_piloto) {
+        // modo_carteirinha_individual reconferido na hora (não vem do cache) --
+        // é decisão de acesso, mesma cautela já usada pra status/perfil acima.
+        if (isAdmin && !cache.modo_piloto && !vinculoAtual.modo_carteirinha_individual) {
             window.location.href = 'admin.html';
             return;
         }
@@ -492,7 +494,7 @@
         // do admin.html também (18/ago/2026, achado da Márcia -- header
         // nascia preto/TumTu por um instante antes de trocar pra cor da
         // escola, único caminho que nunca buscava esse cache antes).
-        if (isAdmin && !vinculo.modo_piloto) {
+        if (isAdmin && !vinculo.modo_piloto && !vinculo.modo_carteirinha_individual) {
             if (!lerConfigCache(vinculo.bateria_id)) {
                 document.getElementById('containerLogin').style.display = 'none';
                 document.getElementById('containerEscolherBateria').style.display = 'none';

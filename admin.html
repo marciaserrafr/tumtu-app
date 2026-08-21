@@ -2778,6 +2778,11 @@
         // Trava da fase piloto: Mestre/Diretor de bateria com modo_piloto ligado não vê o painel, mesmo digitando a URL direto.
         if (usuario.modo_piloto) { window.location.href = 'carteirinha.html'; return; }
 
+        // Modo Carteirinha individual: mesma trava acima, só que por pessoa
+        // em vez de por bateria inteira -- Mestre/Diretor/Apoio marcado assim
+        // (aba Permissões) só vê a própria carteirinha, mesmo digitando a URL direto.
+        if (usuario.modo_carteirinha_individual) { window.location.href = 'carteirinha.html'; return; }
+
         // Mesmo spinner/overlay do Super Admin entrando numa escola (ver
         // entrarContextoEscolaSA) -- rede de segurança pro caso raro do
         // cache (aplicarCacheConfigEscolaAntecipado) ainda não existir
@@ -4138,7 +4143,7 @@
         if (!container) return;
         const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
         if (!bateriaId) { permissoesPessoaCache = []; container.innerHTML = '<div class="estado-vazio">Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,capacidades`, { headers: authHeaders });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,capacidades,modo_carteirinha_individual`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         renderizarListaPermissoesPessoas();
     }
@@ -4150,10 +4155,13 @@
             const caps = p.capacidades || {};
             const ligadas = TODAS_CAPACIDADES.filter(c => caps[c]);
             const cargo = labelPerfilSA(p.perfil);
+            const detalhe = p.modo_carteirinha_individual
+                ? 'Modo Carteirinha individual — não entra na gestão'
+                : (ligadas.length === 0 ? 'nenhuma capacidade ligada' : ligadas.length + ' capacidade' + (ligadas.length === 1 ? '' : 's') + ' ligada' + (ligadas.length === 1 ? '' : 's'));
             return `<div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
-                    <div class="item-detalhe">${cargo} — ${ligadas.length === 0 ? 'nenhuma capacidade ligada' : ligadas.length + ' capacidade' + (ligadas.length === 1 ? '' : 's') + ' ligada' + (ligadas.length === 1 ? '' : 's')}</div>
+                    <div class="item-detalhe">${cargo} — ${detalhe}</div>
                 </div>
                 <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditorPermissoesPessoa(${p.id})">Editar</button></div>
             </div>`;
@@ -4162,7 +4170,7 @@
     function abrirEditorPermissoesPessoa(vinculoId) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil), capacidades: { ...(p.capacidades || {}) } };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil), capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual };
         renderizarEditorPermissoesPessoa();
     }
     function renderizarEditorPermissoesPessoa() {
@@ -4173,6 +4181,13 @@
         editor.style.display = 'block';
         editor.innerHTML = `<div class="card-form">
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
+            <div class="ficha-secao" style="margin-top:14px;">
+                <div class="ficha-secao-titulo">Acesso ao painel</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                    <input type="checkbox" id="pp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
+                    <label for="pp-modo-carteirinha" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
+                </div>
+            </div>
             ${GRUPOS_CAPACIDADES.map(g => `
                 <div class="ficha-secao" style="margin-top:14px;">
                     <div class="ficha-secao-titulo">${esc(g.grupo)}</div>
@@ -4194,7 +4209,8 @@
         if (!pe) return;
         const capacidades = {};
         TODAS_CAPACIDADES.forEach(c => { capacidades[c] = document.getElementById('pp-cap-' + c).checked; });
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades }) });
+        const modo_carteirinha_individual = document.getElementById('pp-modo-carteirinha').checked;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual }) });
         if (res.ok) { mostrarToast('Permissões atualizadas!'); permissoesPessoaEditando = null; await carregarPermissoesEscola(); renderizarEditorPermissoesPessoa(); }
         else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
     }
