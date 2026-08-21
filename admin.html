@@ -2445,7 +2445,13 @@
 
     function renderizarVisaoGeral() {
         const mesAtual = new Date().getMonth() + 1;
-        const aniv = todosRitmistas.filter(r => {
+        // Aniversariantes do mês inclui a Diretoria inteira (Mestre/Diretor/
+        // Apoio) junto com Ritmistas -- pedido da Márcia, 21/ago/2026:
+        // "diretoria" pra ela é o módulo inteiro, não só uma parte. Some
+        // sozinho pra quem não tem ver_acessos (listaDiretoriaAtual nunca é
+        // buscada nesse caso, fica vazia).
+        const todasPessoas = todosRitmistas.concat(listaDiretoriaAtual || []);
+        const aniv = todasPessoas.filter(r => {
             if (!r.nascimento) return false;
             return new Date(r.nascimento + 'T00:00:00').getMonth() + 1 === mesAtual;
         }).sort((a, b) => {
@@ -2463,11 +2469,12 @@
             const nasc = new Date(r.nascimento + 'T00:00:00');
             const dia = nasc.getDate().toString().padStart(2, '0');
             const idade = calcularIdade(r.nascimento);
+            const detalhe = r.perfil === 'ritmista' ? (r.instrumento_nome || '—') : labelPerfilSA(r.perfil);
             return `<div class="vg-aniversariante">
                 <span style="font-size:20px;">🎂</span>
                 <div>
                     <div class="vg-aniv-nome">${r.nome}${r.apelido ? ` <span style="color:#D4AF37;font-weight:400;font-style:italic;">${r.apelido}</span>` : ''}</div>
-                    <div class="vg-aniv-detalhe">Dia ${dia} · ${idade} anos · ${r.instrumento_nome || '—'}</div>
+                    <div class="vg-aniv-detalhe">Dia ${dia} · ${idade} anos · ${detalhe}</div>
                 </div>
             </div>`;
         }).join('');
@@ -4689,6 +4696,10 @@
         listaDiretoriaAtual = admins || [];
         aplicarFiltrosDiretoria();
         atualizarTotalizadoresDiretoria();
+        // Aniversariantes do mês (Visão Geral) inclui Diretoria -- essa busca
+        // roda em paralelo com carregarRitmistas(), então precisa re-render
+        // aqui pra não ficar faltando gente até a próxima troca de aba.
+        if (document.getElementById('vg-aniversariantes')) renderizarVisaoGeral();
         diretoriaCarregada = true;
     }
 
@@ -4800,6 +4811,11 @@
                 ? `<img src="${a.foto_url}">`
                 : inicial;
             const cargo = labelPerfilSA(a.perfil);
+            // Mesmos ícones de aniversário/estrangeiro do card de Ritmistas --
+            // pedido da Márcia, 21/ago/2026: "diretoria" pra ela é o módulo
+            // inteiro (Mestre, Diretor e Apoio), não só uma parte dele.
+            const nascDateA = a.nascimento ? new Date(a.nascimento + 'T00:00:00') : null;
+            const aniversarioMesA = nascDateA && (nascDateA.getMonth() + 1) === (new Date().getMonth() + 1);
 
             const badgeStatus = {
                 pendente:  `<span class="badge badge-pendente">Pendente</span>`,
@@ -4829,6 +4845,8 @@
                     <div class="card-linha1">
                         <span class="card-nome">${a.nome || '—'}</span>
                         ${a.apelido ? `<span class="card-apelido-inline">${a.apelido}</span>` : ''}
+                        ${a.nacionalidade && a.nacionalidade !== 'Brasileira' ? `<span title="${a.nacionalidade}" style="font-size:14px;flex-shrink:0;">🌍</span>` : ''}
+                        ${aniversarioMesA ? '<span title="Aniversário este mês" style="flex-shrink:0;">🎂</span>' : ''}
                     </div>
                     <div class="card-linha2">
                         <span class="dir-badge-cargo">${cargo}</span>
