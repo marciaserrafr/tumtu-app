@@ -1457,6 +1457,20 @@
         </div>
     </div>
 
+    <!-- Card à parte, não somado aos números de Ritmistas acima (pedido da
+         Márcia, 21/ago/2026) -- só aparece pra quem tem ver_acessos, mesma
+         capacidade que libera a aba Diretoria. -->
+    <div class="totalizadores" id="totalizadoresDiretoria" style="display:none;">
+        <div class="total-card">
+            <div class="total-numero dourado" id="totalDiretoriaAtivos">—</div>
+            <div class="total-label">Diretoria e Apoio ativos</div>
+        </div>
+        <div class="total-card">
+            <div class="total-numero" id="totalDiretoriaPendentes">—</div>
+            <div class="total-label">Pendentes</div>
+        </div>
+    </div>
+
     <div class="vg-card">
         <div class="vg-secao-titulo">🥁 Ritmistas por Instrumento</div>
         <div id="vg-instrumentos"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
@@ -1787,6 +1801,21 @@
         const pendentes = todosRitmistas.filter(r => r.status === 'pendente').length;
         document.getElementById('totalAtivos').textContent = ativos;
         document.getElementById('totalPendentes').textContent = pendentes;
+    }
+
+    // Card à parte na Visão Geral, com a mesma contagem de Mestres/
+    // Diretores/Apoio que já existe na aba Diretoria (listaDiretoriaAtual) --
+    // não soma com "Ritmistas ativos" acima, pedido explícito da Márcia,
+    // 21/ago/2026 ("mantém Ritmistas ativos como está, card novo separado").
+    function atualizarTotalizadoresDiretoria() {
+        const card = document.getElementById('totalizadoresDiretoria');
+        if (!card) return;
+        if (!souSuperAdmin && !tenhoCapacidade('ver_acessos')) { card.style.display = 'none'; return; }
+        const ativos = (listaDiretoriaAtual || []).filter(a => a.status === 'aprovado').length;
+        const pendentes = (listaDiretoriaAtual || []).filter(a => a.status === 'pendente').length;
+        document.getElementById('totalDiretoriaAtivos').textContent = ativos;
+        document.getElementById('totalDiretoriaPendentes').textContent = pendentes;
+        card.style.display = 'flex';
     }
 
     function bateriaIdContexto() {
@@ -2836,6 +2865,12 @@
         document.getElementById('mainEscola').style.display = 'flex';
         ajustarAlturaNavMobile();
         carregarRitmistas();
+        // Card "Diretoria e Apoio ativos" na Visão Geral (novo, 21/ago/2026) --
+        // reaproveita a mesma carregarDiretoria() da aba Diretoria (fica em
+        // cache pra quando ela clicar lá, sem buscar de novo). Só dispara
+        // pra quem tem ver_acessos -- sem a capacidade, RLS devolveria vazio
+        // e o card mostraria "0" de forma enganosa em vez de ficar escondido.
+        if (souSuperAdmin || tenhoCapacidade('ver_acessos')) carregarDiretoria();
 
         // Volta pra mesma aba de antes de atualizar a página (mesmo achado
         // da Márcia, 20/ago/2026, aplicado aqui também) -- "visao" já é o
@@ -3575,6 +3610,7 @@
 
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
         carregarRitmistas();
+        carregarDiretoria(); // Super Admin sempre vê o card "Diretoria e Apoio ativos"
 
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
@@ -4649,6 +4685,7 @@
         const admins = await res.json();
         listaDiretoriaAtual = admins || [];
         aplicarFiltrosDiretoria();
+        atualizarTotalizadoresDiretoria();
         diretoriaCarregada = true;
     }
 
