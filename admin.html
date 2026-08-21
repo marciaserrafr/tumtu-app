@@ -182,8 +182,13 @@
            lado pedia mais respiro que os 1040px de antes). 1200px dá
            esse respiro sem esticar demais listas de card/formulário numa
            tela bem larga. Vale igual pra Super Admin e pra Mestre/Diretor
-           comum -- é o mesmo bloco pros dois. */
-        .main { flex: 1; padding: 32px 24px; max-width: 1200px; width: 100%; margin-left: max(210px, calc((100vw - 1200px + 210px) / 2)); margin-right: auto; }
+           comum -- é o mesmo bloco pros dois.
+           width:100% + margin-left fixo causava rolagem horizontal em
+           telas médias (o "100%" contava a tela inteira, e o margin-left
+           somava por cima, estourando a borda direita -- achado ao testar
+           numa janela de ~1280px). Trocado por width:min(...), que nunca
+           deixa o conteúdo passar do espaço disponível ao lado da barra. */
+        .main { flex: 1; padding: 32px 24px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); }
 
         /* TÍTULO DE PAINEL (padrão super-admin) */
         .painel-titulo { font-size: 20px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 20px; }
@@ -803,12 +808,9 @@
         .sa-sidebar-item:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
         .sa-sidebar-item.ativa { color: var(--cor-destaque); background: rgba(212,175,55,0.16); font-weight: 700; }
 
-        /* Mesmo padrão de .main -- 1200px máximo, centralizado de verdade.
-           Passou por "esticado demais" (sem limite, 20/ago/2026) e depois
-           por "estreito demais" (1040px, 21/ago/2026, o Dashboard com
-           várias caixas de KPI lado a lado pedia mais respiro) até chegar
-           nesse meio-termo. */
-        .sa-main { flex: 1; padding: 28px 32px; max-width: 1200px; width: 100%; margin-left: max(210px, calc((100vw - 1200px + 210px) / 2)); margin-right: auto; }
+        /* Mesmo padrão de .main -- 1200px máximo, centralizado de verdade,
+           sem nunca estourar a tela (ver comentário completo em .main). */
+        .sa-main { flex: 1; padding: 28px 32px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); }
         .sa-painel { display: none; }
         .sa-painel.ativo { display: block; }
 
@@ -976,7 +978,7 @@
             .sa-sidebar-item { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .sa-sidebar-item .sa-ic { font-size: 18px; width: auto; }
             .sa-sidebar-item.ativa { background: none; }
-            .sa-main { margin-left: 0; padding: 16px 12px 82px; }
+            .sa-main { margin-left: 0; width: 100%; padding: 16px 12px 82px; }
             .kpi-row { grid-template-columns: 1fr 1fr; gap: 10px; }
             .baterias-grid { grid-template-columns: 1fr; }
             .form-grid { grid-template-columns: 1fr; }
@@ -994,7 +996,7 @@
             .aba-btn { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .aba-btn .aba-ic { font-size: 18px; width: auto; }
             .aba-btn.ativa { background: none; }
-            .main { margin-left: 0; padding: 16px 12px 82px; }
+            .main { margin-left: 0; width: 100%; padding: 16px 12px 82px; }
             /* "Mais" continua indo pra tela própria no celular -- o
                acordeão (só computador) não cabe verticalmente no rodapé. */
             .aba-mais-seta, .aba-mais-submenu { display: none !important; }
