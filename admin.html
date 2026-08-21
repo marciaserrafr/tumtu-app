@@ -739,13 +739,12 @@
         .config-instrumento-check input { accent-color: var(--cor-destaque); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
         .config-instrumento-linha .config-instrumento-check { font-size: 13.5px; color: var(--cor-texto-principal); }
         .config-instrumento-nomenclatura { padding: 5px 8px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 12.5px; color: #333; }
-        /* Redesenho de Instrumentos, 21/ago/2026 -- cada instrumento agora é
-           um .item-card de verdade (mesmo componente de Vagas de Ritmistas/
-           Diretoria/Escolas), sem cabeçalho de coluna solto acima da lista
-           (ver renderizarLinhaInstrumento). O rótulo "Nome usado" mora
-           dentro do próprio card, só quando aquele instrumento tem mais de
-           um nome possível -- a maioria não tem, então a maioria dos cards
-           fica só com o checkbox, sem lado direito nenhum. */
+        /* Coluna "Nome Usado" pra quem só tem um nome possível (sem
+           select pra escolher) -- repete o próprio nome do instrumento em
+           texto simples, pedido da Márcia, 21/ago/2026, pra coluna nunca
+           ficar vazia em quem está ativo. Mesmo tamanho/cor do texto do
+           select ao lado, sem borda (não é campo editável). */
+        .config-instrumento-nome-usado-fixo { font-size: 12.5px; color: #333; }
         /* Respiro + linha divisória entre grupos (ex: Tradicionais →
            Especiais) -- achado da Márcia, 21/ago/2026, com print: sem
            isso, o último card de um grupo e o título do próximo ficavam
@@ -753,8 +752,6 @@
            dividir, então fica sem borda/respiro extra. */
         .lista-cards .secao-titulo { margin: 28px 0 8px; padding-top: 20px; border-top: 1px solid #e8e6f0; }
         .lista-cards .secao-titulo:first-child { margin-top: 0; padding-top: 0; border-top: none; }
-        .config-instrumento-nome-usado { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-        .config-instrumento-nome-usado-label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
         /* Cada instrumento vira um .item-card -- o mesmo componente já
            usado em Ritmistas/Diretoria/Escolas no resto do app (bordado,
            nome à esquerda em .item-info, pílula+campo à direita em
@@ -1017,7 +1014,6 @@
             .form-grid .campo-full { grid-column: 1; }
             .item-card { flex-direction: column; align-items: flex-start; gap: 12px; }
             .item-acoes { width: 100%; justify-content: flex-end; }
-            .config-instrumento-nome-usado { width: 100%; align-items: flex-end; }
 
             /* NAV ABAS -- mesmo comportamento de .sa-sidebar aqui em cima:
                vira barra fixa embaixo, ícone em cima do texto. */
@@ -1446,6 +1442,7 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Instrumentos</div>
         <p class="config-sub-desc">Ative os instrumentos que sua bateria usa. Quando houver mais de um nome possível, escolha o que sua bateria usa.</p>
+        <div class="config-lista-cabecalho"><span>Instrumento</span><span>Nome Usado</span></div>
         <div id="config-instrumentos-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
@@ -3174,29 +3171,28 @@
         }).join('');
     }
 
-    // Redesenhado em 21/ago/2026 (achado da Márcia: o cabeçalho de coluna
-    // "Instrumento / Nome usado" acima da lista, criado nesta mesma sessão,
-    // e o título de grupo "Tradicionais" pareciam "dois títulos" empilhados
-    // e confusos, mesmo depois de eu só ajustar o espaçamento entre os
-    // dois -- "eu esperava mais de você"). Solução de verdade: sem
-    // cabeçalho de coluna nenhum -- cada instrumento vira um .item-card
-    // (mesmo componente já usado em Vagas de Ritmistas/Diretoria/Escolas),
-    // e quando existe escolha de nome, o rótulo "Nome usado" mora dentro do
-    // próprio card, coladinho no controle que ele descreve, nunca solto lá
-    // em cima descrevendo uma coluna inteira (a maioria dos instrumentos
-    // nem tem esse controle).
+    // Redesenhado em 21/ago/2026: cada instrumento virou um .item-card
+    // (mesmo componente de Vagas de Ritmistas/Diretoria/Escolas). O
+    // cabeçalho de coluna "Instrumento / Nome Usado" voltou por pedido
+    // dela (mesmo padrão de Vagas de Ritmistas) depois de testar sem ele
+    // -- com o respiro/divisória certos entre cabeçalho e título de grupo,
+    // não repete mais o problema de "dois títulos" da primeira tentativa.
+    // Coluna da direita sempre preenchida pra quem está marcado (☑): select
+    // quando há mais de um nome possível, ou o próprio nome do instrumento
+    // repetido em texto simples quando só existe um nome (pedido dela:
+    // "o que não tiver nome definido, repita o nome que está aparecendo,
+    // do instrumento real"). Quem está desmarcado fica sem nada à direita.
     function renderizarLinhaInstrumento(c) {
         const existente = bateriaInstrumentosCache.find(bi => bi.categoria_id === c.id);
         const ativo = !!(existente && existente.ativo);
-        let nomenclaturaHtml = '';
+        let nomeUsadoHtml = '';
         if (ativo && c.nomenclaturas.length > 0) {
-            nomenclaturaHtml = `
-                <div class="config-instrumento-nome-usado">
-                    <span class="config-instrumento-nome-usado-label">Nome usado</span>
-                    <select class="config-instrumento-nomenclatura" onchange="salvarInstrumentoBateria(${c.id}, true, this.value)">
-                        ${[...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => `<option value="${n.id}" ${existente && existente.nomenclatura_id === n.id ? 'selected' : ''}>${n.nome}</option>`).join('')}
-                    </select>
-                </div>`;
+            nomeUsadoHtml = `
+                <select class="config-instrumento-nomenclatura" onchange="salvarInstrumentoBateria(${c.id}, true, this.value)">
+                    ${[...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => `<option value="${n.id}" ${existente && existente.nomenclatura_id === n.id ? 'selected' : ''}>${n.nome}</option>`).join('')}
+                </select>`;
+        } else if (ativo) {
+            nomeUsadoHtml = `<span class="config-instrumento-nome-usado-fixo">${esc(c.nome)}</span>`;
         }
         return `
             <div class="item-card">
@@ -3204,7 +3200,7 @@
                     <input type="checkbox" ${ativo ? 'checked' : ''} onchange="salvarInstrumentoBateria(${c.id}, this.checked)">
                     <span class="item-nome">${c.nome}</span>
                 </label>
-                ${nomenclaturaHtml}
+                ${nomeUsadoHtml}
             </div>`;
     }
 
