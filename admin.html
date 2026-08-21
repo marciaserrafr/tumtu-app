@@ -334,6 +334,10 @@
             background: #e8e6f0; color: #5a5770; border: 1px solid #d8d5e3;
         }
         .vg-instrumento-qtd.completo { background: #f0faf4; color: #2d7a4f; border-color: #b8ddc8; }
+        /* "Faltam N" -- sinalizador discreto pra chamar atenção de quem
+           gerencia, sem competir visualmente com a pílula de contagem
+           (essa sim colorida/com peso). Pedido da Márcia, 21/ago/2026. */
+        .vg-instrumento-faltam { margin-left: 8px; font-size: 11.5px; font-weight: 600; color: #b3261e; font-style: italic; }
         .vg-instrumento-qtd.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
 
         /* CONTADOR */
@@ -2506,14 +2510,17 @@
     // uma aba/menu só pra isso. Só conta status=aprovado (mesmo critério de
     // "Ritmistas ativos" no topo do painel); ordenado do instrumento com
     // mais gente pro com menos.
+    // Lista completa dos instrumentos ativos da bateria -- antes só
+    // aparecia quem já tinha gente cadastrada, então um naipe com ZERO
+    // ritmistas simplesmente sumia da lista (achado da Márcia, 21/ago/2026:
+    // "é importante que eles vejam que tem naipe que ainda não se
+    // cadastrou, caso queira chamar atenção da galera"). Agora percorre
+    // bateriaInstrumentosCache (todos os instrumentos ativos), não mais só
+    // as chaves que aparecem na contagem de ritmistas.
     function renderizarContagemInstrumentos() {
         const div = document.getElementById('vg-instrumentos');
         if (!div) return;
         const ativos = todosRitmistas.filter(r => r.status === 'aprovado');
-        if (ativos.length === 0) {
-            div.innerHTML = '<div style="color:#bbb;font-size:13px;padding:8px 0;">Nenhum ritmista ativo ainda.</div>';
-            return;
-        }
         const contagem = {};
         ativos.forEach(r => {
             const chave = r.bateria_instrumento_id || 'sem-instrumento';
@@ -2525,17 +2532,30 @@
         // que parecia capacidade zero) e fica VERMELHO de propósito --
         // pressiona quem gerencia a preencher a vaga, mesmo vermelho de
         // quando excede. Verde só quando bate certinho no número (mesmo
-        // do badge "Ativo").
-        const linhas = Object.entries(contagem).map(([chave, qtd]) => {
-            const bi = chave !== 'sem-instrumento' ? bateriaInstrumentosCache.find(b => String(b.id) === String(chave)) : null;
-            const nome = bi ? nomeExibicaoBateriaInstrumento(bi) : 'Sem instrumento';
-            const vagas = bi ? (bi.vagas || 0) : 0;
+        // do badge "Ativo"). "Faltam N" (21/ago/2026) só aparece quando a
+        // vaga está definida e ainda não foi preenchida.
+        const linhas = (bateriaInstrumentosCache || []).filter(bi => bi.ativo).map(bi => {
+            const qtd = contagem[String(bi.id)] || 0;
+            const nome = nomeExibicaoBateriaInstrumento(bi);
+            const vagas = bi.vagas || 0;
             const semVaga = vagas === 0;
-            return { nome, qtd, vagas, semVaga, excedeu: !semVaga && qtd > vagas, completo: !semVaga && qtd === vagas };
-        }).sort((a, b) => b.qtd - a.qtd || a.nome.localeCompare(b.nome, 'pt-BR'));
+            const faltam = (!semVaga && qtd < vagas) ? (vagas - qtd) : 0;
+            return { nome, qtd, vagas, semVaga, excedeu: !semVaga && qtd > vagas, completo: !semVaga && qtd === vagas, faltam };
+        });
+        // Ritmista sem instrumento atribuído (raro, dado antigo) só entra
+        // na lista se existir de verdade -- não é um naipe de bateria, não
+        // faz sentido mostrar "0" fixo pra ele.
+        if (contagem['sem-instrumento']) {
+            linhas.push({ nome: 'Sem instrumento', qtd: contagem['sem-instrumento'], vagas: 0, semVaga: true, excedeu: false, completo: false, faltam: 0 });
+        }
+        if (linhas.length === 0) {
+            div.innerHTML = '<div style="color:#bbb;font-size:13px;padding:8px 0;">Nenhum instrumento ativo cadastrado.</div>';
+            return;
+        }
+        linhas.sort((a, b) => b.qtd - a.qtd || a.nome.localeCompare(b.nome, 'pt-BR'));
         div.innerHTML = linhas.map(l => `
             <div class="vg-instrumento-linha">
-                <span>${esc(l.nome)}</span>
+                <span>${esc(l.nome)}${l.faltam > 0 ? `<span class="vg-instrumento-faltam">${l.faltam === 1 ? 'Falta' : 'Faltam'} ${l.faltam}</span>` : ''}</span>
                 <span class="vg-instrumento-qtd${(l.excedeu || l.semVaga) ? ' excedeu' : l.completo ? ' completo' : ''}">${l.qtd} / ${l.semVaga ? '-' : l.vagas}</span>
             </div>`).join('');
     }
