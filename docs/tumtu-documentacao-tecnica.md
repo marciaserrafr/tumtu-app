@@ -1038,3 +1038,111 @@ Novo campo `escolas.tipo` (`real`/`demo`, padrão `real`) — resolve um problem
 
 - **Configurações da bateria** (Instrumentos/Vagas/Medidas): quem só tem `ver_configuracoes` (sem `editar_configuracoes`) já é bloqueado de verdade no banco se tentar salvar, mas os controles da tela ainda não ficam visualmente desabilitados pra essa pessoa antes da tentativa — só um polimento visual, não é falha de segurança.
 - **Ativar/Desativar uma escola ou bateria inteira** ficou sempre exclusivo de Super Admin, mesmo que `editar_dados_escola`/`editar_dados_bateria` esteja liberado — decisão tomada durante a implementação (mais pesada que editar um campo comum), não chegou a ser perguntada a ela antes. Se um dia ela quiser liberar isso também, é ajuste pequeno.
+
+## 42. Apoio de Bateria, Modo Carteirinha individual, Diretor de Naipe e Repique de Bossa (21/ago/2026)
+
+Retomada de duas frentes que tinham ficado pendentes desde a sessão de 18/ago/2026 (registro em `CLAUDE.md`), que se desdobraram em quatro entregas relacionadas durante a conversa de planejamento com ela. Publicado direto na `main` a pedido explícito dela ("preciso agilizar isso hoje... pode publicar direto... vou testar em produção") — cada entrega foi um commit + push próprio, sem prévia intermediária, mas com verificação direta no banco (via `execute_sql`) antes e depois de cada migração.
+
+### 42.1 Apoio de Bateria — novo `perfil`, não um conceito novo
+
+Ela foi explícita desde o início: Apoio "é uma pessoa que não é ritmista, não é diretor, não é mestre mas apoia a bateria... mas é uma 'autoridade' na bateria também" — serve água, ajuda em geral, pode usar camisa de Diretoria, mas não tem as mesmas permissões automaticamente (precisa receber capacidades como qualquer Mestre/Diretor). Tratado em pé de igualdade com Mestre/Diretor em todo lugar do sistema, não como um caso especial:
+
+- **Banco**: `vinculos_perfil_check` recriada incluindo `'apoio'`; RLS `admin_select_propria_bateria` (SELECT) — array `mestre/diretor` virou `mestre/diretor/apoio`, mesma capacidade `ver_acessos`; trigger `aplicar_matriz_edicao_vinculos()` — o branch `else` (não-ritmista) já era genérico por natureza (só verifica `old.perfil = 'ritmista'` pra decidir qual ramo seguir, não lista os outros perfis um a um), então herdou a mesma trava de Mestre/Diretor automaticamente; só o check `sou_admin_em_algum_lugar` (desbloqueio de tamanho de roupa na autoedição) tinha o array hardcoded `('mestre','diretor')`, corrigido pra incluir `'apoio'`.
+- **`admin.html`**: `renderizarDiretoria()` ganhou uma terceira lista/seção "Apoio", mesmo padrão visual de "Mestres"/"Diretores", sempre depois deles. Todo lugar com ternário binário `perfil==='mestre'?X:Y` (rótulos de exportação, cadastro-link, tela Permissões, card, ficha) virou 3 vias ou passou a chamar `labelPerfilSA()` (agora com `if (p === 'apoio') return 'Apoio de Bateria';`). Botão "+ Cadastrar Apoio" e link de autocadastro (`?cargo=apoio`) adicionados junto dos de Mestre/Diretor. Filtro de Cargo da aba Diretoria ganhou checkbox "Apoio de Bateria", marcado por padrão.
+- **`cadastro.html`**: `ehAdmin` (esconde o campo Instrumento) passou a incluir `cargo === 'apoio'`; `cargoParam`/`perfil`/`cargoLabel`, tanto no link fixo (`?bateria=&cargo=`) quanto no modo manual (`?modo=manual&cargo=`), expandidos de binário pra 3 vias. Apoio recebeu link de autocadastro público, mesmo padrão de Mestre/Diretor (confirmado com ela antes de implementar).
+- **`carteirinha.html`** e **`login.html`**: `labelCargo`/`isAdmin` (dois pontos em `login.html` — o atalho de sessão salva e o fluxo completo de login) ganharam o terceiro caso.
+- **Lacuna real achada e corrigida no meio do trabalho seguinte (Naipe/Repique de Bossa, seção 42.3)**: `ficha-perfil.js` — a função `fpCamposEditaveis()`, que decide quais campos aparecem editáveis na ficha, checava `atorPerfil === 'diretor' || atorPerfil === 'mestre'` em dois lugares (desbloqueio de tamanho de roupa na autoedição; edição de Instrumento/Medidas de um Ritmista por um admin) sem incluir `'apoio'`. Resultado: um Apoio com a capacidade `editar_ritmistas` liberada conseguia editar Instrumento/Medidas via API direto (o banco já permitia, RLS/trigger não bloqueavam), mas a **tela nunca mostrava esses campos como editáveis** — parecia que a permissão não funcionava. Corrigido junto, nos dois pontos.
+
+### 42.2 Modo Carteirinha individual
+
+Ela puxou o assunto ao descrever Apoio: "pode ter diretor, que o mestre fale: esse aqui nem precisa entrar no sistema. deixa ele olhar só a carteirinha." Perguntou se isso "é complexo" — não era, porque o sistema de capacidades por pessoa (seção 41.2) já dava a base pronta; só faltava um campo que não é sobre *o que* a pessoa pode fazer dentro do painel (isso já é `capacidades`), mas sobre *se* ela chega a entrar nele.
+
+- Nova coluna `vinculos.modo_carteirinha_individual` (boolean, `default false`) — deliberadamente **fora** do jsonb `capacidades`, por ser uma decisão de natureza diferente (acesso ao painel como um todo, não um módulo dentro dele).
+- Confirmado com ela: vale pra Mestre, Diretor **e** Apoio — "na hora, o que vai valer é olhar o que estiver marcado." Ritmista já tem esse comportamento embutido, sem marcação nenhuma (nunca vê o painel, é como o sistema sempre funcionou).
+- Toggle novo na tela Permissões (mesmo editor por pessoa da seção 41.2), com aviso de que ele "ignora as capacidades abaixo" quando ligado.
+- **`login.html`**: os dois pontos de decisão `admin.html` x `carteirinha.html` (atalho de sessão salva e fluxo completo) passaram a checar `modo_carteirinha_individual` **direto do banco**, nunca do cache local — mesma cautela já aplicada a `status`/`perfil` (reconferidos a cada abertura, nunca confiando cegamente na sessão salva do aparelho). Resultado prático: `isAdmin && !modo_piloto && !modo_carteirinha_individual` → `admin.html`; qualquer um dos três "trava" manda pra `carteirinha.html`.
+- **`admin.html`**: `iniciarUsuario()` ganhou a mesma trava que já existia pra `modo_piloto` ("Mestre/Diretor de bateria com modo_piloto ligado não vê o painel, mesmo digitando a URL direto") — agora também expulsa quem tem `modo_carteirinha_individual` ligado, mesmo entrando direto pela URL sem passar pelo `login.html`.
+- View `ritmistas_com_instrumento` recriada pra expor a coluna nova (ver seção 42.5 sobre a disciplina de `security_invoker`).
+
+### 42.3 Diretor de Naipe
+
+Não é perfil novo — é atributo de um Diretor que já existe. Conversa de definição foi longa; ela testou a lógica em voz alta com exemplos reais antes de fechar a regra: "se marcar primeira e segunda, vai aparecer surdo de marcação, se marcar mais de uma opção de repique... vai aparecer repique somente... se for marcado uma opção só, como xequerê, aí a pessoa vai receber o selo xequerê."
+
+- Nova coluna `vinculos.naipe` (jsonb, array de strings — nomes de instrumento, não IDs) — fica em `vinculos`, não em `pessoas`, porque um Diretor pode liderar naipes diferentes em baterias diferentes (é atributo do vínculo, não da pessoa).
+- **Consolidação do selo** (`fpResolverSeloNaipe()`, em `ficha-perfil.js` — função pública, chamada tanto pela própria ficha quanto pelo card de `admin.html`):
+  - 1 opção marcada → mostra o nome literal (inclusive "Especiais").
+  - 2+ marcadas, todas dentro de `['Surdo de Primeira', 'Surdo de Segunda']` → "Surdo de Marcação".
+  - 2+ marcadas, todas dentro de `['Repique', 'Repique Mor', 'Repique de Bossa']` → "Repique".
+  - Qualquer outra combinação (sem regra específica) → nomes separados por vírgula, sem quebrar.
+- Opções do multi-select vêm da mesma função que já monta o dropdown de Instrumento (`fpCarregarOpcoesInstrumento`, reaproveitada) + duas pseudo-opções fixas ("Repique de Bossa", "Especiais") que **não existem na biblioteca mestre de instrumentos** — nunca aparecem em `instrumento_categorias`/nem seriam confundidas com um instrumento real.
+- **Decisão confirmada com ela**: o selo de Naipe aparece **só no painel** (aba Diretoria, ao lado do rótulo do cargo), nunca na carteirinha do Diretor.
+- **Quem edita**: hoje só a própria pessoa (autoedição, `atorPerfil === 'diretor'`) ou Super Admin. Não existe ainda uma capacidade "editar outro Mestre/Diretor/Apoio" no sistema — a arquitetura de `fpCamposEditaveis()` só tem branches pra "editando a mim mesmo" e "Mestre/Diretor/Apoio editando um Ritmista"; não há um branch pra "editando outro Mestre/Diretor/Apoio" ainda. Registrado como limitação conhecida, não como bug — não foi pedido escopo maior que isso.
+- Trigger `aplicar_matriz_edicao_vinculos()`: `new.naipe := old.naipe;` adicionado (sem condição) no branch de "editando outra pessoa" não-ritmista — congela o campo pra qualquer editor que não seja autoedição/Super Admin, coerente com a tela só permitir esses dois casos hoje.
+
+### 42.4 Repique de Bossa
+
+"Não é um instrumento de verdade, é um grupo especial dentro dos Ritmistas de Repique" — nunca vira linha em `instrumento_categorias`/`instrumento_nomenclaturas` (confirmado antes de implementar: 23 categorias reais existiam, nenhuma "Repique de Bossa", e não devia virar uma).
+
+- Nova coluna `vinculos.repique_bossa` (boolean, `default false`) — flag simples no vínculo do Ritmista.
+- Visível só quando `instrumento_nome` do Ritmista é `'Repique'` ou `'Repique Mor'` (comparação de texto — mesma convenção já usada em todo o resto do app pra decisões visuais ligadas a instrumento, não existe uma chave estável separada do nome de exibição).
+- Editável por quem tem `editar_ritmistas` — mesma trava que já protege `bateria_instrumento_id`/tamanhos de roupa. Trigger ganhou `new.repique_bossa := old.repique_bossa;` dentro do mesmo `if not tenho_capacidade('editar_ritmistas', ...)` que já existia pra `bateria_instrumento_id`.
+- **Exibição — passou por correção depois do primeiro deploy**: a primeira versão trocava o texto do instrumento por "Repique de Bossa" no card do painel (mesma lógica aplicada à carteirinha). Ela pediu ajuste no mesmo dia: "o ritmista que é repique de bossa tem que ter os dois selos. O selo do instrumento e o selo que é repique de bossa" — corrigido pra mostrar os dois juntos no card (`admin.html`): a pílula de instrumento continua com o nome real (ex: "🥁 Repique"), e um selo novo, discreto, aparece ao lado (`.badge-repique-bossa`, fundo claro/texto escuro — ela pediu explicitamente "pode ser mais discreto" depois de eu testar uma primeira versão com fundo sólido colorido, ajustado pro mesmo padrão visual do badge "Estrangeiro" já existente).
+- **Carteirinha continua diferente do painel, por decisão explícita dela**: perguntada se queria os dois selos ali também, escolheu manter só a troca de texto ("Repique" → "Repique de Bossa" na linha do cargo), pra não mexer no espaço fixo do cartão (300×540px, regra que nunca muda sem aprovação — ver `CLAUDE.md`).
+- Novo filtro sintético de Status na aba Ritmistas ("Repique de Bossa", cor teal) — mesmo padrão já usado pela chave `menor` em `LABELS_STATUS_FILTRO` (calculada a partir de um campo, não é um valor real de `status` no banco).
+
+### 42.5 Views recriadas duas vezes nesta sessão — mesma disciplina da seção 41.3
+
+`ritmistas_com_instrumento` foi recriada duas vezes (uma pra `modo_carteirinha_individual`, outra pra `naipe`/`repique_bossa`) — cada `CREATE OR REPLACE VIEW` reseta `security_invoker` pro padrão de fábrica (`false`), então cada uma delas reafirmou `security_invoker=true` explicitamente na própria instrução (`with (security_invoker = true) as ...`) e foi **reconferida por SQL direto** (`select reloptions from pg_class where relname = 'ritmistas_com_instrumento'`) antes de qualquer código que dependesse da coluna nova ser publicado. Zero brechas abertas, mesma regra da seção 41.3 aplicada à risca.
+
+## 43. Ajustes finos: Diretoria como módulo inteiro, card da Visão Geral e título de coluna em Instrumentos (21/ago/2026)
+
+Três pedidos pontuais na mesma sessão, depois das entregas da seção 42.
+
+**Card "Diretoria e Apoio ativos" → "Diretoria ativa"**: criado nessa mesma sessão (contando Mestre+Diretor+Apoio juntos desde o início, via `listaDiretoriaAtual`, que já busca `perfil=in.(mestre,diretor,apoio)`), ela pediu só a troca do nome — "o nome precisa ser somente Diretoria". Contagem não mudou, só o rótulo em `admin.html` (HTML + os dois comentários que citavam o nome antigo).
+
+**Aniversário/Estrangeiro na Diretoria**: os ícones 🎂 (aniversário do mês) e 🌍 (nacionalidade estrangeira) já existiam há tempos no card de Ritmistas (`card-linha1`). Ela pediu que "aniversário e estrangeiro seja apresentado na diretoria também... diretoria eu me refiro ao módulo inteiro, ok? mestre, diretores e apoio" — os mesmos cálculos (`aniversarioMesA`, checagem de `nacionalidade !== 'Brasileira'`) foram replicados no `cardHTML` de `renderizarDiretoria()`, idênticos ao de Ritmistas.
+
+O widget "🎂 Aniversariantes do mês" da Visão Geral (`renderizarVisaoGeral()`) também foi ajustado: antes só olhava `todosRitmistas`; passou a somar `todosRitmistas.concat(listaDiretoriaAtual)`. Detalhe de exibição: a linha de detalhe (dia/idade/instrumento) mostra `r.instrumento_nome` só pra Ritmista; pra Diretoria, mostra o cargo (`labelPerfilSA(r.perfil)`) no lugar, já que instrumento não se aplica. Como `carregarDiretoria()` roda em paralelo com `carregarRitmistas()` (chamadas separadas, sem `await` entre elas), existe uma corrida onde a Visão Geral pode renderizar antes dos dados de Diretoria chegarem — resolvido chamando `renderizarVisaoGeral()` de novo dentro de `carregarDiretoria()`, depois que `listaDiretoriaAtual` é populada, então o widget nunca fica com gente faltando por muito tempo.
+
+**Título de coluna em Configurações → Instrumentos**: ela notou, olhando um print, que os dropdowns de nomenclatura (Caixa, Repique, Surdo de Primeira, etc.) ficavam "meio soltos", sem indicar o que representam — exatamente o mesmo problema já resolvido em "Vagas de Ritmistas" em 19/ago/2026 (`.config-lista-cabecalho`, criada especificamente pra isso). Reaproveitada a mesma classe: `<div class="config-lista-cabecalho"><span>Instrumento</span><span>Nome usado</span></div>` antes da lista. Medidas não precisou do mesmo ajuste — não tem nenhuma coluna à direita, só checkbox.
+
+## 44. URLs sem `.html` no endereço (21/ago/2026)
+
+Pedido dela depois de reparar que todo endereço do TumTu (`tumtu.com.br/login.html`, `/admin.html`, etc.) termina em `.html`: "eu acho isso tão ruim... qualquer um vai saber a tecnologia que eu usei." Reação inicial foi de alarme ("Tão vulnerável.") — esclarecido explicitamente, antes de qualquer mudança, que **não é uma falha de segurança**: o `.html` no endereço não expõe dado nenhum, é puramente estético. A vulnerabilidade de verdade que o TumTu já teve (vazamento anônimo de CPF/telefone, seção 31) não tem nada a ver com extensão de arquivo na URL.
+
+### 44.1 `cleanUrls` — recurso nativo da Vercel, sem reescrever nada
+
+Criado `vercel.json` na raiz do projeto (não existia antes):
+
+```json
+{ "cleanUrls": true }
+```
+
+Isso faz a Vercel, na própria borda (antes de chegar no código do app), redirecionar (308) qualquer requisição a um arquivo `.html` pro mesmo endereço sem a extensão — `tumtu.com.br/login.html` → `tumtu.com.br/login`, automaticamente, pro site inteiro, sem precisar listar arquivo por arquivo nem mexer em nenhum link existente. **Testado antes de publicar**: deploy de prévia, acesso via `curl` (usando o token de bypass da proteção de deployment da Vercel, obtido via ferramenta MCP `get_access_to_vercel_url`, com cookie persistido entre chamadas pra simular navegação real) confirmando `/login.html` → 308 → `/login`, querystring preservada através do redirecionamento (testado com `/ficha-perfil.partial.html?v=21` → `/ficha-perfil.partial?v=21`), e arquivos que não são `.html` (`manifest.json`) intocados.
+
+### 44.2 Por que não bastou só ligar o `cleanUrls`
+
+O redirecionamento automático da Vercel só age **depois** que alguém (ou o navegador) já fez a requisição pro endereço com `.html` — ou seja, resolve a URL que aparece na barra de endereço depois de clicar, mas **não muda o texto de um link que já foi gerado e copiado antes disso**. Ela perguntou direto: "até os links de cadastro? tudo?" — apontando exatamente esse ponto cego. Dois lugares onde isso importava de verdade, porque são endereços que saem do app pro mundo real:
+
+- Os **links de cadastro por bateria** (Mestre/Diretor/Apoio/Ritmista) que ela copia em Diretoria/Ritmistas → "Novo cadastro" e manda por WhatsApp — o texto que ela copia e cola continuaria com `.html` escrito, mesmo funcionando.
+- O **QR de emergência da carteirinha** (`qr.html?id=`) — codificado numa imagem escaneada por celular, sem oportunidade nenhuma de "clicar" antes.
+
+Corrigido na raiz, em vez de depender só do redirecionamento: todo lugar do código que **gera** um endereço (não só os que navegam pra ele) passou a montar já a versão limpa direto:
+
+- `admin.html`: os dois construtores de link de cadastro (`renderizarLinkCadastroRitmista`/`renderizarLinksCadastroDiretoria`, base `${origin}/cadastro?bateria=...`) e as duas funções de cadastro manual (`irParaCadastroManualRitmista`/`irParaCadastroManualDiretoria`).
+- `carteirinha.html`: `qrUrl` (`/qr?id=...`) e todos os `window.location.href`/redirecionamentos internos (`login`, `admin`).
+- `login.html`, `cadastro.html`, `redefinir-senha.html`, `404.html`: todo `window.location.href`/`<a href>` interno.
+- `index.html` (raiz do domínio): o `<meta http-equiv="refresh">` e o `window.location.replace()` que mandam pra `login`.
+- **`manifest.json`**: `start_url` — o endereço que abre quando alguém toca no ícone do TumTu instalado na tela inicial do celular. Esse é o mais sensível dos três: só afeta instalações **novas** a partir de agora (quem já instalou o PWA tem o `start_url` antigo gravado no sistema operacional no momento da instalação, não é relido do `manifest.json` a cada abertura — abrir o app instalado antigo ainda vai por `login.html`, só que agora com um redirecionamento a mais, invisível, sem quebrar nada).
+- **`sw.js`**: `APP_SHELL` (lista de arquivos pré-cacheados pelo Service Worker) e o fallback de navegação offline (`caches.match('./login.html')` → `'./login'`) passaram a usar os endereços limpos — evita um salto de redirecionamento extra logo na instalação do PWA, mantendo o cache alinhado com o que o app de fato vai pedir depois.
+- **Edge Function `notificar-aprovacao`** (e-mail de "cadastro aprovado", enviado via Resend pra gente de verdade): tinha dois `tumtu.com.br/login.html` no corpo do e-mail (o link clicável e o texto de fallback pra quem não conseguir clicar) — corrigidos e a função redeployada (versão 12).
+
+`ficha-perfil.partial.html` (fragmento interno, buscado via `fetch()` de dentro do JS, nunca visto/copiado por uma pessoa) foi deixado como está — não é um "endereço" no sentido que preocupava ela, e mudar o nome do arquivo em si seria uma mudança maior e desnecessária pra zero ganho visível.
+
+### 44.3 O que não foi coberto
+
+O e-mail de "esqueci minha senha" é um template nativo do Supabase Auth (configurado em Authentication → Emails, dentro do painel deles — ver seção 33), **não um arquivo neste repositório**. Nenhuma ferramenta disponível nesta sessão dava acesso de leitura/edição a esse conteúdo (a MCP do Supabase usada aqui cobre banco de dados e Edge Functions, não configuração de templates de Auth). Sinalizado a ela conferir diretamente no painel se esse e-mail também tiver algum link com `.html`.
+
+### 44.4 Achado à parte, não investigado
+
+Durante a limpeza, `index.html` mostrou fazer um redirecionamento imediato pra `login` (via `<meta refresh>` + `window.location.replace`) — o que diverge do que `CLAUDE.md` registra sobre esse arquivo desde 12/jul/2026 ("landing page provisória, 'Em breve', sem nenhum link/ação"). Não investigado nem corrigido nesta sessão (fora do escopo do pedido dela); vale conferir numa próxima sessão se a documentação ficou desatualizada ou se o comportamento atual é um regresso não percebido.
