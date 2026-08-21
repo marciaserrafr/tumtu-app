@@ -1183,3 +1183,44 @@ Ela sinalizou estar "bem próxima de criar a primeira escola" — a **Imperatriz
 **Detalhe técnico importante, achado direto no banco (`pg_get_functiondef`) e que vale lembrar pra próxima vez que uma exclusão de escola for cogitada**: `excluir_escola_lgpd()` apaga `vinculos`, `bateria_instrumentos`, `bateria_medidas`, `baterias` e a `escola` em si — e, por causa de `ON DELETE CASCADE` na FK `vinculos_historico_status.bateria_id → baterias.id`, o histórico de status daquela bateria some junto, automaticamente. **Mas a função não apaga `pessoas`** — comentário no próprio código confirma que é proposital ("não apagamos dado pessoal aqui"), a ficha da pessoa fica órfã (sem vínculo em bateria nenhuma), preservada. Se um dia ela quiser excluir uma escola **e também não deixar rastro nenhum das pessoas que só existiam ali** (como ela pediu aqui: "não quero que tenha histórico, nada"), a ordem certa é excluir as pessoas primeiro (busca por pessoa, aba Privacidade) e a escola depois — nunca o contrário, e nunca presumir que excluir a escola já resolve as pessoas.
 
 Nada foi executado nesta sessão além das consultas de levantamento (todas read-only) — a exclusão do Jhones fica pendente, aguardando ela pedir explicitamente.
+
+## 47. "Ritmistas por Instrumento" completo + aviso de vaga + colunas alinhadas em Instrumentos (21/ago/2026)
+
+Sequência de ajustes na Visão Geral e em Configurações (Instrumentos/Vagas), cada um testado numa prévia própria antes do próximo — vários deles foram correções de alinhamento, com a Márcia mandando prints reais a cada rodada.
+
+### 47.1 "Ritmistas por Instrumento" (Visão Geral) mostra naipes vazios
+
+`renderizarContagemInstrumentos()` antes construía a lista a partir da própria contagem de ritmistas ativos (`Object.entries(contagem)`) — instrumento sem nenhum ritmista contado simplesmente não gerava entrada nenhuma, sumia da lista. Pedido dela: "é importante que eles vejam que tem naipe que ainda não se cadastrou, caso queira chamar atenção da galera." Corrigido pra percorrer `bateriaInstrumentosCache.filter(bi => bi.ativo)` (todos os instrumentos ativos da bateria) e só usar `contagem` pra saber o número de cada um (`0` quando não tem ninguém) — instrumento configurado sempre aparece, mesmo vazio. "Sem instrumento" (bucket de ritmista antigo sem instrumento atribuído) continua só aparecendo quando existe de verdade — não é um naipe configurado, não faz sentido mostrar "0" fixo pra ele.
+
+### 47.2 Aviso "Faltam N" / "Sem definição de vagas"
+
+Função nova, compartilhada entre a Visão Geral e Configurações → Vagas de Ritmistas:
+```js
+function avisoVagaHtml(l) {
+    if (l.semVaga) return `<span class="vg-instrumento-faltam">Sem definição de vagas</span>`;
+    if (l.faltam > 0) return `<span class="vg-instrumento-faltam">${l.faltam === 1 ? 'Falta' : 'Faltam'} ${l.faltam}</span>`;
+    return '';
+}
+```
+`faltam = vagas - qtd` (só quando `!semVaga && qtd < vagas`). Sem aviso nenhum quando a vaga está completa ou excedida — a pílula colorida (verde/vermelha) já avisa sozinha nesses dois casos, evitando redundância visual.
+
+Pedido inicial dela (mensagem separada, mesma sessão): quando a vaga nunca foi definida (fica em 0), mostrar "Sem definição de vagas" em vez de nada — antes só existia o caso "Faltam N", que exigia uma vaga já configurada.
+
+### 47.3 Alinhamento — três rodadas até acertar, causa raiz achada só na última
+
+O aviso foi posicionado três vezes diferentes antes de ficar certo:
+1. **Primeira versão**: coladinho no nome do instrumento (lado esquerdo da linha). Ela não gostou: "não gostei... pode ser mais próxima da pílula."
+2. **Segunda versão**: movido pra perto da pílula, dentro do mesmo bloco flex à direita (`<span style="display:flex;gap:8px">aviso + pílula</span>`). Ainda errado — "esse 'coladinho' é que me mata... pode ser alinhado à direita" — gap aumentado pra 14px, e um `text-align:right` foi adicionado ao próprio texto do aviso (que na prática **não fazia nada**, porque o elemento não tinha largura extra sobrando pra alinhar dentro — span de largura automática igual ao próprio conteúdo).
+3. **Causa raiz, achada na terceira rodada**: ela apontou precisamente — "vc colocou alinhado de acordo com o tamanho da pílula." A pílula de contagem da Visão Geral (`.vg-instrumento-qtd`) nunca tinha `min-width` fixo (diferente de `.config-vaga-contagem`, a pílula equivalente em Vagas de Ritmistas, que **já tinha** `min-width:56px` desde antes) — números diferentes ("3 / 5" vs "12 / 8") mudavam a largura da própria pílula, e como ela é o último elemento do bloco flex (`justify-content:space-between` empurra o bloco inteiro pra direita, mas a largura da pílula dentro dele varia), o aviso antes dela também mudava de posição horizontal linha a linha. Corrigido dando à `.vg-instrumento-qtd` o mesmo `min-width:56px` que `.config-vaga-contagem` já tinha — pílulas do mesmo tamanho em toda a lista, aviso finalmente alinhado de verdade.
+
+Cor/peso do aviso também mudaram de ida e volta: vermelho forte + negrito (primeira versão) → ela pediu "mais suave, sem negrito" → troquei pra âmbar sem negrito → ela reclamou que gostava da cor vermelha original, só queria tirar o negrito → revertido pra vermelho (`#b3261e`) sem negrito (`font-weight:400`). Lição prática: quando ela pede "mais suave", não presumir que inclui trocar a cor — perguntar ou aplicar só o que foi pedido literalmente (peso), não generalizar pra "toda a aparência".
+
+### 47.4 Configurações → Instrumentos: mesmo problema de alinhamento, um nível abaixo
+
+Depois do redesign da seção 45 (cabeçalho de coluna removido) ela pediu ele de volta: "coloque Nome Usado como um título na parte de cima, igual vc fez para vaga de ritmistas" — reintroduzido `<div class="config-lista-cabecalho"><span>Instrumento</span><span>Nome Usado</span></div>` antes da lista, mesmo padrão de Vagas de Ritmistas. Com a divisória/respiro já corrigidos entre cabeçalho e título de grupo (seção 45.1), não repetiu o problema original de "dois títulos" confusos.
+
+Segundo pedido, mesma leva: "o que não tiver nome definido, repita o nome que está aparecendo, do instrumento real" — confirmado por ela logo depois que vale **só pra quem está marcado (☑)**: instrumento ativo sem mais de uma nomenclatura possível (sem select pra escolher) passou a mostrar o próprio nome em texto simples (`.config-instrumento-nome-usado-fixo`) em vez de ficar com a coluna vazia; instrumento desmarcado continua sem nada à direita.
+
+Isso expôs o mesmo problema de largura variável da seção 47.3, um nível abaixo: `<select>` nativo se ajusta ao próprio texto ("Caixa" bem mais estreito que "Surdo de Primeira"), e o texto fixo novo não tinha caixa nenhuma — a coluna inteira, vista de cima a baixo, ficava serrilhada, sem nenhum edge alinhado (ela mandou print mostrando exatamente isso: "isso tá muito desalinhado"). Corrigido dando **a mesma largura fixa (170px) e o mesmo estilo de caixa** (borda, padding, cantos arredondados) tanto ao `<select>` quanto ao texto fixo — só o fundo do texto fixo é levemente mais claro (`#f7f6fb` vs branco), sinalizando visualmente "não é campo editável" sem precisar de nenhuma seta de dropdown. Pedido final dela: texto alinhado à esquerda dentro da caixa (`text-align:left`, explícito nas duas variantes) — a caixa em si já ficava na mesma coluna por causa da largura fixa, faltava só isso.
+
+**Padrão a levar pra qualquer lista futura com pílula/caixa de largura variável ao lado de texto**: dar `min-width`/`width` fixo ao elemento variável (pílula, select, tag) resolve o alinhamento na raiz — tentar alinhar o *texto* vizinho por `text-align`/`gap` sem antes travar a largura do elemento ao lado é sempre um retrabalho, porque a posição do texto depende da largura do vizinho, não o contrário.
