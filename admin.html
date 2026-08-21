@@ -719,7 +719,8 @@
            Geral é só um resumo, não precisa. */
         .config-lista-cabecalho {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px 8px; font-size: 11px; font-weight: 700; color: #888;
+            padding: 0 20px 10px; margin-bottom: 4px; border-bottom: 1px solid #eee;
+            font-size: 11px; font-weight: 700; color: #888;
             text-transform: uppercase; letter-spacing: 0.5px;
         }
         .config-lista-cabecalho-controles { display: flex; align-items: center; gap: 32px; }
@@ -727,6 +728,16 @@
         .config-lista-cabecalho-controles span:last-child { width: 64px; text-align: center; }
         .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
+        /* Cabeçalho de coluna (Instrumento/Nome usado) + título de grupo
+           (Tradicionais/Especiais) empilhados sem separação pareciam "dois
+           títulos" confusos, um em cima do outro (achado da Márcia,
+           21/ago/2026, com print). A borda acima já fecha o cabeçalho de
+           coluna visualmente como um bloco à parte; aqui devolve o respiro
+           que o :first-child (acima) zera de propósito nos outros casos
+           (Medidas, sem cabeçalho de coluna antes -- ali o primeiro título
+           de grupo deve mesmo ficar colado no topo). Escopado só pra dentro
+           da lista de Instrumentos, que é a única com esse cabeçalho. */
+        #config-instrumentos-lista .config-grupo-titulo:first-child { margin-top: 16px; }
         .config-instrumento-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; flex-wrap: wrap; }
         .config-instrumento-check { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--cor-texto-principal); cursor: pointer; }
         .config-instrumento-check input { accent-color: var(--cor-destaque); width: 16px; height: 16px; cursor: pointer; }
