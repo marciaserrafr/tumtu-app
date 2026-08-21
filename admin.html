@@ -123,28 +123,24 @@
            panos). */
         .btn-header-tematico { background: rgba(255,255,255,0.94) !important; border-color: transparent !important; color: #12101a !important; font-weight: 700 !important; }
         .btn-header-tematico:hover { background: #ffffff !important; }
-        /* Fica logo depois do conteúdo (margin-top fixo, não empurrado pro
-           fim da tela -- isso criava um vão vazio grande em telas com
-           pouco conteúdo). Sem linha/borda em cima e sem virar uma "caixa"
-           -- achado da Márcia, 21/ago/2026: nesse tipo de tela (cabeçalho
-           fixo, só o miolo rola), o vão vazio fica todo visível de uma vez
-           (não precisa rolar pra notar), então qualquer coisa que pareça
-           um bloco separado dentro desse vazio chama atenção à toa. Sem
-           borda, texto bem discreto -- passa quase despercebido. */
-        .rodape-tumtu {
-            text-align: center; padding: 16px 24px 14px; margin-top: 12px;
-        }
-        /* Reduzido de 28/26px pra 16/14px (18/ago/2026, achado da Márcia:
-           "achei que tá muito grande o cabeçalho" -- é rodapé, mas o
-           comentário era sobre o respiro exagerado) -- isso aqui é só uma
-           assinatura discreta, não uma seção de verdade. .tt-m tem
-           border-bottom (o traço terracota do "m") -- 3px de gap não dava
-           respiro nenhum pro traço antes do texto de baixo, ficava parecendo
-           cortar a legenda (achado anterior, mesmo dia) -- mantido em 12px. */
-        .rodape-tumtu .tt-logo { font-size: 13px; display: inline-block; }
-        .rodape-tumtu .rodape-tagline {
-            display: block; margin-top: 8px; font-size: 10px; font-weight: 600;
-            letter-spacing: 0.8px; text-transform: uppercase; color: var(--cor-texto-muted);
+        /* Assinatura "TumTu" -- morava solta no meio do conteúdo (rodapé de
+           verdade), mas nesse layout (cabeçalho fixo, só o miolo rola) o
+           vão vazio abaixo de telas com pouco conteúdo fica todo visível
+           de uma vez, e a assinatura acabava "flutuando perdida" no meio
+           dele -- achado da Márcia, 21/ago/2026: "nunca vi rodapé assim".
+           Mudou de casa: agora mora no fim da barra lateral (mesmo bloco
+           do menu, .sa-sidebar/.nav-abas), que tem altura FIXA (sempre a
+           tela toda) -- nunca estica nem encolhe com a quantidade de
+           conteúdo, então a assinatura fica sempre no mesmo lugar, sem
+           esse efeito estranho. margin-top:auto empurra ela pro fim da
+           lista de botões. Só no computador -- no celular a barra vira
+           fileira de ícones embaixo, sem espaço pra texto (ver
+           breakpoint 560px mais abaixo). */
+        .sidebar-assinatura { margin-top: auto; padding: 16px 12px 4px; text-align: center; }
+        .sidebar-assinatura .tt-logo { font-size: 12px; display: inline-block; color: rgba(255,255,255,0.85); }
+        .sidebar-assinatura-tagline {
+            display: block; margin-top: 6px; font-size: 9px; font-weight: 600;
+            letter-spacing: 0.6px; text-transform: uppercase; color: rgba(255,255,255,0.35);
         }
         /* NAV ABAS -- lateral fixa no computador, rodapé fixo no celular.
            Mesmo padrão visual e comportamento responsivo de .sa-sidebar
@@ -655,12 +651,6 @@
             .header-badge { font-size: 9px; }
             .header-avatar { width: 30px; height: 30px; font-size: 12px; }
             .btn-sair { font-size: 11px; padding: 5px 10px; }
-            /* Rodapé nunca encolhia no celular (só o cabeçalho tinha esse
-               ajuste) -- ficava desproporcionalmente grande por comparação.
-               Achado da Márcia, 21/ago/2026: "está maior que o header". */
-            .rodape-tumtu { padding: 10px 16px 8px; }
-            .rodape-tumtu .tt-logo { font-size: 11px; }
-            .rodape-tumtu .rodape-tagline { font-size: 9px; margin-top: 6px; }
 
             .main { padding: 16px 12px; }
 
@@ -992,6 +982,10 @@
             .sa-sidebar-item .sa-ic { font-size: 18px; width: auto; }
             .sa-sidebar-item.ativa { background: none; }
             .sa-main { margin-left: 0; width: 100%; padding: 16px 12px 82px; }
+            /* Sem espaço pra assinatura no rodapé-em-fileira-de-ícones do
+               celular -- o cabeçalho já mostra "TumTu" no topo, cobre a
+               mesma necessidade sem disputar espaço com os ícones. */
+            .sidebar-assinatura { display: none; }
             .kpi-row { grid-template-columns: 1fr 1fr; gap: 10px; }
             .baterias-grid { grid-template-columns: 1fr; }
             .form-grid { grid-template-columns: 1fr; }
@@ -1070,6 +1064,10 @@
     <button type="button" class="sa-sidebar-item" data-sa="escolas" onclick="trocarSaAba('escolas',this)"><span class="sa-ic">🏫</span><span>Escolas</span></button>
     <button type="button" class="sa-sidebar-item" data-sa="configuracoes-globais" onclick="trocarSaAba('configuracoes-globais',this)"><span class="sa-ic">⚙️</span><span>Configurações</span></button>
     <button type="button" class="sa-sidebar-item" data-sa="privacidade" onclick="trocarSaAba('privacidade',this)"><span class="sa-ic">🔒</span><span>Privacidade</span></button>
+    <div class="sidebar-assinatura">
+        <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
+        <span class="sidebar-assinatura-tagline">Sistema de gestão de bateria</span>
+    </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════
@@ -1206,11 +1204,6 @@
         <div id="fp-container-sa-meuperfil"></div>
     </div>
 
-    <footer class="rodape-tumtu">
-        <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
-        <span class="rodape-tagline">Sistema de gestão de bateria</span>
-    </footer>
-
 </div><!-- /saMain -->
 
 <!-- NAV ABAS (contexto de uma escola — Mestre/Diretor sempre; Super Admin
@@ -1248,6 +1241,10 @@
          apertado como 6º item no rodapé -- vira um link no topo, perto
          do cabeçalho (avaliação minha, 20/ago/2026). -->
     <button id="btnVoltarEscolasNav" type="button" class="nav-abas-voltar" onclick="voltarParaEscolasSA()" style="display:none"><span class="aba-ic">🏫</span><span>Escolas</span></button>
+    <div class="sidebar-assinatura">
+        <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
+        <span class="sidebar-assinatura-tagline">Sistema de gestão de bateria</span>
+    </div>
 </nav>
 
 <div class="main" id="mainEscola" style="display:none">
@@ -1559,11 +1556,6 @@
 
     <div id="fp-container-meuperfil"></div>
 </div><!-- /painel-meu-perfil -->
-
-<footer class="rodape-tumtu">
-    <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
-    <span class="rodape-tagline">Sistema de gestão de bateria</span>
-</footer>
 
 </div><!-- /main -->
 
