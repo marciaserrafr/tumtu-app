@@ -865,7 +865,7 @@
         const grupo = document.getElementById('grupo-instrumento');
         const linha = document.getElementById('linha-instrumento-membro');
         const select = document.getElementById('instrumento');
-        const ehAdmin = cargo === 'mestre' || cargo === 'diretor' || cargo === 'super_admin';
+        const ehAdmin = cargo === 'mestre' || cargo === 'diretor' || cargo === 'apoio' || cargo === 'super_admin';
         grupo.style.display = ehAdmin ? 'none' : '';
         linha.classList.toggle('uma-coluna', ehAdmin);
         select.required = !ehAdmin;
@@ -957,7 +957,7 @@
         const bateriaId = params.get('bateria');
         if (!bateriaId) return;
 
-        const cargoParam = params.get('cargo'); // 'mestre' | 'diretor' | ausente = ritmista
+        const cargoParam = params.get('cargo'); // 'mestre' | 'diretor' | 'apoio' | ausente = ritmista
         const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
         // Aceita tanto o código novo (?bateria=k3f8x2, não sequencial — evita
         // que alguém troque o número na URL e descubra quantas baterias
@@ -976,13 +976,13 @@
             return;
         }
 
-        const perfil = cargoParam === 'mestre' ? 'mestre' : cargoParam === 'diretor' ? 'diretor' : 'ritmista';
+        const perfil = cargoParam === 'mestre' ? 'mestre' : cargoParam === 'diretor' ? 'diretor' : cargoParam === 'apoio' ? 'apoio' : 'ritmista';
         linkFixoAtual = { perfil, bateriaId: bateria.id };
         atualizarCampoInstrumento(perfil);
         await carregarOpcoesInstrumento(bateria.id);
         await carregarOpcoesMedidas(bateria.id);
 
-        const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor' : 'Ritmista';
+        const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor' : perfil === 'apoio' ? 'Apoio de Bateria' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = cargoLabel;
         document.getElementById('convite-bateria').textContent = bateria.nome;
         document.getElementById('convite-banner').style.display = 'block';
@@ -1066,7 +1066,7 @@
 
         const autorizado = !!usuarioLogado && (
             usuarioLogado.perfil === 'super_admin' ||
-            (cargo === 'ritmista' && (usuarioLogado.perfil === 'mestre' || usuarioLogado.perfil === 'diretor'))
+            (cargo === 'ritmista' && (usuarioLogado.perfil === 'mestre' || usuarioLogado.perfil === 'diretor' || usuarioLogado.perfil === 'apoio'))
         );
 
         if (!bateriaId || !cargo || !autorizado) {
@@ -1087,7 +1087,7 @@
         atualizarCampoInstrumento(cargo);
         await carregarOpcoesInstrumento(Number(bateriaId));
         await carregarOpcoesMedidas(Number(bateriaId));
-        const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor' : 'Ritmista';
+        const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor' : cargo === 'apoio' ? 'Apoio de Bateria' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = cargoLabel;
         document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
         document.getElementById('convite-banner').style.display = 'block';

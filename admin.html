@@ -1487,6 +1487,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
             <button class="btn-novo" onclick="irParaCadastroManualDiretoria('mestre')">+ Cadastrar Mestre</button>
             <button class="btn-novo" onclick="irParaCadastroManualDiretoria('diretor')">+ Cadastrar Diretor</button>
+            <button class="btn-novo" onclick="irParaCadastroManualDiretoria('apoio')">+ Cadastrar Apoio</button>
         </div>
         <div id="linksCadastroDiretoria" style="margin-bottom:20px;"></div>
     </div>
@@ -1506,12 +1507,13 @@
         <!-- FILTRO CARGO -->
         <div class="multi-select" id="cargoSelectWrap">
             <div class="multi-select-trigger" id="cargoSelectTrigger" onclick="toggleCargoSelect()">
-                <span id="cargoSelectLabel">Mestres, Diretores</span>
+                <span id="cargoSelectLabel">Mestres, Diretores, Apoio</span>
                 <span id="cargoSelectArrow">▼</span>
             </div>
             <div class="multi-select-dropdown" id="cargoSelectDropdown" style="display:none;">
                 <label class="multi-select-option"><input type="checkbox" value="mestre" checked onchange="onChangeCargo()">Mestre de Bateria</label>
                 <label class="multi-select-option"><input type="checkbox" value="diretor" checked onchange="onChangeCargo()">Diretor</label>
+                <label class="multi-select-option"><input type="checkbox" value="apoio" checked onchange="onChangeCargo()">Apoio de Bateria</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
                     <span id="cargoMarcarTudoLink" onclick="toggleMarcarTudoCargo()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
                 </div>
@@ -2070,7 +2072,7 @@
             { chave: 'status', label: 'Status' },
         ]},
     ];
-    const LABELS_PERFIL_EXPORT = { mestre: 'Mestre de Bateria', diretor: 'Diretor' };
+    const LABELS_PERFIL_EXPORT = { mestre: 'Mestre de Bateria', diretor: 'Diretor', apoio: 'Apoio de Bateria' };
     let tipoExportacaoAtual = 'ritmistas';
     let sheetJSCarregado = false;
     function carregarSheetJS() {
@@ -2932,7 +2934,8 @@
         const base = `${window.location.origin}/cadastro.html?bateria=${codigo}`;
         div.innerHTML = caixaLinkCadastro('linksCadastroDiretoria-box', 'Links de cadastro', [
             { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },
-            { label: 'Diretor', url: `${base}&cargo=diretor` }
+            { label: 'Diretor', url: `${base}&cargo=diretor` },
+            { label: 'Apoio de Bateria', url: `${base}&cargo=apoio` }
         ]);
     }
 
@@ -4135,18 +4138,18 @@
         if (!container) return;
         const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
         if (!bateriaId) { permissoesPessoaCache = []; container.innerHTML = '<div class="estado-vazio">Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,capacidades`, { headers: authHeaders });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,capacidades`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         renderizarListaPermissoesPessoas();
     }
     function renderizarListaPermissoesPessoas() {
         const container = document.getElementById('pe-perfis-lista');
         if (!container) return;
-        if (permissoesPessoaCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum Mestre ou Diretor nesta bateria ainda.</div>'; return; }
+        if (permissoesPessoaCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum Mestre, Diretor ou Apoio nesta bateria ainda.</div>'; return; }
         container.innerHTML = permissoesPessoaCache.map(p => {
             const caps = p.capacidades || {};
             const ligadas = TODAS_CAPACIDADES.filter(c => caps[c]);
-            const cargo = p.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
+            const cargo = labelPerfilSA(p.perfil);
             return `<div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
@@ -4159,7 +4162,7 @@
     function abrirEditorPermissoesPessoa(vinculoId) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: p.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor', capacidades: { ...(p.capacidades || {}) } };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil), capacidades: { ...(p.capacidades || {}) } };
         renderizarEditorPermissoesPessoa();
     }
     function renderizarEditorPermissoesPessoa() {
@@ -4423,7 +4426,7 @@
     const HIST_STATUS_LABEL = { pendente: 'Pendente', aprovado: 'Aprovado', rejeitado: 'Rejeitado', suspenso: 'Suspenso', desligado: 'Desligado', inativo: 'Inativo' };
     function histStatusLabel(s) { return HIST_STATUS_LABEL[s] || s || '—'; }
     function histPerfilLabel(p) { return p === 'ritmista' ? 'Ritmista' : labelPerfilSA(p); }
-    function labelPerfilSA(p) { if (p === 'mestre') return 'Mestre de Bateria'; if (p === 'diretor') return 'Diretor'; return p; }
+    function labelPerfilSA(p) { if (p === 'mestre') return 'Mestre de Bateria'; if (p === 'diretor') return 'Diretor'; if (p === 'apoio') return 'Apoio de Bateria'; return p; }
     function histDataHora(iso) { return iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—'; }
     async function carregarHistoricoEscolaSA() {
         const container = document.getElementById('lista-historico-escola');
@@ -4612,7 +4615,7 @@
     // 20/ago/2026. Cargo faz o papel de "Instrumento" (tudo marcado por
     // padrão, estilo Excel); Status usa o mesmo padrão inicial de
     // Ritmistas (Ativos + Pendentes).
-    let filtroCargoDiretoriaSelecionados = ['mestre', 'diretor'];
+    let filtroCargoDiretoriaSelecionados = ['mestre', 'diretor', 'apoio'];
     let filtroStatusDiretoriaSelecionados = ['aprovado', 'pendente'];
 
     async function carregarDiretoria() {
@@ -4622,7 +4625,7 @@
         lista.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
 
         if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
-        const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=*`;
+        const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=*`;
 
         const res = await fetch(url, {
             headers: authHeaders
@@ -4650,10 +4653,10 @@
         const checks = document.querySelectorAll('#cargoSelectDropdown input[type=checkbox]:checked');
         filtroCargoDiretoriaSelecionados = Array.from(checks).map(c => c.value);
         const total = document.querySelectorAll('#cargoSelectDropdown input[type=checkbox]').length;
-        const labelsCargo = { mestre: 'Mestres', diretor: 'Diretores' };
+        const labelsCargo = { mestre: 'Mestres', diretor: 'Diretores', apoio: 'Apoio' };
         const label = document.getElementById('cargoSelectLabel');
         if (filtroCargoDiretoriaSelecionados.length === total) {
-            label.textContent = 'Mestres, Diretores';
+            label.textContent = 'Mestres, Diretores, Apoio';
         } else if (filtroCargoDiretoriaSelecionados.length === 0) {
             label.textContent = 'Nenhum cargo';
         } else {
@@ -4740,7 +4743,7 @@
             const fotoHtml = a.foto_url
                 ? `<img src="${a.foto_url}">`
                 : inicial;
-            const cargo = a.perfil === 'mestre' ? 'Mestre de Bateria' : 'Diretor';
+            const cargo = labelPerfilSA(a.perfil);
 
             const badgeStatus = {
                 pendente:  `<span class="badge badge-pendente">Pendente</span>`,
@@ -4778,9 +4781,11 @@
         // primeiro, Diretores depois, cada um com seu título de seção.
         const mestres = admins.filter(a => a.perfil === 'mestre');
         const diretores = admins.filter(a => a.perfil === 'diretor');
+        const apoios = admins.filter(a => a.perfil === 'apoio');
         let html = '';
         if (mestres.length) html += `<div class="secao-titulo">Mestres</div>` + mestres.map(cardHTML).join('');
         if (diretores.length) html += `<div class="secao-titulo">Diretores</div>` + diretores.map(cardHTML).join('');
+        if (apoios.length) html += `<div class="secao-titulo">Apoio</div>` + apoios.map(cardHTML).join('');
         lista.innerHTML = html;
 
         // Guarda admins para uso no modal
@@ -4831,7 +4836,7 @@
         // nenhum da tela, só Aprovar/Rejeitar (pendente). Reaproveita os
         // mesmos modais de motivo (abrirModalSuspender/abrirModalDesligar),
         // só passando o rótulo certo e qual lista recarregar depois.
-        const rotulo = a.perfil === 'mestre' ? 'Mestre' : 'Diretor';
+        const rotulo = a.perfil === 'mestre' ? 'Mestre' : a.perfil === 'diretor' ? 'Diretor' : 'Apoio';
         const nomeEscapado = (a.nome || '').replace(/'/g, "\\'");
         let btns = '';
         if (a.status === 'pendente') {

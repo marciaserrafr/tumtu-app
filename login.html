@@ -294,6 +294,7 @@
         const nomesPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b.nome]));
         const cargoLabelVinculo = v => v.perfil === 'mestre' ? (v.genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria')
             : v.perfil === 'diretor' ? (v.genero === 'feminino' ? 'Diretora' : 'Diretor')
+            : v.perfil === 'apoio' ? 'Apoio de Bateria'
             : 'Ritmista';
         const rotuloStatus = { pendente: 'Pendente', suspenso: 'Suspenso' };
 
@@ -359,7 +360,7 @@
             return;
         }
 
-        const isAdmin = cache.perfil === 'mestre' || cache.perfil === 'diretor';
+        const isAdmin = cache.perfil === 'mestre' || cache.perfil === 'diretor' || cache.perfil === 'apoio';
         // Busca cor/logo/tema aqui, com o spinner do login na tela, antes de
         // trocar de tela -- mesmo raciocínio já usado pra carteirinha.html
         // (18/ago/2026, achado da Márcia: sem isso, o cabeçalho de admin.html
@@ -442,7 +443,7 @@
 
     async function continuarComVinculo(vinculo) {
         const perfil = vinculo.perfil || 'ritmista';
-        const isAdmin = perfil === 'mestre' || perfil === 'diretor';
+        const isAdmin = perfil === 'mestre' || perfil === 'diretor' || perfil === 'apoio';
 
         if (vinculo.status === 'pendente') {
             mostrarFormularioLogin();
