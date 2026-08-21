@@ -337,7 +337,7 @@
         /* "Faltam N" -- sinalizador discreto pra chamar atenção de quem
            gerencia, sem competir visualmente com a pílula de contagem
            (essa sim colorida/com peso). Pedido da Márcia, 21/ago/2026. */
-        .vg-instrumento-faltam { font-size: 11.5px; font-weight: 600; color: #b3261e; font-style: italic; white-space: nowrap; }
+        .vg-instrumento-faltam { font-size: 11.5px; font-weight: 400; color: #8a6800; font-style: italic; white-space: nowrap; text-align: right; }
         .vg-instrumento-qtd.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
 
         /* CONTADOR */
@@ -2567,7 +2567,7 @@
         div.innerHTML = linhas.map(l => `
             <div class="vg-instrumento-linha">
                 <span>${esc(l.nome)}</span>
-                <span style="display:flex;align-items:center;gap:8px;">
+                <span style="display:flex;align-items:center;gap:14px;">
                     ${l.mostrarAviso ? avisoVagaHtml(l) : ''}
                     <span class="vg-instrumento-qtd${(l.excedeu || l.semVaga) ? ' excedeu' : l.completo ? ' completo' : ''}">${l.qtd} / ${l.semVaga ? '-' : l.vagas}</span>
                 </span>
@@ -3262,7 +3262,7 @@
                         <div class="item-nome">${nomeExibicaoBateriaInstrumento(bi)}</div>
                     </div>
                     <div class="item-acoes">
-                        <span style="display:flex;align-items:center;gap:8px;">
+                        <span style="display:flex;align-items:center;gap:14px;">
                             ${avisoVagaHtml({ semVaga, faltam })}
                             <span class="config-vaga-contagem${(excedeu || semVaga) ? ' excedeu' : completo ? ' completo' : ''}">${atual}</span>
                         </span>
