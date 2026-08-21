@@ -110,7 +110,7 @@
     </div>
 
     <div class="link-cadastro">
-        Ainda não tem cadastro? <a href="cadastro.html">Cadastre-se</a>
+        Ainda não tem cadastro? <a href="cadastro">Cadastre-se</a>
     </div>
 </div>
 
@@ -336,7 +336,7 @@
         if (!session) { localStorage.removeItem('ritmista'); mostrarFormularioLogin(); return; }
 
         if (cache.super_admin) {
-            window.location.href = 'admin.html';
+            window.location.href = 'admin';
             return;
         }
 
@@ -370,10 +370,10 @@
         // modo_carteirinha_individual reconferido na hora (não vem do cache) --
         // é decisão de acesso, mesma cautela já usada pra status/perfil acima.
         if (isAdmin && !cache.modo_piloto && !vinculoAtual.modo_carteirinha_individual) {
-            window.location.href = 'admin.html';
+            window.location.href = 'admin';
             return;
         }
-        window.location.href = 'carteirinha.html';
+        window.location.href = 'carteirinha';
     }
     document.addEventListener('DOMContentLoaded', () => {
         sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -502,12 +502,12 @@
                 const { data: { session } } = await sb.auth.getSession();
                 await prefetchConfigEscola(vinculo.bateria_id, session ? session.access_token : null);
             }
-            window.location.href = 'admin.html';
+            window.location.href = 'admin';
             return;
         }
 
         if (lerConfigCache(vinculo.bateria_id)) {
-            window.location.href = 'carteirinha.html';
+            window.location.href = 'carteirinha';
             return;
         }
         document.getElementById('containerLogin').style.display = 'none';
@@ -515,7 +515,7 @@
         document.getElementById('containerCarregando').style.display = 'flex';
         const { data: { session } } = await sb.auth.getSession();
         await prefetchConfigEscola(vinculo.bateria_id, session ? session.access_token : null);
-        window.location.href = 'carteirinha.html';
+        window.location.href = 'carteirinha';
     }
 
     function escolherVinculo(indice) {
@@ -636,7 +636,7 @@
         }
         if (pessoa.super_admin) {
             localStorage.setItem('ritmista', JSON.stringify({ pessoa_id: pessoa.id, id: pessoa.id, super_admin: true, perfil: 'super_admin', nome: pessoa.nome }));
-            window.location.href = 'admin.html';
+            window.location.href = 'admin';
             return;
         }
 

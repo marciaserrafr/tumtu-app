@@ -329,7 +329,7 @@
         document.getElementById('membroDesde').textContent = ritmista.membro_desde || '—';
 
         // QR code real apontando para a página de emergência
-        const qrUrl = `${window.location.origin}/qr.html?id=${ritmista.id}`;
+        const qrUrl = `${window.location.origin}/qr?id=${ritmista.id}`;
         // 86px, não 110 — a moldura (.v-qr-box) já é 110px com 12px de respiro
         // pra cada lado (110 - 12*2 = 86). Gerar o QR do mesmo tamanho da
         // moldura inteira fazia ele estourar esse respiro.
@@ -607,7 +607,7 @@
     if (params.get('voltar') === 'admin') {
         const btnVoltar = document.getElementById('btnSairTopo');
         btnVoltar.textContent = 'Voltar ao painel';
-        btnVoltar.onclick = () => { window.location.href = 'admin.html'; };
+        btnVoltar.onclick = () => { window.location.href = 'admin'; };
     }
 
     if (idParam) {
@@ -649,7 +649,7 @@
         // Modo normal: usa localStorage
         const ritmista = JSON.parse(localStorage.getItem('ritmista'));
         if (!ritmista) {
-            window.location.href = 'login.html';
+            window.location.href = 'login';
         } else {
             renderMestres(ritmista.bateria_id);
             document.getElementById('btnMeuPerfilRodape').style.display = 'block';
@@ -765,13 +765,13 @@
     async function sair() {
         await sb.auth.signOut();
         localStorage.removeItem('ritmista');
-        window.location.href = 'login.html';
+        window.location.href = 'login';
     }
 
     // Reaproveita a sessão já aberta (sem pedir senha de novo) — login.html
     // busca todos os vínculos e mostra a telinha de escolher, mesmo já logado.
     function trocarBateria() {
-        window.location.href = 'login.html?trocar=1';
+        window.location.href = 'login?trocar=1';
     }
 </script>
 </body>

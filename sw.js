@@ -1,18 +1,18 @@
-const CACHE_NAME = 'tumtu-shell-v214';
+const CACHE_NAME = 'tumtu-shell-v215';
 
 // Arquivos com "?v=N" têm o número subido a cada mudança de conteúdo —
 // isso muda a URL inteira, então nem o cache do navegador nem caches de
 // operadora/proxy no meio do caminho conseguem reaproveitar uma cópia
 // antiga: pra eles, é literalmente um arquivo novo, nunca visto.
 const APP_SHELL = [
-  './login.html',
+  './login',
   './index.html',
-  './cadastro.html',
-  './admin.html',
-  './carteirinha.html',
-  './qr.html',
-  './redefinir-senha.html',
-  './politica-privacidade.html',
+  './cadastro',
+  './admin',
+  './carteirinha',
+  './qr',
+  './redefinir-senha',
+  './politica-privacidade',
   './ficha-perfil.js?v=18',
   './ficha-perfil.partial.html?v=21',
   './config-escola.js?v=3',
@@ -66,7 +66,7 @@ self.addEventListener('fetch', (event) => {
         const fetchAtualizado = fetch(request).then((response) => {
           if (response && response.ok) cache.put(request, response.clone());
           return response;
-        }).catch(() => cached || (request.mode === 'navigate' ? caches.match('./login.html') : undefined));
+        }).catch(() => cached || (request.mode === 'navigate' ? caches.match('./login') : undefined));
         return cached || fetchAtualizado;
       })
     )

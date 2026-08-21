@@ -2529,18 +2529,18 @@
         await sb.auth.signOut();
         localStorage.removeItem('ritmista');
         localStorage.removeItem('tumtu_admin_estado');
-        window.location.href = 'login.html';
+        window.location.href = 'login';
     }
 
     function irParaCadastroManualRitmista() {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { alert('Bateria não encontrada para este usuário.'); return; }
-        window.location.href = `cadastro.html?modo=manual&cargo=ritmista&bateria_id=${bateriaId}`;
+        window.location.href = `cadastro?modo=manual&cargo=ritmista&bateria_id=${bateriaId}`;
     }
     function irParaCadastroManualDiretoria(cargo) {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { alert('Bateria não encontrada para este usuário.'); return; }
-        window.location.href = `cadastro.html?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}`;
+        window.location.href = `cadastro?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}`;
     }
 
 
@@ -2775,7 +2775,7 @@
 
     async function iniciarUsuario() {
         const usuario = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        if (!usuario) { window.location.href = 'login.html'; return; }
+        if (!usuario) { window.location.href = 'login'; return; }
 
         // Super Admin: sem bateria própria, sem trava de modo_piloto -- cai na
         // barra lateral (Dashboard/Escolas/Configurações/Privacidade), nunca
@@ -2816,12 +2816,12 @@
         }
 
         // Trava da fase piloto: Mestre/Diretor de bateria com modo_piloto ligado não vê o painel, mesmo digitando a URL direto.
-        if (usuario.modo_piloto) { window.location.href = 'carteirinha.html'; return; }
+        if (usuario.modo_piloto) { window.location.href = 'carteirinha'; return; }
 
         // Modo Carteirinha individual: mesma trava acima, só que por pessoa
         // em vez de por bateria inteira -- Mestre/Diretor/Apoio marcado assim
         // (aba Permissões) só vê a própria carteirinha, mesmo digitando a URL direto.
-        if (usuario.modo_carteirinha_individual) { window.location.href = 'carteirinha.html'; return; }
+        if (usuario.modo_carteirinha_individual) { window.location.href = 'carteirinha'; return; }
 
         // Mesmo spinner/overlay do Super Admin entrando numa escola (ver
         // entrarContextoEscolaSA) -- rede de segurança pro caso raro do
@@ -2974,7 +2974,7 @@
         if (!div) return;
         const codigo = codigoConviteBateria || bateriaIdContexto();
         if (!codigo) { div.innerHTML = ''; return; }
-        const base = `${window.location.origin}/cadastro.html?bateria=${codigo}`;
+        const base = `${window.location.origin}/cadastro?bateria=${codigo}`;
         div.innerHTML = caixaLinkCadastro('linkCadastroRitmista-box', 'Link de cadastro', [{ label: 'Ritmista', url: base }]);
     }
     function renderizarLinksCadastroDiretoria() {
@@ -2982,7 +2982,7 @@
         if (!div) return;
         const codigo = codigoConviteBateria || bateriaIdContexto();
         if (!codigo) { div.innerHTML = ''; return; }
-        const base = `${window.location.origin}/cadastro.html?bateria=${codigo}`;
+        const base = `${window.location.origin}/cadastro?bateria=${codigo}`;
         div.innerHTML = caixaLinkCadastro('linksCadastroDiretoria-box', 'Links de cadastro', [
             { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },
             { label: 'Diretor', url: `${base}&cargo=diretor` },

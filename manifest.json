@@ -2,7 +2,7 @@
   "name": "TumTu — Gestão de Bateria",
   "short_name": "TumTu",
   "description": "Gestão de baterias de escola de samba: cadastro de ritmistas, carteirinha digital e aprovação por perfil.",
-  "start_url": "./login.html",
+  "start_url": "./login",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
