@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tumtu-shell-v200';
+const CACHE_NAME = 'tumtu-shell-v201';
 
 // Arquivos com "?v=N" têm o número subido a cada mudança de conteúdo —
 // isso muda a URL inteira, então nem o cache do navegador nem caches de
