@@ -739,13 +739,20 @@
         .config-instrumento-check { display: flex; align-items: center; gap: 9px; cursor: pointer; }
         .config-instrumento-check input { accent-color: var(--cor-destaque); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
         .config-instrumento-linha .config-instrumento-check { font-size: 13.5px; color: var(--cor-texto-principal); }
-        .config-instrumento-nomenclatura { padding: 5px 8px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 12.5px; color: #333; }
-        /* Coluna "Nome Usado" pra quem só tem um nome possível (sem
-           select pra escolher) -- repete o próprio nome do instrumento em
-           texto simples, pedido da Márcia, 21/ago/2026, pra coluna nunca
-           ficar vazia em quem está ativo. Mesmo tamanho/cor do texto do
-           select ao lado, sem borda (não é campo editável). */
-        .config-instrumento-nome-usado-fixo { font-size: 12.5px; color: #333; }
+        /* Largura fixa nas duas -- achado da Márcia, 21/ago/2026, com
+           print: cada select se ajustava ao próprio texto ("Caixa" bem
+           mais estreito que "Surdo de Primeira"), e o texto fixo (sem
+           select) não tinha caixa nenhuma -- coluna inteira ficava
+           serrilhada, sem nenhum edge alinhado. Mesma largura/caixa nas
+           duas, só o fundo mais claro do texto fixo sinaliza "não é
+           campo editável" (sem seta de dropdown). */
+        .config-instrumento-nomenclatura { width: 170px; box-sizing: border-box; padding: 5px 8px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 12.5px; color: #333; }
+        .config-instrumento-nome-usado-fixo {
+            display: inline-block; width: 170px; box-sizing: border-box;
+            padding: 5px 8px; border: 1.5px solid #ececec; border-radius: 6px;
+            font-size: 12.5px; color: #333; background: #f7f6fb;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
         /* Respiro + linha divisória entre grupos (ex: Tradicionais →
            Especiais) -- achado da Márcia, 21/ago/2026, com print: sem
            isso, o último card de um grupo e o título do próximo ficavam
