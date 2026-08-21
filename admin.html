@@ -3865,6 +3865,7 @@
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Dados da Escola</div>
                 <div class="ficha-grid">
+                    <div class="ficha-campo"><span>ID</span><strong>${e ? e.id : '—'}</strong></div>
                     ${campo('Nome Completo *', 'de-nome', e && e.nome, { full: true, placeholder: 'Ex: Grêmio Recreativo...' })}
                     ${campo('Sigla *', 'de-sigla', e && e.sigla, { full: true, placeholder: 'Ex: Imperatriz' })}
                 </div>
@@ -4020,6 +4021,7 @@
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Dados da Bateria</div>
                 <div class="ficha-grid">
+                    <div class="ficha-campo"><span>ID</span><strong>${b.id}</strong></div>
                     ${campo('Nome da Bateria *', 'db-nome', b.nome)}
                     ${campo('Instagram', 'db-instagram', b.instagram)}
                 </div>
