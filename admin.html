@@ -742,8 +742,13 @@
            dentro do próprio card, só quando aquele instrumento tem mais de
            um nome possível -- a maioria não tem, então a maioria dos cards
            fica só com o checkbox, sem lado direito nenhum. */
-        .lista-cards .secao-titulo { margin: 6px 0 0; }
-        .lista-cards .secao-titulo:first-child { margin-top: 0; }
+        /* Respiro + linha divisória entre grupos (ex: Tradicionais →
+           Especiais) -- achado da Márcia, 21/ago/2026, com print: sem
+           isso, o último card de um grupo e o título do próximo ficavam
+           quase colados. O primeiro grupo da lista não tem nada acima pra
+           dividir, então fica sem borda/respiro extra. */
+        .lista-cards .secao-titulo { margin: 28px 0 8px; padding-top: 20px; border-top: 1px solid #e8e6f0; }
+        .lista-cards .secao-titulo:first-child { margin-top: 0; padding-top: 0; border-top: none; }
         .config-instrumento-nome-usado { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
         .config-instrumento-nome-usado-label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
         /* Cada instrumento vira um .item-card -- o mesmo componente já
