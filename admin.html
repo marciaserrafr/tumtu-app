@@ -1464,7 +1464,7 @@
     <div class="totalizadores" id="totalizadoresDiretoria" style="display:none;">
         <div class="total-card">
             <div class="total-numero dourado" id="totalDiretoriaAtivos">—</div>
-            <div class="total-label">Diretoria e Apoio ativos</div>
+            <div class="total-label">Diretoria ativa</div>
         </div>
         <div class="total-card">
             <div class="total-numero" id="totalDiretoriaPendentes">—</div>
@@ -2866,7 +2866,7 @@
         document.getElementById('mainEscola').style.display = 'flex';
         ajustarAlturaNavMobile();
         carregarRitmistas();
-        // Card "Diretoria e Apoio ativos" na Visão Geral (novo, 21/ago/2026) --
+        // Card "Diretoria ativa" na Visão Geral (novo, 21/ago/2026) --
         // reaproveita a mesma carregarDiretoria() da aba Diretoria (fica em
         // cache pra quando ela clicar lá, sem buscar de novo). Só dispara
         // pra quem tem ver_acessos -- sem a capacidade, RLS devolveria vazio
@@ -3611,7 +3611,7 @@
 
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
         carregarRitmistas();
-        carregarDiretoria(); // Super Admin sempre vê o card "Diretoria e Apoio ativos"
+        carregarDiretoria(); // Super Admin sempre vê o card "Diretoria ativa"
 
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
