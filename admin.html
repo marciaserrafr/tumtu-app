@@ -337,7 +337,7 @@
         /* "Faltam N" -- sinalizador discreto pra chamar atenção de quem
            gerencia, sem competir visualmente com a pílula de contagem
            (essa sim colorida/com peso). Pedido da Márcia, 21/ago/2026. */
-        .vg-instrumento-faltam { margin-left: 8px; font-size: 11.5px; font-weight: 600; color: #b3261e; font-style: italic; }
+        .vg-instrumento-faltam { font-size: 11.5px; font-weight: 600; color: #b3261e; font-style: italic; white-space: nowrap; }
         .vg-instrumento-qtd.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
 
         /* CONTADOR */
@@ -2517,6 +2517,18 @@
     // cadastrou, caso queira chamar atenção da galera"). Agora percorre
     // bateriaInstrumentosCache (todos os instrumentos ativos), não mais só
     // as chaves que aparecem na contagem de ritmistas.
+    // Aviso pequeno ao lado da pílula de contagem -- compartilhado entre a
+    // Visão Geral e Configurações -> Vagas de Ritmistas (21/ago/2026).
+    // "Sem definição de vagas" quando o número nunca foi preenchido (vagas
+    // em 0); "Faltam N" quando já tem número mas ainda não bateu; nada
+    // quando completou ou excedeu -- a pílula (verde/vermelha) já avisa
+    // sozinha nesses dois casos.
+    function avisoVagaHtml(l) {
+        if (l.semVaga) return `<span class="vg-instrumento-faltam">Sem definição de vagas</span>`;
+        if (l.faltam > 0) return `<span class="vg-instrumento-faltam">${l.faltam === 1 ? 'Falta' : 'Faltam'} ${l.faltam}</span>`;
+        return '';
+    }
+
     function renderizarContagemInstrumentos() {
         const div = document.getElementById('vg-instrumentos');
         if (!div) return;
@@ -2532,21 +2544,23 @@
         // que parecia capacidade zero) e fica VERMELHO de propósito --
         // pressiona quem gerencia a preencher a vaga, mesmo vermelho de
         // quando excede. Verde só quando bate certinho no número (mesmo
-        // do badge "Ativo"). "Faltam N" (21/ago/2026) só aparece quando a
-        // vaga está definida e ainda não foi preenchida.
+        // do badge "Ativo"). Aviso ao lado da pílula (21/ago/2026): "Sem
+        // definição de vagas" quando ninguém preencheu o número ainda, ou
+        // "Faltam N" quando já tem número definido mas não bateu -- ver
+        // avisoVagaHtml().
         const linhas = (bateriaInstrumentosCache || []).filter(bi => bi.ativo).map(bi => {
             const qtd = contagem[String(bi.id)] || 0;
             const nome = nomeExibicaoBateriaInstrumento(bi);
             const vagas = bi.vagas || 0;
             const semVaga = vagas === 0;
             const faltam = (!semVaga && qtd < vagas) ? (vagas - qtd) : 0;
-            return { nome, qtd, vagas, semVaga, excedeu: !semVaga && qtd > vagas, completo: !semVaga && qtd === vagas, faltam };
+            return { nome, qtd, vagas, semVaga, excedeu: !semVaga && qtd > vagas, completo: !semVaga && qtd === vagas, faltam, mostrarAviso: true };
         });
         // Ritmista sem instrumento atribuído (raro, dado antigo) só entra
         // na lista se existir de verdade -- não é um naipe de bateria, não
-        // faz sentido mostrar "0" fixo pra ele.
+        // faz sentido mostrar "0" fixo pra ele, nem aviso de vaga nenhum.
         if (contagem['sem-instrumento']) {
-            linhas.push({ nome: 'Sem instrumento', qtd: contagem['sem-instrumento'], vagas: 0, semVaga: true, excedeu: false, completo: false, faltam: 0 });
+            linhas.push({ nome: 'Sem instrumento', qtd: contagem['sem-instrumento'], vagas: 0, semVaga: true, excedeu: false, completo: false, faltam: 0, mostrarAviso: false });
         }
         if (linhas.length === 0) {
             div.innerHTML = '<div style="color:#bbb;font-size:13px;padding:8px 0;">Nenhum instrumento ativo cadastrado.</div>';
@@ -2555,8 +2569,11 @@
         linhas.sort((a, b) => b.qtd - a.qtd || a.nome.localeCompare(b.nome, 'pt-BR'));
         div.innerHTML = linhas.map(l => `
             <div class="vg-instrumento-linha">
-                <span>${esc(l.nome)}${l.faltam > 0 ? `<span class="vg-instrumento-faltam">${l.faltam === 1 ? 'Falta' : 'Faltam'} ${l.faltam}</span>` : ''}</span>
-                <span class="vg-instrumento-qtd${(l.excedeu || l.semVaga) ? ' excedeu' : l.completo ? ' completo' : ''}">${l.qtd} / ${l.semVaga ? '-' : l.vagas}</span>
+                <span>${esc(l.nome)}</span>
+                <span style="display:flex;align-items:center;gap:8px;">
+                    ${l.mostrarAviso ? avisoVagaHtml(l) : ''}
+                    <span class="vg-instrumento-qtd${(l.excedeu || l.semVaga) ? ' excedeu' : l.completo ? ' completo' : ''}">${l.qtd} / ${l.semVaga ? '-' : l.vagas}</span>
+                </span>
             </div>`).join('');
     }
 
@@ -3246,10 +3263,13 @@
                 return `
                 <div class="item-card">
                     <div class="item-info">
-                        <div class="item-nome">${nomeExibicaoBateriaInstrumento(bi)}${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}</div>
+                        <div class="item-nome">${nomeExibicaoBateriaInstrumento(bi)}</div>
                     </div>
                     <div class="item-acoes">
-                        <span class="config-vaga-contagem${(excedeu || semVaga) ? ' excedeu' : completo ? ' completo' : ''}">${atual}</span>
+                        <span style="display:flex;align-items:center;gap:8px;">
+                            ${avisoVagaHtml({ semVaga, faltam })}
+                            <span class="config-vaga-contagem${(excedeu || semVaga) ? ' excedeu' : completo ? ' completo' : ''}">${atual}</span>
+                        </span>
                         <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
                     </div>
                 </div>`;
