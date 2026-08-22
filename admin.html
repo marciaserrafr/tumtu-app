@@ -775,11 +775,16 @@
            (56px) e a caixa de vagas (64px) de cada linha -- width FIXO
            (não min-width), senão o texto "RITMISTAS"/"VAGAS" (mais largo
            que 56/64px) alarga a própria caixa e desalinha tudo depois
-           dela -- achado real dela, 2ª rodada, print mostrando o
-           desalinhamento. Com width fixo o texto pode "vazar" um pouco
-           pros lados (nowrap), mas o CENTRO continua exatamente em cima
-           do controle, que é o que importa visualmente. */
-        .config-vagas-cabecalho { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 0 20px 6px; }
+           dela. Com width fixo o texto pode "vazar" um pouco pros lados
+           (nowrap), mas o CENTRO continua exatamente em cima do
+           controle, que é o que importa visualmente.
+           3ª correção, mesmo dia, achada medindo em pixel de verdade
+           (getBoundingClientRect, não só o olho): o gap aqui estava 8px,
+           mas #config-vagas-lista .item-acoes usa 32px (decisão de
+           19/ago/2026, respiro de propósito entre pílula e caixa) -- o
+           cabeçalho precisa do MESMO gap da linha de dado, senão "RITMISTAS"
+           cai 24px longe da pílula de verdade, mesmo com a largura certa. */
+        .config-vagas-cabecalho { display: flex; justify-content: flex-end; align-items: center; gap: 32px; padding: 0 20px 6px; }
         .config-vagas-cabecalho span { font-size: 10px; font-weight: 700; color: #b0adbd; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         .config-vagas-cabecalho span:first-child { width: 56px; text-align: center; }
         .config-vagas-cabecalho span:last-child { width: 64px; text-align: center; }
