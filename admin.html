@@ -126,7 +126,10 @@
            Márcia, 22/ago/2026, revertendo o branco sólido temático de
            18/ago). .btn-header-tematico foi removida -- não sobra mais
            nenhum lugar que a use. */
-        .btn-sair { background: transparent; border: 1px solid rgba(212,175,55,0.3); color: #D4AF37; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        /* Borda a 30% (mesma da carteirinha) ficava quase invisível em cima
+           de cabeçalho colorido (achado dela, print, 22/ago/2026) --
+           reforçada pra 70% opaca e um pouco mais grossa (1.5px). */
+        .btn-sair { background: transparent; border: 1.5px solid rgba(212,175,55,0.7); color: #D4AF37; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
         .btn-sair:hover { background: rgba(212,175,55,0.08); }
         /* Assinatura "TumTu" -- morava solta no meio do conteúdo (rodapé de
            verdade), mas nesse layout (cabeçalho fixo, só o miolo rola) o
