@@ -786,9 +786,13 @@
         /* Mesma receita, pra Instrumentos -- um rótulo só ("Nome usado"),
            alinhado com a largura fixa (170px) do dropdown/texto de cada
            linha, achado dela, 22/ago/2026 (repetir em toda linha tinha
-           ficado igual ao problema de Vagas). */
-        .config-instrumentos-cabecalho { display: flex; justify-content: flex-end; padding: 0 20px 6px; }
-        .config-instrumentos-cabecalho span { font-size: 10px; font-weight: 700; color: #b0adbd; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; width: 170px; text-align: center; }
+           ficado igual ao problema de Vagas).
+           2ª correção, mesmo dia: como rótulo solto acima da lista
+           inteira, "Nome usado" desalinhava com "Tradicionais" (linhas/
+           respiro diferentes) e "Especiais" ficava sem rótulo nenhum.
+           Agora mora na mesma linha de CADA título de grupo. */
+        .secao-titulo-col { display: flex; justify-content: space-between; align-items: baseline; padding-right: 20px; }
+        .secao-titulo-col-direita { width: 170px; text-align: center; white-space: nowrap; }
         /* Virou um bloco de verdade (fundo levemente tingido, cantos de cima
            arredondados, respiro nos 4 lados) em vez de texto solto com só
            uma linha embaixo -- achado real da Márcia, 22/ago/2026: "não tá
@@ -1581,7 +1585,6 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Instrumentos</div>
         <p class="config-sub-desc">Ative os instrumentos que sua bateria usa. Quando houver mais de um nome possível, escolha o que sua bateria usa.</p>
-        <div class="config-instrumentos-cabecalho"><span>Nome usado</span></div>
         <div id="config-instrumentos-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
@@ -3345,13 +3348,19 @@
         await carregarBateriaMedidaTipos();
     }
 
+    // "Nome usado" mora na MESMA linha do título de cada grupo (Tradicionais/
+    // Especiais), não solto acima da lista inteira -- achado real dela,
+    // 22/ago/2026: como rótulo solto, ficava desalinhado com "Tradicionais"
+    // (linhas/respiro diferentes) e "Especiais" ficava sem rótulo nenhum,
+    // já que só existia 1 cabeçalho pra lista toda. Repetindo por grupo,
+    // os dois sempre ficam juntos, na mesma altura.
     function renderizarConfigInstrumentos() {
         const container = document.getElementById('config-instrumentos-lista');
         const grupos = [['tradicional', 'Tradicionais'], ['especial', 'Especiais']];
         container.innerHTML = grupos.map(([chave, label]) => {
             const itens = bibliotecaInstrumentos.filter(c => c.grupo === chave).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
             if (itens.length === 0) return '';
-            return `<div class="secao-titulo">${label}</div>${itens.map(c => renderizarLinhaInstrumento(c)).join('')}`;
+            return `<div class="secao-titulo secao-titulo-col"><span>${label}</span><span class="secao-titulo-col-direita">Nome usado</span></div>${itens.map(c => renderizarLinhaInstrumento(c)).join('')}`;
         }).join('');
     }
 
