@@ -766,6 +766,17 @@
         }
         .config-vagas-total-numero { font-size: 34px; font-weight: 800; color: #D4AF37; line-height: 1; flex-shrink: 0; }
         .config-vagas-total-label { font-size: 12px; color: #888; line-height: 1.4; }
+        /* Cabeçalho leve (só texto, sem caixa/fundo) -- diferente de
+           Instrumentos, aqui os dois rótulos ("Ritmistas"/"Vagas")
+           apareceriam em TODA linha sem exceção; repetir os dois em cada
+           card, do início ao fim da lista, ficou pesado (achado real da
+           Márcia, print na mão, 22/ago/2026). Um cabeçalho único resolve
+           melhor nesse caso específico. Larguras batem com a pílula
+           (56px) e a caixa de vagas (64px) de cada linha. */
+        .config-vagas-cabecalho { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 0 20px 6px; }
+        .config-vagas-cabecalho span { font-size: 10px; font-weight: 700; color: #b0adbd; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .config-vagas-cabecalho span:first-child { min-width: 56px; text-align: center; }
+        .config-vagas-cabecalho span:last-child { width: 64px; text-align: center; }
         /* Virou um bloco de verdade (fundo levemente tingido, cantos de cima
            arredondados, respiro nos 4 lados) em vez de texto solto com só
            uma linha embaixo -- achado real da Márcia, 22/ago/2026: "não tá
@@ -1570,6 +1581,7 @@
             <div class="config-vagas-total-numero" id="config-vagas-total-numero">0</div>
             <div class="config-vagas-total-label">Total de vagas definidas na bateria<br>(soma de todos os instrumentos)</div>
         </div>
+        <div class="config-vagas-cabecalho"><span>Ritmistas</span><span>Vagas</span></div>
         <div id="config-vagas-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
@@ -3432,15 +3444,9 @@
                     <div class="item-acoes">
                         <span style="display:flex;align-items:center;gap:14px;">
                             ${avisoVagaHtml({ semVaga, faltam })}
-                            <div class="config-instrumento-nome-usado-wrap">
-                                <span class="config-instrumento-nome-usado-label">Ritmistas</span>
-                                <span class="config-vaga-contagem${(excedeu || semVaga) ? ' excedeu' : completo ? ' completo' : ''}">${atual}</span>
-                            </div>
+                            <span class="config-vaga-contagem${(excedeu || semVaga) ? ' excedeu' : completo ? ' completo' : ''}">${atual}</span>
                         </span>
-                        <div class="config-instrumento-nome-usado-wrap">
-                            <span class="config-instrumento-nome-usado-label">Vagas</span>
-                            <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
-                        </div>
+                        <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
                     </div>
                 </div>`;
             }).join('');
