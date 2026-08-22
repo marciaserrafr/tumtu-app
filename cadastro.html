@@ -943,6 +943,13 @@
                 if (!select) return;
                 const doTipo = opcoes.filter(o => o.tipo === tipo);
                 select.innerHTML = '<option value="">Selecione</option>' + doTipo.map(o => `<option value="${o.nome_exibicao}">${o.nome_exibicao}</option>`).join('');
+                // Tipo desligado pra essa bateria (0 tamanhos ativos): some o
+                // campo inteiro em vez de deixar um "Selecione" vazio --
+                // pedido da Márcia, 22/ago/2026. Tira o "required" também,
+                // senão um campo escondido travaria o envio do formulário.
+                const grupo = select.closest('.auth-form-group');
+                if (grupo) grupo.style.display = doTipo.length === 0 ? 'none' : '';
+                select.required = doTipo.length > 0;
             });
         } catch (e) {
             mostrarMensagem('Não consegui carregar a lista de medidas (sem conexão?). Verifique sua internet e tente de novo.', 'erro');
