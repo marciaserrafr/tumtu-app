@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=16">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=18"></script>
+    <script src="ficha-perfil.js?v=19"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -764,15 +764,28 @@
         }
         .config-vagas-total-numero { font-size: 34px; font-weight: 800; color: #D4AF37; line-height: 1; flex-shrink: 0; }
         .config-vagas-total-label { font-size: 12px; color: #888; line-height: 1.4; }
+        /* Virou um bloco de verdade (fundo levemente tingido, cantos de cima
+           arredondados, respiro nos 4 lados) em vez de texto solto com só
+           uma linha embaixo -- achado real da Márcia, 22/ago/2026: "não tá
+           com cara de título". Cantos de baixo retos de propósito, pra
+           encostar direto no primeiro grupo/card da lista abaixo, como a
+           "tampa" de um bloco só. */
         .config-lista-cabecalho {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px 12px; margin-bottom: 4px; border-bottom: 1px solid #e0ddea;
+            padding: 10px 20px; margin-bottom: 4px;
+            background: #f7f6fb; border: 1px solid #e8e6f0; border-bottom: none;
+            border-radius: 10px 10px 0 0;
             font-size: 11px; font-weight: 700; color: #8b88a0;
             text-transform: uppercase; letter-spacing: 0.6px;
         }
+        /* "Nº de Vagas" quebrando em 2 linhas (achado real dela, 22/ago/2026,
+           com print) -- nowrap resolve sem precisar encolher a coluna: o
+           texto pode "vazar" um pouco pros lados sem empurrar nada, porque
+           ele continua centralizado no mesmo eixo da pílula/caixa embaixo
+           (largura da coluna = largura do controle, não da palavra). */
         .config-lista-cabecalho-controles { display: flex; align-items: center; gap: 32px; }
-        .config-lista-cabecalho-controles span:first-child { min-width: 56px; text-align: center; }
-        .config-lista-cabecalho-controles span:last-child { width: 64px; text-align: center; }
+        .config-lista-cabecalho-controles span:first-child { min-width: 56px; text-align: center; white-space: nowrap; }
+        .config-lista-cabecalho-controles span:last-child { width: 64px; text-align: center; white-space: nowrap; }
         .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
         /* Medidas usa a linha antiga (.config-instrumento-linha), sem
@@ -948,6 +961,15 @@
         .item-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
         .item-detalhe { font-size: 12px; color: var(--cor-texto-muted); }
         .item-acoes { display: flex; gap: 8px; align-items: center; }
+        /* Card fechado/expansível de Medidas (2ª versão, 22/ago/2026) --
+           checkbox+nome sempre visíveis (fechado), tamanhos só aparecem
+           dentro do card ao clicar, igual um acordeão. */
+        .config-medida-card { padding: 0; display: block; }
+        .config-medida-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; }
+        .config-medida-seta { font-size: 20px; color: #c0bdd0; transition: transform 0.15s; line-height: 1; }
+        .config-medida-seta.aberta { transform: rotate(90deg); color: #8b88a0; }
+        .config-medida-tamanhos { padding: 4px 20px 16px 49px; border-top: 1px solid #f4f4f4; }
+        .config-medida-tamanhos .config-instrumento-linha:last-child { border-bottom: none; }
         .badge-ativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #e8f5e9; color: #2e7d32; }
         .badge-inativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fce4ec; color: #c62828; }
         .badge-tag-demo { font-size: 10px; font-weight: 800; letter-spacing: 0.04em; color: #8a6d1a; background: #fdf1cf; padding: 3px 9px; border-radius: 999px; }
@@ -3444,10 +3466,19 @@
         bateriaMedidaTiposCache = await res.json();
     }
 
-    // Mesmo visual de Instrumentos (checkbox + item-card) -- pedido dela,
-    // 22/ago/2026. Quando o tipo está desligado, os tamanhos dele nem
-    // aparecem pra escolher (não faz sentido configurar tamanho de algo que
-    // a bateria não usa).
+    // Redesenhado em 22/ago/2026 (2ª versão -- achado dela na 1ª: "Esta
+    // bateria usa Camisa" lia como frase de formulário, amadora demais pra
+    // um sistema sério). Agora é um card fechado, igual Instrumentos (só
+    // checkbox + nome) -- clicar no card abre/fecha os tamanhos por dentro
+    // dele, em vez de despejar tudo sempre visível embaixo. Fechado/aberto
+    // é só estado de tela (medidaTiposAbertos), não precisa salvar em
+    // lugar nenhum.
+    let medidaTiposAbertos = new Set();
+    function toggleMedidaTipoAberto(chave) {
+        if (medidaTiposAbertos.has(chave)) medidaTiposAbertos.delete(chave);
+        else medidaTiposAbertos.add(chave);
+        renderizarConfigMedidas();
+    }
     function renderizarConfigMedidas() {
         const container = document.getElementById('config-medidas-lista');
         container.innerHTML = TIPOS_MEDIDA.map(([chave, label]) => {
@@ -3455,15 +3486,19 @@
             if (itens.length === 0) return '';
             const tipoExistente = bateriaMedidaTiposCache.find(bmt => bmt.tipo === chave);
             const tipoAtivo = !tipoExistente || !!tipoExistente.ativo; // sem linha ainda = ativo por padrão
+            const aberto = medidaTiposAbertos.has(chave);
             return `
                 <div class="secao-titulo">${label}</div>
-                <div class="item-card">
-                    <label class="config-instrumento-check">
-                        <input type="checkbox" ${tipoAtivo ? 'checked' : ''} onchange="salvarMedidaTipo('${chave}', this.checked)">
-                        <span class="item-nome">Esta bateria usa ${label}</span>
-                    </label>
-                </div>
-                ${tipoAtivo ? itens.map(t => renderizarLinhaMedida(t)).join('') : ''}`;
+                <div class="item-card config-medida-card">
+                    <div class="config-medida-header" onclick="toggleMedidaTipoAberto('${chave}')">
+                        <label class="config-instrumento-check" onclick="event.stopPropagation()">
+                            <input type="checkbox" ${tipoAtivo ? 'checked' : ''} onchange="salvarMedidaTipo('${chave}', this.checked)">
+                            <span class="item-nome">${label}</span>
+                        </label>
+                        <span class="config-medida-seta ${aberto ? 'aberta' : ''}">›</span>
+                    </div>
+                    ${aberto ? `<div class="config-medida-tamanhos">${itens.map(t => renderizarLinhaMedida(t)).join('')}</div>` : ''}
+                </div>`;
         }).join('');
     }
 
