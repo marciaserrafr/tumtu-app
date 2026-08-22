@@ -194,7 +194,11 @@
             padding: 8px 10px; border-radius: 8px; cursor: pointer; white-space: nowrap;
         }
         .aba-sub-btn:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
-        .aba-sub-btn.ativa { color: var(--cor-destaque); background: rgba(212,175,55,0.16); font-weight: 700; }
+        /* Mesmo conserto de .aba-btn.ativa/.sa-sidebar-item.ativa (fundo
+           neutro, não dourado diluído) -- essa terceira receita "suja"
+           (submenu "Mais") só foi encontrada testando ao vivo na prévia,
+           22/ago/2026 -- não tinha aparecido na varredura inicial. */
+        .aba-sub-btn.ativa { color: var(--cor-destaque); background: rgba(255,255,255,0.08); font-weight: 700; box-shadow: inset 3px 0 0 var(--cor-destaque); }
         /* "‹ Escolas" (Super Admin, dentro de uma escola) -- mesma
            aparência de .aba-btn (pedido dela: fica como se fosse mais um
            item da lista, "abaixo do Mais"), classe própria só pra ficar
