@@ -772,11 +772,23 @@
            card, do início ao fim da lista, ficou pesado (achado real da
            Márcia, print na mão, 22/ago/2026). Um cabeçalho único resolve
            melhor nesse caso específico. Larguras batem com a pílula
-           (56px) e a caixa de vagas (64px) de cada linha. */
+           (56px) e a caixa de vagas (64px) de cada linha -- width FIXO
+           (não min-width), senão o texto "RITMISTAS"/"VAGAS" (mais largo
+           que 56/64px) alarga a própria caixa e desalinha tudo depois
+           dela -- achado real dela, 2ª rodada, print mostrando o
+           desalinhamento. Com width fixo o texto pode "vazar" um pouco
+           pros lados (nowrap), mas o CENTRO continua exatamente em cima
+           do controle, que é o que importa visualmente. */
         .config-vagas-cabecalho { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 0 20px 6px; }
         .config-vagas-cabecalho span { font-size: 10px; font-weight: 700; color: #b0adbd; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-        .config-vagas-cabecalho span:first-child { min-width: 56px; text-align: center; }
+        .config-vagas-cabecalho span:first-child { width: 56px; text-align: center; }
         .config-vagas-cabecalho span:last-child { width: 64px; text-align: center; }
+        /* Mesma receita, pra Instrumentos -- um rótulo só ("Nome usado"),
+           alinhado com a largura fixa (170px) do dropdown/texto de cada
+           linha, achado dela, 22/ago/2026 (repetir em toda linha tinha
+           ficado igual ao problema de Vagas). */
+        .config-instrumentos-cabecalho { display: flex; justify-content: flex-end; padding: 0 20px 6px; }
+        .config-instrumentos-cabecalho span { font-size: 10px; font-weight: 700; color: #b0adbd; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; width: 170px; text-align: center; }
         /* Virou um bloco de verdade (fundo levemente tingido, cantos de cima
            arredondados, respiro nos 4 lados) em vez de texto solto com só
            uma linha embaixo -- achado real da Márcia, 22/ago/2026: "não tá
@@ -1569,6 +1581,7 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Instrumentos</div>
         <p class="config-sub-desc">Ative os instrumentos que sua bateria usa. Quando houver mais de um nome possível, escolha o que sua bateria usa.</p>
+        <div class="config-instrumentos-cabecalho"><span>Nome usado</span></div>
         <div id="config-instrumentos-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
@@ -3342,35 +3355,22 @@
         }).join('');
     }
 
-    // 3ª versão, 22/ago/2026: o cabeçalho de coluna "Instrumento / Nome
-    // Usado" foi removido de vez -- é a única tela do app inteiro com esse
-    // tipo de cabeçalho solto (Ritmistas/Diretoria/Escolas não têm, só
-    // título de grupo + cards). "Nome usado" volta a morar coladinho no
-    // próprio dropdown que ele descreve (design original, antes do
-    // cabeçalho ter voltado em 21/ago). 22/ago/2026, 2ª correção: o rótulo
-    // "Nome usado" tinha ficado só no card com dropdown -- achado real
-    // dela, print na mão: sem o rótulo na linha de texto fixo, as duas
-    // variantes desalinhavam entre si (uma tem uma linha a mais que a
-    // outra) e o texto sozinho ficava sem explicação nenhuma. Agora todo
-    // card ativo tem o rótulo, dropdown ou texto fixo.
+    // 4ª versão, 22/ago/2026: repetir "Nome usado" em toda linha (3ª
+    // versão) ficou igual ao problema de Vagas -- rótulo idêntico do
+    // início ao fim da lista. Achado real dela, print na mão: tira dos
+    // cards, volta um cabeçalho leve único no topo (mesma receita já
+    // usada em Vagas de Ritmistas -- só texto, sem caixa/fundo).
     function renderizarLinhaInstrumento(c) {
         const existente = bateriaInstrumentosCache.find(bi => bi.categoria_id === c.id);
         const ativo = !!(existente && existente.ativo);
         let nomeUsadoHtml = '';
         if (ativo && c.nomenclaturas.length > 0) {
             nomeUsadoHtml = `
-                <div class="config-instrumento-nome-usado-wrap">
-                    <span class="config-instrumento-nome-usado-label">Nome usado</span>
-                    <select class="config-instrumento-nomenclatura" onchange="salvarInstrumentoBateria(${c.id}, true, this.value)">
-                        ${[...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => `<option value="${n.id}" ${existente && existente.nomenclatura_id === n.id ? 'selected' : ''}>${n.nome}</option>`).join('')}
-                    </select>
-                </div>`;
+                <select class="config-instrumento-nomenclatura" onchange="salvarInstrumentoBateria(${c.id}, true, this.value)">
+                    ${[...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => `<option value="${n.id}" ${existente && existente.nomenclatura_id === n.id ? 'selected' : ''}>${n.nome}</option>`).join('')}
+                </select>`;
         } else if (ativo) {
-            nomeUsadoHtml = `
-                <div class="config-instrumento-nome-usado-wrap">
-                    <span class="config-instrumento-nome-usado-label">Nome usado</span>
-                    <span class="config-instrumento-nome-usado-fixo">${esc(c.nome)}</span>
-                </div>`;
+            nomeUsadoHtml = `<span class="config-instrumento-nome-usado-fixo">${esc(c.nome)}</span>`;
         }
         return `
             <div class="item-card">
@@ -3511,8 +3511,12 @@
             const tipoExistente = bateriaMedidaTiposCache.find(bmt => bmt.tipo === chave);
             const tipoAtivo = !tipoExistente || !!tipoExistente.ativo; // sem linha ainda = ativo por padrão
             const aberto = medidaTiposAbertos.has(chave);
+            // Sem título de grupo aqui -- achado real dela, 22/ago/2026:
+            // cada grupo tem exatamente 1 card, então o título ("CAMISA")
+            // só repetia o que o próprio card já diz ("Camisa"), sem
+            // acrescentar nada. Diferente de Instrumentos, onde um grupo
+            // (Tradicionais) reúne vários cards com nomes diferentes.
             return `
-                <div class="secao-titulo">${label}</div>
                 <div class="item-card config-medida-card">
                     <div class="config-medida-header" onclick="toggleMedidaTipoAberto('${chave}')">
                         <label class="config-instrumento-check" onclick="event.stopPropagation()">
