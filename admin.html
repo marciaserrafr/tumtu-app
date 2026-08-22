@@ -172,10 +172,13 @@
         /* Fundo neutro (não dourado) -- misturar dourado semitransparente
            com o roxo escuro do menu resultava numa cor acastanhada/"suja"
            (achado da Márcia, 22/ago/2026, confirmado fazendo a conta da
-           mistura). Dourado fica só no texto/ícone (que já lê limpo) e
-           numa faixa fina na borda esquerda -- mesmo recurso já usado nos
-           cards de Ritmista -- sem repetir o problema de mistura de cor. */
-        .aba-btn.ativa { color: var(--cor-destaque); background: rgba(255,255,255,0.08); font-weight: 700; box-shadow: inset 3px 0 0 var(--cor-destaque); }
+           mistura). 2ª correção, mesmo dia: o cinza neutro + friso fino
+           era sutil demais ("não percebi que tinha mudado") -- trocado
+           pra dourado SÓLIDO (cor pura, sem mistura nenhuma, impossível
+           ficar "suja"), mesma regra de "destaque real" que o projeto já
+           usa em botão de ação principal (ex: "Meu Perfil" na
+           carteirinha). Texto escuro por cima, igual lá. */
+        .aba-btn.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
 
         /* "Mais" no computador: acordeão que abre ali mesmo na barra lateral
            (pedido da Márcia, 20/ago/2026), em vez de navegar pra uma tela
@@ -191,11 +194,10 @@
             padding: 8px 10px; border-radius: 8px; cursor: pointer; white-space: nowrap;
         }
         .aba-sub-btn:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
-        /* Mesmo conserto de .aba-btn.ativa/.sa-sidebar-item.ativa (fundo
-           neutro, não dourado diluído) -- essa terceira receita "suja"
-           (submenu "Mais") só foi encontrada testando ao vivo na prévia,
-           22/ago/2026 -- não tinha aparecido na varredura inicial. */
-        .aba-sub-btn.ativa { color: var(--cor-destaque); background: rgba(255,255,255,0.08); font-weight: 700; box-shadow: inset 3px 0 0 var(--cor-destaque); }
+        /* Mesmo dourado sólido de .aba-btn.ativa (ver comentário lá) --
+           essa terceira receita "suja" (submenu "Mais") só tinha sido
+           achada testando ao vivo na prévia, 22/ago/2026. */
+        .aba-sub-btn.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
         /* "‹ Escolas" (Super Admin, dentro de uma escola) -- mesma
            aparência de .aba-btn (pedido dela: fica como se fosse mais um
            item da lista, "abaixo do Mais"), classe própria só pra ficar
@@ -801,6 +803,11 @@
            serrilhada, sem nenhum edge alinhado. Mesma largura/caixa nas
            duas, só o fundo mais claro do texto fixo sinaliza "não é
            campo editável" (sem seta de dropdown). */
+        /* Rótulo "Nome usado" coladinho no dropdown que ele descreve --
+           volta a morar dentro do card (22/ago/2026), em vez de num
+           cabeçalho de coluna solto no topo da lista. */
+        .config-instrumento-nome-usado-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+        .config-instrumento-nome-usado-label { font-size: 9.5px; font-weight: 700; color: #b0adbd; text-transform: uppercase; letter-spacing: 0.5px; }
         .config-instrumento-nomenclatura { width: 170px; box-sizing: border-box; padding: 5px 8px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 12.5px; color: #333; text-align: left; }
         .config-instrumento-nome-usado-fixo {
             display: inline-block; width: 170px; box-sizing: border-box;
@@ -920,10 +927,10 @@
         }
         .sa-sidebar-item .sa-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
         .sa-sidebar-item:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
-        /* Mesmo conserto de .aba-btn.ativa (fundo neutro, não dourado
-           diluído -- ver comentário lá) -- os dois menus usavam a mesma
-           receita "suja", achado da Márcia, 22/ago/2026. */
-        .sa-sidebar-item.ativa { color: var(--cor-destaque); background: rgba(255,255,255,0.08); font-weight: 700; box-shadow: inset 3px 0 0 var(--cor-destaque); }
+        /* Mesmo dourado sólido de .aba-btn.ativa (ver comentário lá) --
+           os dois menus usavam a mesma receita "suja", achado da Márcia,
+           22/ago/2026. */
+        .sa-sidebar-item.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
 
         /* Mesmo padrão de .main -- 1200px máximo, centralizado de verdade,
            sem nunca estourar a tela (ver comentário completo em .main). */
@@ -1551,7 +1558,6 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Instrumentos</div>
         <p class="config-sub-desc">Ative os instrumentos que sua bateria usa. Quando houver mais de um nome possível, escolha o que sua bateria usa.</p>
-        <div class="config-lista-cabecalho"><span>Instrumento</span><span>Nome Usado</span></div>
         <div id="config-instrumentos-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
@@ -1564,7 +1570,6 @@
             <div class="config-vagas-total-numero" id="config-vagas-total-numero">0</div>
             <div class="config-vagas-total-label">Total de vagas definidas na bateria<br>(soma de todos os instrumentos)</div>
         </div>
-        <div class="config-lista-cabecalho"><span>Instrumento</span><span class="config-lista-cabecalho-controles"><span>Nº Ritmistas</span><span>Nº de Vagas</span></span></div>
         <div id="config-vagas-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
@@ -3325,26 +3330,26 @@
         }).join('');
     }
 
-    // Redesenhado em 21/ago/2026: cada instrumento virou um .item-card
-    // (mesmo componente de Vagas de Ritmistas/Diretoria/Escolas). O
-    // cabeçalho de coluna "Instrumento / Nome Usado" voltou por pedido
-    // dela (mesmo padrão de Vagas de Ritmistas) depois de testar sem ele
-    // -- com o respiro/divisória certos entre cabeçalho e título de grupo,
-    // não repete mais o problema de "dois títulos" da primeira tentativa.
-    // Coluna da direita sempre preenchida pra quem está marcado (☑): select
-    // quando há mais de um nome possível, ou o próprio nome do instrumento
-    // repetido em texto simples quando só existe um nome (pedido dela:
-    // "o que não tiver nome definido, repita o nome que está aparecendo,
-    // do instrumento real"). Quem está desmarcado fica sem nada à direita.
+    // 3ª versão, 22/ago/2026: o cabeçalho de coluna "Instrumento / Nome
+    // Usado" foi removido de vez -- é a única tela do app inteiro com esse
+    // tipo de cabeçalho solto (Ritmistas/Diretoria/Escolas não têm, só
+    // título de grupo + cards). "Nome usado" volta a morar coladinho no
+    // próprio dropdown que ele descreve (design original, antes do
+    // cabeçalho ter voltado em 21/ago) -- só aparece pra quem realmente
+    // tem escolha de nome (a maioria dos instrumentos não tem, fica só
+    // com o checkbox).
     function renderizarLinhaInstrumento(c) {
         const existente = bateriaInstrumentosCache.find(bi => bi.categoria_id === c.id);
         const ativo = !!(existente && existente.ativo);
         let nomeUsadoHtml = '';
         if (ativo && c.nomenclaturas.length > 0) {
             nomeUsadoHtml = `
-                <select class="config-instrumento-nomenclatura" onchange="salvarInstrumentoBateria(${c.id}, true, this.value)">
-                    ${[...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => `<option value="${n.id}" ${existente && existente.nomenclatura_id === n.id ? 'selected' : ''}>${n.nome}</option>`).join('')}
-                </select>`;
+                <div class="config-instrumento-nome-usado-wrap">
+                    <span class="config-instrumento-nome-usado-label">Nome usado</span>
+                    <select class="config-instrumento-nomenclatura" onchange="salvarInstrumentoBateria(${c.id}, true, this.value)">
+                        ${[...c.nomenclaturas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(n => `<option value="${n.id}" ${existente && existente.nomenclatura_id === n.id ? 'selected' : ''}>${n.nome}</option>`).join('')}
+                    </select>
+                </div>`;
         } else if (ativo) {
             nomeUsadoHtml = `<span class="config-instrumento-nome-usado-fixo">${esc(c.nome)}</span>`;
         }
@@ -3420,9 +3425,15 @@
                     <div class="item-acoes">
                         <span style="display:flex;align-items:center;gap:14px;">
                             ${avisoVagaHtml({ semVaga, faltam })}
-                            <span class="config-vaga-contagem${(excedeu || semVaga) ? ' excedeu' : completo ? ' completo' : ''}">${atual}</span>
+                            <div class="config-instrumento-nome-usado-wrap">
+                                <span class="config-instrumento-nome-usado-label">Ritmistas</span>
+                                <span class="config-vaga-contagem${(excedeu || semVaga) ? ' excedeu' : completo ? ' completo' : ''}">${atual}</span>
+                            </div>
                         </span>
-                        <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
+                        <div class="config-instrumento-nome-usado-wrap">
+                            <span class="config-instrumento-nome-usado-label">Vagas</span>
+                            <input type="number" min="0" class="config-vaga-input" value="${bi.vagas || 0}" onchange="salvarVaga(${bi.id}, this.value)">
+                        </div>
                     </div>
                 </div>`;
             }).join('');
