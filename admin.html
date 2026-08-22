@@ -121,22 +121,13 @@
         /* Pílula, não cantos quase retos -- mesmo formato do "Sair" da
            carteirinha, pedido da Márcia, 22/ago/2026: o formato quadrado
            "brigava" visualmente com o círculo do ícone de conta ao lado. */
-        /* Dourado vazado no estado padrão (fundo escuro fixo, mesma cor da
-           carteirinha -- sem risco de contraste, pedido dela, 22/ago/2026).
-           Quando o tema da escola está ligado, .btn-header-tematico
-           continua sobrepondo pra branco sólido (decisão de 18/ago,
-           mantida -- dourado vazado ficava pouco visível em cima de
-           algumas cores de escola mais claras). */
+        /* Dourado vazado sempre -- estado padrão E com o tema da escola
+           ligado (mesma cor em qualquer cabeçalho, pedido explícito da
+           Márcia, 22/ago/2026, revertendo o branco sólido temático de
+           18/ago). .btn-header-tematico foi removida -- não sobra mais
+           nenhum lugar que a use. */
         .btn-sair { background: transparent; border: 1px solid rgba(212,175,55,0.3); color: #D4AF37; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
         .btn-sair:hover { background: rgba(212,175,55,0.08); }
-        /* Botões do cabeçalho quando o tema da escola está ligado -- fundo
-           sólido claro em vez de contorno translúcido, pra ficar nítido em
-           cima de QUALQUER cor de escola, sem precisar calcular contraste
-           cor a cor (achado da Márcia, 18/ago/2026: o contorno sutil "não
-           tava legal", pouco nítido, mesmo já mudando de cor por trás dos
-           panos). */
-        .btn-header-tematico { background: rgba(255,255,255,0.94) !important; border-color: transparent !important; color: #12101a !important; font-weight: 700 !important; }
-        .btn-header-tematico:hover { background: #ffffff !important; }
         /* Assinatura "TumTu" -- morava solta no meio do conteúdo (rodapé de
            verdade), mas nesse layout (cabeçalho fixo, só o miolo rola) o
            vão vazio abaixo de telas com pouco conteúdo fica todo visível
@@ -2802,8 +2793,6 @@
         if (headerEsquerda) headerEsquerda.classList.remove('com-logo-escola');
         const badge = document.getElementById('headerBateria');
         if (badge) { badge.style.color = ''; badge.style.textShadow = ''; }
-        const btnSair = document.querySelector('.btn-sair');
-        if (btnSair) btnSair.classList.remove('btn-header-tematico');
     }
 
     function aplicarConfigEscola() {
@@ -2870,14 +2859,11 @@
             badge.style.color = corTexto;
             badge.style.textShadow = sombra;
 
-            // A bolinha de conta (#headerAvatarWrap) e "Minha Carteirinha" já
-            // são dourado sólido (mesmo padrão de botão primário do resto do
-            // app) -- dourado fica nítido em cima de qualquer cor, não precisa
-            // de ajuste. Só "Sair" (ação secundária) ganha fundo sólido claro em vez de
-            // contorno translúcido -- era o que estava "sem graça"/pouco
-            // nítido antes, e os dois botões ficavam parecidos demais em
-            // cor e peso (achado da Márcia, 18/ago/2026).
-            document.querySelector('.btn-sair').classList.add('btn-header-tematico');
+            // "Sair" fica dourado vazado sempre, inclusive com o tema da
+            // escola ligado -- pedido explícito da Márcia, 22/ago/2026,
+            // revertendo a decisão de 18/ago (fundo branco sólido só nesse
+            // caso). Ela optou por isso mesmo sabendo que pode perder um
+            // pouco de nitidez em escolas de cor bem clara/pastel.
 
             // Logo GRANDE ao lado do nome da escola/bateria (não mais empilhada
             // sozinha e pequena) -- achado da Márcia, 18/ago/2026: "a logo
