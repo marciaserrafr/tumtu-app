@@ -939,7 +939,12 @@
            precisar ler o texto. Anel por fora via box-shadow (não border),
            mesma técnica do item-avatar do cabeçalho -- não come o tamanho
            do círculo. Sem logo: iniciais, mesmo padrão de fallback já usado
-           nos cards de Ritmista/Diretoria. */
+           nos cards de Ritmista/Diretoria.
+           Cor do anel: NÃO é o dourado fixo do TumTu -- é a mesma lógica
+           dinâmica da borda da logo na carteirinha (corBordaLogoEscola,
+           definida por cima), aplicada inline por card. O dourado aqui
+           embaixo é só o valor de reserva, pro caso raríssimo do JS não
+           rodar a tempo. */
         .item-card-esquerda { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
         .escola-logo-circulo {
             width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
@@ -3996,13 +4001,35 @@
         renderizarListaEscolas(escolasCache);
     }
 
+    // Mesma lógica exata da borda da logo na carteirinha (escolherCorBordaLogo/
+    // corEhBranca em carteirinha.html) -- pedido da Márcia, 22/ago/2026: o
+    // anel do card de Escolas não devia ser o dourado fixo do TumTu, e sim a
+    // cor de acento real de cada escola (última cor da cadeia, pulando
+    // branco e nunca caindo na cor 1), com o mesmo dourado só como fallback.
+    function corEhBrancaSA(hex) {
+        if (!hex) return true;
+        const h = hex.replace('#', '');
+        const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+        if (full.length !== 6) return false;
+        const r = parseInt(full.slice(0, 2), 16);
+        const g = parseInt(full.slice(2, 4), 16);
+        const b = parseInt(full.slice(4, 6), 16);
+        return r > 240 && g > 240 && b > 240;
+    }
+    function corBordaLogoEscola(e) {
+        const cores = [e.cor_primaria, e.cor_secundaria, e.cor_terciaria, e.cor_quaternaria].filter(Boolean);
+        for (let i = cores.length - 1; i >= 1; i--) {
+            if (cores[i] && !corEhBrancaSA(cores[i])) return cores[i];
+        }
+        return '#D4AF37';
+    }
     function renderizarListaEscolas(lista) {
         const div = document.getElementById('lista-escolas');
         if (!lista.length) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Nenhuma escola cadastrada ainda.</div>'; return; }
         const cardEscolaHTML = e => `
             <div class="item-card" style="cursor:pointer" onclick="entrarContextoEscolaSA(${e.id})">
                 <div class="item-card-esquerda">
-                    <div class="escola-logo-circulo">${e.logo_url ? `<img src="${e.logo_url}">` : esc((e.sigla || e.nome || '?')[0].toUpperCase())}</div>
+                    <div class="escola-logo-circulo" style="box-shadow:0 0 0 2px ${corBordaLogoEscola(e)};">${e.logo_url ? `<img src="${e.logo_url}">` : esc((e.sigla || e.nome || '?')[0].toUpperCase())}</div>
                     <div class="item-info">
                         <div class="item-nome">${esc(e.sigla || e.nome)}</div>
                         <div class="item-detalhe">${esc(e.nome)}</div>
