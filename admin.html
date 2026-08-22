@@ -367,7 +367,7 @@
         .vg-instrumento-qtd.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
 
         /* CONTADOR */
-        .contador { font-size: 13px; color: #666; margin-bottom: 20px; }
+        .contador { font-size: 15px; color: #666; margin-bottom: 20px; }
 
         /* CARDS */
         .cards { display: flex; flex-direction: column; gap: 10px; }
@@ -534,7 +534,7 @@
             transition: transform 0.2s;
         }
         .toggle-track.on .toggle-thumb { transform: translateX(18px); }
-        .toggle-label { font-size: 13px; font-weight: 500; color: #333; }
+        .toggle-label { font-size: 15px; font-weight: 500; color: #333; }
 
         /* VAZIO */
         .vazio { text-align: center; padding: 40px; color: #999; font-size: 15px; }
@@ -574,7 +574,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         .modal h2 { font-size: 18px; color: var(--cor-texto-principal); margin-bottom: 6px; }
-        .modal p { font-size: 13px; color: #666; margin-bottom: 16px; }
+        .modal p { font-size: 15px; color: #666; margin-bottom: 16px; }
         .modal label { font-size: 13px; font-weight: bold; color: #333; display: block; margin-bottom: 6px; }
         .modal select, .modal textarea, .modal input:not([type="checkbox"]):not([type="radio"]) {
             width: 100%; padding: 10px; border: 2px solid #e0e0e0;
@@ -656,9 +656,14 @@
         .ficha-secao { margin-bottom: 14px; }
         .ficha-secao-titulo { font-size: 10px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #D4AF37; padding-bottom: 3px; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
-        .ficha-campo { font-size: 12px; color: #333; }
-        .ficha-campo span { display: block; font-size: 10px; color: #999; margin-bottom: 1px; }
-        .ficha-campo strong { font-size: 13px; color: var(--cor-texto-principal); }
+        /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
+           label acima dele aumentados -- pedido dela, 22/ago/2026, "tenho
+           dificuldade de ler até em tela grande". Rótulos em caixa alta
+           (10px) mantidos -- convenção normal de rótulo secundário menor,
+           não é o mesmo problema. */
+        .ficha-campo { font-size: 13px; color: #333; }
+        .ficha-campo span { display: block; font-size: 11px; color: #999; margin-bottom: 1px; }
+        .ficha-campo strong { font-size: 15px; color: var(--cor-texto-principal); }
         .ficha-campo.full { grid-column: 1 / -1; }
         .btn-imprimir { display: inline-flex; align-items: center; gap: 6px; background: var(--cor-fundo-escuro); color: white; border: none; padding: 9px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
 
@@ -748,7 +753,7 @@
         .config-item-seta { color: #ccc; font-size: 20px; font-weight: 300; }
         .btn-voltar-config { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: #D4AF37; padding: 0; margin-bottom: 16px; font-family: inherit; }
         .btn-voltar-config:hover { text-decoration: underline; }
-        .config-sub-desc { font-size: 13px; color: #8b88a0; margin: -10px 0 16px; }
+        .config-sub-desc { font-size: 15px; color: #8b88a0; margin: -10px 0 16px; }
         /* Título das colunas acima da lista de Vagas -- pedido da Márcia,
            19/ago/2026: "parece que está meio solto" sem indicar o que
            cada lado da linha significa. Só nessa tela de Configurações
@@ -788,7 +793,7 @@
            cabeçalho precisa do MESMO gap da linha de dado, senão "RITMISTAS"
            cai 24px longe da pílula de verdade, mesmo com a largura certa. */
         .config-vagas-cabecalho { display: flex; justify-content: flex-end; align-items: center; gap: 32px; padding: 0 20px 6px; }
-        .config-vagas-cabecalho span { font-size: 10px; font-weight: 700; color: #b0adbd; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .config-vagas-cabecalho span { font-size: 12px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         .config-vagas-cabecalho span:first-child { width: 56px; text-align: center; }
         .config-vagas-cabecalho span:last-child { width: 64px; text-align: center; }
         /* Mesma receita, pra Instrumentos -- um rótulo só ("Nome usado"),
@@ -800,7 +805,7 @@
            respiro diferentes) e "Especiais" ficava sem rótulo nenhum.
            Agora mora na mesma linha de CADA título de grupo. */
         .secao-titulo-col { display: flex; justify-content: space-between; align-items: baseline; padding-right: 20px; }
-        .secao-titulo-col-direita { width: 170px; text-align: center; white-space: nowrap; }
+        .secao-titulo-col-direita { width: 170px; text-align: center; white-space: nowrap; font-size: 12px; letter-spacing: 0.5px; }
         /* Virou um bloco de verdade (fundo levemente tingido, cantos de cima
            arredondados, respiro nos 4 lados) em vez de texto solto com só
            uma linha embaixo -- achado real da Márcia, 22/ago/2026: "não tá
@@ -933,10 +938,10 @@
             margin: auto 0;
         }
         .modal-admin-titulo { font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 4px; }
-        .modal-admin-sub { font-size: 13px; color: #8b88a0; margin-bottom: 20px; }
+        .modal-admin-sub { font-size: 15px; color: #8b88a0; margin-bottom: 20px; }
         .modal-admin-campo { display: flex; flex-direction: column; margin-bottom: 12px; }
         .modal-admin-campo span { font-size: 11px; font-weight: 600; color: #8b88a0; text-transform: uppercase; letter-spacing: 0.5px; }
-        .modal-admin-campo strong { font-size: 14px; color: #12101a; margin-top: 2px; }
+        .modal-admin-campo strong { font-size: 15px; color: #12101a; margin-top: 2px; }
         .modal-admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
 
         /* ══════════════════════════════════════════════════════════════
@@ -1001,7 +1006,7 @@
         }
         .escola-logo-circulo img { width: 100%; height: 100%; object-fit: contain; }
         .item-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
-        .item-detalhe { font-size: 12px; color: var(--cor-texto-muted); }
+        .item-detalhe { font-size: 13px; color: var(--cor-texto-muted); }
         .item-acoes { display: flex; gap: 8px; align-items: center; }
         /* Card fechado/expansível de Medidas (2ª versão, 22/ago/2026) --
            checkbox+nome sempre visíveis (fechado), tamanhos só aparecem
@@ -1046,10 +1051,10 @@
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-grid .campo-full { grid-column: 1 / -1; }
         .campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-        .campo > label { font-size: 11px; font-weight: 600; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 0.5px; }
+        .campo > label { font-size: 12px; font-weight: 600; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 0.5px; }
         .campo input, .campo select, .campo textarea {
             padding: 7px 10px; border: 1.5px solid #D4AF37; border-radius: 8px;
-            font-size: 13px; color: #0f172a; font-family: inherit; background: #fffdf4;
+            font-size: 15px; color: #0f172a; font-family: inherit; background: #fffdf4;
             transition: border-color 0.2s; outline: none;
         }
         .campo input:focus, .campo select:focus, .campo textarea:focus { border-color: #b8922a; }
@@ -4633,7 +4638,7 @@
                 <div class="ficha-secao-titulo">Acesso ao painel</div>
                 <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                     <input type="checkbox" id="pp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
-                    <label for="pp-modo-carteirinha" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
+                    <label for="pp-modo-carteirinha" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
                 </div>
             </div>
             ${GRUPOS_CAPACIDADES.map(g => `
@@ -4642,7 +4647,7 @@
                     ${g.itens.map(c => `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                             <input type="checkbox" id="pp-cap-${c.chave}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
-                            <label for="pp-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
+                            <label for="pp-cap-${c.chave}" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
                         </div>`).join('')}
                 </div>`).join('')}
             <div class="form-rodape">
