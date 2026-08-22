@@ -3335,9 +3335,12 @@
     // tipo de cabeçalho solto (Ritmistas/Diretoria/Escolas não têm, só
     // título de grupo + cards). "Nome usado" volta a morar coladinho no
     // próprio dropdown que ele descreve (design original, antes do
-    // cabeçalho ter voltado em 21/ago) -- só aparece pra quem realmente
-    // tem escolha de nome (a maioria dos instrumentos não tem, fica só
-    // com o checkbox).
+    // cabeçalho ter voltado em 21/ago). 22/ago/2026, 2ª correção: o rótulo
+    // "Nome usado" tinha ficado só no card com dropdown -- achado real
+    // dela, print na mão: sem o rótulo na linha de texto fixo, as duas
+    // variantes desalinhavam entre si (uma tem uma linha a mais que a
+    // outra) e o texto sozinho ficava sem explicação nenhuma. Agora todo
+    // card ativo tem o rótulo, dropdown ou texto fixo.
     function renderizarLinhaInstrumento(c) {
         const existente = bateriaInstrumentosCache.find(bi => bi.categoria_id === c.id);
         const ativo = !!(existente && existente.ativo);
@@ -3351,7 +3354,11 @@
                     </select>
                 </div>`;
         } else if (ativo) {
-            nomeUsadoHtml = `<span class="config-instrumento-nome-usado-fixo">${esc(c.nome)}</span>`;
+            nomeUsadoHtml = `
+                <div class="config-instrumento-nome-usado-wrap">
+                    <span class="config-instrumento-nome-usado-label">Nome usado</span>
+                    <span class="config-instrumento-nome-usado-fixo">${esc(c.nome)}</span>
+                </div>`;
         }
         return `
             <div class="item-card">
