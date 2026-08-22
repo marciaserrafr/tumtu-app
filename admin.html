@@ -121,8 +121,14 @@
         /* Pílula, não cantos quase retos -- mesmo formato do "Sair" da
            carteirinha, pedido da Márcia, 22/ago/2026: o formato quadrado
            "brigava" visualmente com o círculo do ícone de conta ao lado. */
-        .btn-sair { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
-        .btn-sair:hover { background: rgba(255,255,255,0.08); }
+        /* Dourado vazado no estado padrão (fundo escuro fixo, mesma cor da
+           carteirinha -- sem risco de contraste, pedido dela, 22/ago/2026).
+           Quando o tema da escola está ligado, .btn-header-tematico
+           continua sobrepondo pra branco sólido (decisão de 18/ago,
+           mantida -- dourado vazado ficava pouco visível em cima de
+           algumas cores de escola mais claras). */
+        .btn-sair { background: transparent; border: 1px solid rgba(212,175,55,0.3); color: #D4AF37; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .btn-sair:hover { background: rgba(212,175,55,0.08); }
         /* Botões do cabeçalho quando o tema da escola está ligado -- fundo
            sólido claro em vez de contorno translúcido, pra ficar nítido em
            cima de QUALQUER cor de escola, sem precisar calcular contraste
@@ -755,14 +761,18 @@
         /* Totalizador de vagas -- pedido da Márcia, 22/ago/2026, pra
            acompanhar o total de desfilantes definido pra bateria (regra do
            desfile: número de gente por ala/naipe), sem precisar somar os
-           instrumentos na mão. Atualiza sozinho a cada campo editado. */
+           instrumentos na mão. Atualiza sozinho a cada campo editado.
+           Fundo escuro (versão original) ficou pesado demais numa tela toda
+           clara -- trocado pelo mesmo estilo já usado nos cards de
+           totalizador da Visão Geral (.total-card: branco, sombra leve,
+           número dourado), achado dela, 22/ago/2026. */
         .config-vagas-total-card {
             display: flex; align-items: center; gap: 16px;
-            background: linear-gradient(135deg, #12101a, #1e1b2e);
+            background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
             border-radius: 14px; padding: 16px 22px; margin-bottom: 22px;
         }
         .config-vagas-total-numero { font-size: 34px; font-weight: 800; color: #D4AF37; line-height: 1; flex-shrink: 0; }
-        .config-vagas-total-label { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.4; }
+        .config-vagas-total-label { font-size: 12px; color: #888; line-height: 1.4; }
         .config-lista-cabecalho {
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 20px 12px; margin-bottom: 4px; border-bottom: 1px solid #e0ddea;
