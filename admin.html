@@ -4508,10 +4508,14 @@
             return `<div class="secao-titulo">${label}</div>${itens.map(cardHTML).join('')}`;
         }).join('');
     }
-    function abrirEditorPermissoesPessoa(vinculoId) {
+    // veioDaFicha marca quem chegou aqui pelo atalho da ficha (item 4) --
+    // controla o "Voltar para a ficha" (link + volta automática ao salvar/
+    // cancelar). Quem abre direto da lista de Permissões não tem pra onde
+    // voltar, então fica sem esse botão -- comportamento de sempre.
+    function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil), capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil), capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, veioDaFicha };
         renderizarEditorPermissoesPessoa();
     }
     // Atalho "Editar permissões" de dentro da ficha (item 4, 22/ago/2026) --
@@ -4521,7 +4525,7 @@
         fecharModalAdmin();
         trocarAba('permissoes', document.querySelector('.aba-btn[data-aba=administrativo]'));
         await carregarPermissoesEscola();
-        abrirEditorPermissoesPessoa(vinculoId);
+        abrirEditorPermissoesPessoa(vinculoId, true);
     }
     function renderizarEditorPermissoesPessoa() {
         const pe = permissoesPessoaEditando;
@@ -4530,6 +4534,7 @@
         if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
         editor.innerHTML = `<div class="card-form">
+            ${pe.veioDaFicha ? `<div style="margin-bottom:8px;"><span onclick="abrirFichaAdmin(${pe.id})" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Voltar para a ficha</span></div>` : ''}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
             <div class="ficha-secao" style="margin-top:14px;">
                 <div class="ficha-secao-titulo">Acesso ao painel</div>
@@ -4553,7 +4558,16 @@
             </div>
         </div>`;
     }
-    function fecharEditorPermissoesPessoa() { permissoesPessoaEditando = null; renderizarEditorPermissoesPessoa(); }
+    // Quem veio da ficha (item 4) volta pra ela sozinho ao salvar/cancelar --
+    // achado da Márcia, 22/ago/2026: sem isso, depois de editar não tinha
+    // como voltar pra conferir se o resumo da ficha atualizou.
+    function fecharEditorPermissoesPessoa() {
+        const veioDaFicha = permissoesPessoaEditando && permissoesPessoaEditando.veioDaFicha;
+        const id = permissoesPessoaEditando && permissoesPessoaEditando.id;
+        permissoesPessoaEditando = null;
+        renderizarEditorPermissoesPessoa();
+        if (veioDaFicha) abrirFichaAdmin(id);
+    }
     async function salvarPermissoesPessoa() {
         const pe = permissoesPessoaEditando;
         if (!pe) return;
@@ -4561,7 +4575,13 @@
         TODAS_CAPACIDADES.forEach(c => { capacidades[c] = document.getElementById('pp-cap-' + c).checked; });
         const modo_carteirinha_individual = document.getElementById('pp-modo-carteirinha').checked;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual }) });
-        if (res.ok) { mostrarToast('Permissões atualizadas!'); permissoesPessoaEditando = null; await carregarPermissoesEscola(); renderizarEditorPermissoesPessoa(); }
+        if (res.ok) {
+            mostrarToast('Permissões atualizadas!');
+            permissoesPessoaEditando = null;
+            await carregarPermissoesEscola();
+            renderizarEditorPermissoesPessoa();
+            if (pe.veioDaFicha) abrirFichaAdmin(pe.id);
+        }
         else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
     }
 
