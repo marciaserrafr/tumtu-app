@@ -896,6 +896,12 @@
            (Ritmistas), pedido da Márcia, 18/ago/2026. */
         .secao-titulo { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .secao-titulo:first-child { margin-top: 4px; }
+        /* "Filtros" é um rótulo utilitário (organiza a busca), não uma
+           categoria de dado como Pendentes/Ativos/Mestres -- achado da
+           Márcia, 23/ago/2026: a linha dourada dava peso visual demais
+           pra ele. Linha cinza neutra só aqui, resto do sistema continua
+           dourado. */
+        .secao-titulo-neutro { border-bottom-color: #e0e0e0; }
         /* .cards (Ritmistas) já tem gap:10px entre os filhos -- sem esse
            ajuste, o título de seção somava esse gap com sua própria margem e
            ficava com respiro maior que o dos cards de Diretoria (que não têm
@@ -1466,7 +1472,7 @@
     <!-- Busca + seções por cargo -- mesmo padrão já usado em Ritmistas/
          Diretoria, pedido da Márcia, 22/ago/2026: essa lista estava "solta"
          (sem divisão nem busca), diferente do resto do app. -->
-    <div style="margin-bottom:16px;">
+    <div style="margin-bottom:20px;">
         <input type="text" id="pe-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesPessoas()"
             style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
     </div>
@@ -1520,8 +1526,8 @@
     <!-- Título estático (não clicável, não recolhe) -- pedido da Márcia,
          20/ago/2026: "sinto falta de um título para os filtros", mesmo
          sem esconder nada. -->
-    <div class="secao-titulo" style="margin-top:0;">Filtros</div>
-    <div class="filtros" style="margin-bottom:20px;">
+    <div class="secao-titulo secao-titulo-neutro" style="margin-top:0;">Filtros</div>
+    <div class="filtros" style="margin-bottom:24px;">
         <!-- FILTRO INSTRUMENTO -->
         <div class="multi-select" id="multiSelectWrap">
             <div class="multi-select-trigger" id="multiSelectTrigger" onclick="toggleMultiSelect()">
@@ -1697,8 +1703,8 @@
             style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
     </div>
 
-    <div class="secao-titulo" style="margin-top:0;">Filtros</div>
-    <div class="filtros" style="margin-bottom:20px;">
+    <div class="secao-titulo secao-titulo-neutro" style="margin-top:0;">Filtros</div>
+    <div class="filtros" style="margin-bottom:24px;">
         <!-- FILTRO CARGO -->
         <div class="multi-select" id="cargoSelectWrap">
             <div class="multi-select-trigger" id="cargoSelectTrigger" onclick="toggleCargoSelect()">
