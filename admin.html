@@ -4963,8 +4963,17 @@
             </div>
         </div>`;
     }
+    // Sincroniza TUDO que existe no editor de volta pro objeto antes de
+    // qualquer re-render disparado por +/- tamanho -- sem isso, nome/status
+    // já digitados somem quando o editor inteiro é redesenhado (achado
+    // testando ao vivo, 23/ago/2026: sincronizar só os tamanhos deixava o
+    // campo Nome voltar a vazio ao clicar "+ Adicionar tamanho").
     function sincronizarTamanhosMTDoDOM() {
         if (!medidaTipoEditando) return;
+        const nomeInput = document.getElementById('mt-edit-nome');
+        const ativoInput = document.getElementById('mt-edit-ativo');
+        if (nomeInput) medidaTipoEditando.nome = nomeInput.value;
+        if (ativoInput) medidaTipoEditando.ativo = ativoInput.value === 'true';
         document.querySelectorAll('.mt-edit-tam-nome').forEach(input => {
             const idx = Number(input.dataset.idx);
             if (medidaTipoEditando.tamanhos[idx]) medidaTipoEditando.tamanhos[idx].nome = input.value;
