@@ -860,7 +860,11 @@
            título do próximo ficavam quase colados. Valor unificado com o
            resto do sistema em 22/ago/2026 (respiro padrão de título:
            24px antes, 12px depois da linha) -- o cabeçalho de coluna que
-           motivava um valor maior aqui foi removido nesse mesmo dia. */
+           motivava um valor maior aqui foi removido nesse mesmo dia.
+           .lista-cards já tem gap:12px entre todos os filhos -- sem
+           compensar aqui, o respiro dobra (24px/24px em vez de 24px/12px),
+           mesmo problema que .cards (Ritmistas/Diretoria) já tinha. */
+        .lista-cards .secao-titulo { margin-top: 12px; margin-bottom: 0; }
         /* Cada instrumento vira um .item-card -- o mesmo componente já
            usado em Ritmistas/Diretoria/Escolas no resto do app (bordado,
            nome à esquerda em .item-info, pílula+campo à direita em
