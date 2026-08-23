@@ -332,7 +332,7 @@
         .btn-exportar:hover { background: #f5f4f8; }
 
         /* VISÃO GERAL */
-        .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
+        .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
         .vg-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 16px; }
         /* Instrumentos + Aniversariantes lado a lado no computador (Ritmistas
            por Instrumento ocupava a tela toda sozinho) -- volta a empilhar
@@ -610,7 +610,7 @@
         .modal-exportar .subtitulo-resumo strong { color: var(--cor-texto-principal); }
         .exp-secao { margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid #f0eef5; }
         .exp-secao-titulo-linha { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
-        .exp-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .exp-secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .exp-secao-titulo-linha .exp-secao-titulo { padding-bottom: 0; border-bottom: none; margin-bottom: 0; }
         .exp-secao-acoes { font-size: 12px; color: #888; font-weight: 500; }
         .exp-secao-acoes span[onclick] { cursor: pointer; }
@@ -644,7 +644,7 @@
         .exp-radio-linha:has(input:checked) { border-color: var(--cor-destaque); background: #fdf8ea; }
         .exp-radio-linha:has(input:focus-visible) { outline: 2px solid var(--cor-destaque); outline-offset: 2px; }
         .exp-campos { max-height: 280px; overflow-y: auto; border: 1px solid #f0eef5; border-radius: 10px; padding: 2px 14px; }
-        .exp-campos-grupo-titulo { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; padding: 24px 0 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .exp-campos-grupo-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 0.8px; padding: 24px 0 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .exp-campos-grupo-titulo:first-child { padding-top: 4px; }
         .exp-campos .exp-campo-linha { padding: 8px 0; border-top: 1px solid #f7f6fb; }
         .exp-campos-grupo-titulo + .exp-campo-linha { border-top: none; }
@@ -654,7 +654,7 @@
         .modal-cadastro h2 { font-size: 17px; margin-bottom: 2px; }
         .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
         .ficha-secao { margin-bottom: 14px; }
-        .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
         /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
            label acima dele aumentados -- pedido dela, 22/ago/2026, "tenho
@@ -793,19 +793,16 @@
            cabeçalho precisa do MESMO gap da linha de dado, senão "RITMISTAS"
            cai 24px longe da pílula de verdade, mesmo com a largura certa. */
         .config-vagas-cabecalho { display: flex; justify-content: flex-end; align-items: center; gap: 32px; padding: 0 20px 6px; }
-        .config-vagas-cabecalho span { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .config-vagas-cabecalho span { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         .config-vagas-cabecalho span:first-child { width: 56px; text-align: center; }
         .config-vagas-cabecalho span:last-child { width: 64px; text-align: center; }
-        /* Mesma receita, pra Instrumentos -- um rótulo só ("Nome usado"),
-           alinhado com a largura fixa (170px) do dropdown/texto de cada
-           linha, achado dela, 22/ago/2026 (repetir em toda linha tinha
-           ficado igual ao problema de Vagas).
-           2ª correção, mesmo dia: como rótulo solto acima da lista
-           inteira, "Nome usado" desalinhava com "Tradicionais" (linhas/
-           respiro diferentes) e "Especiais" ficava sem rótulo nenhum.
-           Agora mora na mesma linha de CADA título de grupo. */
-        .secao-titulo-col { display: flex; justify-content: space-between; align-items: baseline; padding-right: 20px; }
-        .secao-titulo-col-direita { width: 170px; text-align: center; white-space: nowrap; font-size: 11px; letter-spacing: 0.5px; }
+        /* "Nome usado" virou cabeçalho próprio, separado do título do
+           grupo -- pedido dela, 23/ago/2026: "assim como é no Vagas de
+           Ritmistas" (reaproveita .config-vagas-cabecalho, ver função
+           renderizarConfigInstrumentos). Histórico de tentativas
+           anteriores (rótulo dentro do card, cabeçalho solto, mesma linha
+           do título) descrito nos comentários de renderizarLinhaInstrumento
+           mais abaixo. */
         /* Virou um bloco de verdade (fundo levemente tingido, cantos de cima
            arredondados, respiro nos 4 lados) em vez de texto solto com só
            uma linha embaixo -- achado real da Márcia, 22/ago/2026: "não tá
@@ -828,7 +825,7 @@
         .config-lista-cabecalho-controles { display: flex; align-items: center; gap: 32px; }
         .config-lista-cabecalho-controles span:first-child { min-width: 56px; text-align: center; white-space: nowrap; }
         .config-lista-cabecalho-controles span:last-child { width: 64px; text-align: center; white-space: nowrap; }
-        .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
         /* Medidas usa a linha antiga (.config-instrumento-linha), sem
            controle nenhum à direita -- fica como estava. */
@@ -894,7 +891,7 @@
            (aba Acessos, "Mestres"/"Diretores"), reaproveitado aqui pra
            separar Mestres/Diretores (Diretoria) e Pendentes/Ativos/etc
            (Ritmistas), pedido da Márcia, 18/ago/2026. */
-        .secao-titulo { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .secao-titulo:first-child { margin-top: 4px; }
         /* "Filtros" é um rótulo utilitário (organiza a busca), não uma
            categoria de dado como Pendentes/Ativos/Mestres -- achado da
@@ -1031,7 +1028,7 @@
         .kpi.ok .n { color: #2e7d32; }
         .kpi.atencao .n { color: var(--cor-terracota); }
         .kpi.atencao { border-color: var(--cor-terracota-clara); }
-        .dash-secao-titulo { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cor-texto-muted); margin-top: 4px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .dash-secao-titulo { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #5a5770; margin-top: 4px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .atencao-box { background: white; border: 1px solid var(--cor-borda); border-left: 4px solid var(--cor-terracota); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
         .atencao-titulo { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--cor-terracota); margin-bottom: 10px; }
         .atencao-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 13.5px; color: var(--cor-texto-principal); border-bottom: 1px solid var(--cor-borda); cursor: pointer; }
@@ -1049,7 +1046,7 @@
 
         /* Formulários inline (Nova Escola, Dados da Escola, Dados da Bateria) */
         .card-form { margin-bottom: 14px; }
-        .card-form-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .card-form-titulo { font-size: 11px; font-weight: bold; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-grid .campo-full { grid-column: 1 / -1; }
         .campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
@@ -3375,7 +3372,7 @@
         container.innerHTML = grupos.map(([chave, label]) => {
             const itens = bibliotecaInstrumentos.filter(c => c.grupo === chave).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
             if (itens.length === 0) return '';
-            return `<div class="secao-titulo secao-titulo-col"><span>${label}</span><span class="secao-titulo-col-direita">Nome usado</span></div>${itens.map(c => renderizarLinhaInstrumento(c)).join('')}`;
+            return `<div class="secao-titulo">${label}</div><div class="config-vagas-cabecalho"><span style="width:170px;text-align:center;">Nome usado</span></div>${itens.map(c => renderizarLinhaInstrumento(c)).join('')}`;
         }).join('');
     }
 
