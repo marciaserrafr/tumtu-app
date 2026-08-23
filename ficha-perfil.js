@@ -334,14 +334,20 @@ function fpAuthHeaders() {
 async function fpCarregarTiposMedidaAtivos(bateriaId) {
     if (!bateriaId) return [];
     const authHeaders = await fpAuthHeaders();
-    const [resBMT, resTipos] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}&ativo=eq.true`, { headers: authHeaders }),
+    // "Sem linha ainda em bateria_medida_tipos" conta como ATIVO -- mesma
+    // convenção já usada em renderizarConfigMedidas (admin.html) e na
+    // view bateria_medidas_publicas. Por isso busca só os DESLIGADOS
+    // explicitamente, em vez de exigir uma linha ativa pra cada tipo --
+    // sem isso, um tipo novo que nenhuma bateria tocou ainda (ex: recém-
+    // criado pelo Super Admin) nunca apareceria em lugar nenhum.
+    const [resDesligados, resTipos] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}&ativo=eq.false`, { headers: authHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders }),
     ]);
-    const bmt = await resBMT.json();
+    const desligados = await resDesligados.json();
     const tipos = await resTipos.json();
-    const ativosIds = new Set(bmt.map(b => b.tipo_id));
-    return tipos.filter(t => ativosIds.has(t.id));
+    const desligadosIds = new Set(desligados.map(d => d.tipo_id));
+    return tipos.filter(t => !desligadosIds.has(t.id));
 }
 
 // Valores já preenchidos pra essa pessoa/vínculo, indexados por tipo_id.
