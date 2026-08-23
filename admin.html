@@ -80,20 +80,22 @@
         }
         .header-marca-logo { width: 100%; height: 100%; object-fit: contain; }
         .header-badge { color: rgba(212,175,55,0.7); margin-top: 7px; }
-        /* Bateria em destaque (maior, mais forte), escola em legenda embaixo
-           (menor, opaca) -- pedido explícito da Márcia, 23/ago/2026: "o
-           sistema é sobre gerir a bateria, ela devia ter mais destaque".
-           Duas linhas coladas (line-height apertado) em vez da frase única
-           "Escola — BATERIA" de antes -- sem aumentar a altura do cabeçalho.
-           opacity (não color) diferencia a escola da bateria de propósito:
-           o container inteiro pode ganhar uma cor sólida diferente via JS
-           (aplicarConfigEscola, tema por escola) -- opacity continua
-           funcionando igual nos dois casos (dourado padrão ou cor da
-           escola), sem precisar duplicar a lógica de cor em cada filho. */
-        .header-badge .hb-bateria { font-size: 12px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; line-height: 1.25; }
-        .header-badge .hb-escola { font-size: 9.5px; font-weight: 600; letter-spacing: 0.2px; text-transform: none; line-height: 1.3; margin-top: 1px; opacity: 0.72; }
-        .header-esquerda.com-logo-escola .header-badge .hb-bateria { font-size: 17px; letter-spacing: -0.2px; }
-        .header-esquerda.com-logo-escola .header-badge .hb-escola { font-size: 12px; margin-top: 2px; }
+        /* Escola em cima, bateria em caixa alta embaixo -- pedido explícito
+           da Márcia, 23/ago/2026, depois de comparar prévias reais (opção
+           "G"): tamanho e peso praticamente iguais nas duas linhas (só 1px
+           de diferença, pra compensar o efeito óptico de "maior" que a
+           caixa alta já dá sozinha) -- a única pista real de qual é qual é
+           a cor. Escola segue a cor adaptável do container (clara ou escura
+           conforme o fundo, ver aplicarConfigEscola/corEhClara); bateria
+           sempre dourada, igual à convenção já usada em título/linha/Sair
+           no resto do sistema -- mesma concessão já aceita antes pro
+           "Sair" (pode perder um pouco de nitidez em escola de cor bem
+           clara, aceito conscientemente). Caixa alta na bateria repete o
+           padrão já usado na carteirinha (.cf-bateria). */
+        .header-badge .hb-escola { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; line-height: 1.3; }
+        .header-badge .hb-bateria { font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; line-height: 1.3; margin-top: 1px; color: var(--cor-destaque); }
+        .header-esquerda.com-logo-escola .header-badge .hb-escola { font-size: 15px; letter-spacing: -0.1px; }
+        .header-esquerda.com-logo-escola .header-badge .hb-bateria { font-size: 14px; margin-top: 2px; }
         .header-acoes { display: flex; gap: 12px; align-items: center; }
         /* Bolinha de conta no cabeçalho -- substitui nome+cargo em texto,
            pedido da Márcia, 21/ago/2026: "no lugar do nome do usuário...
@@ -686,10 +688,10 @@
         @media (max-width: 600px) {
             .header { padding: 12px 16px; gap: 8px; }
             .header-marca { font-size: 18px; }
-            .header-badge .hb-bateria { font-size: 10.5px; }
-            .header-badge .hb-escola { font-size: 8.5px; }
-            .header-esquerda.com-logo-escola .header-badge .hb-bateria { font-size: 14px; }
-            .header-esquerda.com-logo-escola .header-badge .hb-escola { font-size: 10.5px; }
+            .header-badge .hb-escola { font-size: 10px; }
+            .header-badge .hb-bateria { font-size: 9px; }
+            .header-esquerda.com-logo-escola .header-badge .hb-escola { font-size: 13px; }
+            .header-esquerda.com-logo-escola .header-badge .hb-bateria { font-size: 12px; }
             .header-avatar { width: 30px; height: 30px; font-size: 12px; }
             .btn-sair { font-size: 11px; padding: 5px 10px; }
 
@@ -1227,7 +1229,7 @@
 <div class="header" id="pageHeader">
     <div class="header-esquerda">
         <div class="header-marca tt-logo" id="headerMarca"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
-        <div class="header-badge" id="headerBateria"><div id="headerBateriaNome" class="hb-bateria"></div><div id="headerEscolaNome" class="hb-escola"></div></div>
+        <div class="header-badge" id="headerBateria"><div id="headerEscolaNome" class="hb-escola"></div><div id="headerBateriaNome" class="hb-bateria"></div></div>
     </div>
     <div class="header-acoes">
         <div id="headerAvatarWrap" class="header-avatar" title="Meu Perfil"></div>
@@ -2893,6 +2895,7 @@
             escolaEl.textContent = nomeEscolaExibido;
             escolaEl.style.display = nomeEscolaExibido ? '' : 'none';
             bateriaEl.textContent = cfg.nomeBateria || '';
+            bateriaEl.style.display = '';
         }
 
         // Cor do botão Ativar (usa corDestaque da escola ou dourado TumTu)
@@ -3873,9 +3876,10 @@
         document.getElementById('navAbasEscola').style.display = 'none';
         document.getElementById('mainEscola').style.display = 'none';
         document.getElementById('btnVoltarEscolasNav').style.display = 'none';
-        document.getElementById('headerEscolaNome').textContent = '';
-        document.getElementById('headerEscolaNome').style.display = 'none';
-        document.getElementById('headerBateriaNome').textContent = 'Super Admin';
+        document.getElementById('headerEscolaNome').textContent = 'Super Admin';
+        document.getElementById('headerEscolaNome').style.display = '';
+        document.getElementById('headerBateriaNome').textContent = '';
+        document.getElementById('headerBateriaNome').style.display = 'none';
     }
 
     function trocarSaAba(aba, el) {
