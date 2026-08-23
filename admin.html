@@ -1327,7 +1327,7 @@
             <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada categoria pode ter mais de um nome possível (nomenclatura); cada bateria escolhe qual usar em "Configurações → Instrumentos" no painel dela.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaCategoria()">+ Nova Categoria</button>
             <div id="sa-categoria-editor" style="display:none;"></div>
-            <div id="sa-categorias-lista"></div>
+            <div id="sa-categorias-lista" class="lista-cards"></div>
         </div>
 
         <div id="sa-config-tela-medidas" class="config-subtela" style="display:none;">
@@ -1336,7 +1336,7 @@
             <p class="config-sub-desc">Biblioteca mestre de tamanhos — vale para todas as escolas. Cada bateria escolhe quais usar em "Configurações → Medidas" no painel dela.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoTamanho()">+ Novo Tamanho</button>
             <div id="sa-tamanho-editor" style="display:none;"></div>
-            <div id="sa-tamanhos-lista"></div>
+            <div id="sa-tamanhos-lista" class="lista-cards"></div>
         </div>
     </div>
 
@@ -1351,7 +1351,7 @@
             <input type="text" id="priv-busca-pessoa" class="fc-input" style="display:block;flex:1;min-width:220px;" placeholder="Nome, CPF ou e-mail..." onkeydown="if(event.key==='Enter'){event.preventDefault();buscarPessoaExclusao();}">
             <button class="btn-novo" style="margin:0;" onclick="buscarPessoaExclusao()">Buscar</button>
         </div>
-        <div id="priv-resultado-pessoa" style="margin-top:12px;"></div>
+        <div id="priv-resultado-pessoa" class="lista-cards" style="margin-top:12px;"></div>
 
         <div class="ficha-secao-titulo" style="margin-top:24px;">Excluir uma escola inteira</div>
         <div class="config-sub-desc" style="margin:0 0 10px;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
@@ -1364,7 +1364,7 @@
 
         <div class="ficha-secao-titulo" style="margin-top:24px;">Histórico de exclusões (prova)</div>
         <div class="config-sub-desc" style="margin:0 0 10px;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
-        <div id="priv-lista-log">
+        <div id="priv-lista-log" class="lista-cards">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
         </div>
     </div>
@@ -1488,7 +1488,7 @@
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Histórico</div>
     <div class="config-sub-desc" style="margin:0 0 20px;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta bateria, e quando.</div>
-    <div id="lista-historico-escola">
+    <div id="lista-historico-escola" class="lista-cards">
         <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 </div>
