@@ -65,9 +65,7 @@
            achado da Márcia, 18/ago/2026, primeiro teste real: a logo pequena
            empilhada "ficou perdida". */
         .header-esquerda.com-logo-escola { flex-direction: row; align-items: center; gap: 14px; }
-        .header-esquerda.com-logo-escola .header-badge {
-            font-size: 15px; font-weight: 700; letter-spacing: 0; text-transform: none; margin-top: 0;
-        }
+        .header-esquerda.com-logo-escola .header-badge { margin-top: 0; }
         .header-marca { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
         /* Redonda, com anel na cor real da escola -- mesma identidade e
            mesma lógica de cor da logo na carteirinha (.v-logo/
@@ -81,17 +79,21 @@
             overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
         .header-marca-logo { width: 100%; height: 100%; object-fit: contain; }
-        .header-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(212,175,55,0.7); margin-top: 7px; }
-        /* Escola normal, bateria em caixa alta -- mesmo tratamento visual já
-           usado na carteirinha (.cf-escola/.cf-bateria), pedido da Márcia,
-           18/ago/2026: "a bateria está com a caixa alta [na carteirinha]...
-           acho que fica mais bonito". Sobrescreve o text-transform do
-           .header-badge (e da variante com logo, que zera pra "none") de
-           propósito -- cada span decide sua própria caixa, independente do
-           container. */
-        .header-badge .hb-escola { text-transform: none; }
-        .header-badge .hb-bateria { text-transform: uppercase; letter-spacing: 0.4px; }
-        .header-badge .hb-sep { opacity: 0.7; }
+        .header-badge { color: rgba(212,175,55,0.7); margin-top: 7px; }
+        /* Bateria em destaque (maior, mais forte), escola em legenda embaixo
+           (menor, opaca) -- pedido explícito da Márcia, 23/ago/2026: "o
+           sistema é sobre gerir a bateria, ela devia ter mais destaque".
+           Duas linhas coladas (line-height apertado) em vez da frase única
+           "Escola — BATERIA" de antes -- sem aumentar a altura do cabeçalho.
+           opacity (não color) diferencia a escola da bateria de propósito:
+           o container inteiro pode ganhar uma cor sólida diferente via JS
+           (aplicarConfigEscola, tema por escola) -- opacity continua
+           funcionando igual nos dois casos (dourado padrão ou cor da
+           escola), sem precisar duplicar a lógica de cor em cada filho. */
+        .header-badge .hb-bateria { font-size: 12px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; line-height: 1.25; }
+        .header-badge .hb-escola { font-size: 9.5px; font-weight: 600; letter-spacing: 0.2px; text-transform: none; line-height: 1.3; margin-top: 1px; opacity: 0.72; }
+        .header-esquerda.com-logo-escola .header-badge .hb-bateria { font-size: 17px; letter-spacing: -0.2px; }
+        .header-esquerda.com-logo-escola .header-badge .hb-escola { font-size: 12px; margin-top: 2px; }
         .header-acoes { display: flex; gap: 12px; align-items: center; }
         /* Bolinha de conta no cabeçalho -- substitui nome+cargo em texto,
            pedido da Márcia, 21/ago/2026: "no lugar do nome do usuário...
@@ -684,7 +686,10 @@
         @media (max-width: 600px) {
             .header { padding: 12px 16px; gap: 8px; }
             .header-marca { font-size: 18px; }
-            .header-badge { font-size: 9px; }
+            .header-badge .hb-bateria { font-size: 10.5px; }
+            .header-badge .hb-escola { font-size: 8.5px; }
+            .header-esquerda.com-logo-escola .header-badge .hb-bateria { font-size: 14px; }
+            .header-esquerda.com-logo-escola .header-badge .hb-escola { font-size: 10.5px; }
             .header-avatar { width: 30px; height: 30px; font-size: 12px; }
             .btn-sair { font-size: 11px; padding: 5px 10px; }
 
@@ -1222,7 +1227,7 @@
 <div class="header" id="pageHeader">
     <div class="header-esquerda">
         <div class="header-marca tt-logo" id="headerMarca"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
-        <div class="header-badge" id="headerBateria"><span id="headerEscolaNome" class="hb-escola"></span><span id="headerBateriaSep" class="hb-sep"> — </span><span id="headerBateriaNome" class="hb-bateria"></span></div>
+        <div class="header-badge" id="headerBateria"><div id="headerBateriaNome" class="hb-bateria"></div><div id="headerEscolaNome" class="hb-escola"></div></div>
     </div>
     <div class="header-acoes">
         <div id="headerAvatarWrap" class="header-avatar" title="Meu Perfil"></div>
@@ -1958,7 +1963,7 @@
 <!-- TOAST (Super Admin) -->
 <div class="toast" id="toast"></div>
 
-<script src="config-escola.js?v=3"></script>
+<script src="config-escola.js?v=4"></script>
 <script src="config-suporte.js?v=1"></script>
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
@@ -2876,17 +2881,17 @@
         // deixava cor/logo "grudadas" da escola anterior.
         resetTemaHeaderPadrao();
 
-        // Header: escola — bateria abaixo da marca TumTu (mesmo padrão já usado
-        // no e-mail de aprovação, 15/ago/2026) -- nome da bateria sozinho nem
-        // sempre é reconhecível de cara, o da escola é. Achado real, 17/ago/2026:
-        // esse campo nunca tinha sido ligado a dado de verdade -- configEscola
-        // ficava sempre com os valores vazios de fábrica (config-escola.js).
+        // Header: bateria em destaque, escola (nome curto, sem "G.R.E.S.")
+        // como legenda embaixo -- pedido da Márcia, 23/ago/2026, revertendo
+        // a ordem de peso de antes (era escola — BATERIA numa frase só).
+        // Nome curto é opcional (editado em Dados da Escola); sem ele, cai
+        // pra sigla (nomeEscola) pra nunca ficar vazio.
         const escolaEl = document.getElementById('headerEscolaNome');
-        const sepEl = document.getElementById('headerBateriaSep');
         const bateriaEl = document.getElementById('headerBateriaNome');
         if (bateriaEl) {
-            escolaEl.textContent = cfg.nomeEscola || '';
-            sepEl.style.display = cfg.nomeEscola ? '' : 'none';
+            const nomeEscolaExibido = cfg.nomeEscolaCurto || cfg.nomeEscola || '';
+            escolaEl.textContent = nomeEscolaExibido;
+            escolaEl.style.display = nomeEscolaExibido ? '' : 'none';
             bateriaEl.textContent = cfg.nomeBateria || '';
         }
 
@@ -3006,6 +3011,7 @@
             if (!raw) return;
             const cache = JSON.parse(raw);
             configEscola.nomeEscola = cache.nomeEscola || '';
+            configEscola.nomeEscolaCurto = cache.nomeEscolaCurto || '';
             configEscola.nomeBateria = cache.nomeBateria || '';
             configEscola.temaPersonalizadoAtivo = !!cache.temaPersonalizadoAtivo;
             configEscola.corPrimariaEscola = cache.corPrimaria || null;
@@ -3168,10 +3174,11 @@
             configEscola.nomeBateria = bateria.nome || '';
             codigoConviteBateria = bateria.codigo_convite || bateriaId;
             if (bateria.escola_id) {
-                const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url,tema_personalizado_ativo`, { headers: authHeaders });
+                const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,nome_curto,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url,tema_personalizado_ativo`, { headers: authHeaders });
                 const escolas = await resEscola.json();
                 const escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
                 configEscola.nomeEscola = escola ? (escola.sigla || escola.nome || '') : '';
+                configEscola.nomeEscolaCurto = escola ? (escola.nome_curto || '') : '';
                 configEscola.temaPersonalizadoAtivo = !!(escola && escola.tema_personalizado_ativo);
                 configEscola.corPrimariaEscola = (escola && escola.cor_primaria) || null;
                 configEscola.logoEscola = (escola && escola.logo_url) || null;
@@ -3867,7 +3874,7 @@
         document.getElementById('mainEscola').style.display = 'none';
         document.getElementById('btnVoltarEscolasNav').style.display = 'none';
         document.getElementById('headerEscolaNome').textContent = '';
-        document.getElementById('headerBateriaSep').style.display = 'none';
+        document.getElementById('headerEscolaNome').style.display = 'none';
         document.getElementById('headerBateriaNome').textContent = 'Super Admin';
     }
 
@@ -3939,7 +3946,6 @@
         document.getElementById('mainEscola').style.display = 'flex';
         document.getElementById('btnVoltarEscolasNav').style.display = 'flex';
         document.querySelectorAll('.aba-btn-sa').forEach(el => el.style.display = '');
-        document.getElementById('headerBateriaSep').style.display = '';
 
         await carregarBibliotecaInstrumentos();
         await carregarBateriaInstrumentos();
@@ -3949,6 +3955,7 @@
             await carregarNomeEscolaBateria(bateriaAtualData.id);
         } else {
             configEscola.nomeEscola = escolaAtualData ? (escolaAtualData.sigla || escolaAtualData.nome || '') : '';
+            configEscola.nomeEscolaCurto = escolaAtualData ? (escolaAtualData.nome_curto || '') : '';
             configEscola.nomeBateria = '(sem bateria cadastrada)';
             configEscola.temaPersonalizadoAtivo = false;
         }
@@ -4205,7 +4212,9 @@
                     <div class="ficha-campo"><span>ID</span><strong>${e ? e.id : '—'}</strong></div>
                     ${campo('Nome Completo *', 'de-nome', e && e.nome, { full: true, placeholder: 'Ex: Grêmio Recreativo...' })}
                     ${campo('Sigla *', 'de-sigla', e && e.sigla, { full: true, placeholder: 'Ex: Imperatriz' })}
+                    ${campo('Nome Curto', 'de-nome-curto', e && e.nome_curto, { full: true, placeholder: 'Ex: Imperatriz Leopoldinense' })}
                 </div>
+                ${modoEdicao ? `<div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Opcional -- sem o "G.R.E.S." e afins, do jeito que a galera chama no dia a dia. Aparece no cabeçalho do painel, embaixo do nome da bateria. Deixe em branco pra usar a Sigla.</div>` : ''}
             </div>
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Logo</div>
@@ -4256,6 +4265,7 @@
 
         const payload = {
             nome, sigla,
+            nome_curto: document.getElementById('de-nome-curto').value.trim() || null,
             logo_url: logoPendente.escolaEdicao || (escolaAtualData ? escolaAtualData.logo_url : null) || null,
             temporada_atual: document.getElementById('de-temporada').value.trim() || null,
             validade_carteirinha: document.getElementById('de-validade').value || null,
@@ -4271,6 +4281,8 @@
             escolaAtualData = dados[0];
             const idx = escolasCache.findIndex(x => x.id === id);
             if (idx >= 0) escolasCache[idx] = escolaAtualData;
+            configEscola.nomeEscola = escolaAtualData.sigla || escolaAtualData.nome || '';
+            configEscola.nomeEscolaCurto = escolaAtualData.nome_curto || '';
             renderizarDadosEscolaTab(false);
             aplicarConfigEscola();
             mostrarToast('Escola atualizada!');
