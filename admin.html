@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=16">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=18"></script>
+    <script src="ficha-perfil.js?v=19"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -107,22 +107,30 @@
            que o item saiu do menu (ver comentário em #navAbasEscola). */
         .header-avatar {
             width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
-            border: 2px solid #D4AF37; cursor: pointer; overflow: hidden;
+            cursor: pointer; overflow: hidden;
+            /* Anel por fora via box-shadow, não border -- border com
+               box-sizing:border-box "comia" o círculo (34px viravam 30px de
+               foto/iniciais visíveis), achado da Márcia, 22/ago/2026 --
+               mesma técnica já usada na logo da carteirinha. */
+            box-shadow: 0 0 0 2px #D4AF37;
             display: flex; align-items: center; justify-content: center;
             background: #12101a; color: #f5d778;
             font-size: 13px; font-weight: 800;
         }
         .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .btn-sair { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
-        .btn-sair:hover { background: rgba(255,255,255,0.08); }
-        /* Botões do cabeçalho quando o tema da escola está ligado -- fundo
-           sólido claro em vez de contorno translúcido, pra ficar nítido em
-           cima de QUALQUER cor de escola, sem precisar calcular contraste
-           cor a cor (achado da Márcia, 18/ago/2026: o contorno sutil "não
-           tava legal", pouco nítido, mesmo já mudando de cor por trás dos
-           panos). */
-        .btn-header-tematico { background: rgba(255,255,255,0.94) !important; border-color: transparent !important; color: #12101a !important; font-weight: 700 !important; }
-        .btn-header-tematico:hover { background: #ffffff !important; }
+        /* Pílula, não cantos quase retos -- mesmo formato do "Sair" da
+           carteirinha, pedido da Márcia, 22/ago/2026: o formato quadrado
+           "brigava" visualmente com o círculo do ícone de conta ao lado. */
+        /* Dourado vazado sempre -- estado padrão E com o tema da escola
+           ligado (mesma cor em qualquer cabeçalho, pedido explícito da
+           Márcia, 22/ago/2026, revertendo o branco sólido temático de
+           18/ago). .btn-header-tematico foi removida -- não sobra mais
+           nenhum lugar que a use. */
+        /* Borda a 30% (mesma da carteirinha) ficava quase invisível em cima
+           de cabeçalho colorido (achado dela, print, 22/ago/2026) --
+           reforçada pra 70% opaca e um pouco mais grossa (1.5px). */
+        .btn-sair { background: transparent; border: 1.5px solid rgba(212,175,55,0.7); color: #D4AF37; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .btn-sair:hover { background: rgba(212,175,55,0.08); }
         /* Assinatura "TumTu" -- morava solta no meio do conteúdo (rodapé de
            verdade), mas nesse layout (cabeçalho fixo, só o miolo rola) o
            vão vazio abaixo de telas com pouco conteúdo fica todo visível
@@ -164,7 +172,16 @@
         }
         .aba-btn .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
         .aba-btn:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
-        .aba-btn.ativa { color: var(--cor-destaque); background: rgba(212,175,55,0.16); font-weight: 700; }
+        /* Fundo neutro (não dourado) -- misturar dourado semitransparente
+           com o roxo escuro do menu resultava numa cor acastanhada/"suja"
+           (achado da Márcia, 22/ago/2026, confirmado fazendo a conta da
+           mistura). 2ª correção, mesmo dia: o cinza neutro + friso fino
+           era sutil demais ("não percebi que tinha mudado") -- trocado
+           pra dourado SÓLIDO (cor pura, sem mistura nenhuma, impossível
+           ficar "suja"), mesma regra de "destaque real" que o projeto já
+           usa em botão de ação principal (ex: "Meu Perfil" na
+           carteirinha). Texto escuro por cima, igual lá. */
+        .aba-btn.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
 
         /* "Mais" no computador: acordeão que abre ali mesmo na barra lateral
            (pedido da Márcia, 20/ago/2026), em vez de navegar pra uma tela
@@ -180,7 +197,10 @@
             padding: 8px 10px; border-radius: 8px; cursor: pointer; white-space: nowrap;
         }
         .aba-sub-btn:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
-        .aba-sub-btn.ativa { color: var(--cor-destaque); background: rgba(212,175,55,0.16); font-weight: 700; }
+        /* Mesmo dourado sólido de .aba-btn.ativa (ver comentário lá) --
+           essa terceira receita "suja" (submenu "Mais") só tinha sido
+           achada testando ao vivo na prévia, 22/ago/2026. */
+        .aba-sub-btn.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
         /* "‹ Escolas" (Super Admin, dentro de uma escola) -- mesma
            aparência de .aba-btn (pedido dela: fica como se fosse mais um
            item da lista, "abaixo do Mais"), classe própria só pra ficar
@@ -312,8 +332,13 @@
         .btn-exportar:hover { background: #f5f4f8; }
 
         /* VISÃO GERAL */
-        .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
         .vg-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 16px; }
+        /* Instrumentos + Aniversariantes lado a lado no computador (Ritmistas
+           por Instrumento ocupava a tela toda sozinho) -- volta a empilhar
+           no celular (media query lá embaixo), pedido da Márcia, 22/ago/2026. */
+        .vg-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+        .vg-grid-2col .vg-card { margin-bottom: 0; }
         .vg-aniversariante { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
         .vg-aniversariante:last-child { border-bottom: none; }
         .vg-aniv-nome { font-weight: 700; color: var(--cor-texto-principal); }
@@ -342,7 +367,7 @@
         .vg-instrumento-qtd.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
 
         /* CONTADOR */
-        .contador { font-size: 13px; color: #666; margin-bottom: 20px; }
+        .contador { font-size: 15px; color: #666; margin-bottom: 20px; }
 
         /* CARDS */
         .cards { display: flex; flex-direction: column; gap: 10px; }
@@ -509,7 +534,7 @@
             transition: transform 0.2s;
         }
         .toggle-track.on .toggle-thumb { transform: translateX(18px); }
-        .toggle-label { font-size: 13px; font-weight: 500; color: #333; }
+        .toggle-label { font-size: 15px; font-weight: 500; color: #333; }
 
         /* VAZIO */
         .vazio { text-align: center; padding: 40px; color: #999; font-size: 15px; }
@@ -549,7 +574,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         .modal h2 { font-size: 18px; color: var(--cor-texto-principal); margin-bottom: 6px; }
-        .modal p { font-size: 13px; color: #666; margin-bottom: 16px; }
+        .modal p { font-size: 15px; color: #666; margin-bottom: 16px; }
         .modal label { font-size: 13px; font-weight: bold; color: #333; display: block; margin-bottom: 6px; }
         .modal select, .modal textarea, .modal input:not([type="checkbox"]):not([type="radio"]) {
             width: 100%; padding: 10px; border: 2px solid #e0e0e0;
@@ -619,7 +644,7 @@
         .exp-radio-linha:has(input:checked) { border-color: var(--cor-destaque); background: #fdf8ea; }
         .exp-radio-linha:has(input:focus-visible) { outline: 2px solid var(--cor-destaque); outline-offset: 2px; }
         .exp-campos { max-height: 280px; overflow-y: auto; border: 1px solid #f0eef5; border-radius: 10px; padding: 2px 14px; }
-        .exp-campos-grupo-titulo { font-size: 10.5px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 0 6px; }
+        .exp-campos-grupo-titulo { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 0 6px; }
         .exp-campos-grupo-titulo:first-child { padding-top: 12px; }
         .exp-campos .exp-campo-linha { padding: 8px 0; border-top: 1px solid #f7f6fb; }
         .exp-campos-grupo-titulo + .exp-campo-linha { border-top: none; }
@@ -629,11 +654,16 @@
         .modal-cadastro h2 { font-size: 17px; margin-bottom: 2px; }
         .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
         .ficha-secao { margin-bottom: 14px; }
-        .ficha-secao-titulo { font-size: 10px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #D4AF37; padding-bottom: 3px; }
+        .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #D4AF37; padding-bottom: 3px; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
-        .ficha-campo { font-size: 12px; color: #333; }
-        .ficha-campo span { display: block; font-size: 10px; color: #999; margin-bottom: 1px; }
-        .ficha-campo strong { font-size: 13px; color: var(--cor-texto-principal); }
+        /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
+           label acima dele aumentados -- pedido dela, 22/ago/2026, "tenho
+           dificuldade de ler até em tela grande". Rótulos em caixa alta
+           (10px) mantidos -- convenção normal de rótulo secundário menor,
+           não é o mesmo problema. */
+        .ficha-campo { font-size: 13px; color: #333; }
+        .ficha-campo span { display: block; font-size: 13px; color: #999; margin-bottom: 1px; }
+        .ficha-campo strong { font-size: 15px; color: var(--cor-texto-principal); }
         .ficha-campo.full { grid-column: 1 / -1; }
         .btn-imprimir { display: inline-flex; align-items: center; gap: 6px; background: var(--cor-fundo-escuro); color: white; border: none; padding: 9px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
 
@@ -663,6 +693,13 @@
             .totalizadores { gap: 8px; }
             .total-card { padding: 12px 14px; }
             .total-numero { font-size: 24px; }
+
+            /* Instrumentos + Aniversariantes voltam a empilhar no celular --
+               2 colunas ali ficariam apertadas demais (ex: "Sem definição de
+               vagas" ao lado da pílula de contagem). */
+            .vg-grid-2col { grid-template-columns: 1fr; }
+            .vg-grid-2col .vg-card { margin-bottom: 16px; }
+            .vg-grid-2col .vg-card:last-child { margin-bottom: 0; }
 
             /* Card de Ritmistas/Diretoria quebra em 2 linhas no celular --
                achado real da Márcia, 20/ago/2026, testando de verdade:
@@ -722,15 +759,75 @@
            cada lado da linha significa. Só nessa tela de Configurações
            (é uma tabela de verdade, com campo editável); o card da Visão
            Geral é só um resumo, não precisa. */
+        /* Totalizador de vagas -- pedido da Márcia, 22/ago/2026, pra
+           acompanhar o total de desfilantes definido pra bateria (regra do
+           desfile: número de gente por ala/naipe), sem precisar somar os
+           instrumentos na mão. Atualiza sozinho a cada campo editado.
+           Fundo escuro (versão original) ficou pesado demais numa tela toda
+           clara -- trocado pelo mesmo estilo já usado nos cards de
+           totalizador da Visão Geral (.total-card: branco, sombra leve,
+           número dourado), achado dela, 22/ago/2026. */
+        .config-vagas-total-card {
+            display: flex; align-items: center; gap: 16px;
+            background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            border-radius: 14px; padding: 16px 22px; margin-bottom: 22px;
+        }
+        .config-vagas-total-numero { font-size: 34px; font-weight: 800; color: #D4AF37; line-height: 1; flex-shrink: 0; }
+        .config-vagas-total-label { font-size: 12px; color: #888; line-height: 1.4; }
+        /* Cabeçalho leve (só texto, sem caixa/fundo) -- diferente de
+           Instrumentos, aqui os dois rótulos ("Ritmistas"/"Vagas")
+           apareceriam em TODA linha sem exceção; repetir os dois em cada
+           card, do início ao fim da lista, ficou pesado (achado real da
+           Márcia, print na mão, 22/ago/2026). Um cabeçalho único resolve
+           melhor nesse caso específico. Larguras batem com a pílula
+           (56px) e a caixa de vagas (64px) de cada linha -- width FIXO
+           (não min-width), senão o texto "RITMISTAS"/"VAGAS" (mais largo
+           que 56/64px) alarga a própria caixa e desalinha tudo depois
+           dela. Com width fixo o texto pode "vazar" um pouco pros lados
+           (nowrap), mas o CENTRO continua exatamente em cima do
+           controle, que é o que importa visualmente.
+           3ª correção, mesmo dia, achada medindo em pixel de verdade
+           (getBoundingClientRect, não só o olho): o gap aqui estava 8px,
+           mas #config-vagas-lista .item-acoes usa 32px (decisão de
+           19/ago/2026, respiro de propósito entre pílula e caixa) -- o
+           cabeçalho precisa do MESMO gap da linha de dado, senão "RITMISTAS"
+           cai 24px longe da pílula de verdade, mesmo com a largura certa. */
+        .config-vagas-cabecalho { display: flex; justify-content: flex-end; align-items: center; gap: 32px; padding: 0 20px 6px; }
+        .config-vagas-cabecalho span { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .config-vagas-cabecalho span:first-child { width: 56px; text-align: center; }
+        .config-vagas-cabecalho span:last-child { width: 64px; text-align: center; }
+        /* Mesma receita, pra Instrumentos -- um rótulo só ("Nome usado"),
+           alinhado com a largura fixa (170px) do dropdown/texto de cada
+           linha, achado dela, 22/ago/2026 (repetir em toda linha tinha
+           ficado igual ao problema de Vagas).
+           2ª correção, mesmo dia: como rótulo solto acima da lista
+           inteira, "Nome usado" desalinhava com "Tradicionais" (linhas/
+           respiro diferentes) e "Especiais" ficava sem rótulo nenhum.
+           Agora mora na mesma linha de CADA título de grupo. */
+        .secao-titulo-col { display: flex; justify-content: space-between; align-items: baseline; padding-right: 20px; }
+        .secao-titulo-col-direita { width: 170px; text-align: center; white-space: nowrap; font-size: 11px; letter-spacing: 0.5px; }
+        /* Virou um bloco de verdade (fundo levemente tingido, cantos de cima
+           arredondados, respiro nos 4 lados) em vez de texto solto com só
+           uma linha embaixo -- achado real da Márcia, 22/ago/2026: "não tá
+           com cara de título". Cantos de baixo retos de propósito, pra
+           encostar direto no primeiro grupo/card da lista abaixo, como a
+           "tampa" de um bloco só. */
         .config-lista-cabecalho {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px 10px; margin-bottom: 4px; border-bottom: 1px solid #eee;
-            font-size: 11px; font-weight: 700; color: #888;
-            text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 10px 20px; margin-bottom: 4px;
+            background: #f7f6fb; border: 1px solid #e8e6f0; border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            font-size: 11px; font-weight: 700; color: #8b88a0;
+            text-transform: uppercase; letter-spacing: 0.6px;
         }
+        /* "Nº de Vagas" quebrando em 2 linhas (achado real dela, 22/ago/2026,
+           com print) -- nowrap resolve sem precisar encolher a coluna: o
+           texto pode "vazar" um pouco pros lados sem empurrar nada, porque
+           ele continua centralizado no mesmo eixo da pílula/caixa embaixo
+           (largura da coluna = largura do controle, não da palavra). */
         .config-lista-cabecalho-controles { display: flex; align-items: center; gap: 32px; }
-        .config-lista-cabecalho-controles span:first-child { min-width: 56px; text-align: center; }
-        .config-lista-cabecalho-controles span:last-child { width: 64px; text-align: center; }
+        .config-lista-cabecalho-controles span:first-child { min-width: 56px; text-align: center; white-space: nowrap; }
+        .config-lista-cabecalho-controles span:last-child { width: 64px; text-align: center; white-space: nowrap; }
         .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
         /* Medidas usa a linha antiga (.config-instrumento-linha), sem
@@ -746,6 +843,11 @@
            serrilhada, sem nenhum edge alinhado. Mesma largura/caixa nas
            duas, só o fundo mais claro do texto fixo sinaliza "não é
            campo editável" (sem seta de dropdown). */
+        /* Rótulo "Nome usado" coladinho no dropdown que ele descreve --
+           volta a morar dentro do card (22/ago/2026), em vez de num
+           cabeçalho de coluna solto no topo da lista. */
+        .config-instrumento-nome-usado-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+        .config-instrumento-nome-usado-label { font-size: 9.5px; font-weight: 700; color: #b0adbd; text-transform: uppercase; letter-spacing: 0.5px; }
         .config-instrumento-nomenclatura { width: 170px; box-sizing: border-box; padding: 5px 8px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 12.5px; color: #333; text-align: left; }
         .config-instrumento-nome-usado-fixo {
             display: inline-block; width: 170px; box-sizing: border-box;
@@ -756,10 +858,17 @@
         /* Respiro + linha divisória entre grupos (ex: Tradicionais →
            Especiais) -- achado da Márcia, 21/ago/2026, com print: sem
            isso, o último card de um grupo e o título do próximo ficavam
-           quase colados. O primeiro grupo da lista não tem nada acima pra
-           dividir, então fica sem borda/respiro extra. */
-        .lista-cards .secao-titulo { margin: 28px 0 8px; padding-top: 20px; border-top: 1px solid #e8e6f0; }
-        .lista-cards .secao-titulo:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+           quase colados.
+           22/ago/2026: o comentário acima ("primeiro grupo não tem nada
+           acima") ficou desatualizado assim que o cabeçalho de coluna
+           (.config-lista-cabecalho) passou a aparecer por cima da lista --
+           sem esse ajuste, "Tradicionais" ficava colado direto na linha do
+           cabeçalho (só 4px de margem), achado real da Márcia. Continua sem
+           borda-topo (evita duas linhas divisórias quase coladas, já que o
+           cabeçalho já tem a própria borda inferior), mas ganha respiro de
+           verdade. */
+        .lista-cards .secao-titulo { margin: 28px 0 8px; padding-top: 20px; }
+        .lista-cards .secao-titulo:first-child { margin-top: 20px; padding-top: 0; }
         /* Cada instrumento vira um .item-card -- o mesmo componente já
            usado em Ritmistas/Diretoria/Escolas no resto do app (bordado,
            nome à esquerda em .item-info, pílula+campo à direita em
@@ -789,7 +898,7 @@
            (aba Acessos, "Mestres"/"Diretores"), reaproveitado aqui pra
            separar Mestres/Diretores (Diretoria) e Pendentes/Ativos/etc
            (Ritmistas), pedido da Márcia, 18/ago/2026. */
-        .secao-titulo { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
+        .secao-titulo { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
         .secao-titulo:first-child { margin-top: 4px; }
         /* .cards (Ritmistas) já tem gap:10px entre os filhos -- sem esse
            ajuste, o título de seção somava esse gap com sua própria margem e
@@ -832,7 +941,7 @@
         .modal-admin-sub { font-size: 13px; color: #8b88a0; margin-bottom: 20px; }
         .modal-admin-campo { display: flex; flex-direction: column; margin-bottom: 12px; }
         .modal-admin-campo span { font-size: 11px; font-weight: 600; color: #8b88a0; text-transform: uppercase; letter-spacing: 0.5px; }
-        .modal-admin-campo strong { font-size: 14px; color: #12101a; margin-top: 2px; }
+        .modal-admin-campo strong { font-size: 15px; color: #12101a; margin-top: 2px; }
         .modal-admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
 
         /* ══════════════════════════════════════════════════════════════
@@ -858,7 +967,10 @@
         }
         .sa-sidebar-item .sa-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
         .sa-sidebar-item:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
-        .sa-sidebar-item.ativa { color: var(--cor-destaque); background: rgba(212,175,55,0.16); font-weight: 700; }
+        /* Mesmo dourado sólido de .aba-btn.ativa (ver comentário lá) --
+           os dois menus usavam a mesma receita "suja", achado da Márcia,
+           22/ago/2026. */
+        .sa-sidebar-item.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
 
         /* Mesmo padrão de .main -- 1200px máximo, centralizado de verdade,
            sem nunca estourar a tela (ver comentário completo em .main). */
@@ -873,9 +985,38 @@
             padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
         }
         .item-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+        /* Logo da escola nos cards de Escolas (Super Admin) -- pedido da
+           Márcia, 22/ago/2026, pra identificar a escola de relance sem
+           precisar ler o texto. Anel por fora via box-shadow (não border),
+           mesma técnica do item-avatar do cabeçalho -- não come o tamanho
+           do círculo. Sem logo: iniciais, mesmo padrão de fallback já usado
+           nos cards de Ritmista/Diretoria.
+           Cor do anel: NÃO é o dourado fixo do TumTu -- é a mesma lógica
+           dinâmica da borda da logo na carteirinha (corBordaLogoEscola,
+           definida por cima), aplicada inline por card. O dourado aqui
+           embaixo é só o valor de reserva, pro caso raríssimo do JS não
+           rodar a tempo. */
+        .item-card-esquerda { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+        .escola-logo-circulo {
+            width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+            box-shadow: 0 0 0 2px #D4AF37;
+            background: #f7f6fb; color: #8b88a0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 700; overflow: hidden;
+        }
+        .escola-logo-circulo img { width: 100%; height: 100%; object-fit: contain; }
         .item-nome { font-size: 15px; font-weight: 700; color: var(--cor-texto-principal); }
-        .item-detalhe { font-size: 12px; color: var(--cor-texto-muted); }
+        .item-detalhe { font-size: 13px; color: var(--cor-texto-muted); }
         .item-acoes { display: flex; gap: 8px; align-items: center; }
+        /* Card fechado/expansível de Medidas (2ª versão, 22/ago/2026) --
+           checkbox+nome sempre visíveis (fechado), tamanhos só aparecem
+           dentro do card ao clicar, igual um acordeão. */
+        .config-medida-card { padding: 0; display: block; }
+        .config-medida-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; }
+        .config-medida-seta { font-size: 20px; color: #c0bdd0; transition: transform 0.15s; line-height: 1; }
+        .config-medida-seta.aberta { transform: rotate(90deg); color: #8b88a0; }
+        .config-medida-tamanhos { padding: 4px 20px 16px 49px; border-top: 1px solid #f4f4f4; }
+        .config-medida-tamanhos .config-instrumento-linha:last-child { border-bottom: none; }
         .badge-ativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #e8f5e9; color: #2e7d32; }
         .badge-inativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fce4ec; color: #c62828; }
         .badge-tag-demo { font-size: 10px; font-weight: 800; letter-spacing: 0.04em; color: #8a6d1a; background: #fdf1cf; padding: 3px 9px; border-radius: 999px; }
@@ -888,7 +1029,7 @@
         .kpi.ok .n { color: #2e7d32; }
         .kpi.atencao .n { color: var(--cor-terracota); }
         .kpi.atencao { border-color: var(--cor-terracota-clara); }
-        .dash-secao-titulo { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cor-texto-muted); margin: 4px 0 12px; }
+        .dash-secao-titulo { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cor-texto-muted); margin: 4px 0 12px; }
         .atencao-box { background: white; border: 1px solid var(--cor-borda); border-left: 4px solid var(--cor-terracota); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
         .atencao-titulo { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--cor-terracota); margin-bottom: 10px; }
         .atencao-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 13.5px; color: var(--cor-texto-principal); border-bottom: 1px solid var(--cor-borda); cursor: pointer; }
@@ -902,18 +1043,18 @@
         .bc-stats { display: flex; gap: 16px; }
         .bc-stat .n { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--cor-texto-principal); }
         .bc-stat .n.aviso { color: var(--cor-terracota); }
-        .bc-stat .l { font-size: 10.5px; color: var(--cor-texto-muted); font-weight: 600; text-transform: uppercase; }
+        .bc-stat .l { font-size: 11px; color: var(--cor-texto-muted); font-weight: 600; text-transform: uppercase; }
 
         /* Formulários inline (Nova Escola, Dados da Escola, Dados da Bateria) */
         .card-form { margin-bottom: 14px; }
-        .card-form-titulo { font-size: 10px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 3px; border-bottom: 1px solid #D4AF37; }
+        .card-form-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 3px; border-bottom: 1px solid #D4AF37; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-grid .campo-full { grid-column: 1 / -1; }
         .campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-        .campo > label { font-size: 11px; font-weight: 600; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 0.5px; }
+        .campo > label { font-size: 12px; font-weight: 600; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 0.5px; }
         .campo input, .campo select, .campo textarea {
             padding: 7px 10px; border: 1.5px solid #D4AF37; border-radius: 8px;
-            font-size: 13px; color: #0f172a; font-family: inherit; background: #fffdf4;
+            font-size: 15px; color: #0f172a; font-family: inherit; background: #fffdf4;
             transition: border-color 0.2s; outline: none;
         }
         .campo input:focus, .campo select:focus, .campo textarea:focus { border-color: #b8922a; }
@@ -1109,7 +1250,7 @@
     <!-- DASHBOARD -->
     <div class="sa-painel ativo" id="sa-painel-dashboard">
         <div class="painel-titulo">Dashboard</div>
-        <div class="vg-secao-titulo" style="margin-bottom:20px;">Visão geral de todas as escolas e ritmistas.</div>
+        <div class="config-sub-desc" style="margin:0 0 20px;">Visão geral de todas as escolas e ritmistas.</div>
         <div class="kpi-row" id="dashboard-kpis"></div>
         <div id="dashboard-atencao"></div>
         <div class="dash-secao-titulo">Baterias</div>
@@ -1119,7 +1260,7 @@
     <!-- ESCOLAS -->
     <div class="sa-painel" id="sa-painel-escolas">
         <div class="painel-titulo">Escolas</div>
-        <div class="vg-secao-titulo" style="margin-bottom:16px;">Selecione uma escola para gerenciar seu cadastro, bateria e acessos.</div>
+        <div class="config-sub-desc" style="margin:0 0 16px;">Selecione uma escola para gerenciar seu cadastro, bateria e acessos.</div>
         <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaEscolaSA()">+ Nova Escola</button>
         <div id="lista-escolas" class="lista-cards">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
@@ -1169,7 +1310,7 @@
     <div class="sa-painel" id="sa-painel-configuracoes-globais">
         <div id="sa-config-lista">
             <div class="painel-titulo">Configurações</div>
-            <div class="vg-secao-titulo" style="margin-bottom:16px;">Ajustes que valem para todas as escolas.</div>
+            <div class="config-sub-desc" style="margin:0 0 16px;">Ajustes que valem para todas as escolas.</div>
             <div class="config-item" onclick="abrirConfigTelaSA('instrumentos')"><span>Instrumentos</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Medidas</span><span class="config-item-seta">›</span></div>
         </div>
@@ -1196,10 +1337,10 @@
     <!-- PRIVACIDADE (LGPD) -->
     <div class="sa-painel" id="sa-painel-privacidade">
         <div class="painel-titulo">Privacidade</div>
-        <div class="vg-secao-titulo" style="margin-bottom:20px;">Exclusão de dados sob pedido (LGPD) — ações sem volta, com prova registrada abaixo.</div>
+        <div class="config-sub-desc" style="margin:0 0 20px;">Exclusão de dados sob pedido (LGPD) — ações sem volta, com prova registrada abaixo.</div>
 
         <div class="ficha-secao-titulo">Excluir dados de uma pessoa</div>
-        <div class="vg-secao-titulo" style="margin:0 0 10px;text-transform:none;letter-spacing:0;font-weight:400;">Busca por nome, CPF ou e-mail — encontra até quem não tem vínculo com nenhuma bateria hoje.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Busca por nome, CPF ou e-mail — encontra até quem não tem vínculo com nenhuma bateria hoje.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <input type="text" id="priv-busca-pessoa" class="fc-input" style="display:block;flex:1;min-width:220px;" placeholder="Nome, CPF ou e-mail..." onkeydown="if(event.key==='Enter'){event.preventDefault();buscarPessoaExclusao();}">
             <button class="btn-novo" style="margin:0;" onclick="buscarPessoaExclusao()">Buscar</button>
@@ -1207,7 +1348,7 @@
         <div id="priv-resultado-pessoa" style="margin-top:12px;"></div>
 
         <div class="ficha-secao-titulo" style="margin-top:28px;">Excluir uma escola inteira</div>
-        <div class="vg-secao-titulo" style="margin:0 0 10px;text-transform:none;letter-spacing:0;font-weight:400;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <select id="priv-select-escola" class="fc-input" style="display:block;flex:1;min-width:220px;">
                 <option value="">Selecione a escola...</option>
@@ -1216,7 +1357,7 @@
         </div>
 
         <div class="ficha-secao-titulo" style="margin-top:28px;">Histórico de exclusões (prova)</div>
-        <div class="vg-secao-titulo" style="margin:0 0 10px;text-transform:none;letter-spacing:0;font-weight:400;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
         <div id="priv-lista-log">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
         </div>
@@ -1324,16 +1465,23 @@
 <div class="painel" id="painel-permissoes">
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Permissões</div>
-    <div class="vg-secao-titulo" style="margin-bottom:16px;text-transform:none;letter-spacing:0;font-weight:400;">Escolha uma pessoa da Diretoria e marque direto o que ela pode ver e editar. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
+    <div class="config-sub-desc" style="margin-bottom:16px;">Escolha uma pessoa da Diretoria e marque direto o que ela pode ver e editar. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
     <div id="pe-editor" style="display:none;"></div>
-    <div id="pe-perfis-lista"></div>
+    <!-- Busca + seções por cargo -- mesmo padrão já usado em Ritmistas/
+         Diretoria, pedido da Márcia, 22/ago/2026: essa lista estava "solta"
+         (sem divisão nem busca), diferente do resto do app. -->
+    <div style="margin-bottom:16px;">
+        <input type="text" id="pe-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesPessoas()"
+            style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+    </div>
+    <div id="pe-perfis-lista" class="lista-cards"></div>
 </div>
 
 <!-- PAINEL HISTÓRICO (dentro de Administrativo) -->
 <div class="painel" id="painel-historico">
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Histórico</div>
-    <div class="vg-secao-titulo" style="margin-bottom:20px;text-transform:none;letter-spacing:0;font-weight:400;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta bateria, e quando.</div>
+    <div class="config-sub-desc" style="margin:0 0 20px;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta bateria, e quando.</div>
     <div id="lista-historico-escola">
         <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
@@ -1450,7 +1598,6 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Instrumentos</div>
         <p class="config-sub-desc">Ative os instrumentos que sua bateria usa. Quando houver mais de um nome possível, escolha o que sua bateria usa.</p>
-        <div class="config-lista-cabecalho"><span>Instrumento</span><span>Nome Usado</span></div>
         <div id="config-instrumentos-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
@@ -1459,7 +1606,11 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Vagas de Ritmistas</div>
         <p class="config-sub-desc">Defina o limite de ritmistas por instrumento ativo. Deixe em 0 enquanto ainda não tiver decidido o limite desse instrumento.</p>
-        <div class="config-lista-cabecalho"><span>Instrumento</span><span class="config-lista-cabecalho-controles"><span>Nº Ritmistas</span><span>Nº de Vagas</span></span></div>
+        <div class="config-vagas-total-card">
+            <div class="config-vagas-total-numero" id="config-vagas-total-numero">0</div>
+            <div class="config-vagas-total-label">Total de vagas definidas na bateria</div>
+        </div>
+        <div class="config-vagas-cabecalho"><span>Ritmistas</span><span>Vagas</span></div>
         <div id="config-vagas-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
@@ -1468,7 +1619,7 @@
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
         <div class="painel-titulo">Medidas</div>
         <p class="config-sub-desc">Ative os tamanhos que sua bateria usa em cada tipo. Só os tamanhos ativos aparecem no cadastro dos ritmistas.</p>
-        <div id="config-medidas-lista"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+        <div id="config-medidas-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
 </div>
@@ -1503,14 +1654,16 @@
         </div>
     </div>
 
-    <div class="vg-card">
-        <div class="vg-secao-titulo">🥁 Ritmistas por Instrumento</div>
-        <div id="vg-instrumentos"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
-    </div>
+    <div class="vg-grid-2col">
+        <div class="vg-card">
+            <div class="vg-secao-titulo">🥁 Ritmistas por Instrumento</div>
+            <div id="vg-instrumentos"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+        </div>
 
-    <div class="vg-card">
-        <div class="vg-secao-titulo">🎂 Aniversariantes do mês</div>
-        <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+        <div class="vg-card">
+            <div class="vg-secao-titulo">🎂 Aniversariantes do mês</div>
+            <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+        </div>
     </div>
 
 </div><!-- /painel-visao -->
@@ -1701,7 +1854,7 @@
             </div>
             <div id="exportStatusChecks" class="exp-grid-checks"></div>
             <div class="exp-subtitulo-linha">
-                <span class="exp-subtitulo">Instrumento</span>
+                <span class="exp-subtitulo" id="exportSegundoFiltroLabel">Instrumento</span>
                 <span class="exp-secao-acoes">
                     <span onclick="exportSelecionarGrupo('instrumento', true)">Marcar todos</span>
                     <span style="color:#ccc;">·</span>
@@ -1728,10 +1881,10 @@
                     </span>
                 </label>
                 <label class="exp-radio-linha">
-                    <input type="radio" name="exportFormato" value="por-instrumento">
+                    <input type="radio" name="exportFormato" id="exportFormatoPorGrupoValor" value="por-instrumento">
                     <span class="exp-radio-texto">
-                        <span class="exp-radio-titulo">Separado por instrumento</span>
-                        <span class="exp-radio-desc">Uma aba pra cada instrumento, no mesmo arquivo</span>
+                        <span class="exp-radio-titulo" id="exportFormatoPorGrupoTitulo">Separado por instrumento</span>
+                        <span class="exp-radio-desc" id="exportFormatoPorGrupoDesc">Uma aba pra cada instrumento, no mesmo arquivo</span>
                     </span>
                 </label>
             </div>
@@ -2123,15 +2276,42 @@
     // dentro de onChangeStatus()) -- reaproveitado agora também no filtro
     // "Quem exportar" do modal de Excel, pra não duplicar a lista de novo.
     const LABELS_STATUS_FILTRO = { pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', desligado: 'Desligados', rejeitado: 'Rejeitados', menor: 'Menores', repique_bossa: 'Repique de Bossa' };
-    // Mesmos campos/labels já usados no export de Diretoria do Super Admin
-    // (super-admin.html) -- só falta essa opção existir aqui também.
+    // Igualado ao de Ritmistas, 22/ago/2026 (achado da Márcia: os dois
+    // relatórios precisam ser o mesmo formato -- só troca Instrumento por
+    // Cargo). Antes só tinha Nome/Apelido/CPF/Cargo/Status, uma versão
+    // antiga nunca atualizada quando o export de Ritmistas ganhou o resto
+    // dos campos em 18/ago/2026 -- confirmado que Diretoria (Mestre/
+    // Diretor/Apoio) também preenche todos esses dados na própria ficha.
     const CAMPOS_EXPORTAVEIS_DIRETORIA = [
-        { grupo: 'Diretoria', campos: [
+        { grupo: 'Dados pessoais', campos: [
             { chave: 'nome', label: 'Nome' },
             { chave: 'apelido', label: 'Apelido' },
             { chave: 'cpf', label: 'CPF' },
+            { chave: 'nascimento', label: 'Data de nascimento' },
+            { chave: 'celular', label: 'Celular' },
+            { chave: 'email', label: 'E-mail' },
             { chave: 'perfil', label: 'Cargo' },
+            { chave: 'membro_desde', label: 'Membro desde' },
             { chave: 'status', label: 'Status' },
+        ]},
+        { grupo: 'Contato de emergência', campos: [
+            { chave: 'emergencia_nome', label: 'Nome do contato de emergência' },
+            { chave: 'emergencia_parentesco', label: 'Parentesco do contato' },
+            { chave: 'emergencia_celular', label: 'Celular do contato' },
+        ]},
+        { grupo: 'Endereço', campos: [
+            { chave: 'endereco', label: 'Endereço' },
+            { chave: 'numero', label: 'Número' },
+            { chave: 'complemento', label: 'Complemento' },
+            { chave: 'bairro', label: 'Bairro' },
+            { chave: 'cidade', label: 'Cidade' },
+            { chave: 'estado', label: 'Estado' },
+        ]},
+        { grupo: 'Medidas', campos: [
+            { chave: 'tamanho_camisa', label: 'Tamanho da camisa' },
+            { chave: 'tamanho_fantasia', label: 'Tamanho da fantasia' },
+            { chave: 'tamanho_calca', label: 'Tamanho da calça' },
+            { chave: 'tamanho_sapato', label: 'Tamanho do sapato' },
         ]},
     ];
     const LABELS_PERFIL_EXPORT = { mestre: 'Mestre de Bateria', diretor: 'Diretor', apoio: 'Apoio de Bateria' };
@@ -2147,74 +2327,91 @@
             document.head.appendChild(script);
         });
     }
-    // Checkbox de status/instrumento pra dentro do modal (não usa mais o
-    // filtro da lista lá fora, que era o único jeito de restringir o
+    // Checkbox de status/instrumento(ou cargo) pra dentro do modal (não usa
+    // mais o filtro da lista lá fora, que era o único jeito de restringir o
     // export e ficava escondido demais -- achado da Márcia, 18/ago/2026).
     // Nasce marcado igual ao que já estava filtrado na lista (ponto de
     // partida familiar); se a lista não tinha filtro nenhum (= "todos"),
     // nasce tudo marcado aqui também, nunca vazio.
+    // Igualado pra Diretoria em 22/ago/2026: reaproveita a mesma grade de
+    // checkbox (a classe .export-instrumento-check por baixo continua com
+    // esse nome só pra não duplicar toda a mecânica -- o rótulo visível já
+    // vira "Cargo" pra quem usa Diretoria, ver exportSegundoFiltroLabel).
     function popularFiltrosExportacao() {
+        const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
         const statusesReais = ['aprovado', 'pendente', 'suspenso', 'rejeitado', 'desligado'];
-        const statusPre = filtroStatusSelecionados.length > 0 ? filtroStatusSelecionados : statusesReais;
+        const statusJaFiltrado = ehRitmistas ? filtroStatusSelecionados : filtroStatusDiretoriaSelecionados;
+        const statusPre = statusJaFiltrado.length > 0 ? statusJaFiltrado : statusesReais;
         document.getElementById('exportStatusChecks').innerHTML = statusesReais.map(s => `
             <label class="exp-campo-linha">
                 <input type="checkbox" class="export-status-check" value="${s}" ${statusPre.includes(s) ? 'checked' : ''} onchange="atualizarResumoExport()">
                 ${LABELS_STATUS_FILTRO[s]}
             </label>`).join('');
 
-        const instrumentos = instrumentosAtivosDaBateria();
-        const idsInstrumentos = instrumentos.map(i => String(i.id));
-        // "Sem instrumento" tirado da lista, 18/ago/2026 -- instrumento é
-        // obrigatório pra todo ritmista, achado da Márcia não é um estado
-        // real (só sobrava de dado de teste antigo).
-        const instrPre = filtroInstrumentosSelecionados.length > 0
-            ? filtroInstrumentosSelecionados.map(String)
-            : idsInstrumentos;
-        const optsInstrumento = instrumentos.map(i => ({ valor: String(i.id), rotulo: i.nome }));
-        document.getElementById('exportInstrumentoChecks').innerHTML = optsInstrumento.map(o => `
+        document.getElementById('exportSegundoFiltroLabel').textContent = ehRitmistas ? 'Instrumento' : 'Cargo';
+        let opts, pre;
+        if (ehRitmistas) {
+            const instrumentos = instrumentosAtivosDaBateria();
+            // "Sem instrumento" tirado da lista, 18/ago/2026 -- instrumento é
+            // obrigatório pra todo ritmista, achado da Márcia não é um estado
+            // real (só sobrava de dado de teste antigo).
+            opts = instrumentos.map(i => ({ valor: String(i.id), rotulo: i.nome }));
+            pre = filtroInstrumentosSelecionados.length > 0 ? filtroInstrumentosSelecionados.map(String) : opts.map(o => o.valor);
+        } else {
+            opts = Object.entries(LABELS_PERFIL_EXPORT).map(([valor, rotulo]) => ({ valor, rotulo }));
+            pre = filtroCargoDiretoriaSelecionados.length > 0 ? filtroCargoDiretoriaSelecionados : opts.map(o => o.valor);
+        }
+        document.getElementById('exportInstrumentoChecks').innerHTML = opts.map(o => `
             <label class="exp-campo-linha">
-                <input type="checkbox" class="export-instrumento-check" value="${o.valor}" ${instrPre.includes(o.valor) ? 'checked' : ''} onchange="atualizarResumoExport()">
+                <input type="checkbox" class="export-instrumento-check" value="${o.valor}" ${pre.includes(o.valor) ? 'checked' : ''} onchange="atualizarResumoExport()">
                 ${o.rotulo}
             </label>`).join('');
     }
 
-    // Recalcula a lista de Ritmistas a exportar a partir dos checkboxes do
-    // próprio modal (status + instrumento), não mais da lista de fora.
+    // Recalcula a lista a exportar a partir dos checkboxes do próprio modal
+    // (status + instrumento/cargo), não mais da lista de fora. Igualado pra
+    // Diretoria em 22/ago/2026 (antes só funcionava pra Ritmistas).
     function listaFiltradaExportacao() {
+        const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
         const statusMarcados = Array.from(document.querySelectorAll('.export-status-check:checked')).map(c => c.value);
-        const instrumentoMarcados = Array.from(document.querySelectorAll('.export-instrumento-check:checked')).map(c => c.value);
-        let lista = todosRitmistas;
+        const segundoMarcados = Array.from(document.querySelectorAll('.export-instrumento-check:checked')).map(c => c.value);
+        let lista = ehRitmistas ? todosRitmistas : listaDiretoriaAtual;
         if (statusMarcados.length > 0) lista = lista.filter(r => statusMarcados.includes(r.status || 'pendente'));
-        if (instrumentoMarcados.length > 0) lista = lista.filter(r => instrumentoMarcados.includes(String(r.bateria_instrumento_id)));
+        if (segundoMarcados.length > 0) {
+            lista = ehRitmistas
+                ? lista.filter(r => segundoMarcados.includes(String(r.bateria_instrumento_id)))
+                : lista.filter(r => segundoMarcados.includes(r.perfil));
+        }
         return lista;
     }
 
     function atualizarResumoExport() {
-        if (tipoExportacaoAtual !== 'ritmistas') return;
+        const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
         const total = listaFiltradaExportacao().length;
+        const singular = ehRitmistas ? 'ritmista' : 'pessoa da diretoria';
+        const plural = ehRitmistas ? 'ritmistas' : 'pessoas da diretoria';
         document.getElementById('exportResumoLista').innerHTML = total === 1
-            ? '<strong>1 ritmista</strong> será exportado(a) com os filtros marcados acima.'
-            : `<strong>${total} ritmistas</strong> serão exportados com os filtros marcados acima.`;
+            ? `<strong>1 ${singular}</strong> será exportado(a) com os filtros marcados acima.`
+            : `<strong>${total} ${plural}</strong> serão exportados com os filtros marcados acima.`;
     }
 
+    // Igualado ao formato de Ritmistas, 22/ago/2026 -- Diretoria ganha os
+    // mesmos filtros ("Quem exportar") e a mesma opção de separar por
+    // grupo (por cargo, no lugar de por instrumento).
     function abrirModalExportar(tipo) {
         tipoExportacaoAtual = tipo;
         const ehRitmistas = tipo === 'ritmistas';
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
 
-        document.getElementById('exportFiltrosContainer').style.display = ehRitmistas ? 'block' : 'none';
-        if (ehRitmistas) {
-            popularFiltrosExportacao();
-            atualizarResumoExport();
-        } else {
-            const total = listaDiretoriaAtual.length;
-            document.getElementById('exportResumoLista').innerHTML = total === 1
-                ? '<strong>1 pessoa</strong> da diretoria será exportada.'
-                : `<strong>${total} pessoas</strong> da diretoria serão exportadas.`;
-        }
+        document.getElementById('exportFiltrosContainer').style.display = 'block';
+        popularFiltrosExportacao();
+        atualizarResumoExport();
 
-        document.getElementById('exportFormatoContainer').style.display = ehRitmistas ? 'block' : 'none';
+        document.getElementById('exportFormatoContainer').style.display = 'block';
         document.querySelector('input[name="exportFormato"][value="unico"]').checked = true;
+        document.getElementById('exportFormatoPorGrupoValor').value = ehRitmistas ? 'por-instrumento' : 'por-cargo';
+        document.getElementById('exportFormatoPorGrupoTitulo').textContent = ehRitmistas ? 'Separado por instrumento' : 'Separado por cargo';
+        document.getElementById('exportFormatoPorGrupoDesc').textContent = ehRitmistas ? 'Uma aba pra cada instrumento, no mesmo arquivo' : 'Uma aba pra cada cargo, no mesmo arquivo';
 
         const container = document.getElementById('exportCamposContainer');
         container.innerHTML = campos.map(grupo => `
@@ -2288,25 +2485,23 @@
         return marcados.map(s => LABELS_STATUS_FILTRO[s]).join(', ');
     }
 
-    function tituloRelatorio(ehRitmistas, sufixoInstrumento) {
+    // Igualado pra Diretoria, 22/ago/2026 -- statusLabel e sufixo de grupo
+    // (instrumento OU cargo) agora entram no título dos dois tipos.
+    function tituloRelatorio(ehRitmistas, sufixoGrupo) {
         let titulo = ehRitmistas ? 'Relatório de Ritmistas' : 'Relatório de Diretoria';
-        if (ehRitmistas) {
-            const statusLabel = statusLabelExportacao();
-            if (statusLabel) titulo += ` — ${statusLabel}`;
-        }
-        if (sufixoInstrumento) titulo += ` — ${sufixoInstrumento}`;
+        const statusLabel = statusLabelExportacao();
+        if (statusLabel) titulo += ` — ${statusLabel}`;
+        if (sufixoGrupo) titulo += ` — ${sufixoGrupo}`;
         return titulo;
     }
 
     async function confirmarExportarExcel() {
         const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
-        // Ritmistas: recalcula a partir dos checkboxes do próprio modal
-        // (status + instrumento), não mais da lista de fora.
-        const lista = ehRitmistas ? listaFiltradaExportacao() : listaDiretoriaAtual;
+        const lista = listaFiltradaExportacao();
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
         const nomeAba = ehRitmistas ? 'Ritmistas' : 'Diretoria';
-        const porInstrumento = ehRitmistas &&
-            document.querySelector('input[name="exportFormato"]:checked').value === 'por-instrumento';
+        const formatoMarcado = document.querySelector('input[name="exportFormato"]:checked').value;
+        const porGrupo = formatoMarcado === 'por-instrumento' || formatoMarcado === 'por-cargo';
 
         const marcados = Array.from(document.querySelectorAll('.export-campo-check:checked')).map(c => c.value);
         if (marcados.length === 0) { alert('Marque pelo menos um campo para exportar.'); return; }
@@ -2322,23 +2517,23 @@
         }
 
         const livro = XLSX.utils.book_new();
-        if (porInstrumento) {
-            // Uma aba por instrumento, mesmo arquivo -- pedido real de um
-            // Diretor, 18/ago/2026: monta a lista de camisas por
-            // instrumento sem precisar filtrar e exportar um de cada vez.
+        if (porGrupo) {
+            // Uma aba por instrumento (Ritmistas) ou por cargo (Diretoria),
+            // mesmo arquivo -- pedido real de um Diretor, 18/ago/2026, pra
+            // Ritmistas; igualado pra Diretoria em 22/ago/2026.
             const grupos = {};
             lista.forEach(r => {
-                const nome = r.instrumento_nome || 'Sem instrumento';
+                const nome = ehRitmistas ? (r.instrumento_nome || 'Sem instrumento') : (LABELS_PERFIL_EXPORT[r.perfil] || r.perfil);
                 (grupos[nome] = grupos[nome] || []).push(r);
             });
             const usados = new Set();
-            Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(nomeInstrumento => {
-                let aba = nomeAbaExcel(nomeInstrumento);
+            Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(nomeGrupo => {
+                let aba = nomeAbaExcel(nomeGrupo);
                 let sufixo = 2;
-                while (usados.has(aba)) { aba = `${nomeAbaExcel(nomeInstrumento).slice(0, 28)} (${sufixo++})`; }
+                while (usados.has(aba)) { aba = `${nomeAbaExcel(nomeGrupo).slice(0, 28)} (${sufixo++})`; }
                 usados.add(aba);
-                const linhas = linhasExportacao(grupos[nomeInstrumento], todosCampos, marcados);
-                const planilha = planilhaComTitulo(linhas, tituloRelatorio(ehRitmistas, nomeInstrumento));
+                const linhas = linhasExportacao(grupos[nomeGrupo], todosCampos, marcados);
+                const planilha = planilhaComTitulo(linhas, tituloRelatorio(ehRitmistas, nomeGrupo));
                 XLSX.utils.book_append_sheet(livro, planilha, aba);
             });
         } else {
@@ -2611,6 +2806,7 @@
     let filtroInstrumentosSelecionados = []; // agora guarda bateria_instrumento_id (número), não mais texto
     let bibliotecaMedidas = []; // medida_tamanhos, biblioteca mestre
     let bateriaMedidasCache = []; // linhas de bateria_medidas da bateria atual
+    let bateriaMedidaTiposCache = []; // linhas de bateria_medida_tipos -- liga/desliga o TIPO inteiro (Camisa/Fantasia/Calça/Sapato), 22/ago/2026
 
     async function carregarBibliotecaInstrumentos() {
         const [resCat, resNom] = await Promise.all([
@@ -2665,8 +2861,6 @@
         if (headerEsquerda) headerEsquerda.classList.remove('com-logo-escola');
         const badge = document.getElementById('headerBateria');
         if (badge) { badge.style.color = ''; badge.style.textShadow = ''; }
-        const btnSair = document.querySelector('.btn-sair');
-        if (btnSair) btnSair.classList.remove('btn-header-tematico');
     }
 
     function aplicarConfigEscola() {
@@ -2733,14 +2927,11 @@
             badge.style.color = corTexto;
             badge.style.textShadow = sombra;
 
-            // A bolinha de conta (#headerAvatarWrap) e "Minha Carteirinha" já
-            // são dourado sólido (mesmo padrão de botão primário do resto do
-            // app) -- dourado fica nítido em cima de qualquer cor, não precisa
-            // de ajuste. Só "Sair" (ação secundária) ganha fundo sólido claro em vez de
-            // contorno translúcido -- era o que estava "sem graça"/pouco
-            // nítido antes, e os dois botões ficavam parecidos demais em
-            // cor e peso (achado da Márcia, 18/ago/2026).
-            document.querySelector('.btn-sair').classList.add('btn-header-tematico');
+            // "Sair" fica dourado vazado sempre, inclusive com o tema da
+            // escola ligado -- pedido explícito da Márcia, 22/ago/2026,
+            // revertendo a decisão de 18/ago (fundo branco sólido só nesse
+            // caso). Ela optou por isso mesmo sabendo que pode perder um
+            // pouco de nitidez em escolas de cor bem clara/pastel.
 
             // Logo GRANDE ao lado do nome da escola/bateria (não mais empilhada
             // sozinha e pequena) -- achado da Márcia, 18/ago/2026: "a logo
@@ -3004,7 +3195,7 @@
         return `
             <div class="secao-titulo" style="margin-top:4px;">${titulo}</div>
             <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
-                <p style="font-size:12px;color:#5a5770;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
+                <p style="font-size:13px;color:#8b88a0;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
                 ${linhas.map((l, i) => `
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;${i > 0 ? 'margin-top:10px;' : ''}">
                     <label style="width:120px;flex-shrink:0;font-size:12px;color:#5a5770;font-weight:600;">${l.label}</label>
@@ -3167,29 +3358,30 @@
         await carregarBateriaInstrumentos();
         if (bibliotecaMedidas.length === 0) await carregarBibliotecaMedidas();
         await carregarBateriaMedidas();
+        await carregarBateriaMedidaTipos();
     }
 
+    // "Nome usado" mora na MESMA linha do título de cada grupo (Tradicionais/
+    // Especiais), não solto acima da lista inteira -- achado real dela,
+    // 22/ago/2026: como rótulo solto, ficava desalinhado com "Tradicionais"
+    // (linhas/respiro diferentes) e "Especiais" ficava sem rótulo nenhum,
+    // já que só existia 1 cabeçalho pra lista toda. Repetindo por grupo,
+    // os dois sempre ficam juntos, na mesma altura.
     function renderizarConfigInstrumentos() {
         const container = document.getElementById('config-instrumentos-lista');
         const grupos = [['tradicional', 'Tradicionais'], ['especial', 'Especiais']];
         container.innerHTML = grupos.map(([chave, label]) => {
             const itens = bibliotecaInstrumentos.filter(c => c.grupo === chave).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
             if (itens.length === 0) return '';
-            return `<div class="secao-titulo">${label}</div>${itens.map(c => renderizarLinhaInstrumento(c)).join('')}`;
+            return `<div class="secao-titulo secao-titulo-col"><span>${label}</span><span class="secao-titulo-col-direita">Nome usado</span></div>${itens.map(c => renderizarLinhaInstrumento(c)).join('')}`;
         }).join('');
     }
 
-    // Redesenhado em 21/ago/2026: cada instrumento virou um .item-card
-    // (mesmo componente de Vagas de Ritmistas/Diretoria/Escolas). O
-    // cabeçalho de coluna "Instrumento / Nome Usado" voltou por pedido
-    // dela (mesmo padrão de Vagas de Ritmistas) depois de testar sem ele
-    // -- com o respiro/divisória certos entre cabeçalho e título de grupo,
-    // não repete mais o problema de "dois títulos" da primeira tentativa.
-    // Coluna da direita sempre preenchida pra quem está marcado (☑): select
-    // quando há mais de um nome possível, ou o próprio nome do instrumento
-    // repetido em texto simples quando só existe um nome (pedido dela:
-    // "o que não tiver nome definido, repita o nome que está aparecendo,
-    // do instrumento real"). Quem está desmarcado fica sem nada à direita.
+    // 4ª versão, 22/ago/2026: repetir "Nome usado" em toda linha (3ª
+    // versão) ficou igual ao problema de Vagas -- rótulo idêntico do
+    // início ao fim da lista. Achado real dela, print na mão: tira dos
+    // cards, volta um cabeçalho leve único no topo (mesma receita já
+    // usada em Vagas de Ritmistas -- só texto, sem caixa/fundo).
     function renderizarLinhaInstrumento(c) {
         const existente = bateriaInstrumentosCache.find(bi => bi.categoria_id === c.id);
         const ativo = !!(existente && existente.ativo);
@@ -3243,6 +3435,8 @@
     function renderizarConfigVagas() {
         const container = document.getElementById('config-vagas-lista');
         const ativos = bateriaInstrumentosCache.filter(bi => bi.ativo);
+        const totalEl = document.getElementById('config-vagas-total-numero');
+        if (totalEl) totalEl.textContent = ativos.reduce((soma, bi) => soma + (bi.vagas || 0), 0);
         if (ativos.length === 0) {
             container.innerHTML = '<div class="estado-vazio">Nenhum instrumento ativo ainda. Ative instrumentos em "Instrumentos" primeiro.</div>';
             return;
@@ -3307,12 +3501,54 @@
         bateriaMedidasCache = await res.json();
     }
 
+    // Liga/desliga o TIPO inteiro (Camisa/Fantasia/Calça/Sapato) pra essa
+    // bateria -- pedido da Márcia, 22/ago/2026: nem toda bateria pergunta
+    // Calça, por exemplo. Diferente de bateriaMedidasCache, que liga/desliga
+    // cada TAMANHO dentro de um tipo já ativo.
+    async function carregarBateriaMedidaTipos() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { bateriaMedidaTiposCache = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}`, { headers: authHeaders });
+        bateriaMedidaTiposCache = await res.json();
+    }
+
+    // Redesenhado em 22/ago/2026 (2ª versão -- achado dela na 1ª: "Esta
+    // bateria usa Camisa" lia como frase de formulário, amadora demais pra
+    // um sistema sério). Agora é um card fechado, igual Instrumentos (só
+    // checkbox + nome) -- clicar no card abre/fecha os tamanhos por dentro
+    // dele, em vez de despejar tudo sempre visível embaixo. Fechado/aberto
+    // é só estado de tela (medidaTiposAbertos), não precisa salvar em
+    // lugar nenhum.
+    let medidaTiposAbertos = new Set();
+    function toggleMedidaTipoAberto(chave) {
+        if (medidaTiposAbertos.has(chave)) medidaTiposAbertos.delete(chave);
+        else medidaTiposAbertos.add(chave);
+        renderizarConfigMedidas();
+    }
     function renderizarConfigMedidas() {
         const container = document.getElementById('config-medidas-lista');
         container.innerHTML = TIPOS_MEDIDA.map(([chave, label]) => {
             const itens = bibliotecaMedidas.filter(t => t.tipo === chave).sort((a, b) => a.ordem - b.ordem);
             if (itens.length === 0) return '';
-            return `<div class="config-grupo-titulo">${label}</div>${itens.map(t => renderizarLinhaMedida(t)).join('')}`;
+            const tipoExistente = bateriaMedidaTiposCache.find(bmt => bmt.tipo === chave);
+            const tipoAtivo = !tipoExistente || !!tipoExistente.ativo; // sem linha ainda = ativo por padrão
+            const aberto = medidaTiposAbertos.has(chave);
+            // Sem título de grupo aqui -- achado real dela, 22/ago/2026:
+            // cada grupo tem exatamente 1 card, então o título ("CAMISA")
+            // só repetia o que o próprio card já diz ("Camisa"), sem
+            // acrescentar nada. Diferente de Instrumentos, onde um grupo
+            // (Tradicionais) reúne vários cards com nomes diferentes.
+            return `
+                <div class="item-card config-medida-card">
+                    <div class="config-medida-header" onclick="toggleMedidaTipoAberto('${chave}')">
+                        <label class="config-instrumento-check" onclick="event.stopPropagation()">
+                            <input type="checkbox" ${tipoAtivo ? 'checked' : ''} onchange="salvarMedidaTipo('${chave}', this.checked)">
+                            <span class="item-nome">${label}</span>
+                        </label>
+                        <span class="config-medida-seta ${aberto ? 'aberta' : ''}">›</span>
+                    </div>
+                    ${aberto ? `<div class="config-medida-tamanhos">${itens.map(t => renderizarLinhaMedida(t)).join('')}</div>` : ''}
+                </div>`;
         }).join('');
     }
 
@@ -3326,6 +3562,27 @@
                     <span>${t.nome}</span>
                 </label>
             </div>`;
+    }
+
+    async function salvarMedidaTipo(tipo, ativo) {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) return;
+        const existente = bateriaMedidaTiposCache.find(bmt => bmt.tipo === tipo);
+        if (existente) {
+            await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ ativo })
+            });
+        } else {
+            await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ bateria_id: bateriaId, tipo, ativo })
+            });
+        }
+        await carregarBateriaMedidaTipos();
+        renderizarConfigMedidas();
     }
 
     async function salvarMedidaBateria(tamanhoId, ativo) {
@@ -3815,14 +4072,39 @@
         renderizarListaEscolas(escolasCache);
     }
 
+    // Mesma lógica exata da borda da logo na carteirinha (escolherCorBordaLogo/
+    // corEhBranca em carteirinha.html) -- pedido da Márcia, 22/ago/2026: o
+    // anel do card de Escolas não devia ser o dourado fixo do TumTu, e sim a
+    // cor de acento real de cada escola (última cor da cadeia, pulando
+    // branco e nunca caindo na cor 1), com o mesmo dourado só como fallback.
+    function corEhBrancaSA(hex) {
+        if (!hex) return true;
+        const h = hex.replace('#', '');
+        const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+        if (full.length !== 6) return false;
+        const r = parseInt(full.slice(0, 2), 16);
+        const g = parseInt(full.slice(2, 4), 16);
+        const b = parseInt(full.slice(4, 6), 16);
+        return r > 240 && g > 240 && b > 240;
+    }
+    function corBordaLogoEscola(e) {
+        const cores = [e.cor_primaria, e.cor_secundaria, e.cor_terciaria, e.cor_quaternaria].filter(Boolean);
+        for (let i = cores.length - 1; i >= 1; i--) {
+            if (cores[i] && !corEhBrancaSA(cores[i])) return cores[i];
+        }
+        return '#D4AF37';
+    }
     function renderizarListaEscolas(lista) {
         const div = document.getElementById('lista-escolas');
         if (!lista.length) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🏫</div>Nenhuma escola cadastrada ainda.</div>'; return; }
         const cardEscolaHTML = e => `
             <div class="item-card" style="cursor:pointer" onclick="entrarContextoEscolaSA(${e.id})">
-                <div class="item-info">
-                    <div class="item-nome">${esc(e.sigla || e.nome)}</div>
-                    <div class="item-detalhe">${esc(e.nome)}</div>
+                <div class="item-card-esquerda">
+                    <div class="escola-logo-circulo" style="box-shadow:0 0 0 2px ${corBordaLogoEscola(e)};">${e.logo_url ? `<img src="${e.logo_url}">` : esc((e.sigla || e.nome || '?')[0].toUpperCase())}</div>
+                    <div class="item-info">
+                        <div class="item-nome">${esc(e.sigla || e.nome)}</div>
+                        <div class="item-detalhe">${esc(e.nome)}</div>
+                    </div>
                 </div>
                 <div class="item-acoes">
                     ${e.tipo === 'demo' ? '<span class="badge-tag-demo">DEMO</span>' : ''}
@@ -3947,7 +4229,7 @@
                     <input type="checkbox" id="de-tema-ativo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${e && e.tema_personalizado_ativo ? 'checked' : ''} ${modoEdicao ? '' : 'disabled'}>
                     <label for="de-tema-ativo" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
                 </div>
-                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o cabeçalho do painel de gestão (Mestre/Diretor) usa a cor primária e o logo da escola no lugar da marca TumTu.</div>
+                <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o cabeçalho do painel de gestão (Mestre/Diretor) usa a cor primária e o logo da escola no lugar da marca TumTu.</div>
             </div>
             ${rodape}`;
         logoPendente.escolaEdicao = null;
@@ -4175,7 +4457,7 @@
                     <input type="checkbox" id="cm-tipo-demo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${e && e.tipo === 'demo' ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="salvarClassificacaoEscola(this.checked)">
                     <label for="cm-tipo-demo" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Escola DEMO (demonstração)</label>
                 </div>
-                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Escolas DEMO ficam de fora da contagem do Dashboard geral.</div>
+                <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Escolas DEMO ficam de fora da contagem do Dashboard geral.</div>
             </div>
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Status da Escola</div>
@@ -4193,7 +4475,7 @@
                     <input type="checkbox" id="mv-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${b.modo_piloto ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="salvarComercial(this.checked)">
                     <label for="mv-modo-piloto" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
                 </div>
-                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de gestão. Decisão comercial (ex: vender só a carteirinha pra quem não quer o módulo de gestão completo) — não é um dado operacional da bateria.</div>
+                <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de gestão. Decisão comercial (ex: vender só a carteirinha pra quem não quer o módulo de gestão completo) — não é um dado operacional da bateria.</div>
             </div>
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Status da Bateria</div>
@@ -4206,7 +4488,7 @@
             html += `
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Modo Carteirinha</div>
-                <div style="font-size:12px;color:var(--cor-texto-muted);">Cadastre a bateria primeiro, em "Dados da Bateria".</div>
+                <div style="font-size:13px;color:var(--cor-texto-muted);">Cadastre a bateria primeiro, em "Dados da Bateria".</div>
             </div>`;
         }
 
@@ -4270,6 +4552,16 @@
     let permissoesPessoaCache = [];
     let permissoesPessoaEditando = null;
 
+    // Compartilhado entre a lista de Permissões e o resumo dentro da ficha
+    // (item 4, 22/ago/2026) -- uma fonte só pro texto, sem duplicar a conta.
+    function permissoesResumoTexto(p) {
+        const caps = p.capacidades || {};
+        const ligadas = TODAS_CAPACIDADES.filter(c => caps[c]);
+        return p.modo_carteirinha_individual
+            ? 'Modo Carteirinha individual — não entra na gestão'
+            : (ligadas.length === 0 ? 'nenhuma capacidade ligada' : ligadas.length + ' capacidade' + (ligadas.length === 1 ? '' : 's') + ' ligada' + (ligadas.length === 1 ? '' : 's'));
+    }
+
     async function carregarPermissoesEscola() {
         const container = document.getElementById('pe-perfis-lista');
         if (!container) return;
@@ -4279,31 +4571,59 @@
         permissoesPessoaCache = res.ok ? await res.json() : [];
         renderizarListaPermissoesPessoas();
     }
+    // Agrupado por cargo (Mestres/Diretores/Apoio) + busca por nome/apelido
+    // -- pedido da Márcia, 22/ago/2026: essa lista estava corrida, sem
+    // divisão nem busca, diferente do padrão do resto do app (mesma
+    // organização de Diretoria).
     function renderizarListaPermissoesPessoas() {
         const container = document.getElementById('pe-perfis-lista');
         if (!container) return;
         if (permissoesPessoaCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum Mestre, Diretor ou Apoio nesta bateria ainda.</div>'; return; }
-        container.innerHTML = permissoesPessoaCache.map(p => {
-            const caps = p.capacidades || {};
-            const ligadas = TODAS_CAPACIDADES.filter(c => caps[c]);
-            const cargo = labelPerfilSA(p.perfil);
-            const detalhe = p.modo_carteirinha_individual
-                ? 'Modo Carteirinha individual — não entra na gestão'
-                : (ligadas.length === 0 ? 'nenhuma capacidade ligada' : ligadas.length + ' capacidade' + (ligadas.length === 1 ? '' : 's') + ' ligada' + (ligadas.length === 1 ? '' : 's'));
+
+        const buscaEl = document.getElementById('pe-busca');
+        const busca = (buscaEl ? buscaEl.value : '').trim().toLowerCase();
+        const filtrada = busca
+            ? permissoesPessoaCache.filter(p => (p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))
+            : permissoesPessoaCache;
+
+        if (filtrada.length === 0) { container.innerHTML = '<div class="estado-vazio">Nenhuma pessoa encontrada com essa busca.</div>'; return; }
+
+        const cardHTML = p => {
+            const detalhe = permissoesResumoTexto(p);
             return `<div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
-                    <div class="item-detalhe">${cargo} — ${detalhe}</div>
+                    <div class="item-detalhe">${detalhe}</div>
                 </div>
                 <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditorPermissoesPessoa(${p.id})">Editar</button></div>
             </div>`;
+        };
+
+        const grupos = [['mestre', 'Mestres'], ['diretor', 'Diretores'], ['apoio', 'Apoio']];
+        container.innerHTML = grupos.map(([perfil, label]) => {
+            const itens = filtrada.filter(p => p.perfil === perfil);
+            if (itens.length === 0) return '';
+            return `<div class="secao-titulo">${label}</div>${itens.map(cardHTML).join('')}`;
         }).join('');
     }
-    function abrirEditorPermissoesPessoa(vinculoId) {
+    // veioDaFicha marca quem chegou aqui pelo atalho da ficha (item 4) --
+    // controla o "Voltar para a ficha" (link + volta automática ao salvar/
+    // cancelar). Quem abre direto da lista de Permissões não tem pra onde
+    // voltar, então fica sem esse botão -- comportamento de sempre.
+    function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil), capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil), capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, veioDaFicha };
         renderizarEditorPermissoesPessoa();
+    }
+    // Atalho "Editar permissões" de dentro da ficha (item 4, 22/ago/2026) --
+    // fecha a ficha, navega pra aba Permissões e já abre o editor dessa
+    // pessoa, reaproveitando o mesmo abrirEditorPermissoesPessoa de sempre.
+    async function fpIrParaPermissoesDeFicha(vinculoId) {
+        fecharModalAdmin();
+        trocarAba('permissoes', document.querySelector('.aba-btn[data-aba=administrativo]'));
+        await carregarPermissoesEscola();
+        abrirEditorPermissoesPessoa(vinculoId, true);
     }
     function renderizarEditorPermissoesPessoa() {
         const pe = permissoesPessoaEditando;
@@ -4312,12 +4632,13 @@
         if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
         editor.innerHTML = `<div class="card-form">
+            ${pe.veioDaFicha ? `<div style="margin-bottom:8px;"><span onclick="abrirFichaAdmin(${pe.id})" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Voltar para a ficha</span></div>` : ''}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
             <div class="ficha-secao" style="margin-top:14px;">
                 <div class="ficha-secao-titulo">Acesso ao painel</div>
                 <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                     <input type="checkbox" id="pp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
-                    <label for="pp-modo-carteirinha" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
+                    <label for="pp-modo-carteirinha" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
                 </div>
             </div>
             ${GRUPOS_CAPACIDADES.map(g => `
@@ -4326,7 +4647,7 @@
                     ${g.itens.map(c => `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                             <input type="checkbox" id="pp-cap-${c.chave}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
-                            <label for="pp-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
+                            <label for="pp-cap-${c.chave}" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
                         </div>`).join('')}
                 </div>`).join('')}
             <div class="form-rodape">
@@ -4335,7 +4656,16 @@
             </div>
         </div>`;
     }
-    function fecharEditorPermissoesPessoa() { permissoesPessoaEditando = null; renderizarEditorPermissoesPessoa(); }
+    // Quem veio da ficha (item 4) volta pra ela sozinho ao salvar/cancelar --
+    // achado da Márcia, 22/ago/2026: sem isso, depois de editar não tinha
+    // como voltar pra conferir se o resumo da ficha atualizou.
+    function fecharEditorPermissoesPessoa() {
+        const veioDaFicha = permissoesPessoaEditando && permissoesPessoaEditando.veioDaFicha;
+        const id = permissoesPessoaEditando && permissoesPessoaEditando.id;
+        permissoesPessoaEditando = null;
+        renderizarEditorPermissoesPessoa();
+        if (veioDaFicha) abrirFichaAdmin(id);
+    }
     async function salvarPermissoesPessoa() {
         const pe = permissoesPessoaEditando;
         if (!pe) return;
@@ -4343,7 +4673,13 @@
         TODAS_CAPACIDADES.forEach(c => { capacidades[c] = document.getElementById('pp-cap-' + c).checked; });
         const modo_carteirinha_individual = document.getElementById('pp-modo-carteirinha').checked;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual }) });
-        if (res.ok) { mostrarToast('Permissões atualizadas!'); permissoesPessoaEditando = null; await carregarPermissoesEscola(); renderizarEditorPermissoesPessoa(); }
+        if (res.ok) {
+            mostrarToast('Permissões atualizadas!');
+            permissoesPessoaEditando = null;
+            await carregarPermissoesEscola();
+            renderizarEditorPermissoesPessoa();
+            if (pe.veioDaFicha) abrirFichaAdmin(pe.id);
+        }
         else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
     }
 
@@ -4989,12 +5325,24 @@
         await fpMontar(document.getElementById('fp-container-admin'));
         fpIniciar(a, usuarioAtual ? usuarioAtual.perfil : null, usuarioAtual ? usuarioAtual.pessoa_id : null, { aoSalvar: () => { diretoriaCarregada = false; carregarDiretoria(); } });
 
-        // Permissões dessa pessoa NÃO aparecem aqui de propósito -- moram
-        // isoladas na aba "Permissões" (ver_permissoes/editar_permissoes),
-        // pra ninguém com acesso só à Diretoria enxergar o que outra pessoa
-        // pode ou não fazer. Ver GRUPOS_CAPACIDADES / carregarPermissoesEscola.
+        // Resumo + atalho de Permissões dentro da ficha -- pedido da
+        // Márcia, 22/ago/2026. Continua isolado por capacidade (só quem tem
+        // ver_permissoes enxerga isso aqui também, mesma trava de sempre):
+        // ter acesso pra ver/aprovar Diretoria não dá acesso a permissão de
+        // ninguém. Abre o MESMO editor da aba "Permissões" (não duplica
+        // lógica) -- ver fpIrParaPermissoesDeFicha.
         const extraAdmin = document.querySelector('#fp-container-admin #fp-extra-conteudo');
-        if (extraAdmin) extraAdmin.innerHTML = '';
+        if (extraAdmin) {
+            extraAdmin.innerHTML = tenhoCapacidade('ver_permissoes') ? `
+                <div class="ficha-secao">
+                    <div class="ficha-secao-titulo">Permissões</div>
+                    <div class="ficha-campo">
+                        <span>Nesta bateria</span>
+                        <strong>${esc(permissoesResumoTexto(a))}</strong>
+                    </div>
+                    <button type="button" class="btn-ficha" style="margin-top:8px;" onclick="fpIrParaPermissoesDeFicha(${a.id})">Editar permissões</button>
+                </div>` : '';
+        }
 
         // Botões de ação de status + Ver carteirinha + Fechar -- mesmo
         // padrão de abrirCadastro() (Ritmistas), pedido da Márcia,

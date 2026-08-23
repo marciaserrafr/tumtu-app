@@ -258,6 +258,11 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     fpEl('fp-secao-instrumento').style.display = alvo.perfil === 'ritmista' ? '' : 'none';
     fpEl('fp-instrumento').textContent = alvo.instrumento_nome || '—';
 
+    // Some a linha inteira de um tipo de medida (Camisa/Fantasia/Calça/
+    // Sapato) que essa bateria desligou -- fire-and-forget, não trava o
+    // resto do render enquanto a resposta não chega (22/ago/2026).
+    fpAplicarTiposMedidaAtivos(alvo.bateria_id);
+
     // Repique de Bossa só existe pra Ritmista de Repique/Repique Mor -- some
     // a linha inteira pro resto (mesmo critério já usado em Documento/
     // Responsável/"Como se identifica" acima).
@@ -320,24 +325,55 @@ const FP_CAMPOS_MEDIDA = [
     { col: 'tamanho_sapato', tipo: 'sapato', id: 'fp-sapato' },
 ];
 
+function fpAuthHeaders() {
+    return sb.auth.getSession().then(({ data }) => {
+        const token = data.session ? data.session.access_token : SUPABASE_KEY;
+        return { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` };
+    });
+}
+
+// Tipos (Camisa/Fantasia/Calça/Sapato) que essa bateria desligou por
+// completo -- pedido da Márcia, 22/ago/2026. Reaproveitado tanto pra
+// esvaziar as opções do dropdown de edição quanto pra esconder a linha
+// inteira no modo visualização (fpAplicarTiposMedidaAtivos).
+async function fpTiposMedidaDesligados(bateriaId) {
+    if (!bateriaId) return new Set();
+    const authHeaders = await fpAuthHeaders();
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}&ativo=eq.false`, { headers: authHeaders });
+    const desligados = res.ok ? await res.json() : [];
+    return new Set(desligados.map(d => d.tipo));
+}
+
 async function fpCarregarOpcoesMedidas(bateriaId) {
     const vazio = { camisa: [], fantasia: [], calca: [], sapato: [] };
     if (!bateriaId) return vazio;
-    const { data: sessionData } = await sb.auth.getSession();
-    const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
-    const authHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` };
-    const [resBM, resTam] = await Promise.all([
+    const authHeaders = await fpAuthHeaders();
+    const [resBM, resTam, tiposDesligados] = await Promise.all([
         fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?bateria_id=eq.${bateriaId}&ativo=eq.true`, { headers: authHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders }),
+        fpTiposMedidaDesligados(bateriaId),
     ]);
     const bm = await resBM.json();
     const tamanhos = await resTam.json();
     const porTipo = { camisa: [], fantasia: [], calca: [], sapato: [] };
     bm.map(item => tamanhos.find(t => t.id === item.tamanho_id)).filter(Boolean).forEach(t => {
-        if (porTipo[t.tipo]) porTipo[t.tipo].push(t);
+        if (porTipo[t.tipo] && !tiposDesligados.has(t.tipo)) porTipo[t.tipo].push(t);
     });
     Object.keys(porTipo).forEach(tipo => porTipo[tipo].sort((a, b) => a.ordem - b.ordem));
     return porTipo;
+}
+
+// Esconde a linha inteira (rótulo + valor) de um tipo de medida desligado
+// pra essa bateria, no modo visualização -- mesmo critério já usado aqui
+// pra "Como se identifica"/Documento/Responsável (esconder em vez de
+// mostrar "—" solto).
+async function fpAplicarTiposMedidaAtivos(bateriaId) {
+    const tiposDesligados = await fpTiposMedidaDesligados(bateriaId);
+    FP_CAMPOS_MEDIDA.forEach(({ tipo, id }) => {
+        const el = fpEl(id);
+        const campo = el && el.closest('.ficha-campo');
+        if (campo) campo.style.display = tiposDesligados.has(tipo) ? 'none' : '';
+    });
 }
 
 async function fpAtivarEdicao() {
