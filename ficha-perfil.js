@@ -472,7 +472,15 @@ async function fpAtivarEdicao() {
         const strong = fpEl(id);
         const input = fpEl(id + '-edit');
         if (!strong || !input || !fpEstado.editaveis.has(col)) return;
-        input.value = tipo === 'data' ? fpISOparaData(fpEstado.alvo[col]) : (fpEstado.alvo[col] || '');
+        const valorAtual = fpEstado.alvo[col];
+        // Valor salvo antigo, de antes da lista fechada existir (ex:
+        // "Esposa" num <select> que hoje só oferece "Cônjuge/Companheiro(a)")
+        // -- preserva como opção extra, senão o <select> cai em branco e
+        // Salvar sem mexer no campo apaga o dado sem avisar.
+        if (input.tagName === 'SELECT' && valorAtual && !Array.from(input.options).some(o => o.value === valorAtual)) {
+            input.add(new Option(valorAtual, valorAtual, true, true));
+        }
+        input.value = tipo === 'data' ? fpISOparaData(valorAtual) : (valorAtual || '');
         strong.style.display = 'none';
         input.style.display = 'block';
     });
