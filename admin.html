@@ -793,6 +793,13 @@
            cabeçalho precisa do MESMO gap da linha de dado, senão "RITMISTAS"
            cai 24px longe da pílula de verdade, mesmo com a largura certa. */
         .config-vagas-cabecalho { display: flex; justify-content: flex-end; align-items: center; gap: 32px; padding: 0 20px 6px; }
+        /* Em Instrumentos esse cabeçalho mora DENTRO de .lista-cards
+           (reaproveitado, 23/ago/2026) -- diferente de Vagas, onde ele é
+           irmão de fora da lista. O gap:12px do flex de .lista-cards soma
+           com o padding-bottom acima, dobrando o respiro até o primeiro
+           card (18px em vez de 6px) -- achado real dela, comparando print
+           lado a lado. Margem negativa cancela só o gap extra. */
+        .lista-cards .config-vagas-cabecalho { margin-bottom: -12px; }
         .config-vagas-cabecalho span { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         .config-vagas-cabecalho span:first-child { width: 56px; text-align: center; }
         .config-vagas-cabecalho span:last-child { width: 64px; text-align: center; }
