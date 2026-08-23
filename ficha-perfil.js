@@ -42,10 +42,6 @@ const FP_CAMPOS = [
     { id: 'fp-cidade',               col: 'cidade' },
     { id: 'fp-estado',               col: 'estado' },
     { id: 'fp-pais',                 col: 'pais' },
-    { id: 'fp-camisa',               col: 'tamanho_camisa' },
-    { id: 'fp-fantasia',             col: 'tamanho_fantasia' },
-    { id: 'fp-calca',                col: 'tamanho_calca' },
-    { id: 'fp-sapato',               col: 'tamanho_sapato' },
     { id: 'fp-tipo-sanguineo',       col: 'tipo_sanguineo' },
     { id: 'fp-emergencia-nome',      col: 'emergencia_nome' },
     { id: 'fp-emergencia-parentesco',col: 'emergencia_parentesco' },
@@ -70,7 +66,6 @@ let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: nu
 // pra saber em qual tabela gravar cada campo.
 const FP_CAMPO_TABELA = {
     membro_desde: 'vinculos', bateria_instrumento_id: 'vinculos',
-    tamanho_camisa: 'vinculos', tamanho_fantasia: 'vinculos', tamanho_calca: 'vinculos', tamanho_sapato: 'vinculos',
     naipe: 'vinculos', repique_bossa: 'vinculos',
 };
 
@@ -104,13 +99,13 @@ function fpEl(id) {
 // Tabela A (autoedição) + Tabela B (editando outra pessoa) — fonte única.
 function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
     if (atorPerfil === 'super_admin') {
-        return new Set(FP_CAMPOS.map(c => c.col).concat(['foto_url', 'bateria_instrumento_id', 'naipe', 'repique_bossa']));
+        return new Set(FP_CAMPOS.map(c => c.col).concat(['foto_url', 'bateria_instrumento_id', 'naipe', 'repique_bossa', 'medidas']));
     }
 
     if (autoedicao) {
         const base = ['foto_url', 'nome', 'apelido', 'genero', 'genero_personalizado', 'celular', 'endereco', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'pais', 'emergencia_nome', 'emergencia_parentesco', 'emergencia_celular'];
         if (atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') {
-            base.push('tamanho_camisa', 'tamanho_fantasia', 'tamanho_calca', 'tamanho_sapato');
+            base.push('medidas');
         }
         // Naipe é atributo só de Diretor -- autoeditado por enquanto (não
         // existe ainda uma capacidade "editar outro Mestre/Diretor/Apoio"
@@ -120,7 +115,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
     }
 
     if ((atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') && alvoPerfil === 'ritmista') {
-        return new Set(['bateria_instrumento_id', 'repique_bossa', 'tamanho_camisa', 'tamanho_fantasia', 'tamanho_calca', 'tamanho_sapato']);
+        return new Set(['bateria_instrumento_id', 'repique_bossa', 'medidas']);
     }
 
     return new Set();
@@ -128,7 +123,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=21');
+        const res = await fetch('ficha-perfil.partial.html?v=22');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -258,10 +253,11 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     fpEl('fp-secao-instrumento').style.display = alvo.perfil === 'ritmista' ? '' : 'none';
     fpEl('fp-instrumento').textContent = alvo.instrumento_nome || '—';
 
-    // Some a linha inteira de um tipo de medida (Camisa/Fantasia/Calça/
-    // Sapato) que essa bateria desligou -- fire-and-forget, não trava o
-    // resto do render enquanto a resposta não chega (22/ago/2026).
-    fpAplicarTiposMedidaAtivos(alvo.bateria_id);
+    // Medidas (Camisa/Fantasia/Calça/Sapato + qualquer tipo novo criado
+    // pelo Super Admin) são renderizadas de tudo dinâmico agora -- fire-
+    // and-forget, não trava o resto do render enquanto a resposta não
+    // chega (23/ago/2026, reforma de medidas abertas).
+    fpRenderizarMedidas(alvo);
 
     // Repique de Bossa só existe pra Ritmista de Repique/Repique Mor -- some
     // a linha inteira pro resto (mesmo critério já usado em Documento/
@@ -318,13 +314,6 @@ async function fpCarregarOpcoesInstrumento(bateriaId) {
     }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 }
 
-const FP_CAMPOS_MEDIDA = [
-    { col: 'tamanho_camisa', tipo: 'camisa', id: 'fp-camisa' },
-    { col: 'tamanho_fantasia', tipo: 'fantasia', id: 'fp-fantasia' },
-    { col: 'tamanho_calca', tipo: 'calca', id: 'fp-calca' },
-    { col: 'tamanho_sapato', tipo: 'sapato', id: 'fp-sapato' },
-];
-
 function fpAuthHeaders() {
     return sb.auth.getSession().then(({ data }) => {
         const token = data.session ? data.session.access_token : SUPABASE_KEY;
@@ -332,48 +321,89 @@ function fpAuthHeaders() {
     });
 }
 
-// Tipos (Camisa/Fantasia/Calça/Sapato) que essa bateria desligou por
-// completo -- pedido da Márcia, 22/ago/2026. Reaproveitado tanto pra
-// esvaziar as opções do dropdown de edição quanto pra esconder a linha
-// inteira no modo visualização (fpAplicarTiposMedidaAtivos).
-async function fpTiposMedidaDesligados(bateriaId) {
-    if (!bateriaId) return new Set();
+// Medidas viraram totalmente abertas em 23/ago/2026 (mesmo padrão de
+// Instrumentos: biblioteca mestre `medida_tipos` + ativação por bateria em
+// `bateria_medida_tipos` + valor por pessoa em `vinculos_medidas`) -- Camisa/
+// Fantasia/Calça/Sapato não são mais 4 tipos fixos no código, só os 4 que já
+// vinham semeados; o Super Admin pode criar quantos tipos novos quiser
+// (ex: "Vestido"), cada um sempre com sua própria escala de tamanho.
+
+// Tipos ativos pra essa bateria, na ordem configurada -- fonte única tanto
+// pro modo visualização (fpRenderizarMedidas) quanto pro modo edição
+// (fpAtivarEdicao).
+async function fpCarregarTiposMedidaAtivos(bateriaId) {
+    if (!bateriaId) return [];
     const authHeaders = await fpAuthHeaders();
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}&ativo=eq.false`, { headers: authHeaders });
-    const desligados = res.ok ? await res.json() : [];
-    return new Set(desligados.map(d => d.tipo));
+    // "Sem linha ainda em bateria_medida_tipos" conta como ATIVO -- mesma
+    // convenção já usada em renderizarConfigMedidas (admin.html) e na
+    // view bateria_medidas_publicas. Por isso busca só os DESLIGADOS
+    // explicitamente, em vez de exigir uma linha ativa pra cada tipo --
+    // sem isso, um tipo novo que nenhuma bateria tocou ainda (ex: recém-
+    // criado pelo Super Admin) nunca apareceria em lugar nenhum.
+    const [resDesligados, resTipos] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}&ativo=eq.false`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders }),
+    ]);
+    const desligados = await resDesligados.json();
+    const tipos = await resTipos.json();
+    const desligadosIds = new Set(desligados.map(d => d.tipo_id));
+    return tipos.filter(t => !desligadosIds.has(t.id));
 }
 
-async function fpCarregarOpcoesMedidas(bateriaId) {
-    const vazio = { camisa: [], fantasia: [], calca: [], sapato: [] };
-    if (!bateriaId) return vazio;
+// Valores já preenchidos pra essa pessoa/vínculo, indexados por tipo_id.
+async function fpCarregarValoresMedidaPessoa(vinculoId) {
+    if (!vinculoId) return {};
     const authHeaders = await fpAuthHeaders();
-    const [resBM, resTam, tiposDesligados] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?bateria_id=eq.${bateriaId}&ativo=eq.true`, { headers: authHeaders }),
-        fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders }),
-        fpTiposMedidaDesligados(bateriaId),
-    ]);
-    const bm = await resBM.json();
-    const tamanhos = await resTam.json();
-    const porTipo = { camisa: [], fantasia: [], calca: [], sapato: [] };
-    bm.map(item => tamanhos.find(t => t.id === item.tamanho_id)).filter(Boolean).forEach(t => {
-        if (porTipo[t.tipo] && !tiposDesligados.has(t.tipo)) porTipo[t.tipo].push(t);
-    });
-    Object.keys(porTipo).forEach(tipo => porTipo[tipo].sort((a, b) => a.ordem - b.ordem));
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas?vinculo_id=eq.${vinculoId}`, { headers: authHeaders });
+    const linhas = res.ok ? await res.json() : [];
+    const porTipo = {};
+    linhas.forEach(l => { porTipo[l.tipo_id] = l.valor; });
     return porTipo;
 }
 
-// Esconde a linha inteira (rótulo + valor) de um tipo de medida desligado
-// pra essa bateria, no modo visualização -- mesmo critério já usado aqui
-// pra "Como se identifica"/Documento/Responsável (esconder em vez de
-// mostrar "—" solto).
-async function fpAplicarTiposMedidaAtivos(bateriaId) {
-    const tiposDesligados = await fpTiposMedidaDesligados(bateriaId);
-    FP_CAMPOS_MEDIDA.forEach(({ tipo, id }) => {
-        const el = fpEl(id);
-        const campo = el && el.closest('.ficha-campo');
-        if (campo) campo.style.display = tiposDesligados.has(tipo) ? 'none' : '';
+// Tamanhos disponíveis (ordenados) por tipo, só os ativados pra essa bateria.
+async function fpCarregarOpcoesMedidasPorTipo(bateriaId) {
+    if (!bateriaId) return {};
+    const authHeaders = await fpAuthHeaders();
+    const [resBM, resTam] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?bateria_id=eq.${bateriaId}&ativo=eq.true`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders }),
+    ]);
+    const bm = await resBM.json();
+    const tamanhos = await resTam.json();
+    const porTipo = {};
+    bm.map(item => tamanhos.find(t => t.id === item.tamanho_id)).filter(Boolean).forEach(t => {
+        if (!porTipo[t.tipo_id]) porTipo[t.tipo_id] = [];
+        porTipo[t.tipo_id].push(t);
     });
+    Object.keys(porTipo).forEach(tipoId => porTipo[tipoId].sort((a, b) => a.ordem - b.ordem));
+    return porTipo;
+}
+
+// Desenha a grade inteira de Medidas (modo visualização) -- um
+// ".ficha-campo" por tipo ativo na bateria, na ordem configurada. Sem
+// nenhum tipo ativo (ou sem vínculo, ex: Super Admin sem escola), some a
+// seção inteira em vez de mostrar um título "Medidas" vazio.
+async function fpRenderizarMedidas(alvo) {
+    const grid = fpEl('fp-medidas-grid');
+    const secao = fpEl('fp-secao-medidas');
+    if (!grid || !secao) return;
+    if (!alvo.vinculo_id) { secao.style.display = 'none'; return; }
+
+    const [tipos, valores] = await Promise.all([
+        fpCarregarTiposMedidaAtivos(alvo.bateria_id),
+        fpCarregarValoresMedidaPessoa(alvo.vinculo_id),
+    ]);
+
+    if (tipos.length === 0) { secao.style.display = 'none'; return; }
+    secao.style.display = '';
+
+    grid.innerHTML = tipos.map(t => `
+        <div class="ficha-campo">
+            <span>${t.nome}</span>
+            <strong id="fp-medida-${t.id}">${valores[t.id] || '—'}</strong>
+            <select id="fp-medida-${t.id}-edit" class="fc-input" data-tipo-id="${t.id}" style="display:none"></select>
+        </div>`).join('');
 }
 
 async function fpAtivarEdicao() {
@@ -425,16 +455,23 @@ async function fpAtivarEdicao() {
         container.style.display = 'block';
     }
 
-    if (FP_CAMPOS_MEDIDA.some(c => fpEstado.editaveis.has(c.col))) {
-        const opcoesMedidas = await fpCarregarOpcoesMedidas(fpEstado.alvo.bateria_id);
-        FP_CAMPOS_MEDIDA.forEach(({ col, tipo, id }) => {
-            if (!fpEstado.editaveis.has(col)) return;
-            const select = fpEl(id + '-edit');
-            if (!select) return;
-            const valorAtual = fpEstado.alvo[col];
-            select.innerHTML = '<option value="">Selecione</option>' + opcoesMedidas[tipo].map(t =>
-                `<option value="${t.nome}" ${t.nome === valorAtual ? 'selected' : ''}>${t.nome}</option>`
+    if (fpEstado.editaveis.has('medidas')) {
+        const [tipos, opcoesPorTipo, valores] = await Promise.all([
+            fpCarregarTiposMedidaAtivos(fpEstado.alvo.bateria_id),
+            fpCarregarOpcoesMedidasPorTipo(fpEstado.alvo.bateria_id),
+            fpCarregarValoresMedidaPessoa(fpEstado.alvo.vinculo_id),
+        ]);
+        tipos.forEach(t => {
+            const strong = fpEl(`fp-medida-${t.id}`);
+            const select = fpEl(`fp-medida-${t.id}-edit`);
+            if (!strong || !select) return;
+            const valorAtual = valores[t.id];
+            const opcoes = opcoesPorTipo[t.id] || [];
+            select.innerHTML = '<option value="">Selecione</option>' + opcoes.map(o =>
+                `<option value="${o.nome}" ${o.nome === valorAtual ? 'selected' : ''}>${o.nome}</option>`
             ).join('');
+            strong.style.display = 'none';
+            select.style.display = 'block';
         });
     }
 
@@ -481,6 +518,13 @@ function fpCancelarEdicao() {
     if (fpEstado.editaveis.has('naipe')) {
         fpEl('fp-naipe').style.display = '';
         fpEl('fp-naipe-edit').style.display = 'none';
+    }
+    if (fpEstado.editaveis.has('medidas')) {
+        fpEstado.container.querySelectorAll('#fp-medidas-grid select').forEach(select => {
+            const strong = fpEl(select.id.replace('-edit', ''));
+            if (strong) strong.style.display = '';
+            select.style.display = 'none';
+        });
     }
     fpEl('fp-secao-senha').style.display = 'none';
     fpEl('fp-senha-nova').value = '';
@@ -650,6 +694,13 @@ async function fpSalvar() {
     if (fpEstado.editaveis.has('naipe')) {
         payloadVinculo.naipe = Array.from(fpEstado.container.querySelectorAll('.fp-naipe-check:checked')).map(el => el.value);
     }
+    let valoresMedida = null;
+    if (fpEstado.editaveis.has('medidas')) {
+        valoresMedida = Array.from(fpEstado.container.querySelectorAll('#fp-medidas-grid select')).map(select => ({
+            tipoId: Number(select.dataset.tipoId),
+            valor: select.value.trim(),
+        }));
+    }
     if (fpFotoBase64 && fpEstado.editaveis.has('foto_url')) payloadPessoa.foto_url = fpFotoBase64;
     // Posição vale mesmo sem trocar a foto (só arrastar a existente já
     // conta) — envia sempre que a foto for editável e a posição mudou.
@@ -679,6 +730,28 @@ async function fpSalvar() {
             method: 'PATCH', headers, body: JSON.stringify(payloadVinculo),
         });
         ok = ok && resVinculo.ok;
+    }
+    if (ok && valoresMedida && fpEstado.alvo.vinculo_id) {
+        const vinculoId = fpEstado.alvo.vinculo_id;
+        const comValor = valoresMedida.filter(v => v.valor);
+        const semValor = valoresMedida.filter(v => !v.valor);
+        if (comValor.length > 0) {
+            const resUpsert = await fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas?on_conflict=vinculo_id,tipo_id`, {
+                method: 'POST',
+                headers: { ...headers, 'Prefer': 'resolution=merge-duplicates' },
+                body: JSON.stringify(comValor.map(v => ({ vinculo_id: vinculoId, tipo_id: v.tipoId, valor: v.valor }))),
+            });
+            ok = ok && resUpsert.ok;
+        }
+        // Campo deixado em branco de propósito -- remove a linha em vez de
+        // guardar valor vazio (mesma ideia de "nunca sobra dado morto",
+        // consistente com o resto da ficha usando null pra campo apagado).
+        for (const v of semValor) {
+            const resDelete = await fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas?vinculo_id=eq.${vinculoId}&tipo_id=eq.${v.tipoId}`, {
+                method: 'DELETE', headers,
+            });
+            ok = ok && resDelete.ok;
+        }
     }
 
     const mensagem = fpEl('fp-mensagem');
