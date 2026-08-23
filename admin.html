@@ -2917,15 +2917,16 @@
         // deixava cor/logo "grudadas" da escola anterior.
         resetTemaHeaderPadrao();
 
-        // Header: bateria em destaque, escola (nome curto, sem "G.R.E.S.")
-        // como legenda embaixo -- pedido da Márcia, 23/ago/2026, revertendo
-        // a ordem de peso de antes (era escola — BATERIA numa frase só).
-        // Nome curto é opcional (editado em Dados da Escola); sem ele, cai
-        // pra sigla (nomeEscola) pra nunca ficar vazio.
+        // Header sempre usa a sigla (nomeEscola, ex: "G.R.E.S. Imperatriz
+        // Leopoldinense") -- decisão dela, 23/ago/2026: já tinha testado com
+        // o Nome Curto (sem "G.R.E.S.") e achou o header com a sigla mais
+        // bonito. Nome Curto continua existindo (campo em Dados da Escola,
+        // configEscola.nomeEscolaCurto) só não é mais usado aqui -- ela quis
+        // manter guardado pra um uso futuro ainda não definido.
         const escolaEl = document.getElementById('headerEscolaNome');
         const bateriaEl = document.getElementById('headerBateriaNome');
         if (bateriaEl) {
-            const nomeEscolaExibido = cfg.nomeEscolaCurto || cfg.nomeEscola || '';
+            const nomeEscolaExibido = cfg.nomeEscola || '';
             escolaEl.textContent = nomeEscolaExibido;
             escolaEl.style.display = nomeEscolaExibido ? '' : 'none';
             bateriaEl.textContent = cfg.nomeBateria || '';
