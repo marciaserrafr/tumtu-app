@@ -123,7 +123,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=22');
+        const res = await fetch('ficha-perfil.partial.html?v=23');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -187,7 +187,7 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     opcoes = opcoes || {};
     const autoedicao = alvo.pessoa_id === minhaPessoaId;
     const editaveis = fpCamposEditaveis(meuPerfil, autoedicao, alvo.perfil);
-    fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, aoSalvar: opcoes.aoSalvar || null };
+    fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, medidasRestritoAoVazio: false, aoSalvar: opcoes.aoSalvar || null };
     fpFotoBase64 = null;
     fpFotoPosX = alvo.foto_pos_x ?? 50;
     fpFotoPosY = alvo.foto_pos_y ?? 50;
@@ -258,6 +258,18 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     // and-forget, não trava o resto do render enquanto a resposta não
     // chega (23/ago/2026, reforma de medidas abertas).
     fpRenderizarMedidas(alvo);
+
+    // Entrega de Figurinos (23/ago/2026) -- fire-and-forget, mesmo padrão de
+    // fpRenderizarMedidas. Puro resumo de leitura, nunca editável aqui --
+    // marcar entregue é sempre pela tela dedicada (Mais → Figurino).
+    fpRenderizarEntregaFigurino(alvo);
+
+    // Ritmista só ganha "Editar" de Medidas se a bateria liberou (Permissões
+    // → "Permitir que o ritmista edite as medidas") E se sobrar algum campo
+    // em branco pra preencher -- sem isso, fica exatamente como já era
+    // (Ritmista nunca vê Medidas como editável). Fire-and-forget, roda
+    // depois do resto da tela já estar pronta.
+    fpAplicarPermissaoRitmistaMedidas(alvo);
 
     // Repique de Bossa só existe pra Ritmista de Repique/Repique Mor -- some
     // a linha inteira pro resto (mesmo critério já usado em Documento/
@@ -406,12 +418,69 @@ async function fpRenderizarMedidas(alvo) {
         </div>`).join('');
 }
 
+// Entrega de Figurinos: puro resumo de leitura -- Figurino nunca tem
+// tamanho próprio (usa o do Figurino Pai, mostrado só na tela dedicada de
+// entrega), aqui só entregue/não entregue por peça ativa da bateria.
+async function fpRenderizarEntregaFigurino(alvo) {
+    const grid = fpEl('fp-entrega-figurino-grid');
+    const secao = fpEl('fp-secao-entrega-figurino');
+    if (!grid || !secao) return;
+    if (!alvo.vinculo_id) { secao.style.display = 'none'; return; }
+    const authHeaders = await fpAuthHeaders();
+    const [resItens, resEntregas] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/figurino_itens?bateria_id=eq.${alvo.bateria_id}&ativo=eq.true&order=ordem`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?vinculo_id=eq.${alvo.vinculo_id}`, { headers: authHeaders }),
+    ]);
+    const itens = resItens.ok ? await resItens.json() : [];
+    const entregas = resEntregas.ok ? await resEntregas.json() : [];
+    if (itens.length === 0) { secao.style.display = 'none'; return; }
+    secao.style.display = '';
+    const entregaPorItem = {};
+    entregas.forEach(e => { entregaPorItem[e.figurino_item_id] = !!e.entregue_em; });
+    grid.innerHTML = itens.map(it => `
+        <div class="ficha-campo">
+            <span>${it.nome}</span>
+            <strong>${entregaPorItem[it.id] ? '✓ Entregue' : '—'}</strong>
+        </div>`).join('');
+}
+
+// Resolve a pendência antiga: Ritmista pode preencher (nunca editar de
+// novo) campo de Medida em branco, só se a bateria tiver isso ligado em
+// Permissões. Roda depois do render normal (fpIniciar já mostrou a tela) --
+// se der certo, libera o botão "Editar" que antes ficava escondido pro
+// Ritmista.
+async function fpAplicarPermissaoRitmistaMedidas(alvo) {
+    if (!fpEstado.autoedicao || alvo.perfil !== 'ritmista' || !alvo.bateria_id || !alvo.vinculo_id) return;
+    const authHeaders = await fpAuthHeaders();
+    const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${alvo.bateria_id}&select=ritmista_pode_editar_medidas`, { headers: authHeaders });
+    const bateriaRows = resBateria.ok ? await resBateria.json() : [];
+    if (!(bateriaRows[0] && bateriaRows[0].ritmista_pode_editar_medidas)) return;
+    const [tipos, valores] = await Promise.all([
+        fpCarregarTiposMedidaAtivos(alvo.bateria_id),
+        fpCarregarValoresMedidaPessoa(alvo.vinculo_id),
+    ]);
+    const temAlgumEmBranco = tipos.some(t => !valores[t.id]);
+    if (!temAlgumEmBranco) return;
+    if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
+    fpEstado.editaveis.add('medidas');
+    fpEstado.medidasRestritoAoVazio = true;
+    if (fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
+}
+
 async function fpAtivarEdicao() {
     FP_CAMPOS.forEach(({ id, col, tipo }) => {
         const strong = fpEl(id);
         const input = fpEl(id + '-edit');
         if (!strong || !input || !fpEstado.editaveis.has(col)) return;
-        input.value = tipo === 'data' ? fpISOparaData(fpEstado.alvo[col]) : (fpEstado.alvo[col] || '');
+        const valorAtual = fpEstado.alvo[col];
+        // Valor salvo antigo, de antes da lista fechada existir (ex:
+        // "Esposa" num <select> que hoje só oferece "Cônjuge/Companheiro(a)")
+        // -- preserva como opção extra, senão o <select> cai em branco e
+        // Salvar sem mexer no campo apaga o dado sem avisar.
+        if (input.tagName === 'SELECT' && valorAtual && !Array.from(input.options).some(o => o.value === valorAtual)) {
+            input.add(new Option(valorAtual, valorAtual, true, true));
+        }
+        input.value = tipo === 'data' ? fpISOparaData(valorAtual) : (valorAtual || '');
         strong.style.display = 'none';
         input.style.display = 'block';
     });
@@ -466,6 +535,10 @@ async function fpAtivarEdicao() {
             const select = fpEl(`fp-medida-${t.id}-edit`);
             if (!strong || !select) return;
             const valorAtual = valores[t.id];
+            // Ritmista com a permissão restrita só edita o que está em
+            // branco -- campo já preenchido nem vira <select>, fica do
+            // jeito que estava (mesma trava que existe no banco).
+            if (fpEstado.medidasRestritoAoVazio && valorAtual) return;
             const opcoes = opcoesPorTipo[t.id] || [];
             select.innerHTML = '<option value="">Selecione</option>' + opcoes.map(o =>
                 `<option value="${o.nome}" ${o.nome === valorAtual ? 'selected' : ''}>${o.nome}</option>`

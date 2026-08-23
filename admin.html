@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=16">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=21"></script>
+    <script src="ficha-perfil.js?v=23"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -1479,6 +1479,20 @@
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Permissões</div>
     <div class="config-sub-desc" style="margin-bottom:16px;">Escolha uma pessoa da Diretoria e marque direto o que ela pode ver e editar. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
+
+    <!-- Interruptor da bateria inteira (não é capacidade por pessoa, por
+         isso mora fora do editor por pessoa abaixo) -- pedido dela,
+         23/ago/2026, resolvendo a pendência antiga de ritmista nunca poder
+         preencher a própria medida. -->
+    <div class="ficha-secao" id="pe-secao-ritmistas">
+        <div class="ficha-secao-titulo">Ritmistas</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
+            <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista edite as medidas</label>
+        </div>
+        <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o ritmista consegue preencher — nunca editar depois de salvo — qualquer campo de Medida que estiver em branco na própria ficha. Útil quando surge um tipo de medida novo no meio da temporada (ex: um vestido) e as pessoas precisam preencher esse campo sozinhas. Vale pra bateria inteira.</div>
+    </div>
+
     <div id="pe-editor" style="display:none;"></div>
     <!-- Busca + seções por cargo -- mesmo padrão já usado em Ritmistas/
          Diretoria, pedido da Márcia, 22/ago/2026: essa lista estava "solta"
@@ -1633,6 +1647,37 @@
         <div class="painel-titulo">Medidas</div>
         <p class="config-sub-desc">Ative os tamanhos que sua bateria usa em cada tipo. Só os tamanhos ativos aparecem no cadastro dos ritmistas.</p>
         <div id="config-medidas-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+    </div>
+
+</div>
+
+<!-- PAINEL FIGURINO (dentro de Mais, 23/ago/2026) -- Figurino Filho (ex:
+     "Camisa da Final") sempre ligado a um Figurino Pai (tipo de Medida) só
+     por referência de tamanho -- Figurino em si NUNCA tem tamanho próprio,
+     só controle de entregue/não entregue. -->
+<div class="painel" id="painel-figurino">
+
+    <!-- Lista (nível 1): catálogo de Figurino -->
+    <div id="figurino-lista">
+        <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
+        <div class="painel-titulo">Figurino</div>
+        <p class="config-sub-desc">Peças distribuídas ao longo da temporada (ex: Camisa da Final) — cada uma usa o tamanho já cadastrado em Medidas, sem tamanho próprio. Aqui você só cadastra as peças e controla quem já recebeu.</p>
+        <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoFigurinoItem()">+ Novo Figurino</button>
+        <div id="figurino-item-editor" style="display:none;"></div>
+        <div id="figurino-itens-lista" class="lista-cards"></div>
+    </div>
+
+    <!-- Sub-tela (nível 2): entregas de um Figurino específico -->
+    <div id="figurino-tela-entregas" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarFigurinoLista()">← Figurino</button>
+        <div class="painel-titulo" id="figurino-entregas-titulo">Entregas</div>
+        <p class="config-sub-desc">Tamanho mostrado só pra consulta (vem de Medidas) — a edição do tamanho continua na ficha da pessoa.</p>
+        <input type="text" id="figurino-entregas-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarEntregasFigurinoLista()"
+            style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;margin-bottom:10px;">
+        <select id="figurino-entregas-filtro-instrumento" onchange="renderizarEntregasFigurinoLista()" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;outline:none;margin-bottom:16px;">
+            <option value="">Todos os instrumentos</option>
+        </select>
+        <div id="figurino-entregas-lista"></div>
     </div>
 
 </div>
@@ -3668,6 +3713,220 @@
     }
 
     // ══════════════════════════════════════════════════════════════════
+    // FIGURINO (23/ago/2026) -- catálogo de peças distribuídas na
+    // temporada (Figurino Filho, ex: "Camisa da Final"), cada uma ligada a
+    // um Figurino Pai (medida_tipos) só pra referência de tamanho. Nunca
+    // tem tamanho próprio -- a única coisa controlada aqui é entregue/não
+    // entregue. Edição de tamanho continua sempre na ficha (Medidas).
+    // ══════════════════════════════════════════════════════════════════
+    let figurinoItensCache = [];
+    let figurinoItemEditando = null;
+    let salvandoFigurinoItem = false;
+    let figurinoEntregaItemAtual = null;
+    let figurinoEntregaPessoasCache = [];
+
+    function voltarFigurinoLista() {
+        document.querySelectorAll('#painel-figurino .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('figurino-lista').style.display = 'block';
+    }
+
+    async function iniciarFigurinoTab() {
+        voltarFigurinoLista();
+        fecharEditorFigurinoItem();
+        if (bibliotecaMedidaTipos.length === 0) await carregarBibliotecaMedidaTipos();
+        await carregarFigurinoItens();
+    }
+
+    async function carregarFigurinoItens() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { figurinoItensCache = []; renderizarFigurinoLista(); return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens?bateria_id=eq.${bateriaId}&order=ordem`, { headers: authHeaders });
+        figurinoItensCache = res.ok ? await res.json() : [];
+        renderizarFigurinoLista();
+    }
+
+    function renderizarFigurinoLista() {
+        const container = document.getElementById('figurino-itens-lista');
+        if (!container) return;
+        if (figurinoItensCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino cadastrado ainda.</div>'; return; }
+        container.innerHTML = figurinoItensCache.map(it => {
+            const pai = bibliotecaMedidaTipos.find(t => t.id === it.medida_tipo_id);
+            return `<div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(it.nome)} ${it.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
+                    <div class="item-detalhe">Figurino Pai: ${esc(pai ? pai.nome : '—')}</div>
+                </div>
+                <div class="item-acoes">
+                    <button class="btn-ficha" onclick="abrirEntregasFigurino(${it.id})">Ver entregas</button>
+                    <button class="btn-ficha" onclick="abrirEditarFigurinoItem(${it.id})">Editar</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function abrirNovoFigurinoItem() {
+        figurinoItemEditando = { id: null, nome: '', medida_tipo_id: bibliotecaMedidaTipos[0] ? bibliotecaMedidaTipos[0].id : null, ativo: true };
+        renderizarEditorFigurinoItem();
+    }
+    function abrirEditarFigurinoItem(id) {
+        const it = figurinoItensCache.find(x => x.id === id);
+        if (!it) return;
+        figurinoItemEditando = { id: it.id, nome: it.nome, medida_tipo_id: it.medida_tipo_id, ativo: it.ativo !== false };
+        renderizarEditorFigurinoItem();
+    }
+    function renderizarEditorFigurinoItem() {
+        const fi = figurinoItemEditando;
+        const editor = document.getElementById('figurino-item-editor');
+        if (!editor) return;
+        if (!fi) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        if (bibliotecaMedidaTipos.length === 0) { editor.style.display = 'block'; editor.innerHTML = '<div class="card-form">Cadastre um tipo de Medida primeiro, em Configurações → Medidas.</div>'; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${fi.id ? 'Editar Figurino' : 'Novo Figurino'}</div>
+            <div class="form-grid">
+                <div class="campo"><label>Figurino Pai (usa o tamanho deste tipo) *</label><select id="fig-edit-pai">${bibliotecaMedidaTipos.map(t => `<option value="${t.id}" ${fi.medida_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}</select></div>
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="fig-edit-nome" value="${esc(fi.nome)}" placeholder="Ex: Camisa da Final"></div>
+                <div class="campo"><label>Status</label><select id="fig-edit-ativo">
+                    <option value="true" ${fi.ativo ? 'selected' : ''}>Ativo</option>
+                    <option value="false" ${!fi.ativo ? 'selected' : ''}>Inativo</option>
+                </select></div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarFigurinoItem()">Salvar</button>
+                    ${fi.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirFigurinoItem(${fi.id})">Excluir</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorFigurinoItem()">Cancelar</button>
+            </div>
+        </div>`;
+    }
+    function fecharEditorFigurinoItem() { figurinoItemEditando = null; renderizarEditorFigurinoItem(); }
+    async function salvarFigurinoItem() {
+        if (salvandoFigurinoItem) return;
+        const medidaTipoId = Number(document.getElementById('fig-edit-pai').value);
+        const nome = document.getElementById('fig-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do Figurino.', 'erro'); return; }
+        const ativo = document.getElementById('fig-edit-ativo').value === 'true';
+        const bateriaId = bateriaIdContexto();
+        salvandoFigurinoItem = true;
+        try {
+            if (figurinoItemEditando.id) {
+                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens?id=eq.${figurinoItemEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, nome, ativo }) });
+            } else {
+                const ordem = Math.max(0, ...figurinoItensCache.map(i => i.ordem || 0)) + 1;
+                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, medida_tipo_id: medidaTipoId, nome, ativo, ordem }) });
+            }
+            mostrarToast(figurinoItemEditando.id ? 'Figurino atualizado!' : 'Figurino criado!');
+            figurinoItemEditando = null;
+            await carregarFigurinoItens();
+            renderizarEditorFigurinoItem();
+        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
+        finally { salvandoFigurinoItem = false; }
+    }
+    async function excluirFigurinoItem(id) {
+        if (!confirm('Excluir este Figurino? Isso remove também o controle de entrega já registrado. Se preferir manter o histórico, marque como "Inativo".')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
+        mostrarToast('Figurino excluído.');
+        figurinoItemEditando = null;
+        await carregarFigurinoItens();
+        renderizarEditorFigurinoItem();
+    }
+
+    // ── Tela de entregas (por Figurino) ──────────────────────────────────
+    async function abrirEntregasFigurino(itemId) {
+        const item = figurinoItensCache.find(i => i.id === itemId);
+        if (!item) return;
+        figurinoEntregaItemAtual = item;
+        document.querySelectorAll('#painel-figurino .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('figurino-tela-entregas').style.display = 'block';
+        document.getElementById('figurino-entregas-titulo').textContent = item.nome;
+        document.getElementById('figurino-entregas-busca').value = '';
+        await carregarEntregasFigurino();
+    }
+
+    async function carregarEntregasFigurino() {
+        const item = figurinoEntregaItemAtual;
+        if (!item) return;
+        const bateriaId = bateriaIdContexto();
+        const container = document.getElementById('figurino-entregas-lista');
+        container.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        const [resPessoas, resValores, resEntregas] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&order=nome&select=id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas?tipo_id=eq.${item.medida_tipo_id}`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}`, { headers: authHeaders }),
+        ]);
+        const pessoas = resPessoas.ok ? await resPessoas.json() : [];
+        const valores = resValores.ok ? await resValores.json() : [];
+        const entregas = resEntregas.ok ? await resEntregas.json() : [];
+        const valorPorVinculo = {}; valores.forEach(v => { valorPorVinculo[v.vinculo_id] = v.valor; });
+        const entregaPorVinculo = {}; entregas.forEach(e => { entregaPorVinculo[e.vinculo_id] = e; });
+        figurinoEntregaPessoasCache = pessoas.map(p => ({
+            vinculo_id: p.id, nome: p.nome, apelido: p.apelido, perfil: p.perfil,
+            instrumento_nome: p.instrumento_nome || null,
+            tamanho: valorPorVinculo[p.id] || null,
+            entregue: !!(entregaPorVinculo[p.id] && entregaPorVinculo[p.id].entregue_em),
+        }));
+        popularFiltroInstrumentoEntregasFigurino();
+        renderizarEntregasFigurinoLista();
+    }
+
+    function popularFiltroInstrumentoEntregasFigurino() {
+        const select = document.getElementById('figurino-entregas-filtro-instrumento');
+        if (!select) return;
+        const valorAtual = select.value;
+        const instrumentos = Array.from(new Set(figurinoEntregaPessoasCache.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        select.innerHTML = '<option value="">Todos os instrumentos</option>' + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
+        select.value = valorAtual;
+    }
+
+    const LABEL_PERFIL_FIGURINO = { mestre: 'Mestre de Bateria', diretor: 'Diretor', apoio: 'Apoio de Bateria', ritmista: null };
+    function renderizarEntregasFigurinoLista() {
+        const container = document.getElementById('figurino-entregas-lista');
+        if (!container) return;
+        const busca = (document.getElementById('figurino-entregas-busca').value || '').trim().toLowerCase();
+        const instrumentoFiltro = document.getElementById('figurino-entregas-filtro-instrumento').value;
+        const filtrada = figurinoEntregaPessoasCache.filter(p => {
+            if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
+            if (instrumentoFiltro && p.instrumento_nome !== instrumentoFiltro) return false;
+            return true;
+        });
+        if (filtrada.length === 0) { container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>'; return; }
+        const podeEditar = tenhoCapacidade('editar_figurino');
+        container.innerHTML = filtrada.map(p => `
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #eee;">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
+                    <div style="font-size:12px;color:var(--cor-texto-muted);">${esc(p.instrumento_nome || LABEL_PERFIL_FIGURINO[p.perfil] || '')}</div>
+                </div>
+                <div style="font-size:13px;font-weight:700;min-width:36px;text-align:center;">${esc(p.tamanho || '—')}</div>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap;cursor:${podeEditar ? 'pointer' : 'not-allowed'};">
+                    <input type="checkbox" style="width:18px;height:18px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${p.entregue ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="toggleEntregaFigurino(${p.vinculo_id}, this.checked)">
+                    Entregue
+                </label>
+            </div>`).join('');
+    }
+
+    async function toggleEntregaFigurino(vinculoId, entregar) {
+        const item = figurinoEntregaItemAtual;
+        if (!item) return;
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        if (entregar) {
+            await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?on_conflict=vinculo_id,figurino_item_id`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates', ...authHeaders },
+                body: JSON.stringify([{ vinculo_id: vinculoId, figurino_item_id: item.id, entregue_em: new Date().toISOString(), confirmado_por: u ? u.pessoa_id : null }]),
+            });
+        } else {
+            await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?vinculo_id=eq.${vinculoId}&figurino_item_id=eq.${item.id}`, {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ entregue_em: null, confirmado_por: null }),
+            });
+        }
+        const pessoa = figurinoEntregaPessoasCache.find(p => p.vinculo_id === vinculoId);
+        if (pessoa) pessoa.entregue = entregar;
+    }
+
+    // ══════════════════════════════════════════════════════════════════
     // SUPER ADMIN — portado de super-admin.html (Etapa 2 da unificação,
     // 18/ago/2026). Tudo abaixo só é acionado quando souSuperAdmin===true.
     // Super Admin sempre vê tudo, sem checagem de capacidade nenhuma.
@@ -3712,12 +3971,13 @@
         'permissoes': 'ver_permissoes',
         'historico': 'ver_historico',
         'configuracoes': 'ver_configuracoes',
+        'figurino': 'ver_figurino',
     };
     // Sub-módulos agrupados dentro da aba "Administrativo" (19/ago/2026,
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
     // das capacidades dos itens que ela agrupa.
-    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'permissoes', 'historico'];
+    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'permissoes', 'historico'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -3759,6 +4019,7 @@
         { aba: 'dados-escola', label: 'Dados da Escola' },
         { aba: 'dados-bateria', label: 'Dados da Bateria' },
         { aba: 'configuracoes', label: 'Configurações' },
+        { aba: 'figurino', label: 'Figurino' },
         { aba: 'comercial', label: 'Comercial' },
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
@@ -4608,6 +4869,7 @@
         { grupo: 'Comercial', itens: [{ chave: 'ver_comercial', label: 'Ver' }, { chave: 'editar_comercial', label: 'Editar' }] },
         { grupo: 'Ritmistas', itens: [{ chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' }, { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar' }, { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas' }] },
         { grupo: 'Diretoria', itens: [{ chave: 'ver_acessos', label: 'Ver Mestres e Diretores' }, { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar' }] },
+        { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Ver entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos' }] },
         { grupo: 'Relatórios', itens: [{ chave: 'ver_relatorios', label: 'Ver' }] },
         { grupo: 'Configurações', itens: [{ chave: 'ver_configuracoes', label: 'Ver' }, { chave: 'editar_configuracoes', label: 'Editar' }] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Ver' }] },
@@ -4618,8 +4880,8 @@
     let permissoesPessoaCache = [];
     let permissoesPessoaEditando = null;
 
-    // Compartilhado entre a lista de Permissões e o resumo dentro da ficha
-    // (item 4, 22/ago/2026) -- uma fonte só pro texto, sem duplicar a conta.
+    // Usado na lista de Permissões (linha por pessoa, precisa ser curto --
+    // só a contagem, não cabe o detalhe todo numa lista de várias pessoas).
     function permissoesResumoTexto(p) {
         const caps = p.capacidades || {};
         const ligadas = TODAS_CAPACIDADES.filter(c => caps[c]);
@@ -4628,14 +4890,48 @@
             : (ligadas.length === 0 ? 'nenhuma capacidade ligada' : ligadas.length + ' capacidade' + (ligadas.length === 1 ? '' : 's') + ' ligada' + (ligadas.length === 1 ? '' : 's'));
     }
 
+    // Usado dentro da ficha de uma pessoa só (23/ago/2026, achado dela: "4
+    // capacidades ligadas" não é resumo nenhum, só uma conta) -- aqui é UMA
+    // pessoa só, cabe listar o que de fato está ligado, agrupado por seção.
+    function permissoesResumoDetalhado(p) {
+        if (p.modo_carteirinha_individual) return 'Modo Carteirinha individual — não entra na gestão';
+        const caps = p.capacidades || {};
+        const grupos = GRUPOS_CAPACIDADES
+            .map(g => ({ grupo: g.grupo, labels: g.itens.filter(i => caps[i.chave]).map(i => i.label) }))
+            .filter(g => g.labels.length > 0);
+        if (grupos.length === 0) return 'Nenhuma capacidade ligada';
+        return grupos.map(g => `<strong>${esc(g.grupo)}:</strong> ${esc(g.labels.join(', '))}`).join('<br>');
+    }
+
     async function carregarPermissoesEscola() {
         const container = document.getElementById('pe-perfis-lista');
         if (!container) return;
         const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
+        const chkRitmista = document.getElementById('pe-ritmista-edita-medidas');
+        if (chkRitmista) {
+            chkRitmista.checked = !!(bateriaAtualData && bateriaAtualData.ritmista_pode_editar_medidas);
+            const podeEditarPermissoes = tenhoCapacidade('editar_permissoes');
+            chkRitmista.disabled = !podeEditarPermissoes;
+            chkRitmista.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
+        }
         if (!bateriaId) { permissoesPessoaCache = []; container.innerHTML = '<div class="estado-vazio">Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,capacidades,modo_carteirinha_individual`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         renderizarListaPermissoesPessoas();
+    }
+    async function salvarRitmistaEditaMedidas(ligado) {
+        const id = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!id) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ ritmista_pode_editar_medidas: ligado }) });
+        if (res.ok) {
+            const dados = await res.json();
+            bateriaAtualData = dados[0];
+            const idx = bateriasCache.findIndex(x => x.id === id);
+            if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
+            mostrarToast(ligado ? 'Ritmistas podem preencher medidas em branco.' : 'Edição de medidas pelo ritmista desligada.');
+        } else {
+            mostrarToast('Erro ao atualizar.', 'erro');
+        }
     }
     // Agrupado por cargo (Mestres/Diretores/Apoio) + busca por nome/apelido
     // -- pedido da Márcia, 22/ago/2026: essa lista estava corrida, sem
@@ -5463,9 +5759,9 @@
             extraAdmin.innerHTML = tenhoCapacidade('ver_permissoes') ? `
                 <div class="ficha-secao">
                     <div class="ficha-secao-titulo">Permissões</div>
-                    <div class="ficha-campo">
+                    <div class="ficha-campo full">
                         <span>Nesta bateria</span>
-                        <strong>${esc(permissoesResumoTexto(a))}</strong>
+                        <div style="font-size:13px;line-height:1.6;">${permissoesResumoDetalhado(a)}</div>
                     </div>
                     <button type="button" class="btn-ficha" style="margin-top:8px;" onclick="fpIrParaPermissoesDeFicha(${a.id})">Editar permissões</button>
                 </div>` : '';
@@ -5552,6 +5848,7 @@
         if (aba === 'dados-escola') renderizarDadosEscolaTab(false);
         if (aba === 'dados-bateria') renderizarDadosBateriaTab(false);
         if (aba === 'comercial') renderizarComercialTab();
+        if (aba === 'figurino') iniciarFigurinoTab();
         if (aba === 'permissoes') { permissoesPessoaEditando = null; renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'historico') carregarHistoricoEscolaSA();
         if (aba === 'administrativo') renderizarAdministrativoLista();
