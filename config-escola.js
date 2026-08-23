@@ -5,6 +5,7 @@
  */
 const configEscola = {
   nomeEscola:       "",   // ex: "G.R.E.S. Imperatriz Leopoldinense"
+  nomeEscolaCurto:  "",   // ex: "Imperatriz Leopoldinense" -- opcional, editado em Dados da Escola; cabeçalho do painel de gestão usa este (menor, embaixo da bateria) quando preenchido, senão cai pra nomeEscola
   nomeBateria:      "",   // ex: "Swing da Leopoldina"
   logoEscola:       null, // URL da imagem da logo; null = espaço reservado vazio
   instagramBateria: "",   // ex: "@swingdaleopoldina"
