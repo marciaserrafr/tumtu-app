@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=16">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=19"></script>
+    <script src="ficha-perfil.js?v=20"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -1340,10 +1340,10 @@
         <div id="sa-config-tela-medidas" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Medidas</div>
-            <p class="config-sub-desc">Biblioteca mestre de tamanhos — vale para todas as escolas. Cada bateria escolhe quais usar em "Configurações → Medidas" no painel dela.</p>
-            <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoTamanho()">+ Novo Tamanho</button>
-            <div id="sa-tamanho-editor" style="display:none;"></div>
-            <div id="sa-tamanhos-lista" class="lista-cards"></div>
+            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada tipo de medida (Camisa, Fantasia...) já nasce com sua própria escala de tamanhos; cada bateria escolhe quais tipos e tamanhos usar em "Configurações → Medidas" no painel dela.</p>
+            <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoMedidaTipo()">+ Novo Tipo de Medida</button>
+            <div id="sa-medida-tipo-editor" style="display:none;"></div>
+            <div id="sa-medida-tipos-lista" class="lista-cards"></div>
         </div>
     </div>
 
@@ -2252,6 +2252,36 @@
     }
 
     // EXPORTAR EXCEL
+    // Medidas viraram abertas (23/ago/2026) -- os campos exportáveis de
+    // Medidas não são mais 4 fixos no código, são carregados de
+    // medida_tipos toda vez que o modal abre (carregarGruposMedidaExport).
+    // Os dois objetos abaixo são mutáveis de propósito (campos: []), pra
+    // CAMPOS_EXPORTAVEIS/CAMPOS_EXPORTAVEIS_DIRETORIA (const, mas com
+    // referência pro mesmo objeto) refletirem a lista atual sem precisar
+    // reconstruir os arrays inteiros.
+    const grupoMedidasExportRitmistas = { grupo: 'Medidas', campos: [] };
+    const grupoMedidasExportDiretoria = { grupo: 'Medidas', campos: [] };
+    async function carregarGruposMedidaExport() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders });
+        const tipos = res.ok ? await res.json() : [];
+        const campos = tipos.map(t => ({ chave: `medida_${t.id}`, label: `Tamanho: ${t.nome}` }));
+        grupoMedidasExportRitmistas.campos = campos;
+        grupoMedidasExportDiretoria.campos = campos;
+    }
+    // Valores de vinculos_medidas pra um lote de vínculos, indexados por
+    // vinculo_id -> tipo_id -> valor -- usado só na hora de montar a
+    // planilha (linhasExportacao), não fica em cache entre exportações.
+    async function carregarValoresMedidaExport(vinculoIds) {
+        const mapa = {};
+        if (!vinculoIds || vinculoIds.length === 0) return mapa;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas?vinculo_id=in.(${vinculoIds.join(',')})`, { headers: authHeaders });
+        const linhas = res.ok ? await res.json() : [];
+        linhas.forEach(l => {
+            if (!mapa[l.vinculo_id]) mapa[l.vinculo_id] = {};
+            mapa[l.vinculo_id][l.tipo_id] = l.valor;
+        });
+        return mapa;
+    }
     const CAMPOS_EXPORTAVEIS = [
         { grupo: 'Dados pessoais', campos: [
             { chave: 'nome', label: 'Nome' },
@@ -2277,12 +2307,7 @@
             { chave: 'cidade', label: 'Cidade' },
             { chave: 'estado', label: 'Estado' },
         ]},
-        { grupo: 'Medidas', campos: [
-            { chave: 'tamanho_camisa', label: 'Tamanho da camisa' },
-            { chave: 'tamanho_fantasia', label: 'Tamanho da fantasia' },
-            { chave: 'tamanho_calca', label: 'Tamanho da calça' },
-            { chave: 'tamanho_sapato', label: 'Tamanho do sapato' },
-        ]},
+        grupoMedidasExportRitmistas,
     ];
     const LABELS_STATUS_EXPORT = { pendente: 'Pendente', aprovado: 'Ativo', suspenso: 'Suspenso', rejeitado: 'Rejeitado', desligado: 'Desligado' };
     // Mesmos rótulos do filtro de status da lista (era só um objeto solto
@@ -2320,12 +2345,7 @@
             { chave: 'cidade', label: 'Cidade' },
             { chave: 'estado', label: 'Estado' },
         ]},
-        { grupo: 'Medidas', campos: [
-            { chave: 'tamanho_camisa', label: 'Tamanho da camisa' },
-            { chave: 'tamanho_fantasia', label: 'Tamanho da fantasia' },
-            { chave: 'tamanho_calca', label: 'Tamanho da calça' },
-            { chave: 'tamanho_sapato', label: 'Tamanho do sapato' },
-        ]},
+        grupoMedidasExportDiretoria,
     ];
     const LABELS_PERFIL_EXPORT = { mestre: 'Mestre de Bateria', diretor: 'Diretor', apoio: 'Apoio de Bateria' };
     let tipoExportacaoAtual = 'ritmistas';
@@ -2411,10 +2431,12 @@
     // Igualado ao formato de Ritmistas, 22/ago/2026 -- Diretoria ganha os
     // mesmos filtros ("Quem exportar") e a mesma opção de separar por
     // grupo (por cargo, no lugar de por instrumento).
-    function abrirModalExportar(tipo) {
+    async function abrirModalExportar(tipo) {
         tipoExportacaoAtual = tipo;
         const ehRitmistas = tipo === 'ritmistas';
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
+
+        await carregarGruposMedidaExport();
 
         document.getElementById('exportFiltrosContainer').style.display = 'block';
         popularFiltrosExportacao();
@@ -2458,14 +2480,21 @@
         return limpo.slice(0, 31);
     }
 
-    function linhasExportacao(lista, todosCampos, marcados) {
+    function linhasExportacao(lista, todosCampos, marcados, valoresMedidaPorVinculo) {
         return lista.map(r => {
             const linha = {};
             marcados.forEach(chave => {
                 const campo = todosCampos.find(c => c.chave === chave);
-                let valor = r[chave] ?? '';
-                if (chave === 'status') valor = LABELS_STATUS_EXPORT[valor] || valor;
-                if (chave === 'perfil') valor = LABELS_PERFIL_EXPORT[valor] || valor;
+                let valor;
+                if (chave.startsWith('medida_')) {
+                    const tipoId = Number(chave.slice('medida_'.length));
+                    const doVinculo = valoresMedidaPorVinculo[r.id];
+                    valor = (doVinculo && doVinculo[tipoId]) || '';
+                } else {
+                    valor = r[chave] ?? '';
+                    if (chave === 'status') valor = LABELS_STATUS_EXPORT[valor] || valor;
+                    if (chave === 'perfil') valor = LABELS_PERFIL_EXPORT[valor] || valor;
+                }
                 linha[campo.label] = valor;
             });
             return linha;
@@ -2521,6 +2550,10 @@
         if (lista.length === 0) { alert('Não há registros para exportar com os filtros marcados.'); return; }
 
         const todosCampos = campos.flatMap(g => g.campos);
+        const marcadosMedida = marcados.some(c => c.startsWith('medida_'));
+        const valoresMedidaPorVinculo = marcadosMedida
+            ? await carregarValoresMedidaExport(lista.map(r => r.id))
+            : {};
 
         try {
             await carregarSheetJS();
@@ -2545,12 +2578,12 @@
                 let sufixo = 2;
                 while (usados.has(aba)) { aba = `${nomeAbaExcel(nomeGrupo).slice(0, 28)} (${sufixo++})`; }
                 usados.add(aba);
-                const linhas = linhasExportacao(grupos[nomeGrupo], todosCampos, marcados);
+                const linhas = linhasExportacao(grupos[nomeGrupo], todosCampos, marcados, valoresMedidaPorVinculo);
                 const planilha = planilhaComTitulo(linhas, tituloRelatorio(ehRitmistas, nomeGrupo));
                 XLSX.utils.book_append_sheet(livro, planilha, aba);
             });
         } else {
-            const linhas = linhasExportacao(lista, todosCampos, marcados);
+            const linhas = linhasExportacao(lista, todosCampos, marcados, valoresMedidaPorVinculo);
             const planilha = planilhaComTitulo(linhas, tituloRelatorio(ehRitmistas, null));
             XLSX.utils.book_append_sheet(livro, planilha, nomeAba);
         }
@@ -2818,8 +2851,9 @@
     let bateriaInstrumentosCache = []; // linhas de bateria_instrumentos da bateria atual
     let filtroInstrumentosSelecionados = []; // agora guarda bateria_instrumento_id (número), não mais texto
     let bibliotecaMedidas = []; // medida_tamanhos, biblioteca mestre
+    let bibliotecaMedidaTipos = []; // medida_tipos, biblioteca mestre -- abertos (23/ago/2026): não são mais 4 fixos no código
     let bateriaMedidasCache = []; // linhas de bateria_medidas da bateria atual
-    let bateriaMedidaTiposCache = []; // linhas de bateria_medida_tipos -- liga/desliga o TIPO inteiro (Camisa/Fantasia/Calça/Sapato), 22/ago/2026
+    let bateriaMedidaTiposCache = []; // linhas de bateria_medida_tipos -- liga/desliga o TIPO inteiro (Camisa/Fantasia/Calça/Sapato + qualquer tipo novo), 22/ago/2026
 
     async function carregarBibliotecaInstrumentos() {
         const [resCat, resNom] = await Promise.all([
@@ -3373,6 +3407,7 @@
         if (bibliotecaInstrumentos.length === 0) await carregarBibliotecaInstrumentos();
         await carregarBateriaInstrumentos();
         if (bibliotecaMedidas.length === 0) await carregarBibliotecaMedidas();
+        if (bibliotecaMedidaTipos.length === 0) await carregarBibliotecaMedidaTipos();
         await carregarBateriaMedidas();
         await carregarBateriaMedidaTipos();
     }
@@ -3503,11 +3538,19 @@
     }
 
     // ── CONFIGURAÇÕES → MEDIDAS ──────────────────────────────────────────
-    const TIPOS_MEDIDA = [['camisa', 'Camisa'], ['fantasia', 'Fantasia'], ['calca', 'Calça'], ['sapato', 'Sapato']];
+    // Reforma de 23/ago/2026: Camisa/Fantasia/Calça/Sapato deixaram de ser
+    // 4 tipos fixos no código -- viraram biblioteca mestre (medida_tipos),
+    // mesmo padrão de Instrumentos. Tudo abaixo referencia tipo_id (bigint),
+    // não mais um texto fixo ('camisa'/'fantasia'/...).
 
     async function carregarBibliotecaMedidas() {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders });
         bibliotecaMedidas = await res.json();
+    }
+
+    async function carregarBibliotecaMedidaTipos() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders });
+        bibliotecaMedidaTipos = await res.json();
     }
 
     async function carregarBateriaMedidas() {
@@ -3517,7 +3560,7 @@
         bateriaMedidasCache = await res.json();
     }
 
-    // Liga/desliga o TIPO inteiro (Camisa/Fantasia/Calça/Sapato) pra essa
+    // Liga/desliga o TIPO inteiro (Camisa/Fantasia/Calça/Sapato/etc) pra essa
     // bateria -- pedido da Márcia, 22/ago/2026: nem toda bateria pergunta
     // Calça, por exemplo. Diferente de bateriaMedidasCache, que liga/desliga
     // cada TAMANHO dentro de um tipo já ativo.
@@ -3536,19 +3579,19 @@
     // é só estado de tela (medidaTiposAbertos), não precisa salvar em
     // lugar nenhum.
     let medidaTiposAbertos = new Set();
-    function toggleMedidaTipoAberto(chave) {
-        if (medidaTiposAbertos.has(chave)) medidaTiposAbertos.delete(chave);
-        else medidaTiposAbertos.add(chave);
+    function toggleMedidaTipoAberto(tipoId) {
+        if (medidaTiposAbertos.has(tipoId)) medidaTiposAbertos.delete(tipoId);
+        else medidaTiposAbertos.add(tipoId);
         renderizarConfigMedidas();
     }
     function renderizarConfigMedidas() {
         const container = document.getElementById('config-medidas-lista');
-        container.innerHTML = TIPOS_MEDIDA.map(([chave, label]) => {
-            const itens = bibliotecaMedidas.filter(t => t.tipo === chave).sort((a, b) => a.ordem - b.ordem);
+        container.innerHTML = bibliotecaMedidaTipos.map(tipo => {
+            const itens = bibliotecaMedidas.filter(t => t.tipo_id === tipo.id).sort((a, b) => a.ordem - b.ordem);
             if (itens.length === 0) return '';
-            const tipoExistente = bateriaMedidaTiposCache.find(bmt => bmt.tipo === chave);
+            const tipoExistente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipo.id);
             const tipoAtivo = !tipoExistente || !!tipoExistente.ativo; // sem linha ainda = ativo por padrão
-            const aberto = medidaTiposAbertos.has(chave);
+            const aberto = medidaTiposAbertos.has(tipo.id);
             // Sem título de grupo aqui -- achado real dela, 22/ago/2026:
             // cada grupo tem exatamente 1 card, então o título ("CAMISA")
             // só repetia o que o próprio card já diz ("Camisa"), sem
@@ -3556,10 +3599,10 @@
             // (Tradicionais) reúne vários cards com nomes diferentes.
             return `
                 <div class="item-card config-medida-card">
-                    <div class="config-medida-header" onclick="toggleMedidaTipoAberto('${chave}')">
+                    <div class="config-medida-header" onclick="toggleMedidaTipoAberto(${tipo.id})">
                         <label class="config-instrumento-check" onclick="event.stopPropagation()">
-                            <input type="checkbox" ${tipoAtivo ? 'checked' : ''} onchange="salvarMedidaTipo('${chave}', this.checked)">
-                            <span class="item-nome">${label}</span>
+                            <input type="checkbox" ${tipoAtivo ? 'checked' : ''} onchange="salvarMedidaTipo(${tipo.id}, this.checked)">
+                            <span class="item-nome">${tipo.nome}</span>
                         </label>
                         <span class="config-medida-seta ${aberto ? 'aberta' : ''}">›</span>
                     </div>
@@ -3580,10 +3623,10 @@
             </div>`;
     }
 
-    async function salvarMedidaTipo(tipo, ativo) {
+    async function salvarMedidaTipo(tipoId, ativo) {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) return;
-        const existente = bateriaMedidaTiposCache.find(bmt => bmt.tipo === tipo);
+        const existente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipoId);
         if (existente) {
             await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
                 method: 'PATCH',
@@ -3594,7 +3637,7 @@
             await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...authHeaders },
-                body: JSON.stringify({ bateria_id: bateriaId, tipo, ativo })
+                body: JSON.stringify({ bateria_id: bateriaId, tipo_id: tipoId, ativo })
             });
         }
         await carregarBateriaMedidaTipos();
@@ -4713,7 +4756,7 @@
         document.getElementById('sa-config-lista').style.display = 'none';
         document.getElementById('sa-config-tela-' + nome).style.display = 'block';
         if (nome === 'instrumentos') { fecharEditorCategoria(); carregarCategorias().then(renderizarCategoriasLista); }
-        if (nome === 'medidas') { fecharEditorTamanho(); carregarTamanhosSA().then(renderizarTamanhosListaSA); }
+        if (nome === 'medidas') { fecharEditorMedidaTipo(); carregarMedidaTiposSA().then(renderizarMedidaTiposListaSA); }
     }
     function voltarConfigListaSA() {
         document.querySelectorAll('#sa-painel-configuracoes-globais .config-subtela').forEach(el => el.style.display = 'none');
@@ -4848,82 +4891,134 @@
     }
 
     // ── Configurações globais → Medidas (biblioteca mestre) ──────────────
-    let tamanhosCacheSA = [];
-    let tamanhoEditando = null;
-    let salvandoTamanho = false;
-    async function carregarTamanhosSA() {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders });
-        tamanhosCacheSA = res.ok ? await res.json() : [];
+    // Reforma de 23/ago/2026: tipo de medida (Camisa/Fantasia/Calça/Sapato/
+    // etc) deixou de ser um texto fixo no código -- virou biblioteca mestre
+    // própria (medida_tipos), editada aqui junto com sua escala de tamanhos
+    // (medida_tamanhos) num único editor -- mesmo padrão já usado em
+    // Instrumentos (Categoria + Nomenclaturas juntas). Pedido explícito
+    // dela: toda medida nova precisa nascer já ligada a uma escala de
+    // tamanho, nunca separada.
+    let medidaTiposCacheSA = [];
+    let medidaTipoEditando = null;
+    let salvandoMedidaTipo = false;
+    async function carregarMedidaTiposSA() {
+        const [resTipos, resTam] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?order=ordem`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders }),
+        ]);
+        const tipos = await resTipos.json();
+        const tamanhos = await resTam.json();
+        medidaTiposCacheSA = (tipos || []).map(t => ({ ...t, tamanhos: (tamanhos || []).filter(x => x.tipo_id === t.id) }));
     }
-    function renderizarTamanhosListaSA() {
-        const container = document.getElementById('sa-tamanhos-lista');
-        if (tamanhosCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum tamanho cadastrado ainda.</div>'; return; }
-        container.innerHTML = TIPOS_MEDIDA.map(([chave, label]) => {
-            const itens = tamanhosCacheSA.filter(t => t.tipo === chave).sort((a, b) => a.ordem - b.ordem);
-            if (itens.length === 0) return '';
-            return `<div class="config-grupo-titulo">${label}</div>` + itens.map(t => `
-                <div class="item-card">
-                    <div class="item-info"><div class="item-nome">${esc(t.nome)} ${t.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div></div>
-                    <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarTamanho(${t.id})">Editar</button></div>
-                </div>`).join('');
-        }).join('');
+    function renderizarMedidaTiposListaSA() {
+        const container = document.getElementById('sa-medida-tipos-lista');
+        if (medidaTiposCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum tipo de medida cadastrado ainda.</div>'; return; }
+        container.innerHTML = [...medidaTiposCacheSA].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(t => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(t.nome)} ${t.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
+                    <div class="item-detalhe">${t.tamanhos.length > 0 ? esc([...t.tamanhos].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(x => x.nome).join(', ')) : 'Sem tamanhos cadastrados'}</div>
+                </div>
+                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarMedidaTipo(${t.id})">Editar</button></div>
+            </div>`).join('');
     }
-    function abrirNovoTamanho() { tamanhoEditando = { id: null, tipo: 'camisa', nome: '', ativo: true }; renderizarEditorTamanho(); }
-    function abrirEditarTamanho(id) {
-        const t = tamanhosCacheSA.find(x => x.id === id);
+    function abrirNovoMedidaTipo() { medidaTipoEditando = { id: null, nome: '', ativo: true, tamanhos: [], removidas: [] }; renderizarEditorMedidaTipo(); }
+    function abrirEditarMedidaTipo(id) {
+        const t = medidaTiposCacheSA.find(x => x.id === id);
         if (!t) return;
-        tamanhoEditando = { id: t.id, tipo: t.tipo, nome: t.nome, ativo: t.ativo !== false };
-        renderizarEditorTamanho();
+        medidaTipoEditando = { id: t.id, nome: t.nome, ativo: t.ativo !== false, tamanhos: [...t.tamanhos].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(s => ({ id: s.id, nome: s.nome })), removidas: [] };
+        renderizarEditorMedidaTipo();
     }
-    function renderizarEditorTamanho() {
-        const te = tamanhoEditando;
-        const editor = document.getElementById('sa-tamanho-editor');
+    function renderizarEditorMedidaTipo() {
+        const te = medidaTipoEditando;
+        const editor = document.getElementById('sa-medida-tipo-editor');
         if (!editor) return;
         if (!te) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
         editor.innerHTML = `<div class="card-form">
-            <div class="card-form-titulo">${te.id ? 'Editar Tamanho' : 'Novo Tamanho'}</div>
+            <div class="card-form-titulo">${te.id ? 'Editar Tipo de Medida' : 'Novo Tipo de Medida'}</div>
             <div class="form-grid">
-                <div class="campo"><label>Tipo</label><select id="tam-edit-tipo">${TIPOS_MEDIDA.map(([chave, label]) => `<option value="${chave}" ${te.tipo === chave ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
-                <div class="campo"><label>Nome *</label><input type="text" id="tam-edit-nome" value="${esc(te.nome)}" placeholder="Ex: GG"></div>
-                <div class="campo"><label>Status</label><select id="tam-edit-ativo">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="mt-edit-nome" value="${esc(te.nome)}" placeholder="Ex: Vestido"></div>
+                <div class="campo"><label>Status</label><select id="mt-edit-ativo">
                     <option value="true" ${te.ativo ? 'selected' : ''}>Ativo</option>
                     <option value="false" ${!te.ativo ? 'selected' : ''}>Inativo</option>
                 </select></div>
+                <div class="campo campo-full">
+                    <label>Tamanhos (escala que essa medida usa) *</label>
+                    <div id="mt-edit-tamanhos">
+                        ${te.tamanhos.map((s, i) => `<div class="cat-edit-nom-linha">
+                            <input type="text" class="mt-edit-tam-nome" data-idx="${i}" value="${esc(s.nome)}" placeholder="Ex: PP, M, GG ou 38">
+                            <button type="button" class="cat-edit-nom-remover" onclick="removerLinhaTamanhoMT(${i})">×</button>
+                        </div>`).join('')}
+                    </div>
+                    <span class="cat-edit-nom-add" onclick="adicionarLinhaTamanhoMT()">+ Adicionar tamanho</span>
+                </div>
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
-                    <button id="tam-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarTamanho()">Salvar</button>
-                    ${te.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirTamanho(${te.id})">Excluir tamanho</button>` : ''}
+                    <button id="mt-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarMedidaTipoSA()">Salvar</button>
+                    ${te.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirMedidaTipoSA(${te.id})">Excluir tipo</button>` : ''}
                 </div>
-                <button class="btn-ficha" onclick="fecharEditorTamanho()">Cancelar</button>
+                <button class="btn-ficha" onclick="fecharEditorMedidaTipo()">Cancelar</button>
             </div>
         </div>`;
     }
-    function fecharEditorTamanho() { tamanhoEditando = null; renderizarEditorTamanho(); }
-    async function salvarTamanho() {
-        if (salvandoTamanho) return;
-        const tipo = document.getElementById('tam-edit-tipo').value;
-        const nome = document.getElementById('tam-edit-nome').value.trim();
-        if (!nome) { mostrarToast('Informe o nome do tamanho.', 'erro'); return; }
-        const ativo = document.getElementById('tam-edit-ativo').value === 'true';
-        salvandoTamanho = true;
-        try {
-            if (tamanhoEditando.id) await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${tamanhoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ tipo, nome, ativo }) });
-            else {
-                const ordem = Math.max(0, ...tamanhosCacheSA.filter(t => t.tipo === tipo).map(t => t.ordem || 0)) + 1;
-                await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ tipo, nome, ativo, ordem }) });
-            }
-            mostrarToast(tamanhoEditando.id ? 'Tamanho atualizado!' : 'Tamanho criado!');
-            tamanhoEditando = null; await carregarTamanhosSA(); renderizarEditorTamanho(); renderizarTamanhosListaSA();
-        } catch (e) { mostrarToast('Não foi possível salvar.', 'erro'); }
-        finally { salvandoTamanho = false; }
+    function sincronizarTamanhosMTDoDOM() {
+        if (!medidaTipoEditando) return;
+        document.querySelectorAll('.mt-edit-tam-nome').forEach(input => {
+            const idx = Number(input.dataset.idx);
+            if (medidaTipoEditando.tamanhos[idx]) medidaTipoEditando.tamanhos[idx].nome = input.value;
+        });
     }
-    async function excluirTamanho(id) {
-        if (!confirm('Excluir este tamanho? Se alguma bateria já usa, prefira marcar como "Inativo".')) return;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+    function adicionarLinhaTamanhoMT() { sincronizarTamanhosMTDoDOM(); medidaTipoEditando.tamanhos.push({ id: null, nome: '' }); renderizarEditorMedidaTipo(); }
+    function removerLinhaTamanhoMT(idx) {
+        sincronizarTamanhosMTDoDOM();
+        const removido = medidaTipoEditando.tamanhos.splice(idx, 1)[0];
+        if (removido && removido.id) medidaTipoEditando.removidas.push(removido.id);
+        renderizarEditorMedidaTipo();
+    }
+    function fecharEditorMedidaTipo() { medidaTipoEditando = null; renderizarEditorMedidaTipo(); }
+    async function salvarMedidaTipoSA() {
+        if (salvandoMedidaTipo) return;
+        sincronizarTamanhosMTDoDOM();
+        const nome = document.getElementById('mt-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do tipo de medida.', 'erro'); return; }
+        const ativo = document.getElementById('mt-edit-ativo').value === 'true';
+        const tamanhosValidos = medidaTipoEditando.tamanhos.map(s => (s.nome || '').trim()).filter(Boolean);
+        if (tamanhosValidos.length === 0) { mostrarToast('Adicione pelo menos um tamanho — toda medida precisa de uma escala de tamanhos.', 'erro'); return; }
+        salvandoMedidaTipo = true;
+        try {
+            let tipoId = medidaTipoEditando.id;
+            if (tipoId) {
+                await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${tipoId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo }) });
+            } else {
+                const ordem = Math.max(0, ...medidaTiposCacheSA.map(t => t.ordem || 0)) + 1;
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem }) });
+                const dados = await res.json();
+                tipoId = dados[0].id;
+            }
+            for (const id of medidaTipoEditando.removidas) await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+            let ordemTam = 1;
+            for (const s of medidaTipoEditando.tamanhos) {
+                const nomeTam = (s.nome || '').trim();
+                if (!nomeTam) { ordemTam++; continue; }
+                if (s.id) await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${s.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome: nomeTam, ordem: ordemTam }) });
+                else await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ tipo_id: tipoId, nome: nomeTam, ordem: ordemTam, ativo: true }) });
+                ordemTam++;
+            }
+            mostrarToast(medidaTipoEditando.id ? 'Tipo de medida atualizado!' : 'Tipo de medida criado!');
+            medidaTipoEditando = null;
+            await carregarMedidaTiposSA();
+            renderizarEditorMedidaTipo();
+            renderizarMedidaTiposListaSA();
+        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
+        finally { salvandoMedidaTipo = false; }
+    }
+    async function excluirMedidaTipoSA(id) {
+        if (!confirm('Excluir este tipo de medida? Isso remove também seus tamanhos. Se alguma bateria já usa, prefira marcar como "Inativo".')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
-        mostrarToast('Tamanho excluído.'); tamanhoEditando = null; await carregarTamanhosSA(); renderizarEditorTamanho(); renderizarTamanhosListaSA();
+        mostrarToast('Tipo de medida excluído.'); medidaTipoEditando = null; await carregarMedidaTiposSA(); renderizarEditorMedidaTipo(); renderizarMedidaTiposListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════

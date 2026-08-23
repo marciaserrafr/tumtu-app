@@ -490,36 +490,15 @@
 
         <div class="form-step" data-step="4">
 
-        <div class="secao">Medidas</div>
+        <div class="secao" id="secao-medidas">Medidas</div>
 
-        <div class="form-row">
-            <div class="auth-form-group">
-                <label>Tamanho da camisa <span class="obrigatorio">*</span></label>
-                <select id="tamanho_camisa" required>
-                    <option value="">Selecione</option>
-                </select>
-            </div>
-            <div class="auth-form-group">
-                <label>Tamanho da fantasia <span class="obrigatorio">*</span></label>
-                <select id="tamanho_fantasia" required>
-                    <option value="">Selecione</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="auth-form-group">
-                <label>Tamanho da calça <span class="obrigatorio">*</span></label>
-                <select id="tamanho_calca" required>
-                    <option value="">Selecione</option>
-                </select>
-            </div>
-            <div class="auth-form-group">
-                <label>Tamanho do sapato <span class="obrigatorio">*</span></label>
-                <select id="tamanho_sapato" required>
-                    <option value="">Selecione</option>
-                </select>
-            </div>
-        </div>
+        <!-- Preenchido dinamicamente por carregarOpcoesMedidas() -- um
+             .auth-form-group por tipo de medida ativo na bateria (Camisa/
+             Fantasia/Calça/Sapato + qualquer tipo novo criado pelo Super
+             Admin). .form-row é grid de 2 colunas, então N campos aqui
+             dentro já quebram em pares sozinhos, sem precisar montar
+             linha por linha (23/ago/2026, reforma de medidas abertas). -->
+        <div class="form-row" id="linha-medidas-dinamico"></div>
 
         <div class="secao oculto-pessoa-existente">Saúde</div>
 
@@ -931,29 +910,52 @@
     }
 
     // ── OPÇÕES DE MEDIDAS (dinâmicas, dependem da bateria) ───────────────────
+    // Medidas viraram totalmente abertas em 23/ago/2026: Camisa/Fantasia/
+    // Calça/Sapato deixaram de ser 4 <select> fixos no HTML -- o próprio
+    // campo é montado aqui, um por tipo de medida ativo na bateria (o
+    // Super Admin pode criar tipos novos, ex: "Vestido", sem precisar de
+    // nenhuma mudança de código). idsMedidaAtual guarda quais tipos essa
+    // bateria tem hoje, pra lerValoresMedidas() saber quais campos ler.
+    let idsMedidaAtual = [];
     async function carregarOpcoesMedidas(bateriaId) {
-        if (!bateriaId) return;
-        const mapaSelect = { camisa: 'tamanho_camisa', fantasia: 'tamanho_fantasia', calca: 'tamanho_calca', sapato: 'tamanho_sapato' };
+        const container = document.getElementById('linha-medidas-dinamico');
+        const secao = document.getElementById('secao-medidas');
+        if (!container) return;
+        if (!bateriaId) { container.innerHTML = ''; idsMedidaAtual = []; if (secao) secao.style.display = 'none'; return; }
         try {
             const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas_publicas?bateria_id=eq.${bateriaId}&order=tipo,ordem`, { headers });
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas_publicas?bateria_id=eq.${bateriaId}&order=tipo_id,ordem`, { headers });
             const opcoes = res.ok ? await res.json() : [];
-            Object.entries(mapaSelect).forEach(([tipo, idSelect]) => {
-                const select = document.getElementById(idSelect);
-                if (!select) return;
-                const doTipo = opcoes.filter(o => o.tipo === tipo);
-                select.innerHTML = '<option value="">Selecione</option>' + doTipo.map(o => `<option value="${o.nome_exibicao}">${o.nome_exibicao}</option>`).join('');
-                // Tipo desligado pra essa bateria (0 tamanhos ativos): some o
-                // campo inteiro em vez de deixar um "Selecione" vazio --
-                // pedido da Márcia, 22/ago/2026. Tira o "required" também,
-                // senão um campo escondido travaria o envio do formulário.
-                const grupo = select.closest('.auth-form-group');
-                if (grupo) grupo.style.display = doTipo.length === 0 ? 'none' : '';
-                select.required = doTipo.length > 0;
+            const porTipo = {};
+            opcoes.forEach(o => {
+                if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { nome: o.tipo_nome, tamanhos: [] };
+                porTipo[o.tipo_id].tamanhos.push(o.nome_exibicao);
             });
+            const tiposAtivos = Object.entries(porTipo); // já vem só com tamanho ativo -- tipo sem nenhum simplesmente não existe aqui
+            idsMedidaAtual = tiposAtivos.map(([tipoId]) => tipoId);
+            // Sem nenhum tipo de medida ativo pra essa bateria: some a
+            // seção "Medidas" inteira, mesmo critério já usado em
+            // Instrumento pra quem não é Ritmista (esconder em vez de
+            // deixar título solto sem campo nenhum embaixo).
+            if (secao) secao.style.display = tiposAtivos.length === 0 ? 'none' : '';
+            container.innerHTML = tiposAtivos.map(([tipoId, t]) => `
+                <div class="auth-form-group">
+                    <label>Tamanho: ${t.nome} <span class="obrigatorio">*</span></label>
+                    <select id="medida-${tipoId}" data-tipo-id="${tipoId}" required>
+                        <option value="">Selecione</option>
+                        ${t.tamanhos.map(nome => `<option value="${nome}">${nome}</option>`).join('')}
+                    </select>
+                </div>`).join('');
         } catch (e) {
             mostrarMensagem('Não consegui carregar a lista de medidas (sem conexão?). Verifique sua internet e tente de novo.', 'erro');
         }
+    }
+    // Lê os valores escolhidos nos <select> dinâmicos de medida.
+    function lerValoresMedidas() {
+        return idsMedidaAtual.map(tipoId => {
+            const select = document.getElementById(`medida-${tipoId}`);
+            return { tipoId: Number(tipoId), valor: select ? select.value : '' };
+        }).filter(v => v.valor);
     }
 
     // ── CADASTRO VIA LINK FIXO (?bateria=&cargo=) — Ritmista/Mestre/Diretor ─
@@ -1329,10 +1331,7 @@
             cidade: document.getElementById('cidade').value,
             estado: valorCampo('estado'),
             pais: document.getElementById('pais').value.trim() || 'Brasil',
-            tamanho_camisa: document.getElementById('tamanho_camisa').value,
-            tamanho_fantasia: document.getElementById('tamanho_fantasia').value,
-            tamanho_calca: document.getElementById('tamanho_calca').value,
-            tamanho_sapato: document.getElementById('tamanho_sapato').value,
+            medidas: lerValoresMedidas(),
             membro_desde: document.getElementById('membro_desde').value || null,
             tipo_sanguineo: document.getElementById('tipo_sanguineo').value || null,
             emergencia_nome: document.getElementById('emergencia_nome').value,
@@ -1478,8 +1477,6 @@
             nivel_acesso_id: dados.nivel_acesso_id || null,
             bateria_instrumento_id: dados.bateria_instrumento_id,
             membro_desde: dados.membro_desde,
-            tamanho_camisa: dados.tamanho_camisa, tamanho_fantasia: dados.tamanho_fantasia,
-            tamanho_calca: dados.tamanho_calca, tamanho_sapato: dados.tamanho_sapato,
             politica_privacidade_aceita_em: new Date().toISOString(),
         };
         const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos`, {
@@ -1494,6 +1491,21 @@
         });
 
         if (res.ok) {
+            // Medidas viraram abertas (23/ago/2026) -- não são mais colunas
+            // fixas em vinculos, moram em vinculos_medidas (uma linha por
+            // tipo preenchido). Precisa do id do vínculo recém-criado, por
+            // isso só entra depois do POST acima (Prefer: return=representation).
+            const medidasPreenchidas = (dados.medidas || []).filter(m => m.valor);
+            if (medidasPreenchidas.length > 0) {
+                const [novoVinculo] = await res.json();
+                if (novoVinculo && novoVinculo.id) {
+                    await fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${tokenCadastro}` },
+                        body: JSON.stringify(medidasPreenchidas.map(m => ({ vinculo_id: novoVinculo.id, tipo_id: m.tipoId, valor: m.valor })))
+                    });
+                }
+            }
             if (linkFixoAtual && linkFixoAtual.perfil !== 'ritmista') {
                 mostrarMensagem('Cadastro enviado! Aguarde a aprovação da diretoria — você vai receber um e-mail assim que for aprovado.', 'sucesso');
                 document.getElementById('formCadastro').style.display = 'none';
