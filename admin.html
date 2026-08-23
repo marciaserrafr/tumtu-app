@@ -332,7 +332,7 @@
         .btn-exportar:hover { background: #f5f4f8; }
 
         /* VISÃO GERAL */
-        .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
         .vg-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 16px; }
         /* Instrumentos + Aniversariantes lado a lado no computador (Ritmistas
            por Instrumento ocupava a tela toda sozinho) -- volta a empilhar
@@ -654,7 +654,7 @@
         .modal-cadastro h2 { font-size: 17px; margin-bottom: 2px; }
         .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
         .ficha-secao { margin-bottom: 14px; }
-        .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #D4AF37; padding-bottom: 3px; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
         /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
            label acima dele aumentados -- pedido dela, 22/ago/2026, "tenho
@@ -662,7 +662,7 @@
            (10px) mantidos -- convenção normal de rótulo secundário menor,
            não é o mesmo problema. */
         .ficha-campo { font-size: 13px; color: #333; }
-        .ficha-campo span { display: block; font-size: 11px; color: #999; margin-bottom: 1px; }
+        .ficha-campo span { display: block; font-size: 13px; color: #999; margin-bottom: 1px; }
         .ficha-campo strong { font-size: 15px; color: var(--cor-texto-principal); }
         .ficha-campo.full { grid-column: 1 / -1; }
         .btn-imprimir { display: inline-flex; align-items: center; gap: 6px; background: var(--cor-fundo-escuro); color: white; border: none; padding: 9px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
@@ -898,7 +898,7 @@
            (aba Acessos, "Mestres"/"Diretores"), reaproveitado aqui pra
            separar Mestres/Diretores (Diretoria) e Pendentes/Ativos/etc
            (Ritmistas), pedido da Márcia, 18/ago/2026. */
-        .secao-titulo { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
+        .secao-titulo { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
         .secao-titulo:first-child { margin-top: 4px; }
         /* .cards (Ritmistas) já tem gap:10px entre os filhos -- sem esse
            ajuste, o título de seção somava esse gap com sua própria margem e
@@ -1047,7 +1047,7 @@
 
         /* Formulários inline (Nova Escola, Dados da Escola, Dados da Bateria) */
         .card-form { margin-bottom: 14px; }
-        .card-form-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        .card-form-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 3px; border-bottom: 1px solid #D4AF37; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-grid .campo-full { grid-column: 1 / -1; }
         .campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
@@ -1250,7 +1250,7 @@
     <!-- DASHBOARD -->
     <div class="sa-painel ativo" id="sa-painel-dashboard">
         <div class="painel-titulo">Dashboard</div>
-        <div class="vg-secao-titulo" style="margin-bottom:20px;">Visão geral de todas as escolas e ritmistas.</div>
+        <div class="config-sub-desc" style="margin:0 0 20px;">Visão geral de todas as escolas e ritmistas.</div>
         <div class="kpi-row" id="dashboard-kpis"></div>
         <div id="dashboard-atencao"></div>
         <div class="dash-secao-titulo">Baterias</div>
@@ -1260,7 +1260,7 @@
     <!-- ESCOLAS -->
     <div class="sa-painel" id="sa-painel-escolas">
         <div class="painel-titulo">Escolas</div>
-        <div class="vg-secao-titulo" style="margin-bottom:16px;">Selecione uma escola para gerenciar seu cadastro, bateria e acessos.</div>
+        <div class="config-sub-desc" style="margin:0 0 16px;">Selecione uma escola para gerenciar seu cadastro, bateria e acessos.</div>
         <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaEscolaSA()">+ Nova Escola</button>
         <div id="lista-escolas" class="lista-cards">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
@@ -1310,7 +1310,7 @@
     <div class="sa-painel" id="sa-painel-configuracoes-globais">
         <div id="sa-config-lista">
             <div class="painel-titulo">Configurações</div>
-            <div class="vg-secao-titulo" style="margin-bottom:16px;">Ajustes que valem para todas as escolas.</div>
+            <div class="config-sub-desc" style="margin:0 0 16px;">Ajustes que valem para todas as escolas.</div>
             <div class="config-item" onclick="abrirConfigTelaSA('instrumentos')"><span>Instrumentos</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Medidas</span><span class="config-item-seta">›</span></div>
         </div>
@@ -1337,10 +1337,10 @@
     <!-- PRIVACIDADE (LGPD) -->
     <div class="sa-painel" id="sa-painel-privacidade">
         <div class="painel-titulo">Privacidade</div>
-        <div class="vg-secao-titulo" style="margin-bottom:20px;">Exclusão de dados sob pedido (LGPD) — ações sem volta, com prova registrada abaixo.</div>
+        <div class="config-sub-desc" style="margin:0 0 20px;">Exclusão de dados sob pedido (LGPD) — ações sem volta, com prova registrada abaixo.</div>
 
         <div class="ficha-secao-titulo">Excluir dados de uma pessoa</div>
-        <div class="vg-secao-titulo" style="margin:0 0 10px;text-transform:none;letter-spacing:0;font-weight:400;">Busca por nome, CPF ou e-mail — encontra até quem não tem vínculo com nenhuma bateria hoje.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Busca por nome, CPF ou e-mail — encontra até quem não tem vínculo com nenhuma bateria hoje.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <input type="text" id="priv-busca-pessoa" class="fc-input" style="display:block;flex:1;min-width:220px;" placeholder="Nome, CPF ou e-mail..." onkeydown="if(event.key==='Enter'){event.preventDefault();buscarPessoaExclusao();}">
             <button class="btn-novo" style="margin:0;" onclick="buscarPessoaExclusao()">Buscar</button>
@@ -1348,7 +1348,7 @@
         <div id="priv-resultado-pessoa" style="margin-top:12px;"></div>
 
         <div class="ficha-secao-titulo" style="margin-top:28px;">Excluir uma escola inteira</div>
-        <div class="vg-secao-titulo" style="margin:0 0 10px;text-transform:none;letter-spacing:0;font-weight:400;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <select id="priv-select-escola" class="fc-input" style="display:block;flex:1;min-width:220px;">
                 <option value="">Selecione a escola...</option>
@@ -1357,7 +1357,7 @@
         </div>
 
         <div class="ficha-secao-titulo" style="margin-top:28px;">Histórico de exclusões (prova)</div>
-        <div class="vg-secao-titulo" style="margin:0 0 10px;text-transform:none;letter-spacing:0;font-weight:400;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
         <div id="priv-lista-log">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
         </div>
@@ -1465,7 +1465,7 @@
 <div class="painel" id="painel-permissoes">
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Permissões</div>
-    <div class="vg-secao-titulo" style="margin-bottom:16px;text-transform:none;letter-spacing:0;font-weight:400;">Escolha uma pessoa da Diretoria e marque direto o que ela pode ver e editar. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
+    <div class="config-sub-desc" style="margin-bottom:16px;">Escolha uma pessoa da Diretoria e marque direto o que ela pode ver e editar. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
     <div id="pe-editor" style="display:none;"></div>
     <!-- Busca + seções por cargo -- mesmo padrão já usado em Ritmistas/
          Diretoria, pedido da Márcia, 22/ago/2026: essa lista estava "solta"
@@ -1481,7 +1481,7 @@
 <div class="painel" id="painel-historico">
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Histórico</div>
-    <div class="vg-secao-titulo" style="margin-bottom:20px;text-transform:none;letter-spacing:0;font-weight:400;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta bateria, e quando.</div>
+    <div class="config-sub-desc" style="margin:0 0 20px;">Quem aprovou, rejeitou ou mudou o status de cada pessoa desta bateria, e quando.</div>
     <div id="lista-historico-escola">
         <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
@@ -3195,7 +3195,7 @@
         return `
             <div class="secao-titulo" style="margin-top:4px;">${titulo}</div>
             <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
-                <p style="font-size:12px;color:#5a5770;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
+                <p style="font-size:13px;color:#8b88a0;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
                 ${linhas.map((l, i) => `
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;${i > 0 ? 'margin-top:10px;' : ''}">
                     <label style="width:120px;flex-shrink:0;font-size:12px;color:#5a5770;font-weight:600;">${l.label}</label>
@@ -4229,7 +4229,7 @@
                     <input type="checkbox" id="de-tema-ativo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${e && e.tema_personalizado_ativo ? 'checked' : ''} ${modoEdicao ? '' : 'disabled'}>
                     <label for="de-tema-ativo" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
                 </div>
-                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o cabeçalho do painel de gestão (Mestre/Diretor) usa a cor primária e o logo da escola no lugar da marca TumTu.</div>
+                <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o cabeçalho do painel de gestão (Mestre/Diretor) usa a cor primária e o logo da escola no lugar da marca TumTu.</div>
             </div>
             ${rodape}`;
         logoPendente.escolaEdicao = null;
@@ -4457,7 +4457,7 @@
                     <input type="checkbox" id="cm-tipo-demo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${e && e.tipo === 'demo' ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="salvarClassificacaoEscola(this.checked)">
                     <label for="cm-tipo-demo" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Escola DEMO (demonstração)</label>
                 </div>
-                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Escolas DEMO ficam de fora da contagem do Dashboard geral.</div>
+                <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Escolas DEMO ficam de fora da contagem do Dashboard geral.</div>
             </div>
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Status da Escola</div>
@@ -4475,7 +4475,7 @@
                     <input type="checkbox" id="mv-modo-piloto" style="width:15px;height:15px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${b.modo_piloto ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="salvarComercial(this.checked)">
                     <label for="mv-modo-piloto" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
                 </div>
-                <div style="font-size:12px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de gestão. Decisão comercial (ex: vender só a carteirinha pra quem não quer o módulo de gestão completo) — não é um dado operacional da bateria.</div>
+                <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de gestão. Decisão comercial (ex: vender só a carteirinha pra quem não quer o módulo de gestão completo) — não é um dado operacional da bateria.</div>
             </div>
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Status da Bateria</div>
@@ -4488,7 +4488,7 @@
             html += `
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Modo Carteirinha</div>
-                <div style="font-size:12px;color:var(--cor-texto-muted);">Cadastre a bateria primeiro, em "Dados da Bateria".</div>
+                <div style="font-size:13px;color:var(--cor-texto-muted);">Cadastre a bateria primeiro, em "Dados da Bateria".</div>
             </div>`;
         }
 
