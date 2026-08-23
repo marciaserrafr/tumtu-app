@@ -332,7 +332,7 @@
         .btn-exportar:hover { background: #f5f4f8; }
 
         /* VISÃO GERAL */
-        .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
+        .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
         .vg-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 16px; }
         /* Instrumentos + Aniversariantes lado a lado no computador (Ritmistas
            por Instrumento ocupava a tela toda sozinho) -- volta a empilhar
@@ -609,9 +609,9 @@
         .modal-exportar .subtitulo-resumo { font-size: 13px; color: #666; margin-bottom: 22px; }
         .modal-exportar .subtitulo-resumo strong { color: var(--cor-texto-principal); }
         .exp-secao { margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid #f0eef5; }
-        .exp-secao-titulo-linha { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-        .exp-secao-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-        .exp-secao-titulo-linha .exp-secao-titulo { margin-bottom: 0; }
+        .exp-secao-titulo-linha { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .exp-secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .exp-secao-titulo-linha .exp-secao-titulo { padding-bottom: 0; border-bottom: none; margin-bottom: 0; }
         .exp-secao-acoes { font-size: 12px; color: #888; font-weight: 500; }
         .exp-secao-acoes span[onclick] { cursor: pointer; }
         .exp-secao-acoes span[onclick]:hover { color: var(--cor-texto-principal); }
@@ -644,8 +644,8 @@
         .exp-radio-linha:has(input:checked) { border-color: var(--cor-destaque); background: #fdf8ea; }
         .exp-radio-linha:has(input:focus-visible) { outline: 2px solid var(--cor-destaque); outline-offset: 2px; }
         .exp-campos { max-height: 280px; overflow-y: auto; border: 1px solid #f0eef5; border-radius: 10px; padding: 2px 14px; }
-        .exp-campos-grupo-titulo { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 0 6px; }
-        .exp-campos-grupo-titulo:first-child { padding-top: 12px; }
+        .exp-campos-grupo-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 0.8px; padding: 24px 0 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .exp-campos-grupo-titulo:first-child { padding-top: 4px; }
         .exp-campos .exp-campo-linha { padding: 8px 0; border-top: 1px solid #f7f6fb; }
         .exp-campos-grupo-titulo + .exp-campo-linha { border-top: none; }
 
@@ -654,7 +654,7 @@
         .modal-cadastro h2 { font-size: 17px; margin-bottom: 2px; }
         .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
         .ficha-secao { margin-bottom: 14px; }
-        .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #D4AF37; padding-bottom: 3px; }
+        .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
         /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
            label acima dele aumentados -- pedido dela, 22/ago/2026, "tenho
@@ -744,7 +744,7 @@
            toque (:active), não só no hover. */
         .config-item {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 16px; margin-bottom: 6px; border-radius: 10px;
+            padding: 14px 16px; margin-bottom: 12px; border-radius: 10px;
             background: var(--cor-superficie); border: 1px solid var(--cor-borda);
             cursor: pointer; font-size: 14px; font-weight: 600; color: var(--cor-texto-principal);
             transition: background 0.15s, border-color 0.15s;
@@ -793,19 +793,23 @@
            cabeçalho precisa do MESMO gap da linha de dado, senão "RITMISTAS"
            cai 24px longe da pílula de verdade, mesmo com a largura certa. */
         .config-vagas-cabecalho { display: flex; justify-content: flex-end; align-items: center; gap: 32px; padding: 0 20px 6px; }
-        .config-vagas-cabecalho span { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        /* Em Instrumentos esse cabeçalho mora DENTRO de .lista-cards
+           (reaproveitado, 23/ago/2026) -- diferente de Vagas, onde ele é
+           irmão de fora da lista. O gap:12px do flex de .lista-cards soma
+           com o padding-bottom acima, dobrando o respiro até o primeiro
+           card (18px em vez de 6px) -- achado real dela, comparando print
+           lado a lado. Margem negativa cancela só o gap extra. */
+        .lista-cards .config-vagas-cabecalho { margin-bottom: -12px; }
+        .config-vagas-cabecalho span { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         .config-vagas-cabecalho span:first-child { width: 56px; text-align: center; }
         .config-vagas-cabecalho span:last-child { width: 64px; text-align: center; }
-        /* Mesma receita, pra Instrumentos -- um rótulo só ("Nome usado"),
-           alinhado com a largura fixa (170px) do dropdown/texto de cada
-           linha, achado dela, 22/ago/2026 (repetir em toda linha tinha
-           ficado igual ao problema de Vagas).
-           2ª correção, mesmo dia: como rótulo solto acima da lista
-           inteira, "Nome usado" desalinhava com "Tradicionais" (linhas/
-           respiro diferentes) e "Especiais" ficava sem rótulo nenhum.
-           Agora mora na mesma linha de CADA título de grupo. */
-        .secao-titulo-col { display: flex; justify-content: space-between; align-items: baseline; padding-right: 20px; }
-        .secao-titulo-col-direita { width: 170px; text-align: center; white-space: nowrap; font-size: 11px; letter-spacing: 0.5px; }
+        /* "Nome usado" virou cabeçalho próprio, separado do título do
+           grupo -- pedido dela, 23/ago/2026: "assim como é no Vagas de
+           Ritmistas" (reaproveita .config-vagas-cabecalho, ver função
+           renderizarConfigInstrumentos). Histórico de tentativas
+           anteriores (rótulo dentro do card, cabeçalho solto, mesma linha
+           do título) descrito nos comentários de renderizarLinhaInstrumento
+           mais abaixo. */
         /* Virou um bloco de verdade (fundo levemente tingido, cantos de cima
            arredondados, respiro nos 4 lados) em vez de texto solto com só
            uma linha embaixo -- achado real da Márcia, 22/ago/2026: "não tá
@@ -828,7 +832,7 @@
         .config-lista-cabecalho-controles { display: flex; align-items: center; gap: 32px; }
         .config-lista-cabecalho-controles span:first-child { min-width: 56px; text-align: center; white-space: nowrap; }
         .config-lista-cabecalho-controles span:last-child { width: 64px; text-align: center; white-space: nowrap; }
-        .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
+        .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
         /* Medidas usa a linha antiga (.config-instrumento-linha), sem
            controle nenhum à direita -- fica como estava. */
@@ -855,20 +859,16 @@
             font-size: 12.5px; color: #333; background: #f7f6fb; text-align: left;
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
-        /* Respiro + linha divisória entre grupos (ex: Tradicionais →
-           Especiais) -- achado da Márcia, 21/ago/2026, com print: sem
-           isso, o último card de um grupo e o título do próximo ficavam
-           quase colados.
-           22/ago/2026: o comentário acima ("primeiro grupo não tem nada
-           acima") ficou desatualizado assim que o cabeçalho de coluna
-           (.config-lista-cabecalho) passou a aparecer por cima da lista --
-           sem esse ajuste, "Tradicionais" ficava colado direto na linha do
-           cabeçalho (só 4px de margem), achado real da Márcia. Continua sem
-           borda-topo (evita duas linhas divisórias quase coladas, já que o
-           cabeçalho já tem a própria borda inferior), mas ganha respiro de
-           verdade. */
-        .lista-cards .secao-titulo { margin: 28px 0 8px; padding-top: 20px; }
-        .lista-cards .secao-titulo:first-child { margin-top: 20px; padding-top: 0; }
+        /* Respiro entre grupos (ex: Tradicionais → Especiais) -- achado da
+           Márcia, 21/ago/2026: sem isso, o último card de um grupo e o
+           título do próximo ficavam quase colados. Valor unificado com o
+           resto do sistema em 22/ago/2026 (respiro padrão de título:
+           24px antes, 12px depois da linha) -- o cabeçalho de coluna que
+           motivava um valor maior aqui foi removido nesse mesmo dia.
+           .lista-cards já tem gap:12px entre todos os filhos -- sem
+           compensar aqui, o respiro dobra (24px/24px em vez de 24px/12px),
+           mesmo problema que .cards (Ritmistas/Diretoria) já tinha. */
+        .lista-cards .secao-titulo { margin-top: 12px; margin-bottom: 0; }
         /* Cada instrumento vira um .item-card -- o mesmo componente já
            usado em Ritmistas/Diretoria/Escolas no resto do app (bordado,
            nome à esquerda em .item-info, pílula+campo à direita em
@@ -898,13 +898,19 @@
            (aba Acessos, "Mestres"/"Diretores"), reaproveitado aqui pra
            separar Mestres/Diretores (Diretoria) e Pendentes/Ativos/etc
            (Ritmistas), pedido da Márcia, 18/ago/2026. */
-        .secao-titulo { font-size: 11px; font-weight: 700; color: #8b88a0; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
+        .secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .secao-titulo:first-child { margin-top: 4px; }
+        /* "Filtros" é um rótulo utilitário (organiza a busca), não uma
+           categoria de dado como Pendentes/Ativos/Mestres -- achado da
+           Márcia, 23/ago/2026: a linha dourada dava peso visual demais
+           pra ele. Linha cinza neutra só aqui, resto do sistema continua
+           dourado. */
+        .secao-titulo-neutro { border-bottom-color: #e0e0e0; }
         /* .cards (Ritmistas) já tem gap:10px entre os filhos -- sem esse
            ajuste, o título de seção somava esse gap com sua própria margem e
            ficava com respiro maior que o dos cards de Diretoria (que não têm
            gap no container). */
-        .cards .secao-titulo { margin: 6px 0 0; }
+        .cards .secao-titulo { margin: 14px 0 0; }
         .cards .secao-titulo:first-child { margin-top: 0; }
 
         /* DIRETORIA -- reaproveita o mesmo padrão visual de card dos
@@ -1029,7 +1035,7 @@
         .kpi.ok .n { color: #2e7d32; }
         .kpi.atencao .n { color: var(--cor-terracota); }
         .kpi.atencao { border-color: var(--cor-terracota-clara); }
-        .dash-secao-titulo { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cor-texto-muted); margin: 4px 0 12px; }
+        .dash-secao-titulo { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #5a5770; margin-top: 4px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .atencao-box { background: white; border: 1px solid var(--cor-borda); border-left: 4px solid var(--cor-terracota); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
         .atencao-titulo { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--cor-terracota); margin-bottom: 10px; }
         .atencao-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 13.5px; color: var(--cor-texto-principal); border-bottom: 1px solid var(--cor-borda); cursor: pointer; }
@@ -1047,7 +1053,7 @@
 
         /* Formulários inline (Nova Escola, Dados da Escola, Dados da Bateria) */
         .card-form { margin-bottom: 14px; }
-        .card-form-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 3px; border-bottom: 1px solid #D4AF37; }
+        .card-form-titulo { font-size: 11px; font-weight: bold; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-grid .campo-full { grid-column: 1 / -1; }
         .campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
@@ -1470,7 +1476,7 @@
     <!-- Busca + seções por cargo -- mesmo padrão já usado em Ritmistas/
          Diretoria, pedido da Márcia, 22/ago/2026: essa lista estava "solta"
          (sem divisão nem busca), diferente do resto do app. -->
-    <div style="margin-bottom:16px;">
+    <div style="margin-bottom:20px;">
         <input type="text" id="pe-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesPessoas()"
             style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
     </div>
@@ -1524,8 +1530,8 @@
     <!-- Título estático (não clicável, não recolhe) -- pedido da Márcia,
          20/ago/2026: "sinto falta de um título para os filtros", mesmo
          sem esconder nada. -->
-    <div class="secao-titulo" style="margin-top:0;">Filtros</div>
-    <div class="filtros" style="margin-bottom:20px;">
+    <div class="secao-titulo secao-titulo-neutro" style="margin-top:0;">Filtros</div>
+    <div class="filtros" style="margin-bottom:24px;">
         <!-- FILTRO INSTRUMENTO -->
         <div class="multi-select" id="multiSelectWrap">
             <div class="multi-select-trigger" id="multiSelectTrigger" onclick="toggleMultiSelect()">
@@ -1701,8 +1707,8 @@
             style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
     </div>
 
-    <div class="secao-titulo" style="margin-top:0;">Filtros</div>
-    <div class="filtros" style="margin-bottom:20px;">
+    <div class="secao-titulo secao-titulo-neutro" style="margin-top:0;">Filtros</div>
+    <div class="filtros" style="margin-bottom:24px;">
         <!-- FILTRO CARGO -->
         <div class="multi-select" id="cargoSelectWrap">
             <div class="multi-select-trigger" id="cargoSelectTrigger" onclick="toggleCargoSelect()">
@@ -3373,7 +3379,7 @@
         container.innerHTML = grupos.map(([chave, label]) => {
             const itens = bibliotecaInstrumentos.filter(c => c.grupo === chave).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
             if (itens.length === 0) return '';
-            return `<div class="secao-titulo secao-titulo-col"><span>${label}</span><span class="secao-titulo-col-direita">Nome usado</span></div>${itens.map(c => renderizarLinhaInstrumento(c)).join('')}`;
+            return `<div class="secao-titulo">${label}</div><div class="config-vagas-cabecalho"><span style="width:170px;text-align:center;">Nome usado</span></div>${itens.map(c => renderizarLinhaInstrumento(c)).join('')}`;
         }).join('');
     }
 
