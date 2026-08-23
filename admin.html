@@ -653,7 +653,7 @@
         .modal-cadastro { max-width: 480px; padding: 20px 24px; }
         .modal-cadastro h2 { font-size: 17px; margin-bottom: 2px; }
         .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
-        .ficha-secao { margin-bottom: 14px; }
+        .ficha-secao { margin-bottom: 24px; }
         .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
         /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
@@ -1353,7 +1353,7 @@
         </div>
         <div id="priv-resultado-pessoa" style="margin-top:12px;"></div>
 
-        <div class="ficha-secao-titulo" style="margin-top:28px;">Excluir uma escola inteira</div>
+        <div class="ficha-secao-titulo" style="margin-top:24px;">Excluir uma escola inteira</div>
         <div class="config-sub-desc" style="margin:0 0 10px;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <select id="priv-select-escola" class="fc-input" style="display:block;flex:1;min-width:220px;">
@@ -1362,7 +1362,7 @@
             <button class="btn-ficha btn-ficha-danger" style="margin:0;" onclick="prepararExclusaoEscola()">Excluir escola</button>
         </div>
 
-        <div class="ficha-secao-titulo" style="margin-top:28px;">Histórico de exclusões (prova)</div>
+        <div class="ficha-secao-titulo" style="margin-top:24px;">Histórico de exclusões (prova)</div>
         <div class="config-sub-desc" style="margin:0 0 10px;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
         <div id="priv-lista-log">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
@@ -4640,7 +4640,7 @@
         editor.innerHTML = `<div class="card-form">
             ${pe.veioDaFicha ? `<div style="margin-bottom:8px;"><span onclick="abrirFichaAdmin(${pe.id})" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Voltar para a ficha</span></div>` : ''}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
-            <div class="ficha-secao" style="margin-top:14px;">
+            <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Acesso ao painel</div>
                 <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                     <input type="checkbox" id="pp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
@@ -4648,7 +4648,7 @@
                 </div>
             </div>
             ${GRUPOS_CAPACIDADES.map(g => `
-                <div class="ficha-secao" style="margin-top:14px;">
+                <div class="ficha-secao">
                     <div class="ficha-secao-titulo">${esc(g.grupo)}</div>
                     ${g.itens.map(c => `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
