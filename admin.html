@@ -1687,14 +1687,14 @@
          antes de Diretoria) e depois por Categoria de Figurino -->
     <div id="figurino-lista">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <div class="painel-titulo">Figurino</div>
+        <div class="painel-titulo">Entrega de Figurino</div>
         <p class="config-sub-desc">Controle de entrega das peças distribuídas na temporada. Pra ativar peças novas, use Configurações → Figurino.</p>
         <div id="figurino-itens-lista" class="lista-cards"></div>
     </div>
 
     <!-- Sub-tela (nível 2): entregas de um Figurino específico -->
     <div id="figurino-tela-entregas" class="config-subtela" style="display:none;">
-        <button class="btn-voltar-config" onclick="voltarFigurinoLista()">← Figurino</button>
+        <button class="btn-voltar-config" onclick="voltarFigurinoLista()">← Entrega de Figurino</button>
         <div class="painel-titulo" id="figurino-entregas-titulo">Entregas</div>
         <p class="config-sub-desc">Tamanho mostrado só pra consulta (vem de Medidas) — a edição do tamanho continua na ficha da pessoa.</p>
         <input type="text" id="figurino-entregas-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarEntregasFigurinoLista()"
@@ -4041,7 +4041,7 @@
         { aba: 'dados-escola', label: 'Dados da Escola' },
         { aba: 'dados-bateria', label: 'Dados da Bateria' },
         { aba: 'configuracoes', label: 'Configurações' },
-        { aba: 'figurino', label: 'Figurino' },
+        { aba: 'figurino', label: 'Entrega de Figurino' },
         { aba: 'comercial', label: 'Comercial' },
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
