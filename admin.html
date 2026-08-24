@@ -1915,6 +1915,16 @@
     <div class="modal modal-exportar">
         <h2 style="margin-bottom:4px;">Exportar Excel</h2>
         <p id="exportResumoLista" class="subtitulo-resumo"></p>
+        <!-- Título livre, opcional -- pedido da Márcia, 24/ago/2026: relatório
+             pode não ter nada a ver com Figurino (ex: só endereço), então o
+             título tem que ser livre, não amarrado a nenhuma lógica
+             específica. Quando preenchido, sobrescreve tanto o título
+             automático dentro da planilha (tituloRelatorio) quanto o nome do
+             arquivo baixado -- em branco, funciona exatamente como antes. -->
+        <div class="exp-secao">
+            <div class="exp-secao-titulo">Título do relatório (opcional)</div>
+            <input type="text" id="exportTituloCustom" class="fc-input" placeholder="Ex: Camisas da Final" style="width:100%;box-sizing:border-box;">
+        </div>
         <!-- Filtro de status/instrumento embutido no próprio modal -- só
              pra Ritmistas (Diretoria não tem instrumento). Antes dependia
              só do filtro já aplicado na lista lá fora, escondido demais
@@ -2506,6 +2516,7 @@
         const ehRitmistas = tipo === 'ritmistas';
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
 
+        document.getElementById('exportTituloCustom').value = '';
         await carregarGruposMedidaExport();
 
         document.getElementById('exportFiltrosContainer').style.display = 'block';
@@ -2600,6 +2611,13 @@
     // Igualado pra Diretoria, 22/ago/2026 -- statusLabel e sufixo de grupo
     // (instrumento OU cargo) agora entram no título dos dois tipos.
     function tituloRelatorio(ehRitmistas, sufixoGrupo) {
+        // Título livre (campo "Título do relatório") sobrescreve o
+        // automático por completo -- ela pediu isso pra relatório que não
+        // tem nada a ver com o filtro de status (ex: só endereço). Sufixo de
+        // grupo continua entrando mesmo com título livre, só pra diferenciar
+        // uma aba da outra quando exportado "separado por instrumento/cargo".
+        const custom = document.getElementById('exportTituloCustom').value.trim();
+        if (custom) return sufixoGrupo ? `${custom} — ${sufixoGrupo}` : custom;
         let titulo = ehRitmistas ? 'Relatório de Ritmistas' : 'Relatório de Diretoria';
         const statusLabel = statusLabelExportacao();
         if (statusLabel) titulo += ` — ${statusLabel}`;
@@ -2659,7 +2677,15 @@
         }
 
         const dataHoje = new Date().toISOString().slice(0, 10);
-        XLSX.writeFile(livro, `${tipoExportacaoAtual}-${dataHoje}.xlsx`);
+        // Nome do arquivo também segue o título livre, quando preenchido --
+        // sanitizado (sem acento, só letras/números/hífen) pra funcionar em
+        // qualquer sistema operacional.
+        const tituloCustom = document.getElementById('exportTituloCustom').value.trim();
+        const removerAcentos = new RegExp('[̀-ͯ]', 'g');
+        const nomeArquivoBase = tituloCustom
+            ? tituloCustom.normalize('NFD').replace(removerAcentos, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+            : tipoExportacaoAtual;
+        XLSX.writeFile(livro, `${nomeArquivoBase}-${dataHoje}.xlsx`);
         fecharModal('modalExportarExcel');
     }
 
