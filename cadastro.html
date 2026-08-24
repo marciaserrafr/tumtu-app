@@ -980,8 +980,16 @@
         // que alguém troque o número na URL e descubra quantas baterias
         // existem no sistema) quanto o ID numérico antigo (links já
         // enviados antes de 21/jul/2026 continuam funcionando pra sempre).
-        const filtroBateria = /^\d+$/.test(bateriaId) ? `id=eq.${bateriaId}` : `codigo_convite=eq.${bateriaId}`;
-        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/baterias_publicas?${filtroBateria}&select=id,nome`, { headers });
+        // Usa a função resolver_bateria_publica (24/ago/2026, correção de
+        // segurança) em vez da view baterias_publicas direto -- a view
+        // antiga não tinha filtro nenhum embutido, então uma consulta sem
+        // parâmetro devolvia nome + código de convite de TODAS as
+        // baterias do sistema de uma vez, sem login.
+        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/rpc/resolver_bateria_publica`, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ p_identificador: bateriaId })
+        });
         const baterias = resBat.ok ? await resBat.json() : [];
         const bateria = baterias[0];
 

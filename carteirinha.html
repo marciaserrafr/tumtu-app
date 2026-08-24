@@ -328,8 +328,10 @@
 
         document.getElementById('membroDesde').textContent = ritmista.membro_desde || '—';
 
-        // QR code real apontando para a página de emergência
-        const qrUrl = `${window.location.origin}/qr?id=${ritmista.id}`;
+        // QR code real apontando para a página de emergência -- usa
+        // qr_token (aleatório, gerado 24/ago/2026 na correção de segurança),
+        // nunca mais ritmista.id/pessoa_id (sequencial e "varrível").
+        const qrUrl = `${window.location.origin}/qr?t=${ritmista.qr_token}`;
         // 86px, não 110 — a moldura (.v-qr-box) já é 110px com 12px de respiro
         // pra cada lado (110 - 12*2 = 86). Gerar o QR do mesmo tamanho da
         // moldura inteira fazia ele estourar esse respiro.
@@ -555,8 +557,12 @@
         if (!bateriaId) return;
         try {
             const res = await fetch(
-                `${SUPABASE_URL}/rest/v1/mestres_publicos?bateria_id=eq.${bateriaId}&select=nome,apelido,genero&order=nome.asc`,
-                { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+                `${SUPABASE_URL}/rest/v1/rpc/mestres_publicos_da_bateria`,
+                {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ p_bateria_id: bateriaId })
+                }
             );
             const mestres = await res.json();
 
