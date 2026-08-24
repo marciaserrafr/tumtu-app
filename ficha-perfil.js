@@ -346,20 +346,19 @@ function fpAuthHeaders() {
 async function fpCarregarTiposMedidaAtivos(bateriaId) {
     if (!bateriaId) return [];
     const authHeaders = await fpAuthHeaders();
-    // "Sem linha ainda em bateria_medida_tipos" conta como ATIVO -- mesma
-    // convenção já usada em renderizarConfigMedidas (admin.html) e na
-    // view bateria_medidas_publicas. Por isso busca só os DESLIGADOS
-    // explicitamente, em vez de exigir uma linha ativa pra cada tipo --
-    // sem isso, um tipo novo que nenhuma bateria tocou ainda (ex: recém-
-    // criado pelo Super Admin) nunca apareceria em lugar nenhum.
-    const [resDesligados, resTipos] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}&ativo=eq.false`, { headers: authHeaders }),
+    // "Sem linha ainda em bateria_medida_tipos" conta como DESLIGADO --
+    // Categoria de Figurino (ex-"Medidas") deixou de ser fixa no código
+    // (reforma de 22-23/ago) e passou a seguir o mesmo padrão de
+    // Instrumentos: toda bateria nasce sem nenhuma categoria ativa, o
+    // Diretor liga manualmente o que usa. Decisão da Márcia, 23/ago/2026.
+    const [resLigados, resTipos] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}&ativo=eq.true`, { headers: authHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders }),
     ]);
-    const desligados = await resDesligados.json();
+    const ligados = await resLigados.json();
     const tipos = await resTipos.json();
-    const desligadosIds = new Set(desligados.map(d => d.tipo_id));
-    return tipos.filter(t => !desligadosIds.has(t.id));
+    const ligadosIds = new Set(ligados.map(d => d.tipo_id));
+    return tipos.filter(t => ligadosIds.has(t.id));
 }
 
 // Valores já preenchidos pra essa pessoa/vínculo, indexados por tipo_id.
@@ -426,13 +425,20 @@ async function fpRenderizarEntregaFigurino(alvo) {
     const secao = fpEl('fp-secao-entrega-figurino');
     if (!grid || !secao) return;
     if (!alvo.vinculo_id) { secao.style.display = 'none'; return; }
+    // Peça de Figurino é sempre de um público só -- ritmista só vê peça de
+    // ritmista, Mestre/Diretor/Apoio (Diretoria) só vê peça de diretoria.
+    const publico = alvo.perfil === 'ritmista' ? 'ritmista' : 'diretoria';
     const authHeaders = await fpAuthHeaders();
-    const [resItens, resEntregas] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/figurino_itens?bateria_id=eq.${alvo.bateria_id}&ativo=eq.true&order=ordem`, { headers: authHeaders }),
+    const [resAtivos, resMestre, resEntregas] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${alvo.bateria_id}&ativo=eq.true`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?publico=eq.${publico}&ativo=eq.true&order=ordem`, { headers: authHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?vinculo_id=eq.${alvo.vinculo_id}`, { headers: authHeaders }),
     ]);
-    const itens = resItens.ok ? await resItens.json() : [];
+    const ativos = resAtivos.ok ? await resAtivos.json() : [];
+    const mestre = resMestre.ok ? await resMestre.json() : [];
     const entregas = resEntregas.ok ? await resEntregas.json() : [];
+    const ativosIds = new Set(ativos.map(a => a.figurino_item_mestre_id));
+    const itens = mestre.filter(m => ativosIds.has(m.id));
     if (itens.length === 0) { secao.style.display = 'none'; return; }
     secao.style.display = '';
     const entregaPorItem = {};

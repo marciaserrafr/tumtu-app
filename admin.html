@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=16">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=23"></script>
+    <script src="ficha-perfil.js?v=24"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -1325,7 +1325,8 @@
             <div class="painel-titulo">Configurações</div>
             <div class="config-sub-desc" style="margin:0 0 16px;">Ajustes que valem para todas as escolas.</div>
             <div class="config-item" onclick="abrirConfigTelaSA('instrumentos')"><span>Instrumentos</span><span class="config-item-seta">›</span></div>
-            <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Medidas</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Categoria de Figurino</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="abrirConfigTelaSA('figurino')"><span>Figurino</span><span class="config-item-seta">›</span></div>
         </div>
 
         <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
@@ -1339,11 +1340,20 @@
 
         <div id="sa-config-tela-medidas" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
-            <div class="painel-titulo">Medidas</div>
-            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada tipo de medida (Camisa, Fantasia...) já nasce com sua própria escala de tamanhos; cada bateria escolhe quais tipos e tamanhos usar em "Configurações → Medidas" no painel dela.</p>
-            <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoMedidaTipo()">+ Novo Tipo de Medida</button>
+            <div class="painel-titulo">Categoria de Figurino</div>
+            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada categoria (Camisa, Fantasia...) já nasce com sua própria escala de tamanhos (Medida); cada bateria escolhe quais categorias e tamanhos usar em "Configurações → Categoria de Figurino" no painel dela.</p>
+            <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoMedidaTipo()">+ Nova Categoria de Figurino</button>
             <div id="sa-medida-tipo-editor" style="display:none;"></div>
             <div id="sa-medida-tipos-lista" class="lista-cards"></div>
+        </div>
+
+        <div id="sa-config-tela-figurino" class="config-subtela" style="display:none;">
+            <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
+            <div class="painel-titulo">Figurino</div>
+            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada peça (ex: Camisa da Final) é ligada a uma Categoria de Figurino só pra usar o tamanho dela, e é sempre de um público só (Ritmista ou Diretoria). Cada bateria escolhe quais peças usa em "Configurações → Figurino" no painel dela — nasce tudo desligado.</p>
+            <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoFigurinoMestre()">+ Novo Figurino</button>
+            <div id="sa-figurino-editor" style="display:none;"></div>
+            <div id="sa-figurino-lista" class="lista-cards"></div>
         </div>
     </div>
 
@@ -1490,7 +1500,7 @@
             <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
             <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista edite as medidas</label>
         </div>
-        <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o ritmista consegue preencher — nunca editar depois de salvo — qualquer campo de Medida que estiver em branco na própria ficha. Útil quando surge um tipo de medida novo no meio da temporada (ex: um vestido) e as pessoas precisam preencher esse campo sozinhas. Vale pra bateria inteira.</div>
+        <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o ritmista consegue preencher — nunca editar depois de salvo — qualquer campo de Medida que estiver em branco na própria ficha. Útil quando surge uma Categoria de Figurino nova no meio da temporada (ex: um vestido) e as pessoas precisam preencher esse campo sozinhas. Vale pra bateria inteira.</div>
     </div>
 
     <div id="pe-editor" style="display:none;"></div>
@@ -1615,7 +1625,11 @@
             <span class="config-item-seta">›</span>
         </div>
         <div class="config-item" onclick="abrirConfigTela('medidas')">
-            <span>Medidas</span>
+            <span>Categoria de Figurino</span>
+            <span class="config-item-seta">›</span>
+        </div>
+        <div class="config-item" onclick="abrirConfigTela('figurino')">
+            <span>Figurino</span>
             <span class="config-item-seta">›</span>
         </div>
     </div>
@@ -1641,35 +1655,46 @@
         <div id="config-vagas-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
-    <!-- Sub-tela: Medidas -->
+    <!-- Sub-tela: Categoria de Figurino (ex-"Medidas") -->
     <div id="config-tela-medidas" class="config-subtela" style="display:none;">
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
-        <div class="painel-titulo">Medidas</div>
-        <p class="config-sub-desc">Ative os tamanhos que sua bateria usa em cada tipo. Só os tamanhos ativos aparecem no cadastro dos ritmistas.</p>
+        <div class="painel-titulo">Categoria de Figurino</div>
+        <p class="config-sub-desc">Ative as categorias (Camisa, Fantasia...) que sua bateria usa, e os tamanhos de cada uma. Só o que estiver ativo aparece no cadastro dos ritmistas.</p>
         <div id="config-medidas-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+    </div>
+
+    <!-- Sub-tela: Figurino (bateria escolhe, na lista mestre, quais peças usa) -->
+    <div id="config-tela-figurino" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
+        <div class="painel-titulo">Figurino</div>
+        <p class="config-sub-desc">Ative as peças (ex: Camisa da Final) que sua bateria vai controlar entrega nesta temporada. Nasce tudo desligado — ligue só o que for usar.</p>
+        <div id="config-figurino-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
 </div>
 
-<!-- PAINEL FIGURINO (dentro de Mais, 23/ago/2026) -- Figurino Filho (ex:
-     "Camisa da Final") sempre ligado a um Figurino Pai (tipo de Medida) só
-     por referência de tamanho -- Figurino em si NUNCA tem tamanho próprio,
-     só controle de entregue/não entregue. -->
+<!-- PAINEL FIGURINO (dentro de Mais, 23/ago/2026 -- reestruturado com lista
+     mestre em 24/ago/2026) -- Figurino (peça específica, ex: "Camisa da
+     Final") sempre ligado a uma Categoria de Figurino só por referência de
+     tamanho -- nunca tem tamanho próprio, só controle de entregue/não
+     entregue. Cada peça é de um público só (Ritmista OU Diretoria, nunca
+     os dois -- decisão da Márcia, não pode misturar). Cadastro da peça
+     mora na lista mestre (Super Admin → Configurações → Figurino); cada
+     bateria liga o que usa em Configurações → Figurino. Aqui é só entrega. -->
 <div class="painel" id="painel-figurino">
 
-    <!-- Lista (nível 1): catálogo de Figurino -->
+    <!-- Lista (nível 1): entrega, separada por público (Ritmistas sempre
+         antes de Diretoria) e depois por Categoria de Figurino -->
     <div id="figurino-lista">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <div class="painel-titulo">Figurino</div>
-        <p class="config-sub-desc">Peças distribuídas ao longo da temporada (ex: Camisa da Final) — cada uma usa o tamanho já cadastrado em Medidas, sem tamanho próprio. Aqui você só cadastra as peças e controla quem já recebeu.</p>
-        <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoFigurinoItem()">+ Novo Figurino</button>
-        <div id="figurino-item-editor" style="display:none;"></div>
+        <div class="painel-titulo">Entrega de Figurino</div>
+        <p class="config-sub-desc">Controle de entrega das peças distribuídas na temporada. Pra ativar peças novas, use Configurações → Figurino.</p>
         <div id="figurino-itens-lista" class="lista-cards"></div>
     </div>
 
     <!-- Sub-tela (nível 2): entregas de um Figurino específico -->
     <div id="figurino-tela-entregas" class="config-subtela" style="display:none;">
-        <button class="btn-voltar-config" onclick="voltarFigurinoLista()">← Figurino</button>
+        <button class="btn-voltar-config" onclick="voltarFigurinoLista()">← Entrega de Figurino</button>
         <div class="painel-titulo" id="figurino-entregas-titulo">Entregas</div>
         <p class="config-sub-desc">Tamanho mostrado só pra consulta (vem de Medidas) — a edição do tamanho continua na ficha da pessoa.</p>
         <input type="text" id="figurino-entregas-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarEntregasFigurinoLista()"
@@ -2896,9 +2921,11 @@
     let bateriaInstrumentosCache = []; // linhas de bateria_instrumentos da bateria atual
     let filtroInstrumentosSelecionados = []; // agora guarda bateria_instrumento_id (número), não mais texto
     let bibliotecaMedidas = []; // medida_tamanhos, biblioteca mestre
-    let bibliotecaMedidaTipos = []; // medida_tipos, biblioteca mestre -- abertos (23/ago/2026): não são mais 4 fixos no código
+    let bibliotecaMedidaTipos = []; // medida_tipos, biblioteca mestre -- abertos (23/ago/2026): não são mais 4 fixos no código. Rótulo na tela é "Categoria de Figurino", nome da tabela continua medida_tipos.
     let bateriaMedidasCache = []; // linhas de bateria_medidas da bateria atual
-    let bateriaMedidaTiposCache = []; // linhas de bateria_medida_tipos -- liga/desliga o TIPO inteiro (Camisa/Fantasia/Calça/Sapato + qualquer tipo novo), 22/ago/2026
+    let bateriaMedidaTiposCache = []; // linhas de bateria_medida_tipos -- liga/desliga a Categoria de Figurino inteira (Camisa/Fantasia/Calça/Sapato + qualquer categoria nova). Nasce DESLIGADA (23/ago/2026, decisão da Márcia -- deixou de ser fixo no código, então não faz mais sentido nascer ligada, mesmo padrão de Instrumentos).
+    let bibliotecaFigurino = []; // figurino_itens_mestre, lista mestre de peças (Camisa da Final...), cadastrada pelo Super Admin
+    let bateriaFigurinoCache = []; // linhas de bateria_figurino_itens -- liga/desliga cada peça da lista mestre pra essa bateria. Nasce DESLIGADA (sem linha = inativo).
 
     async function carregarBibliotecaInstrumentos() {
         const [resCat, resNom] = await Promise.all([
@@ -3441,6 +3468,7 @@
         if (nome === 'instrumentos') renderizarConfigInstrumentos();
         if (nome === 'vagas') renderizarConfigVagas();
         if (nome === 'medidas') renderizarConfigMedidas();
+        if (nome === 'figurino') renderizarConfigFigurino();
     }
 
     function voltarConfigLista() {
@@ -3456,6 +3484,8 @@
         if (bibliotecaMedidaTipos.length === 0) await carregarBibliotecaMedidaTipos();
         await carregarBateriaMedidas();
         await carregarBateriaMedidaTipos();
+        if (bibliotecaFigurino.length === 0) await carregarBibliotecaFigurino();
+        await carregarBateriaFigurino();
     }
 
     // "Nome usado" mora na MESMA linha do título de cada grupo (Tradicionais/
@@ -3617,6 +3647,17 @@
         bateriaMedidaTiposCache = await res.json();
     }
 
+    async function carregarBibliotecaFigurino() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?ativo=eq.true&order=ordem`, { headers: authHeaders });
+        bibliotecaFigurino = res.ok ? await res.json() : [];
+    }
+    async function carregarBateriaFigurino() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { bateriaFigurinoCache = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}`, { headers: authHeaders });
+        bateriaFigurinoCache = res.ok ? await res.json() : [];
+    }
+
     // Redesenhado em 22/ago/2026 (2ª versão -- achado dela na 1ª: "Esta
     // bateria usa Camisa" lia como frase de formulário, amadora demais pra
     // um sistema sério). Agora é um card fechado, igual Instrumentos (só
@@ -3636,7 +3677,7 @@
             const itens = bibliotecaMedidas.filter(t => t.tipo_id === tipo.id).sort((a, b) => a.ordem - b.ordem);
             if (itens.length === 0) return '';
             const tipoExistente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipo.id);
-            const tipoAtivo = !tipoExistente || !!tipoExistente.ativo; // sem linha ainda = ativo por padrão
+            const tipoAtivo = !!(tipoExistente && tipoExistente.ativo); // sem linha = desligado, mesmo padrão de Instrumentos
             const aberto = medidaTiposAbertos.has(tipo.id);
             // Sem título de grupo aqui -- achado real dela, 22/ago/2026:
             // cada grupo tem exatamente 1 card, então o título ("CAMISA")
@@ -3712,16 +3753,63 @@
         renderizarConfigMedidas();
     }
 
+    // ── CONFIGURAÇÕES → FIGURINO (bateria escolhe, dentre a lista mestre,
+    // quais peças usa nesta temporada) -- separado por público (Ritmistas
+    // sempre antes de Diretoria, pedido dela) e depois por Categoria de
+    // Figurino. Nasce tudo desligado -- mesmo padrão de Instrumentos.
+    const LABEL_PUBLICO_FIGURINO_CONFIG = { ritmista: 'Ritmistas', diretoria: 'Diretoria' };
+    function renderizarConfigFigurino() {
+        const container = document.getElementById('config-figurino-lista');
+        if (!container) return;
+        if (bibliotecaFigurino.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino cadastrado na lista mestre ainda. Peça pro Super Admin cadastrar em Configurações → Figurino.</div>'; return; }
+        container.innerHTML = ['ritmista', 'diretoria'].map(publico => {
+            const itensPublico = bibliotecaFigurino.filter(f => f.publico === publico);
+            if (itensPublico.length === 0) return '';
+            const categoriaIds = [...new Set(itensPublico.map(f => f.medida_tipo_id))];
+            const categorias = categoriaIds.map(id => bibliotecaMedidaTipos.find(t => t.id === id)).filter(Boolean)
+                .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO_CONFIG[publico]}</div>` + categorias.map(cat => {
+                const itensCat = itensPublico.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+                return `<div style="font-size:13px;font-weight:700;color:var(--cor-texto-muted);margin:12px 0 6px;">${esc(cat.nome)}</div>${itensCat.map(f => renderizarLinhaFigurinoConfig(f)).join('')}`;
+            }).join('');
+        }).join('');
+    }
+    function renderizarLinhaFigurinoConfig(f) {
+        const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === f.id);
+        const ativo = !!(existente && existente.ativo);
+        return `
+            <div class="item-card">
+                <label class="config-instrumento-check">
+                    <input type="checkbox" ${ativo ? 'checked' : ''} onchange="salvarFigurinoBateria(${f.id}, this.checked)">
+                    <span class="item-nome">${esc(f.nome)}</span>
+                </label>
+            </div>`;
+    }
+    async function salvarFigurinoBateria(figurinoItemMestreId, ativo) {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) return;
+        const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === figurinoItemMestreId);
+        if (existente) {
+            await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ ativo })
+            });
+        } else {
+            await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, figurino_item_mestre_id: figurinoItemMestreId, ativo })
+            });
+        }
+        await carregarBateriaFigurino();
+        renderizarConfigFigurino();
+    }
+
     // ══════════════════════════════════════════════════════════════════
-    // FIGURINO (23/ago/2026) -- catálogo de peças distribuídas na
-    // temporada (Figurino Filho, ex: "Camisa da Final"), cada uma ligada a
-    // um Figurino Pai (medida_tipos) só pra referência de tamanho. Nunca
-    // tem tamanho próprio -- a única coisa controlada aqui é entregue/não
-    // entregue. Edição de tamanho continua sempre na ficha (Medidas).
+    // FIGURINO — ENTREGA (24/ago/2026, reestruturado com lista mestre) --
+    // cadastro/ativação da peça mora em Configurações → Figurino (Super
+    // Admin cadastra na lista mestre, bateria liga o que usa); aqui só
+    // controle de entregue/não entregue, separado por público (Ritmistas
+    // sempre antes de Diretoria, decisão da Márcia -- são peças diferentes,
+    // não pode misturar) e depois por Categoria de Figurino.
     // ══════════════════════════════════════════════════════════════════
-    let figurinoItensCache = [];
-    let figurinoItemEditando = null;
-    let salvandoFigurinoItem = false;
     let figurinoEntregaItemAtual = null;
     let figurinoEntregaPessoasCache = [];
 
@@ -3732,116 +3820,47 @@
 
     async function iniciarFigurinoTab() {
         voltarFigurinoLista();
-        fecharEditorFigurinoItem();
         if (bibliotecaMedidaTipos.length === 0) await carregarBibliotecaMedidaTipos();
-        await carregarFigurinoItens();
-    }
-
-    async function carregarFigurinoItens() {
-        const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { figurinoItensCache = []; renderizarFigurinoLista(); return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens?bateria_id=eq.${bateriaId}&order=ordem`, { headers: authHeaders });
-        figurinoItensCache = res.ok ? await res.json() : [];
+        if (bibliotecaFigurino.length === 0) await carregarBibliotecaFigurino();
+        await carregarBateriaFigurino();
         renderizarFigurinoLista();
     }
 
     function renderizarFigurinoLista() {
         const container = document.getElementById('figurino-itens-lista');
         if (!container) return;
-        if (figurinoItensCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino cadastrado ainda.</div>'; return; }
-        container.innerHTML = figurinoItensCache.map(it => {
-            const pai = bibliotecaMedidaTipos.find(t => t.id === it.medida_tipo_id);
-            return `<div class="item-card">
-                <div class="item-info">
-                    <div class="item-nome">${esc(it.nome)} ${it.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
-                    <div class="item-detalhe">Figurino Pai: ${esc(pai ? pai.nome : '—')}</div>
-                </div>
-                <div class="item-acoes">
-                    <button class="btn-ficha" onclick="abrirEntregasFigurino(${it.id})">Ver entregas</button>
-                    <button class="btn-ficha" onclick="abrirEditarFigurinoItem(${it.id})">Editar</button>
-                </div>
-            </div>`;
+        const ativosIds = new Set(bateriaFigurinoCache.filter(bf => bf.ativo).map(bf => bf.figurino_item_mestre_id));
+        const itensAtivos = bibliotecaFigurino.filter(f => ativosIds.has(f.id));
+        if (itensAtivos.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino ativo nesta bateria ainda. Ative em Configurações → Figurino.</div>'; return; }
+        container.innerHTML = ['ritmista', 'diretoria'].map(publico => {
+            const itensPublico = itensAtivos.filter(f => f.publico === publico);
+            if (itensPublico.length === 0) return '';
+            const categoriaIds = [...new Set(itensPublico.map(f => f.medida_tipo_id))];
+            const categorias = categoriaIds.map(id => bibliotecaMedidaTipos.find(t => t.id === id)).filter(Boolean)
+                .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO_CONFIG[publico]}</div>` + categorias.map(cat => {
+                const itensCat = itensPublico.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+                return `<div style="font-size:13px;font-weight:700;color:var(--cor-texto-muted);margin:12px 0 6px;">${esc(cat.nome)}</div>` + itensCat.map(it => `
+                    <div class="item-card" onclick="abrirEntregasFigurino(${it.id})" style="cursor:pointer;">
+                        <div class="item-info"><div class="item-nome">${esc(it.nome)}</div></div>
+                        <span class="config-item-seta">›</span>
+                    </div>`).join('');
+            }).join('');
         }).join('');
-    }
-
-    function abrirNovoFigurinoItem() {
-        figurinoItemEditando = { id: null, nome: '', medida_tipo_id: bibliotecaMedidaTipos[0] ? bibliotecaMedidaTipos[0].id : null, ativo: true };
-        renderizarEditorFigurinoItem();
-    }
-    function abrirEditarFigurinoItem(id) {
-        const it = figurinoItensCache.find(x => x.id === id);
-        if (!it) return;
-        figurinoItemEditando = { id: it.id, nome: it.nome, medida_tipo_id: it.medida_tipo_id, ativo: it.ativo !== false };
-        renderizarEditorFigurinoItem();
-    }
-    function renderizarEditorFigurinoItem() {
-        const fi = figurinoItemEditando;
-        const editor = document.getElementById('figurino-item-editor');
-        if (!editor) return;
-        if (!fi) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
-        if (bibliotecaMedidaTipos.length === 0) { editor.style.display = 'block'; editor.innerHTML = '<div class="card-form">Cadastre um tipo de Medida primeiro, em Configurações → Medidas.</div>'; return; }
-        editor.style.display = 'block';
-        editor.innerHTML = `<div class="card-form">
-            <div class="card-form-titulo">${fi.id ? 'Editar Figurino' : 'Novo Figurino'}</div>
-            <div class="form-grid">
-                <div class="campo"><label>Figurino Pai (usa o tamanho deste tipo) *</label><select id="fig-edit-pai">${bibliotecaMedidaTipos.map(t => `<option value="${t.id}" ${fi.medida_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}</select></div>
-                <div class="campo campo-full"><label>Nome *</label><input type="text" id="fig-edit-nome" value="${esc(fi.nome)}" placeholder="Ex: Camisa da Final"></div>
-                <div class="campo"><label>Status</label><select id="fig-edit-ativo">
-                    <option value="true" ${fi.ativo ? 'selected' : ''}>Ativo</option>
-                    <option value="false" ${!fi.ativo ? 'selected' : ''}>Inativo</option>
-                </select></div>
-            </div>
-            <div class="form-rodape">
-                <div class="form-rodape-esq">
-                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarFigurinoItem()">Salvar</button>
-                    ${fi.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirFigurinoItem(${fi.id})">Excluir</button>` : ''}
-                </div>
-                <button class="btn-ficha" onclick="fecharEditorFigurinoItem()">Cancelar</button>
-            </div>
-        </div>`;
-    }
-    function fecharEditorFigurinoItem() { figurinoItemEditando = null; renderizarEditorFigurinoItem(); }
-    async function salvarFigurinoItem() {
-        if (salvandoFigurinoItem) return;
-        const medidaTipoId = Number(document.getElementById('fig-edit-pai').value);
-        const nome = document.getElementById('fig-edit-nome').value.trim();
-        if (!nome) { mostrarToast('Informe o nome do Figurino.', 'erro'); return; }
-        const ativo = document.getElementById('fig-edit-ativo').value === 'true';
-        const bateriaId = bateriaIdContexto();
-        salvandoFigurinoItem = true;
-        try {
-            if (figurinoItemEditando.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens?id=eq.${figurinoItemEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, nome, ativo }) });
-            } else {
-                const ordem = Math.max(0, ...figurinoItensCache.map(i => i.ordem || 0)) + 1;
-                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, medida_tipo_id: medidaTipoId, nome, ativo, ordem }) });
-            }
-            mostrarToast(figurinoItemEditando.id ? 'Figurino atualizado!' : 'Figurino criado!');
-            figurinoItemEditando = null;
-            await carregarFigurinoItens();
-            renderizarEditorFigurinoItem();
-        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
-        finally { salvandoFigurinoItem = false; }
-    }
-    async function excluirFigurinoItem(id) {
-        if (!confirm('Excluir este Figurino? Isso remove também o controle de entrega já registrado. Se preferir manter o histórico, marque como "Inativo".')) return;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
-        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
-        mostrarToast('Figurino excluído.');
-        figurinoItemEditando = null;
-        await carregarFigurinoItens();
-        renderizarEditorFigurinoItem();
     }
 
     // ── Tela de entregas (por Figurino) ──────────────────────────────────
     async function abrirEntregasFigurino(itemId) {
-        const item = figurinoItensCache.find(i => i.id === itemId);
+        const item = bibliotecaFigurino.find(i => i.id === itemId);
         if (!item) return;
         figurinoEntregaItemAtual = item;
+        document.getElementById('figurino-lista').style.display = 'none';
         document.querySelectorAll('#painel-figurino .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('figurino-tela-entregas').style.display = 'block';
         document.getElementById('figurino-entregas-titulo').textContent = item.nome;
         document.getElementById('figurino-entregas-busca').value = '';
+        // Filtro de instrumento só faz sentido pra peça de Ritmista -- Diretoria não tem instrumento único.
+        document.getElementById('figurino-entregas-filtro-instrumento').style.display = item.publico === 'ritmista' ? 'block' : 'none';
         await carregarEntregasFigurino();
     }
 
@@ -3851,8 +3870,11 @@
         const bateriaId = bateriaIdContexto();
         const container = document.getElementById('figurino-entregas-lista');
         container.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        // Peça é sempre de um público só -- filtra a lista de pessoas de acordo,
+        // em vez de misturar Ritmistas e Diretoria numa lista só.
+        const filtroPerfil = item.publico === 'ritmista' ? '&perfil=eq.ritmista' : '&perfil=in.(mestre,diretor,apoio)';
         const [resPessoas, resValores, resEntregas] = await Promise.all([
-            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&order=nome&select=id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado${filtroPerfil}&order=nome&select=id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas?tipo_id=eq.${item.medida_tipo_id}`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}`, { headers: authHeaders }),
         ]);
@@ -4019,7 +4041,7 @@
         { aba: 'dados-escola', label: 'Dados da Escola' },
         { aba: 'dados-bateria', label: 'Dados da Bateria' },
         { aba: 'configuracoes', label: 'Configurações' },
-        { aba: 'figurino', label: 'Figurino' },
+        { aba: 'figurino', label: 'Entrega de Figurino' },
         { aba: 'comercial', label: 'Comercial' },
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
@@ -5050,6 +5072,11 @@
         document.getElementById('sa-config-tela-' + nome).style.display = 'block';
         if (nome === 'instrumentos') { fecharEditorCategoria(); carregarCategorias().then(renderizarCategoriasLista); }
         if (nome === 'medidas') { fecharEditorMedidaTipo(); carregarMedidaTiposSA().then(renderizarMedidaTiposListaSA); }
+        if (nome === 'figurino') {
+            fecharEditorFigurinoMestre();
+            (medidaTiposCacheSA.length === 0 ? carregarMedidaTiposSA() : Promise.resolve())
+                .then(carregarFigurinoMestreSA).then(renderizarFigurinoMestreListaSA);
+        }
     }
     function voltarConfigListaSA() {
         document.querySelectorAll('#sa-painel-configuracoes-globais .config-subtela').forEach(el => el.style.display = 'none');
@@ -5205,7 +5232,7 @@
     }
     function renderizarMedidaTiposListaSA() {
         const container = document.getElementById('sa-medida-tipos-lista');
-        if (medidaTiposCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum tipo de medida cadastrado ainda.</div>'; return; }
+        if (medidaTiposCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhuma categoria de figurino cadastrada ainda.</div>'; return; }
         container.innerHTML = [...medidaTiposCacheSA].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(t => `
             <div class="item-card">
                 <div class="item-info">
@@ -5229,7 +5256,7 @@
         if (!te) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
         editor.innerHTML = `<div class="card-form">
-            <div class="card-form-titulo">${te.id ? 'Editar Tipo de Medida' : 'Novo Tipo de Medida'}</div>
+            <div class="card-form-titulo">${te.id ? 'Editar Categoria de Figurino' : 'Nova Categoria de Figurino'}</div>
             <div class="form-grid">
                 <div class="campo campo-full"><label>Nome *</label><input type="text" id="mt-edit-nome" value="${esc(te.nome)}" placeholder="Ex: Vestido"></div>
                 <div class="campo"><label>Status</label><select id="mt-edit-ativo">
@@ -5237,7 +5264,7 @@
                     <option value="false" ${!te.ativo ? 'selected' : ''}>Inativo</option>
                 </select></div>
                 <div class="campo campo-full">
-                    <label>Tamanhos (escala que essa medida usa) *</label>
+                    <label>Medida (escala de tamanhos desta categoria) *</label>
                     <div id="mt-edit-tamanhos">
                         ${te.tamanhos.map((s, i) => `<div class="cat-edit-nom-linha">
                             <input type="text" class="mt-edit-tam-nome" data-idx="${i}" value="${esc(s.nome)}" placeholder="Ex: PP, M, GG ou 38">
@@ -5284,10 +5311,10 @@
         if (salvandoMedidaTipo) return;
         sincronizarTamanhosMTDoDOM();
         const nome = document.getElementById('mt-edit-nome').value.trim();
-        if (!nome) { mostrarToast('Informe o nome do tipo de medida.', 'erro'); return; }
+        if (!nome) { mostrarToast('Informe o nome da categoria de figurino.', 'erro'); return; }
         const ativo = document.getElementById('mt-edit-ativo').value === 'true';
         const tamanhosValidos = medidaTipoEditando.tamanhos.map(s => (s.nome || '').trim()).filter(Boolean);
-        if (tamanhosValidos.length === 0) { mostrarToast('Adicione pelo menos um tamanho — toda medida precisa de uma escala de tamanhos.', 'erro'); return; }
+        if (tamanhosValidos.length === 0) { mostrarToast('Adicione pelo menos um tamanho — toda categoria precisa de uma escala de Medida.', 'erro'); return; }
         salvandoMedidaTipo = true;
         try {
             let tipoId = medidaTipoEditando.id;
@@ -5308,7 +5335,7 @@
                 else await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ tipo_id: tipoId, nome: nomeTam, ordem: ordemTam, ativo: true }) });
                 ordemTam++;
             }
-            mostrarToast(medidaTipoEditando.id ? 'Tipo de medida atualizado!' : 'Tipo de medida criado!');
+            mostrarToast(medidaTipoEditando.id ? 'Categoria de figurino atualizada!' : 'Categoria de figurino criada!');
             medidaTipoEditando = null;
             await carregarMedidaTiposSA();
             renderizarEditorMedidaTipo();
@@ -5317,10 +5344,117 @@
         finally { salvandoMedidaTipo = false; }
     }
     async function excluirMedidaTipoSA(id) {
-        if (!confirm('Excluir este tipo de medida? Isso remove também seus tamanhos. Se alguma bateria já usa, prefira marcar como "Inativo".')) return;
+        if (!confirm('Excluir esta categoria de figurino? Isso remove também sua escala de Medida. Se alguma bateria já usa, prefira marcar como "Inativo".')) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
-        mostrarToast('Tipo de medida excluído.'); medidaTipoEditando = null; await carregarMedidaTiposSA(); renderizarEditorMedidaTipo(); renderizarMedidaTiposListaSA();
+        mostrarToast('Categoria de figurino excluída.'); medidaTipoEditando = null; await carregarMedidaTiposSA(); renderizarEditorMedidaTipo(); renderizarMedidaTiposListaSA();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // FIGURINO -- LISTA MESTRE (Super Admin, 23/ago/2026) -- peça
+    // específica (ex: "Camisa da Final"), sempre ligada a uma Categoria de
+    // Figurino só pra usar o tamanho dela (nunca tem tamanho próprio) e
+    // sempre de um público só (Ritmista ou Diretoria) -- não pode misturar,
+    // são peças diferentes (decisão explícita da Márcia).
+    let figurinoMestreCacheSA = [];
+    let figurinoMestreEditando = null;
+    let salvandoFigurinoMestre = false;
+    const LABEL_PUBLICO_FIGURINO_SA = { ritmista: 'Ritmistas', diretoria: 'Diretoria' };
+    async function carregarFigurinoMestreSA() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?order=ordem`, { headers: authHeaders });
+        figurinoMestreCacheSA = res.ok ? await res.json() : [];
+    }
+    function renderizarFigurinoMestreListaSA() {
+        const container = document.getElementById('sa-figurino-lista');
+        if (figurinoMestreCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino cadastrado ainda.</div>'; return; }
+        container.innerHTML = ['ritmista', 'diretoria'].map(publico => {
+            const itens = figurinoMestreCacheSA.filter(f => f.publico === publico).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            if (itens.length === 0) return '';
+            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO_SA[publico]}</div>` + itens.map(f => {
+                const categoria = medidaTiposCacheSA.find(t => t.id === f.medida_tipo_id);
+                return `
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-nome">${esc(f.nome)} ${f.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
+                        <div class="item-detalhe">Categoria: ${esc(categoria ? categoria.nome : '—')}</div>
+                    </div>
+                    <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarFigurinoMestre(${f.id})">Editar</button></div>
+                </div>`;
+            }).join('');
+        }).join('');
+    }
+    function abrirNovoFigurinoMestre() {
+        figurinoMestreEditando = { id: null, nome: '', medida_tipo_id: medidaTiposCacheSA[0] ? medidaTiposCacheSA[0].id : null, publico: 'ritmista', ativo: true };
+        renderizarEditorFigurinoMestre();
+    }
+    function abrirEditarFigurinoMestre(id) {
+        const f = figurinoMestreCacheSA.find(x => x.id === id);
+        if (!f) return;
+        figurinoMestreEditando = { id: f.id, nome: f.nome, medida_tipo_id: f.medida_tipo_id, publico: f.publico, ativo: f.ativo !== false };
+        renderizarEditorFigurinoMestre();
+    }
+    function renderizarEditorFigurinoMestre() {
+        const fe = figurinoMestreEditando;
+        const editor = document.getElementById('sa-figurino-editor');
+        if (!editor) return;
+        if (!fe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        if (medidaTiposCacheSA.length === 0) { editor.style.display = 'block'; editor.innerHTML = '<div class="card-form">Cadastre uma Categoria de Figurino primeiro, em Configurações → Categoria de Figurino.</div>'; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${fe.id ? 'Editar Figurino' : 'Novo Figurino'}</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="fig-mestre-edit-nome" value="${esc(fe.nome)}" placeholder="Ex: Camisa da Final"></div>
+                <div class="campo"><label>Categoria de Figurino (usa o tamanho dela) *</label><select id="fig-mestre-edit-categoria">${medidaTiposCacheSA.map(t => `<option value="${t.id}" ${fe.medida_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}</select></div>
+                <div class="campo"><label>Público *</label><select id="fig-mestre-edit-publico">
+                    <option value="ritmista" ${fe.publico === 'ritmista' ? 'selected' : ''}>Ritmistas</option>
+                    <option value="diretoria" ${fe.publico === 'diretoria' ? 'selected' : ''}>Diretoria</option>
+                </select></div>
+                <div class="campo"><label>Status</label><select id="fig-mestre-edit-ativo">
+                    <option value="true" ${fe.ativo ? 'selected' : ''}>Ativo</option>
+                    <option value="false" ${!fe.ativo ? 'selected' : ''}>Inativo</option>
+                </select></div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarFigurinoMestre()">Salvar</button>
+                    ${fe.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirFigurinoMestre(${fe.id})">Excluir</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorFigurinoMestre()">Cancelar</button>
+            </div>
+        </div>`;
+    }
+    function fecharEditorFigurinoMestre() { figurinoMestreEditando = null; renderizarEditorFigurinoMestre(); }
+    async function salvarFigurinoMestre() {
+        if (salvandoFigurinoMestre) return;
+        const nome = document.getElementById('fig-mestre-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do Figurino.', 'erro'); return; }
+        const medidaTipoId = Number(document.getElementById('fig-mestre-edit-categoria').value);
+        const publico = document.getElementById('fig-mestre-edit-publico').value;
+        const ativo = document.getElementById('fig-mestre-edit-ativo').value === 'true';
+        salvandoFigurinoMestre = true;
+        try {
+            if (figurinoMestreEditando.id) {
+                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${figurinoMestreEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, publico, nome, ativo }) });
+            } else {
+                const ordem = Math.max(0, ...figurinoMestreCacheSA.map(i => i.ordem || 0)) + 1;
+                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, publico, nome, ativo, ordem }) });
+            }
+            mostrarToast(figurinoMestreEditando.id ? 'Figurino atualizado!' : 'Figurino criado!');
+            figurinoMestreEditando = null;
+            await carregarFigurinoMestreSA();
+            renderizarEditorFigurinoMestre();
+            renderizarFigurinoMestreListaSA();
+        } finally { salvandoFigurinoMestre = false; }
+    }
+    async function excluirFigurinoMestre(id) {
+        if (!confirm('Excluir este Figurino? Isso remove também o controle de entrega já registrado em toda bateria que usa ele. Se preferir manter o histórico, marque como "Inativo".')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
+        mostrarToast('Figurino excluído.');
+        figurinoMestreEditando = null;
+        await carregarFigurinoMestreSA();
+        renderizarEditorFigurinoMestre();
+        renderizarFigurinoMestreListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════
