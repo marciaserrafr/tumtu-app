@@ -630,13 +630,16 @@
         }
 
         // Super Admin não tem vínculo com bateria nenhuma — checa isso primeiro, direto na tabela de pessoas.
-        const { data: pessoa } = await sb.from('pessoas').select('id, nome, super_admin').eq('auth_user_id', authData.user.id).maybeSingle();
+        const { data: pessoa } = await sb.from('pessoas').select('id, nome, foto_url, super_admin').eq('auth_user_id', authData.user.id).maybeSingle();
         if (!pessoa) {
             erroLogin('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
             return;
         }
         if (pessoa.super_admin) {
-            localStorage.setItem('ritmista', JSON.stringify({ pessoa_id: pessoa.id, id: pessoa.id, super_admin: true, perfil: 'super_admin', nome: pessoa.nome }));
+            // foto_url não entrava aqui -- a bolinha do cabeçalho (admin.html)
+            // nunca mostrava a foto do Super Admin, só as iniciais, mesmo com
+            // a foto já salva no banco. Achado da Márcia, 24/ago/2026.
+            localStorage.setItem('ritmista', JSON.stringify({ pessoa_id: pessoa.id, id: pessoa.id, super_admin: true, perfil: 'super_admin', nome: pessoa.nome, foto_url: pessoa.foto_url }));
             window.location.href = 'admin';
             return;
         }
