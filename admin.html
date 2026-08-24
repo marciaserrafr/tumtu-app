@@ -5507,8 +5507,10 @@
         if (!medidaTipoEditando) return;
         const nomeInput = document.getElementById('mt-edit-nome');
         const ativoInput = document.getElementById('mt-edit-ativo');
+        const grupoInput = document.getElementById('mt-edit-grupo');
         if (nomeInput) medidaTipoEditando.nome = nomeInput.value;
         if (ativoInput) medidaTipoEditando.ativo = ativoInput.value === 'true';
+        if (grupoInput) medidaTipoEditando.grupo = grupoInput.value;
         document.querySelectorAll('.mt-edit-tam-nome').forEach(input => {
             const idx = Number(input.dataset.idx);
             if (medidaTipoEditando.tamanhos[idx]) medidaTipoEditando.tamanhos[idx].nome = input.value;
