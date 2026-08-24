@@ -3854,6 +3854,7 @@
         const item = bibliotecaFigurino.find(i => i.id === itemId);
         if (!item) return;
         figurinoEntregaItemAtual = item;
+        document.getElementById('figurino-lista').style.display = 'none';
         document.querySelectorAll('#painel-figurino .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('figurino-tela-entregas').style.display = 'block';
         document.getElementById('figurino-entregas-titulo').textContent = item.nome;
