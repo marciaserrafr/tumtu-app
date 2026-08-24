@@ -1429,3 +1429,69 @@ Público granular: criadas 4 peças de teste (uma por público) na lista mestre 
 Título livre: testado via `XLSX.writeFile` interceptado (sem baixar arquivo de verdade) — com "Camisas da Final" preenchido, saiu `{ nome: "Camisas-da-Final-2026-08-24.xlsx", a1: "Camisas da Final" }`; em branco, saiu exatamente o comportamento antigo (`ritmistas-2026-08-24.xlsx`, título "Relatório de Ritmistas — Ativos, Pendentes"). Os dois caminhos confirmados corretos antes de mostrar a prévia pra ela.
 
 Publicado em produção depois de aprovação explícita dela ("pode subir e documenta tudo").
+
+## 53. Aniversariantes com cargo/gênero, cores padronizadas na Visão Geral, resumo de entrega de Figurino e 2 bugs reais corrigidos (24/ago/2026, sessão seguinte)
+
+Sequência de pedidos pontuais + uma frente grande (resumo de Figurino), todos publicados juntos em produção depois de aprovação dela ("pode subir para produção"), cada um antes testado numa prévia própria (3 branches: `preview/visao-geral-cor-pendentes`, `preview/figurino-resumo-visao-geral`, `preview/bugs-avatar-e-nav-mobile`, merge sequencial pra `main` com resolução manual do conflito de sempre em `CACHE_NAME` do `sw.js`).
+
+### 53.1 Aniversariantes do mês mostra o cargo + selos de Mestre/Diretor seguem o gênero
+
+Pedido dela: "inclua se a pessoa é ritmista, apoio, mestre ou diretor" no widget "Aniversariantes do mês" da Visão Geral — antes um ritmista sem instrumento aparecia só com "—", sem dizer nem que era ritmista. `renderizarVisaoGeral()` (`admin.html`) ganhou `cargoAniv` (Ritmista/Mestre/Diretor/Apoio, com variação de gênero pra Mestre/Diretor — ver abaixo) concatenado com o instrumento quando existe: "Ritmista · Repique".
+
+Ela reforçou em seguida, geral: "esses selos de mestre e diretor tem que seguir a lógica do gênero escolhido". Ao implementar o rótulo novo, achados mais 3 lugares que já mostravam "Mestre"/"Diretor" fixos, sem checar `pessoas.genero` (a lógica correta — Mestre/Mestra, Diretor/Diretora, Apoio invariável — já existia em `fpCargoLabel()`, `ficha-perfil.js`, usada só no cabeçalho da própria ficha):
+
+- `labelPerfilSA(p)` → `labelPerfilSA(p, genero)`: usada no selo do card de Diretoria e no cabeçalho do editor de Permissões (`abrirEditorPermissoesPessoa`).
+- `histPerfilLabel(p)` → `histPerfilLabel(p, genero)`: usada no Histórico.
+- `rotulo` do modal de Suspender/Desligar (Diretoria): ganhou a mesma checagem de gênero inline.
+
+Duas buscas precisaram de `genero` a mais no `select` pra alimentar isso: `permissoesPessoaCache` (`ritmistas_com_instrumento?...&select=id,nome,apelido,perfil,genero,capacidades,...`) e o embed `pessoa:pessoa_id(nome,genero)` na query de `vinculos_historico_status`.
+
+Testado ao vivo mudando temporariamente o gênero de uma Diretora de teste (Imperatriz) pra "Feminino" — confirmado "Diretora" no card da lista e no cabeçalho da ficha — e revertido pro valor original antes de seguir.
+
+### 53.2 Visão Geral: cores padronizadas (Pendentes terracota, Ativos verde)
+
+Dois pedidos dela, mesma lógica: reaproveitar cor que já significa a mesma coisa em outro canto do painel, em vez de inventar uma nova.
+
+- **Pendentes**: "Quando algo está pendente no dashboard, não é isso? vc poderia colocar essa mesma cor no visão geral?" — os números de "Pendentes" (Ritmistas e Diretoria) na Visão Geral ficavam na cor de texto padrão, sem destaque, diferente do card "Pendências" do Dashboard do Super Admin (`.kpi.atencao`, terracota quando > 0). Nova classe `.total-numero.atencao` (reaproveita `var(--cor-terracota)`), aplicada condicionalmente em `atualizarTotalizadores()`/`atualizarTotalizadoresDiretoria()` quando `pendentes > 0`.
+- **Ativos**: pergunta exploratória dela ("E o que acha de ativos ficar verde? assim vira padrão, correto?"), confirmada com "como o ativo é verde no status, eu acho que vale a pena esse padrão" — apontando pro selo verde "Ativo" (`.badge-aprovado`, `#2d7a4f`) já usado em toda lista de Ritmistas/Diretoria como a cor de referência certa (não o outro verde do app, `.badge-ativo`/`.kpi.ok`, `#2e7d32`, usado pra status de Escola/Bateria). Classe `.total-numero.dourado` renomeada pra `.total-numero.ativo` (só tinha 2 usos: "Ritmistas ativos" e "Diretoria ativa"), cor trocada de `#D4AF37` (dourado) pra `#2d7a4f`.
+
+### 53.3 Resumo de entrega de Figurino na Visão Geral
+
+Pedido dela: "no Visão Geral apareça um resumo da entrega dos figurinos... não tem como ficar todos lá". Card novo `#vg-figurino-card` (👕 Entrega de Figurino), abaixo do grid de Instrumentos/Aniversariantes, só visível quando existe pelo menos 1 peça em condição de aparecer.
+
+Peça de Ritmista quebra por naipe/instrumento, mesmo desenho visual de "Ritmistas por Instrumento" (`.vg-instrumento-linha`/`.vg-instrumento-qtd`/`.vg-instrumento-faltam`, sem CSS novo) — mas o **denominador é gente ativa daquele naipe**, não vaga configurada (conceito diferente do widget de vagas): `entregues / total_de_ritmistas_ativos_do_naipe`, "Faltam N" quando não bateu, pílula verde quando bate 100%. Peça de Mestre/Diretor/Apoio (sem naipe) mostra um total simples (ex: "Diretores — 2/3"), decisão dela confirmada por pergunta direta (opção "total simples" x "agrupado por cargo" x "não aparece").
+
+**Desenho passou por 2 versões antes de fechar**, depois de um mal-entendido real que valeu a pena registrar como lição:
+
+1ª versão: um único interruptor "Entrega encerrada" em `bateria_figurino_itens`, nascendo **desligado** — ou seja, ativar a peça em Configurações já bastava pra ela aparecer no resumo. Testada e publicada numa prévia, aprovada por ela inicialmente. Só que ao perguntar "já está concluída?", ela apontou o problema de verdade: **"se eu tiver 30 criadas e não encerradas vão aparecer as 30. E o fato de eu ter configurado com antecedência, quer dizer que eu quero mostrar na Visão Geral [não necessariamente]."** — ou seja, configurar uma peça com antecedência (planejamento) não é o mesmo que estar pronta pra aparecer publicamente no resumo.
+
+2ª versão (final): **dois interruptores independentes**, os dois nascendo desligados, confirmados com ela via pergunta de múltipla escolha antes de implementar:
+- `mostra_visao_geral` (rótulo "Mostrar na Visão Geral") — ela liga explicitamente quando decide acompanhar aquela peça. Nasce desligado sempre, mesmo peça recém-ativada.
+- `entrega_finalizada` (rótulo "Entrega Finalizada") — "quer dizer que eu não tenho mais que me preocupar com aquele item e entregar mais nada pra ninguém". Também esconde do resumo, **mesmo com "Mostrar" ligado** (`&&` na query: `mostra_visao_geral=eq.true&entrega_finalizada=eq.false`).
+
+```sql
+alter table bateria_figurino_itens drop column entrega_encerrada; -- 1ª versão, descartada
+alter table bateria_figurino_itens add column mostra_visao_geral boolean not null default false;
+alter table bateria_figurino_itens add column entrega_finalizada boolean not null default false;
+```
+
+Os dois interruptores moram na própria tela de entrega da peça (Mais → Entrega de Figurino → abrir a peça), não em Configurações → Figurino — decisão confirmada com ela por pergunta direta (a alternativa era colocar em Configurações, junto do "ativo", mas isso misturaria "a bateria usa essa peça" com "a entrega dessa temporada já terminou/está visível", perguntas diferentes).
+
+`carregarResumoEntregaFigurino()` (`admin.html`) faz 3 buscas em paralelo depois de achar as peças elegíveis: `figurino_itens_mestre` (nome/público), `ritmistas_com_instrumento` (pessoas ativas do(s) público(s) envolvido(s)) e `figurino_entregas` (quem já recebeu) — computa localmente contagem por naipe e ordena por "quem mais falta primeiro" (`faltam` desc), exatamente o caso de uso dela ("o mestre vai saber qual naipe tá faltando entregar camisa e pode cobrar do diretor responsável"). Card some por completo quando a busca de peças elegíveis volta vazia.
+
+**Achado de espaçamento** depois de aprovado: sem gap entre o grid de 2 colunas (Instrumentos/Aniversariantes) e o novo card — o último `.vg-card` de um `.vg-grid-2col` sempre zera `margin-bottom` (pra não duplicar o gap do próprio grid), então o card seguinte, fora do grid, colava direto nele. Corrigido com `margin-top:16px` inline no `#vg-figurino-card`, mesmo valor do gap padrão.
+
+Testado ao vivo 2 vezes (uma por versão do desenho) na Imperatriz Leopoldinense: criada peça de teste (`figurino_itens_mestre`), ativada pra bateria, marcadas entregas parciais, conferido o resumo aparecendo com naipe/pílula/"Faltam N" corretos, interruptores ligados/desligados em combinação, card sumindo quando esperado — dados de teste sempre apagados do banco antes de seguir. Na verificação final (já com o modelo de 2 interruptores em produção), usadas 3 peças reais que ela mesma já tinha cadastrado nesse meio-tempo ("Camisa da Final", "Camisa da Rainha", "Camisa do Mini Desfile") pra testar sem duplicar dado — estado original (interruptores desligados, sem entrega marcada) restaurado depois do teste.
+
+### 53.4 Dois bugs reais corrigidos
+
+**Menu do rodapé no celular, nome sumindo ao selecionar**: achado dela usando o celular de verdade. `.aba-btn.ativa`/`.sa-sidebar-item.ativa` (desktop) usam pílula dourada sólida + texto escuro (`#12101a`) por cima — desenho correto pra fundo claro. No celular, a barra vira rodapé fixo com fundo escuro (`var(--cor-fundo-escuro)`) e o override mobile já existente só tirava o fundo dourado (`background: none`, pra não formar uma pílula estranha numa barra horizontal) — mas **não** trocava a cor do texto, que continuava `#12101a` (quase preto) sobre um fundo quase preto: texto praticamente invisível. Corrigido adicionando `color: var(--cor-destaque)` (dourado) no mesmo override mobile — ícone + texto ficam dourados quando selecionado, sem pílula.
+
+**Foto do Super Admin não aparecia na bolinha do cabeçalho**: dois bugs encadeados, achados investigando o relato dela ("acabei de colocar a foto... não está aparecendo").
+
+1. `login.html`, fluxo de login do Super Admin (`pessoa.super_admin`): o `select` na tabela `pessoas` nunca pedia `foto_url` (só `id, nome, super_admin`), e o objeto salvo em `localStorage.ritmista` também não incluía o campo — mesmo com a foto certa no banco, o login nunca a carregava. Corrigido incluindo `foto_url` nos dois lugares. (O fluxo normal de Mestre/Diretor/Ritmista, via `ritmistas_com_instrumento?select=*`, já trazia `foto_url` corretamente — bug era só do caminho específico do Super Admin.)
+2. Mesmo com a foto certa salva, editar "Meu Perfil" (Super Admin **ou** Mestre/Diretor) não atualizava a bolinha do cabeçalho na mesma sessão: `fpSalvar()` (`ficha-perfil.js`) já atualiza `localStorage.ritmista` com dado fresco do banco quando é autoedição, mas nada re-renderizava `#headerAvatarWrap` depois disso — só um reload/relogin pegava o valor novo. Corrigido registrando `aoSalvar: (novosDados) => renderizarAvatarHeader(novosDados)` nos dois pontos de entrada de "Meu Perfil" (`iniciarMeuPerfilSaAba`, `iniciarMeuPerfilAba`), reaproveitando o mesmo hook `aoSalvar` já usado noutros lugares (ex: recarregar lista depois de editar um Ritmista).
+
+Verificado em produção com login novo (sessão antiga, criada antes do deploy, não carrega o campo novo até logar de novo — comportamento esperado, não é bug): `localStorage.ritmista.foto_url` presente depois do login, bolinha do cabeçalho mostrando a foto real. Menu do rodapé mobile verificado por simulação de CSS (injeção de `<style>` reproduzindo a media query, sem emulação de viewport real disponível no ambiente) — pedido a ela pra confirmar num celular de verdade antes/depois de aprovar.
+
+**Falso alarme registrado pra não redescobrir**: ao testar em produção logo após o deploy, uma aba de teste antiga (sessão de Supabase Auth expirada, mas com `localStorage.ritmista` ainda presente do app) mostrou Dashboard zerado (0 escolas, sem o card "Escolas DEMO") — parecia bug grave. Confirmado com login novo, numa aba limpa, que é comportamento correto: sem sessão válida do Supabase Auth (`sb.auth.getSession()` vazio), `authHeaders.Authorization` fica preso no valor inicial (a `anon key`, nunca substituída pelo token de sessão de `iniciarSessaoAuth()`), e RLS bloqueia silenciosamente as tabelas protegidas — devolve array vazio, não erro. Não é um bug introduzido nesta sessão; é como o app já se comportava com sessão expirada. Login novo resolve.
