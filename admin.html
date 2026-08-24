@@ -257,7 +257,10 @@
         .total-numero {
             font-size: 28px; font-weight: 800; color: var(--cor-texto-principal); line-height: 1;
         }
-        .total-numero.dourado { color: #D4AF37; }
+        /* Mesmo verde já usado no selo "Ativo" (.badge-aprovado) -- pedido
+           da Márcia, 24/ago/2026: "ativos" vira padrão sempre verde, "como
+           o ativo é verde no status". Era dourado antes. */
+        .total-numero.ativo { color: #2d7a4f; }
         /* Mesma cor do card "Pendências" do Dashboard (.kpi.atencao .n) --
            pedido da Márcia, 24/ago/2026, pra Visão Geral usar a mesma cor
            quando tem pendência. */
@@ -1718,7 +1721,7 @@
 
     <div class="totalizadores">
         <div class="total-card">
-            <div class="total-numero dourado" id="totalAtivos">—</div>
+            <div class="total-numero ativo" id="totalAtivos">—</div>
             <div class="total-label">Ritmistas ativos</div>
         </div>
         <div class="total-card">
@@ -1732,7 +1735,7 @@
          capacidade que libera a aba Diretoria. -->
     <div class="totalizadores" id="totalizadoresDiretoria" style="display:none;">
         <div class="total-card">
-            <div class="total-numero dourado" id="totalDiretoriaAtivos">—</div>
+            <div class="total-numero ativo" id="totalDiretoriaAtivos">—</div>
             <div class="total-label">Diretoria ativa</div>
         </div>
         <div class="total-card">
