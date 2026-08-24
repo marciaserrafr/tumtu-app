@@ -2847,7 +2847,14 @@
             const nasc = new Date(r.nascimento + 'T00:00:00');
             const dia = nasc.getDate().toString().padStart(2, '0');
             const idade = calcularIdade(r.nascimento);
-            const detalhe = r.perfil === 'ritmista' ? (r.instrumento_nome || '—') : labelPerfilSA(r.perfil);
+            // Pedido dela, 24/ago/2026: sempre mostrar o cargo (Ritmista/
+            // Mestre/Diretor/Apoio), não só o instrumento -- antes um
+            // ritmista sem instrumento aparecia só com "—", sem dizer nem
+            // que era ritmista.
+            const cargoAniv = r.perfil === 'mestre' ? (r.genero === 'feminino' ? 'Mestra' : 'Mestre')
+                : r.perfil === 'diretor' ? (r.genero === 'feminino' ? 'Diretora' : 'Diretor')
+                : r.perfil === 'apoio' ? 'Apoio' : 'Ritmista';
+            const detalhe = (r.perfil === 'ritmista' && r.instrumento_nome) ? `${cargoAniv} · ${r.instrumento_nome}` : cargoAniv;
             return `<div class="vg-aniversariante">
                 <span style="font-size:20px;">🎂</span>
                 <div>
@@ -4974,7 +4981,7 @@
             chkRitmista.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
         }
         if (!bateriaId) { permissoesPessoaCache = []; container.innerHTML = '<div class="estado-vazio">Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,capacidades,modo_carteirinha_individual`, { headers: authHeaders });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         renderizarListaPermissoesPessoas();
     }
@@ -5034,7 +5041,7 @@
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil), capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, veioDaFicha };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, veioDaFicha };
         renderizarEditorPermissoesPessoa();
     }
     // Atalho "Editar permissões" de dentro da ficha (item 4, 22/ago/2026) --
@@ -5501,14 +5508,20 @@
     // ══════════════════════════════════════════════════════════════════
     const HIST_STATUS_LABEL = { pendente: 'Pendente', aprovado: 'Aprovado', rejeitado: 'Rejeitado', suspenso: 'Suspenso', desligado: 'Desligado', inativo: 'Inativo' };
     function histStatusLabel(s) { return HIST_STATUS_LABEL[s] || s || '—'; }
-    function histPerfilLabel(p) { return p === 'ritmista' ? 'Ritmista' : labelPerfilSA(p); }
-    function labelPerfilSA(p) { if (p === 'mestre') return 'Mestre de Bateria'; if (p === 'diretor') return 'Diretor'; if (p === 'apoio') return 'Apoio de Bateria'; return p; }
+    function histPerfilLabel(p, genero) { return p === 'ritmista' ? 'Ritmista' : labelPerfilSA(p, genero); }
+    // Gênero muda Mestre/Mestra e Diretor/Diretora -- mesma lógica de
+    // fpCargoLabel (ficha-perfil.js), reaplicada aqui pros selos/rótulos
+    // do painel que não passam pelo motor único de ficha. Apoio é
+    // invariável (nunca teve forma feminina definida). Pedido dela,
+    // 24/ago/2026, depois de eu esquecer disso ao criar o rótulo de cargo
+    // em Aniversariantes do mês.
+    function labelPerfilSA(p, genero) { if (p === 'mestre') return genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria'; if (p === 'diretor') return genero === 'feminino' ? 'Diretora' : 'Diretor'; if (p === 'apoio') return 'Apoio de Bateria'; return p; }
     function histDataHora(iso) { return iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—'; }
     async function carregarHistoricoEscolaSA() {
         const container = document.getElementById('lista-historico-escola');
         const idsBaterias = bateriasCache.map(b => b.id);
         if (idsBaterias.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
-        const url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome),decisor:decidido_por(nome),bateria:bateria_id(nome)&bateria_id=in.(${idsBaterias.join(',')})&order=criado_em.desc&limit=200`;
+        const url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome,genero),decisor:decidido_por(nome),bateria:bateria_id(nome)&bateria_id=in.(${idsBaterias.join(',')})&order=criado_em.desc&limit=200`;
         const res = await fetch(url, { headers: authHeaders });
         if (!res.ok) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Não foi possível carregar o histórico.</div>'; return; }
         const eventos = await res.json();
@@ -5516,7 +5529,7 @@
         container.innerHTML = eventos.map(ev => `
             <div class="item-card">
                 <div class="item-info">
-                    <div class="item-nome">${esc(ev.pessoa?.nome || '—')}<span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · ${histPerfilLabel(ev.perfil)}</span></div>
+                    <div class="item-nome">${esc(ev.pessoa?.nome || '—')}<span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · ${histPerfilLabel(ev.perfil, ev.pessoa?.genero)}</span></div>
                     <div class="item-detalhe" style="margin-top:5px">
                         ${histStatusLabel(ev.status_anterior)} → ${histStatusLabel(ev.status_novo)} · por ${esc(ev.decisor?.nome || '—')} · ${esc(ev.bateria?.nome || '—')} · ${histDataHora(ev.criado_em)}
                         ${ev.motivo ? ` · "${esc(ev.motivo)}"` : ''}
@@ -5824,7 +5837,7 @@
             const fotoHtml = a.foto_url
                 ? `<img src="${a.foto_url}">`
                 : inicial;
-            const cargo = labelPerfilSA(a.perfil);
+            const cargo = labelPerfilSA(a.perfil, a.genero);
             // Mesmos ícones de aniversário/estrangeiro do card de Ritmistas --
             // pedido da Márcia, 21/ago/2026: "diretoria" pra ela é o módulo
             // inteiro (Mestre, Diretor e Apoio), não só uma parte dele.
@@ -5942,7 +5955,8 @@
         // nenhum da tela, só Aprovar/Rejeitar (pendente). Reaproveita os
         // mesmos modais de motivo (abrirModalSuspender/abrirModalDesligar),
         // só passando o rótulo certo e qual lista recarregar depois.
-        const rotulo = a.perfil === 'mestre' ? 'Mestre' : a.perfil === 'diretor' ? 'Diretor' : 'Apoio';
+        const rotulo = a.perfil === 'mestre' ? (a.genero === 'feminino' ? 'Mestra' : 'Mestre')
+            : a.perfil === 'diretor' ? (a.genero === 'feminino' ? 'Diretora' : 'Diretor') : 'Apoio';
         const nomeEscapado = (a.nome || '').replace(/'/g, "\\'");
         let btns = '';
         if (a.status === 'pendente') {
