@@ -928,7 +928,7 @@
             const opcoes = res.ok ? await res.json() : [];
             const porTipo = {};
             opcoes.forEach(o => {
-                if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { nome: o.tipo_nome, tamanhos: [] };
+                if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { nome: o.tipo_nome, grupo: o.tipo_grupo, tamanhos: [] };
                 porTipo[o.tipo_id].tamanhos.push(o.nome_exibicao);
             });
             const tiposAtivos = Object.entries(porTipo); // já vem só com tamanho ativo -- tipo sem nenhum simplesmente não existe aqui
@@ -938,14 +938,22 @@
             // Instrumento pra quem não é Ritmista (esconder em vez de
             // deixar título solto sem campo nenhum embaixo).
             if (secao) secao.style.display = tiposAtivos.length === 0 ? 'none' : '';
-            container.innerHTML = tiposAtivos.map(([tipoId, t]) => `
+            // Categoria "Tradicional" (Camisa/Fantasia/Calça/Sapato) é
+            // obrigatória, "Especial" (ex: Vestido, só ativada pontualmente
+            // por uma bateria) não é -- pedido da Márcia, 24/ago/2026:
+            // categoria pontual criada no meio da temporada não pode forçar
+            // todo mundo a preencher algo que talvez nem seja pra ela.
+            container.innerHTML = tiposAtivos.map(([tipoId, t]) => {
+                const obrigatoria = t.grupo !== 'especial';
+                return `
                 <div class="auth-form-group">
-                    <label>Tamanho: ${t.nome} <span class="obrigatorio">*</span></label>
-                    <select id="medida-${tipoId}" data-tipo-id="${tipoId}" required>
+                    <label>Tamanho: ${t.nome} ${obrigatoria ? '<span class="obrigatorio">*</span>' : ''}</label>
+                    <select id="medida-${tipoId}" data-tipo-id="${tipoId}" ${obrigatoria ? 'required' : ''}>
                         <option value="">Selecione</option>
                         ${t.tamanhos.map(nome => `<option value="${nome}">${nome}</option>`).join('')}
                     </select>
-                </div>`).join('');
+                </div>`;
+            }).join('');
         } catch (e) {
             mostrarMensagem('Não consegui carregar a lista de medidas (sem conexão?). Verifique sua internet e tente de novo.', 'erro');
         }

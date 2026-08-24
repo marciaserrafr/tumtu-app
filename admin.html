@@ -3832,30 +3832,34 @@
         else medidaTiposAbertos.add(tipoId);
         renderizarConfigMedidas();
     }
+    // Agrupado em Tradicionais/Especiais desde 24/ago/2026 (pedido dela) --
+    // volta a fazer sentido ter título de grupo agora que "Especial" reúne
+    // categorias pontuais de verdade (mais de um card por grupo), diferente
+    // do card único e redundante que motivou tirar o título em 22/ago/2026.
+    function cardConfigMedidaTipo(tipo) {
+        const itens = bibliotecaMedidas.filter(t => t.tipo_id === tipo.id).sort((a, b) => a.ordem - b.ordem);
+        if (itens.length === 0) return '';
+        const tipoExistente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipo.id);
+        const tipoAtivo = !!(tipoExistente && tipoExistente.ativo); // sem linha = desligado, mesmo padrão de Instrumentos
+        const aberto = medidaTiposAbertos.has(tipo.id);
+        return `
+            <div class="item-card config-medida-card">
+                <div class="config-medida-header" onclick="toggleMedidaTipoAberto(${tipo.id})">
+                    <label class="config-instrumento-check" onclick="event.stopPropagation()">
+                        <input type="checkbox" ${tipoAtivo ? 'checked' : ''} onchange="salvarMedidaTipo(${tipo.id}, this.checked)">
+                        <span class="item-nome">${tipo.nome}</span>
+                    </label>
+                    <span class="config-medida-seta ${aberto ? 'aberta' : ''}">›</span>
+                </div>
+                ${aberto ? `<div class="config-medida-tamanhos">${itens.map(t => renderizarLinhaMedida(t)).join('')}</div>` : ''}
+            </div>`;
+    }
     function renderizarConfigMedidas() {
         const container = document.getElementById('config-medidas-lista');
-        container.innerHTML = bibliotecaMedidaTipos.map(tipo => {
-            const itens = bibliotecaMedidas.filter(t => t.tipo_id === tipo.id).sort((a, b) => a.ordem - b.ordem);
-            if (itens.length === 0) return '';
-            const tipoExistente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipo.id);
-            const tipoAtivo = !!(tipoExistente && tipoExistente.ativo); // sem linha = desligado, mesmo padrão de Instrumentos
-            const aberto = medidaTiposAbertos.has(tipo.id);
-            // Sem título de grupo aqui -- achado real dela, 22/ago/2026:
-            // cada grupo tem exatamente 1 card, então o título ("CAMISA")
-            // só repetia o que o próprio card já diz ("Camisa"), sem
-            // acrescentar nada. Diferente de Instrumentos, onde um grupo
-            // (Tradicionais) reúne vários cards com nomes diferentes.
-            return `
-                <div class="item-card config-medida-card">
-                    <div class="config-medida-header" onclick="toggleMedidaTipoAberto(${tipo.id})">
-                        <label class="config-instrumento-check" onclick="event.stopPropagation()">
-                            <input type="checkbox" ${tipoAtivo ? 'checked' : ''} onchange="salvarMedidaTipo(${tipo.id}, this.checked)">
-                            <span class="item-nome">${tipo.nome}</span>
-                        </label>
-                        <span class="config-medida-seta ${aberto ? 'aberta' : ''}">›</span>
-                    </div>
-                    ${aberto ? `<div class="config-medida-tamanhos">${itens.map(t => renderizarLinhaMedida(t)).join('')}</div>` : ''}
-                </div>`;
+        container.innerHTML = GRUPOS_MEDIDA_TIPO.map(([chave, label]) => {
+            const tipos = bibliotecaMedidaTipos.filter(t => (t.grupo || 'tradicional') === chave && bibliotecaMedidas.some(m => m.tipo_id === t.id));
+            if (tipos.length === 0) return '';
+            return `<div class="secao-titulo">${label}</div>${tipos.map(cardConfigMedidaTipo).join('')}`;
         }).join('');
     }
 
@@ -5426,23 +5430,34 @@
         const tamanhos = await resTam.json();
         medidaTiposCacheSA = (tipos || []).map(t => ({ ...t, tamanhos: (tamanhos || []).filter(x => x.tipo_id === t.id) }));
     }
-    function renderizarMedidaTiposListaSA() {
-        const container = document.getElementById('sa-medida-tipos-lista');
-        if (medidaTiposCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhuma categoria de figurino cadastrada ainda.</div>'; return; }
-        container.innerHTML = [...medidaTiposCacheSA].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(t => `
+    // Tradicionais/Especiais -- pedido da Márcia, 24/ago/2026, mesmo rótulo
+    // já usado em Instrumentos: Tradicional é obrigatória no cadastro,
+    // Especial é opcional (peça pontual, ex: Vestido só pro Chocalho).
+    const GRUPOS_MEDIDA_TIPO = [['tradicional', 'Tradicionais'], ['especial', 'Especiais']];
+    function cardMedidaTipoSA(t) {
+        return `
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(t.nome)} ${t.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
                     <div class="item-detalhe">${t.tamanhos.length > 0 ? esc([...t.tamanhos].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(x => x.nome).join(', ')) : 'Sem tamanhos cadastrados'}</div>
                 </div>
                 <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarMedidaTipo(${t.id})">Editar</button></div>
-            </div>`).join('');
+            </div>`;
     }
-    function abrirNovoMedidaTipo() { medidaTipoEditando = { id: null, nome: '', ativo: true, tamanhos: [], removidas: [] }; renderizarEditorMedidaTipo(); }
+    function renderizarMedidaTiposListaSA() {
+        const container = document.getElementById('sa-medida-tipos-lista');
+        if (medidaTiposCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhuma categoria de figurino cadastrada ainda.</div>'; return; }
+        container.innerHTML = GRUPOS_MEDIDA_TIPO.map(([chave, label]) => {
+            const itens = medidaTiposCacheSA.filter(t => (t.grupo || 'tradicional') === chave).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            if (itens.length === 0) return '';
+            return `<div class="secao-titulo">${label}</div>${itens.map(cardMedidaTipoSA).join('')}`;
+        }).join('');
+    }
+    function abrirNovoMedidaTipo() { medidaTipoEditando = { id: null, nome: '', ativo: true, grupo: 'tradicional', tamanhos: [], removidas: [] }; renderizarEditorMedidaTipo(); }
     function abrirEditarMedidaTipo(id) {
         const t = medidaTiposCacheSA.find(x => x.id === id);
         if (!t) return;
-        medidaTipoEditando = { id: t.id, nome: t.nome, ativo: t.ativo !== false, tamanhos: [...t.tamanhos].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(s => ({ id: s.id, nome: s.nome })), removidas: [] };
+        medidaTipoEditando = { id: t.id, nome: t.nome, ativo: t.ativo !== false, grupo: t.grupo || 'tradicional', tamanhos: [...t.tamanhos].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(s => ({ id: s.id, nome: s.nome })), removidas: [] };
         renderizarEditorMedidaTipo();
     }
     function renderizarEditorMedidaTipo() {
@@ -5458,6 +5473,10 @@
                 <div class="campo"><label>Status</label><select id="mt-edit-ativo">
                     <option value="true" ${te.ativo ? 'selected' : ''}>Ativo</option>
                     <option value="false" ${!te.ativo ? 'selected' : ''}>Inativo</option>
+                </select></div>
+                <div class="campo"><label>Grupo</label><select id="mt-edit-grupo">
+                    <option value="tradicional" ${te.grupo !== 'especial' ? 'selected' : ''}>Tradicional (obrigatória no cadastro)</option>
+                    <option value="especial" ${te.grupo === 'especial' ? 'selected' : ''}>Especial (opcional no cadastro)</option>
                 </select></div>
                 <div class="campo campo-full">
                     <label>Medida (escala de tamanhos desta categoria) *</label>
@@ -5509,16 +5528,17 @@
         const nome = document.getElementById('mt-edit-nome').value.trim();
         if (!nome) { mostrarToast('Informe o nome da categoria de figurino.', 'erro'); return; }
         const ativo = document.getElementById('mt-edit-ativo').value === 'true';
+        const grupo = document.getElementById('mt-edit-grupo').value;
         const tamanhosValidos = medidaTipoEditando.tamanhos.map(s => (s.nome || '').trim()).filter(Boolean);
         if (tamanhosValidos.length === 0) { mostrarToast('Adicione pelo menos um tamanho — toda categoria precisa de uma escala de Medida.', 'erro'); return; }
         salvandoMedidaTipo = true;
         try {
             let tipoId = medidaTipoEditando.id;
             if (tipoId) {
-                await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${tipoId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${tipoId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo, grupo }) });
             } else {
                 const ordem = Math.max(0, ...medidaTiposCacheSA.map(t => t.ordem || 0)) + 1;
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem }) });
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem, grupo }) });
                 const dados = await res.json();
                 tipoId = dados[0].id;
             }
