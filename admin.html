@@ -1697,6 +1697,13 @@
         <button class="btn-voltar-config" onclick="voltarFigurinoLista()">← Entrega de Figurino</button>
         <div class="painel-titulo" id="figurino-entregas-titulo">Entregas</div>
         <p class="config-sub-desc">Tamanho mostrado só pra consulta (vem de Medidas) — a edição do tamanho continua na ficha da pessoa.</p>
+        <div class="item-card" style="margin-bottom:14px;">
+            <label class="config-instrumento-check">
+                <input type="checkbox" id="figurino-entrega-encerrada" onchange="toggleEntregaEncerrada(this.checked)">
+                <span class="item-nome">Entrega encerrada</span>
+            </label>
+        </div>
+        <p class="config-sub-desc" style="margin-top:-8px;">Enquanto desligado, essa peça aparece no resumo da Visão Geral. Ligue quando a temporada de entrega dela acabar.</p>
         <input type="text" id="figurino-entregas-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarEntregasFigurinoLista()"
             style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;margin-bottom:10px;">
         <select id="figurino-entregas-filtro-instrumento" onchange="renderizarEntregasFigurinoLista()" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;outline:none;margin-bottom:16px;">
@@ -1747,6 +1754,16 @@
             <div class="vg-secao-titulo">🎂 Aniversariantes do mês</div>
             <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
         </div>
+    </div>
+
+    <!-- Resumo de entrega de Figurino -- só aparece com pelo meno 1 peça
+         ativa e não encerrada (ver toggleEntregaEncerrada). Pedido da
+         Márcia, 24/ago/2026: "não tem como ficar todos lá" -- o controle
+         Encerrado (na própria tela de Entrega de Figurino) é quem decide
+         o que aparece aqui, senão a lista cresce pra sempre. -->
+    <div class="vg-card" id="vg-figurino-card" style="display:none;">
+        <div class="vg-secao-titulo">👕 Entrega de Figurino</div>
+        <div id="vg-figurino"></div>
     </div>
 
 </div><!-- /painel-visao -->
@@ -2104,7 +2121,7 @@
 
     async function carregarRitmistas() {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); return; }
+        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); carregarResumoEntregaFigurino(); return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=*&order=created_at.desc`, {
             headers: authHeaders
         });
@@ -2113,6 +2130,7 @@
         atualizarTotalizadores();
         renderizarVisaoGeral();
         renderizarContagemInstrumentos();
+        carregarResumoEntregaFigurino();
     }
 
     function toggleStatusSelect() {
@@ -2917,6 +2935,83 @@
                     <span class="vg-instrumento-qtd${(l.excedeu || l.semVaga) ? ' excedeu' : l.completo ? ' completo' : ''}">${l.qtd} / ${l.semVaga ? '-' : l.vagas}</span>
                 </span>
             </div>`).join('');
+    }
+
+    // Resumo de entrega de Figurino na Visão Geral -- pedido da Márcia,
+    // 24/ago/2026: "não tem como ficar todos lá". Só entra aqui quem está
+    // ativo pra essa bateria E não foi marcado "Entrega encerrada" (ver
+    // toggleEntregaEncerrada, na tela Mais → Entrega de Figurino) -- card
+    // inteiro some quando não sobra nenhum. Peça de Ritmista quebra por
+    // instrumento (mesmo desenho de "Ritmistas por Instrumento", mas o
+    // denominador aqui é gente ativa daquele naipe, não vaga configurada);
+    // peça de Mestre/Diretor/Apoio mostra só o total, sem naipe (não existe
+    // naipe pra Diretoria).
+    async function carregarResumoEntregaFigurino() {
+        const card = document.getElementById('vg-figurino-card');
+        if (!card) return;
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { card.style.display = 'none'; return; }
+        const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&entrega_encerrada=eq.false&select=id,figurino_item_mestre_id`, { headers: authHeaders });
+        const ativos = resAtivos.ok ? await resAtivos.json() : [];
+        if (ativos.length === 0) { card.style.display = 'none'; document.getElementById('vg-figurino').innerHTML = ''; return; }
+        const itemIds = ativos.map(a => a.figurino_item_mestre_id);
+        const resItens = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=in.(${itemIds.join(',')})&select=id,nome,publico`, { headers: authHeaders });
+        const itens = resItens.ok ? await resItens.json() : [];
+        if (itens.length === 0) { card.style.display = 'none'; return; }
+        const perfis = [...new Set(itens.map(i => i.publico))];
+        const [resPessoas, resEntregas] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=in.(${perfis.join(',')})&select=id,perfil,instrumento_nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=in.(${itemIds.join(',')})&entregue_em=not.is.null&select=vinculo_id,figurino_item_id`, { headers: authHeaders }),
+        ]);
+        const pessoas = resPessoas.ok ? await resPessoas.json() : [];
+        const entregas = resEntregas.ok ? await resEntregas.json() : [];
+        card.style.display = 'block';
+        renderizarResumoEntregaFigurino(itens, pessoas, entregas);
+    }
+
+    function renderizarResumoEntregaFigurino(itens, pessoas, entregas) {
+        const div = document.getElementById('vg-figurino');
+        if (!div) return;
+        const entreguesPorItem = {};
+        entregas.forEach(e => {
+            if (!entreguesPorItem[e.figurino_item_id]) entreguesPorItem[e.figurino_item_id] = new Set();
+            entreguesPorItem[e.figurino_item_id].add(e.vinculo_id);
+        });
+        const linhaHtml = (nome, entregues, total) => {
+            const faltam = total - entregues;
+            return `
+            <div class="vg-instrumento-linha">
+                <span>${esc(nome)}</span>
+                <span style="display:flex;align-items:center;gap:14px;">
+                    ${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}
+                    <span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}">${entregues} / ${total}</span>
+                </span>
+            </div>`;
+        };
+        const itensOrdenados = [...itens].sort((a, b) =>
+            ORDEM_PUBLICO_FIGURINO.indexOf(a.publico) - ORDEM_PUBLICO_FIGURINO.indexOf(b.publico) || a.nome.localeCompare(b.nome, 'pt-BR'));
+        div.innerHTML = itensOrdenados.map((item, idx) => {
+            const entreguesSet = entreguesPorItem[item.id] || new Set();
+            const pessoasAlvo = pessoas.filter(p => p.perfil === item.publico);
+            const titulo = `<div style="font-size:13px;font-weight:700;color:var(--cor-texto-principal);margin:${idx === 0 ? '0' : '18px'} 0 6px;">${esc(item.nome)}</div>`;
+            if (pessoasAlvo.length === 0) {
+                return titulo + `<div style="color:#bbb;font-size:13px;padding:4px 0 9px;">Ninguém em ${LABEL_PUBLICO_FIGURINO[item.publico].toLowerCase()} ainda.</div>`;
+            }
+            if (item.publico === 'ritmista') {
+                const porInstrumento = {};
+                pessoasAlvo.forEach(p => {
+                    const chave = p.instrumento_nome || 'Sem instrumento';
+                    if (!porInstrumento[chave]) porInstrumento[chave] = { total: 0, entregues: 0 };
+                    porInstrumento[chave].total++;
+                    if (entreguesSet.has(p.id)) porInstrumento[chave].entregues++;
+                });
+                const linhas = Object.entries(porInstrumento).map(([nome, v]) => ({ nome, ...v, faltam: v.total - v.entregues }))
+                    .sort((a, b) => b.faltam - a.faltam || a.nome.localeCompare(b.nome, 'pt-BR'));
+                return titulo + linhas.map(l => linhaHtml(l.nome, l.entregues, l.total)).join('');
+            }
+            const entregues = pessoasAlvo.filter(p => entreguesSet.has(p.id)).length;
+            return titulo + linhaHtml(LABEL_PUBLICO_FIGURINO[item.publico], entregues, pessoasAlvo.length);
+        }).join('');
     }
 
     // Fechar modal clicando fora
@@ -3892,7 +3987,25 @@
         document.getElementById('figurino-entregas-busca').value = '';
         // Filtro de instrumento só faz sentido pra peça de Ritmista -- Diretoria não tem instrumento único.
         document.getElementById('figurino-entregas-filtro-instrumento').style.display = item.publico === 'ritmista' ? 'block' : 'none';
+        const bfExistente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === item.id);
+        document.getElementById('figurino-entrega-encerrada').checked = !!(bfExistente && bfExistente.entrega_encerrada);
         await carregarEntregasFigurino();
+    }
+
+    // Liga/desliga se essa peça ainda entra no resumo da Visão Geral --
+    // pedido da Márcia, 24/ago/2026: "não tem como ficar todos lá". A peça
+    // sempre tem uma linha em bateriaFigurinoCache nesse ponto (só chega
+    // aqui vindo da lista de ativas).
+    async function toggleEntregaEncerrada(encerrada) {
+        const item = figurinoEntregaItemAtual;
+        if (!item) return;
+        const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === item.id);
+        if (!existente) return;
+        existente.entrega_encerrada = encerrada;
+        await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ entrega_encerrada: encerrada })
+        });
+        carregarResumoEntregaFigurino();
     }
 
     async function carregarEntregasFigurino() {
