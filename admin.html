@@ -345,11 +345,6 @@
         /* VISÃO GERAL */
         .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
         .vg-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 16px; }
-        /* Instrumentos + Aniversariantes lado a lado no computador (Ritmistas
-           por Instrumento ocupava a tela toda sozinho) -- volta a empilhar
-           no celular (media query lá embaixo), pedido da Márcia, 22/ago/2026. */
-        .vg-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-        .vg-grid-2col .vg-card { margin-bottom: 0; }
         .vg-aniversariante { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
         .vg-aniversariante:last-child { border-bottom: none; }
         .vg-aniv-nome { font-weight: 700; color: var(--cor-texto-principal); }
@@ -707,13 +702,6 @@
             .totalizadores { gap: 8px; }
             .total-card { padding: 12px 14px; }
             .total-numero { font-size: 24px; }
-
-            /* Instrumentos + Aniversariantes voltam a empilhar no celular --
-               2 colunas ali ficariam apertadas demais (ex: "Sem definição de
-               vagas" ao lado da pílula de contagem). */
-            .vg-grid-2col { grid-template-columns: 1fr; }
-            .vg-grid-2col .vg-card { margin-bottom: 16px; }
-            .vg-grid-2col .vg-card:last-child { margin-bottom: 0; }
 
             /* Card de Ritmistas/Diretoria quebra em 2 linhas no celular --
                achado real da Márcia, 20/ago/2026, testando de verdade:
@@ -1770,16 +1758,20 @@
         </div>
     </div>
 
-    <div class="vg-grid-2col">
-        <div class="vg-card">
-            <div class="vg-secao-titulo">🥁 Ritmistas por Instrumento</div>
-            <div id="vg-instrumentos"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
-        </div>
+    <!-- Empilhado, um card embaixo do outro (era grid de 2 colunas até
+         24/ago/2026) -- pedido da Márcia depois de reparar que o card
+         menor (Aniversariantes) deixava um vão vazio embaixo dele sempre
+         que "Ritmistas por Instrumento" era mais alto: "fica esse espaço
+         vazio e não achei legal". Ordem também mudou a pedido dela:
+         Aniversariantes primeiro. -->
+    <div class="vg-card">
+        <div class="vg-secao-titulo">🎂 Aniversariantes do mês</div>
+        <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+    </div>
 
-        <div class="vg-card">
-            <div class="vg-secao-titulo">🎂 Aniversariantes do mês</div>
-            <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
-        </div>
+    <div class="vg-card">
+        <div class="vg-secao-titulo">🥁 Ritmistas por Instrumento</div>
+        <div id="vg-instrumentos"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
     <!-- Resumo de entrega de Figurino -- só aparece com pelo menos 1 peça
@@ -1788,7 +1780,7 @@
          de Figurino). Pedido da Márcia, 24/ago/2026: "não tem como ficar
          todos lá" -- e ativar a peça com antecedência não quer dizer que
          ela deve aparecer aqui sozinha. -->
-    <div class="vg-card" id="vg-figurino-card" style="display:none;margin-top:16px;">
+    <div class="vg-card" id="vg-figurino-card" style="display:none;">
         <div class="vg-secao-titulo">👕 Entrega de Figurino</div>
         <div id="vg-figurino"></div>
     </div>
