@@ -1393,4 +1393,39 @@ Super Admin → Configurações → Figurino: criação de 2 peças de teste (um
 
 Publicado em produção depois de aprovação explícita dela ("Pode subir e documenta tudo. Suba tb a questão do dashboard.").
 
-Publicado em produção depois de aprovação explícita dela ("pode subir e registra tudo").
+## 52. Figurino: público granular (Ritmista/Mestre/Diretor/Apoio) + título livre no Exportar Excel (24/ago/2026)
+
+Dois ajustes pedidos na sequência, depois de ela ver a seção 51 publicada.
+
+### 52.1 Público granular
+
+Ela pediu pra separar o campo `publico` de `figurino_itens_mestre` em 4 valores (um por perfil: `ritmista`, `mestre`, `diretor`, `apoio`) em vez do agrupado `'diretoria'` usado até então — "pode ser que tenha essa divisão e eu quero estar preparada pra isso", pensando numa bateria que no futuro queira uma peça diferente por cargo (ex: camisa de Mestre diferente da de Diretor). Sem dado real cadastrado ainda (confirmado por SQL antes de mexer), migração livre:
+
+```sql
+alter table figurino_itens_mestre drop constraint figurino_itens_mestre_publico_check;
+alter table figurino_itens_mestre add constraint figurino_itens_mestre_publico_check
+  check (publico in ('ritmista','mestre','diretor','apoio'));
+```
+
+**Efeito colateral bom**: `publico` passou a ser literalmente igual a `vinculos.perfil` — os filtros que antes precisavam de `perfil=in.(mestre,diretor,apoio)` (pra cobrir o bloco "diretoria") viraram um simples `perfil=eq.${item.publico}`, tanto na tela de entrega (`admin.html`, `carregarEntregasFigurino`) quanto na ficha (`ficha-perfil.js`, `fpRenderizarEntregaFigurino`: `const publico = alvo.perfil;`).
+
+Consolidado numa única `LABEL_PUBLICO_FIGURINO`/`ORDEM_PUBLICO_FIGURINO` compartilhada (existiam 2 cópias quase iguais, uma pro Super Admin e outra pra bateria, achado limpando o código antes de generalizar) — todas as telas que agrupam Figurino por público (Super Admin → Configurações → Figurino, bateria → Configurações → Figurino, Mais → Entrega de Figurino) passaram a iterar `ORDEM_PUBLICO_FIGURINO = ['ritmista', 'mestre', 'diretor', 'apoio']`, sempre nessa ordem.
+
+### 52.2 Exportar Excel: título livre
+
+Pedido dela, depois de uma conversa que passou por duas ideias descartadas antes de chegar na final: primeiro cogitou um checkbox de Figurino que gerasse o título automaticamente (ex: marcar "Camisa da Final" geraria "Relatório: Camisa da Final"), depois percebeu sozinha que isso não cobre um relatório sem nada a ver com Figurino (seu próprio exemplo: "quero fazer um relatório do endereço dos ritmistas... não faz sentido ter esse tipo de título que estou propondo"). Decisão final: campo de texto **livre e opcional**, sem nenhuma lógica de Figurino embutida.
+
+- Novo campo `#exportTituloCustom` no modal "Exportar Excel" (`admin.html`), logo abaixo do resumo, acima de "Quem exportar".
+- `tituloRelatorio(ehRitmistas, sufixoGrupo)`: se o campo estiver preenchido, usa esse texto como título (ignorando o `statusLabelExportacao()` automático) — mas ainda soma o sufixo de grupo (`— Nome do Instrumento/Cargo`) quando a exportação é "separado por instrumento/cargo", senão as abas ficariam todas com o mesmo título, indistinguíveis.
+- Nome do arquivo baixado (`XLSX.writeFile`) também usa o texto, sanitizado: `normalize('NFD')` + remoção da faixa Unicode de acentos combinados (`̀`-`ͯ`) + troca de qualquer caractere não alfanumérico por hífen + aparo de hífen nas pontas. Ex: "Camisas da Final" → `Camisas-da-Final-2026-08-24.xlsx`.
+- Em branco, o comportamento é idêntico ao que já existia (título automático "Relatório de Ritmistas — Ativos...", nome de arquivo `ritmistas-2026-08-24.xlsx`).
+
+**Caso de uso real que motivou**: Diretor quer mandar pra fábrica a lista de tamanho de camisa de todo mundo, pra confecção da "Camisa da Final" — exporta com o grupo "Medidas" marcado (já existente desde a seção 49, não precisou de nada novo) e escreve "Camisas da Final" no título, saindo já com nome de arquivo e título prontos pra enviar. Confirmado com ela que "categoria do figurino e sua medida" já é exatamente esse grupo "Medidas" — nenhuma tela nova precisou ser criada pra isso.
+
+### 52.3 Verificação ao vivo
+
+Público granular: criadas 4 peças de teste (uma por público) na lista mestre — confirmado agrupamento Ritmistas/Mestres/Diretores/Apoio nessa ordem, tanto no Super Admin quanto na tela de ativação da bateria (Configurações → Figurino) e na tela de Entrega. Ativada uma peça de Diretor e aberta a tela de entrega dela: mostrou só os 2 Diretores da Imperatriz, sem misturar com o Mestre nem o Apoio — confirma o filtro granular funcionando. Dados de teste apagados do banco depois.
+
+Título livre: testado via `XLSX.writeFile` interceptado (sem baixar arquivo de verdade) — com "Camisas da Final" preenchido, saiu `{ nome: "Camisas-da-Final-2026-08-24.xlsx", a1: "Camisas da Final" }`; em branco, saiu exatamente o comportamento antigo (`ritmistas-2026-08-24.xlsx`, título "Relatório de Ritmistas — Ativos, Pendentes"). Os dois caminhos confirmados corretos antes de mostrar a prévia pra ela.
+
+Publicado em produção depois de aprovação explícita dela ("pode subir e documenta tudo").
