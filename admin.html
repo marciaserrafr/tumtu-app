@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=16">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=24"></script>
+    <script src="ficha-perfil.js?v=25"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -1915,6 +1915,16 @@
     <div class="modal modal-exportar">
         <h2 style="margin-bottom:4px;">Exportar Excel</h2>
         <p id="exportResumoLista" class="subtitulo-resumo"></p>
+        <!-- Título livre, opcional -- pedido da Márcia, 24/ago/2026: relatório
+             pode não ter nada a ver com Figurino (ex: só endereço), então o
+             título tem que ser livre, não amarrado a nenhuma lógica
+             específica. Quando preenchido, sobrescreve tanto o título
+             automático dentro da planilha (tituloRelatorio) quanto o nome do
+             arquivo baixado -- em branco, funciona exatamente como antes. -->
+        <div class="exp-secao">
+            <div class="exp-secao-titulo">Título do relatório (opcional)</div>
+            <input type="text" id="exportTituloCustom" class="fc-input" placeholder="Ex: Camisas da Final" style="width:100%;box-sizing:border-box;">
+        </div>
         <!-- Filtro de status/instrumento embutido no próprio modal -- só
              pra Ritmistas (Diretoria não tem instrumento). Antes dependia
              só do filtro já aplicado na lista lá fora, escondido demais
@@ -2506,6 +2516,7 @@
         const ehRitmistas = tipo === 'ritmistas';
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
 
+        document.getElementById('exportTituloCustom').value = '';
         await carregarGruposMedidaExport();
 
         document.getElementById('exportFiltrosContainer').style.display = 'block';
@@ -2600,6 +2611,13 @@
     // Igualado pra Diretoria, 22/ago/2026 -- statusLabel e sufixo de grupo
     // (instrumento OU cargo) agora entram no título dos dois tipos.
     function tituloRelatorio(ehRitmistas, sufixoGrupo) {
+        // Título livre (campo "Título do relatório") sobrescreve o
+        // automático por completo -- ela pediu isso pra relatório que não
+        // tem nada a ver com o filtro de status (ex: só endereço). Sufixo de
+        // grupo continua entrando mesmo com título livre, só pra diferenciar
+        // uma aba da outra quando exportado "separado por instrumento/cargo".
+        const custom = document.getElementById('exportTituloCustom').value.trim();
+        if (custom) return sufixoGrupo ? `${custom} — ${sufixoGrupo}` : custom;
         let titulo = ehRitmistas ? 'Relatório de Ritmistas' : 'Relatório de Diretoria';
         const statusLabel = statusLabelExportacao();
         if (statusLabel) titulo += ` — ${statusLabel}`;
@@ -2659,7 +2677,15 @@
         }
 
         const dataHoje = new Date().toISOString().slice(0, 10);
-        XLSX.writeFile(livro, `${tipoExportacaoAtual}-${dataHoje}.xlsx`);
+        // Nome do arquivo também segue o título livre, quando preenchido --
+        // sanitizado (sem acento, só letras/números/hífen) pra funcionar em
+        // qualquer sistema operacional.
+        const tituloCustom = document.getElementById('exportTituloCustom').value.trim();
+        const removerAcentos = new RegExp('[̀-ͯ]', 'g');
+        const nomeArquivoBase = tituloCustom
+            ? tituloCustom.normalize('NFD').replace(removerAcentos, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+            : tipoExportacaoAtual;
+        XLSX.writeFile(livro, `${nomeArquivoBase}-${dataHoje}.xlsx`);
         fecharModal('modalExportarExcel');
     }
 
@@ -3757,18 +3783,23 @@
     // quais peças usa nesta temporada) -- separado por público (Ritmistas
     // sempre antes de Diretoria, pedido dela) e depois por Categoria de
     // Figurino. Nasce tudo desligado -- mesmo padrão de Instrumentos.
-    const LABEL_PUBLICO_FIGURINO_CONFIG = { ritmista: 'Ritmistas', diretoria: 'Diretoria' };
+    // Público de uma peça de Figurino é sempre um dos 4 valores de perfil
+    // (nunca um bloco agrupado "diretoria") -- pedido da Márcia, 24/ago/2026,
+    // pra preparar o sistema pra bateria que queira peça diferente por
+    // Mestre/Diretor/Apoio. Ordem sempre Ritmistas primeiro.
+    const LABEL_PUBLICO_FIGURINO = { ritmista: 'Ritmistas', mestre: 'Mestres', diretor: 'Diretores', apoio: 'Apoio' };
+    const ORDEM_PUBLICO_FIGURINO = ['ritmista', 'mestre', 'diretor', 'apoio'];
     function renderizarConfigFigurino() {
         const container = document.getElementById('config-figurino-lista');
         if (!container) return;
         if (bibliotecaFigurino.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino cadastrado na lista mestre ainda. Peça pro Super Admin cadastrar em Configurações → Figurino.</div>'; return; }
-        container.innerHTML = ['ritmista', 'diretoria'].map(publico => {
+        container.innerHTML = ORDEM_PUBLICO_FIGURINO.map(publico => {
             const itensPublico = bibliotecaFigurino.filter(f => f.publico === publico);
             if (itensPublico.length === 0) return '';
             const categoriaIds = [...new Set(itensPublico.map(f => f.medida_tipo_id))];
             const categorias = categoriaIds.map(id => bibliotecaMedidaTipos.find(t => t.id === id)).filter(Boolean)
                 .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO_CONFIG[publico]}</div>` + categorias.map(cat => {
+            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[publico]}</div>` + categorias.map(cat => {
                 const itensCat = itensPublico.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
                 return `<div style="font-size:13px;font-weight:700;color:var(--cor-texto-muted);margin:12px 0 6px;">${esc(cat.nome)}</div>${itensCat.map(f => renderizarLinhaFigurinoConfig(f)).join('')}`;
             }).join('');
@@ -3832,13 +3863,13 @@
         const ativosIds = new Set(bateriaFigurinoCache.filter(bf => bf.ativo).map(bf => bf.figurino_item_mestre_id));
         const itensAtivos = bibliotecaFigurino.filter(f => ativosIds.has(f.id));
         if (itensAtivos.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino ativo nesta bateria ainda. Ative em Configurações → Figurino.</div>'; return; }
-        container.innerHTML = ['ritmista', 'diretoria'].map(publico => {
+        container.innerHTML = ORDEM_PUBLICO_FIGURINO.map(publico => {
             const itensPublico = itensAtivos.filter(f => f.publico === publico);
             if (itensPublico.length === 0) return '';
             const categoriaIds = [...new Set(itensPublico.map(f => f.medida_tipo_id))];
             const categorias = categoriaIds.map(id => bibliotecaMedidaTipos.find(t => t.id === id)).filter(Boolean)
                 .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO_CONFIG[publico]}</div>` + categorias.map(cat => {
+            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[publico]}</div>` + categorias.map(cat => {
                 const itensCat = itensPublico.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
                 return `<div style="font-size:13px;font-weight:700;color:var(--cor-texto-muted);margin:12px 0 6px;">${esc(cat.nome)}</div>` + itensCat.map(it => `
                     <div class="item-card" onclick="abrirEntregasFigurino(${it.id})" style="cursor:pointer;">
@@ -3870,11 +3901,10 @@
         const bateriaId = bateriaIdContexto();
         const container = document.getElementById('figurino-entregas-lista');
         container.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
-        // Peça é sempre de um público só -- filtra a lista de pessoas de acordo,
-        // em vez de misturar Ritmistas e Diretoria numa lista só.
-        const filtroPerfil = item.publico === 'ritmista' ? '&perfil=eq.ritmista' : '&perfil=in.(mestre,diretor,apoio)';
+        // Peça é sempre de um público só (ritmista/mestre/diretor/apoio) --
+        // publico é literalmente o mesmo valor de perfil, filtra direto.
         const [resPessoas, resValores, resEntregas] = await Promise.all([
-            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado${filtroPerfil}&order=nome&select=id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=eq.${item.publico}&order=nome&select=id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas?tipo_id=eq.${item.medida_tipo_id}`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}`, { headers: authHeaders }),
         ]);
@@ -5359,7 +5389,6 @@
     let figurinoMestreCacheSA = [];
     let figurinoMestreEditando = null;
     let salvandoFigurinoMestre = false;
-    const LABEL_PUBLICO_FIGURINO_SA = { ritmista: 'Ritmistas', diretoria: 'Diretoria' };
     async function carregarFigurinoMestreSA() {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?order=ordem`, { headers: authHeaders });
         figurinoMestreCacheSA = res.ok ? await res.json() : [];
@@ -5367,10 +5396,10 @@
     function renderizarFigurinoMestreListaSA() {
         const container = document.getElementById('sa-figurino-lista');
         if (figurinoMestreCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino cadastrado ainda.</div>'; return; }
-        container.innerHTML = ['ritmista', 'diretoria'].map(publico => {
+        container.innerHTML = ORDEM_PUBLICO_FIGURINO.map(publico => {
             const itens = figurinoMestreCacheSA.filter(f => f.publico === publico).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
             if (itens.length === 0) return '';
-            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO_SA[publico]}</div>` + itens.map(f => {
+            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[publico]}</div>` + itens.map(f => {
                 const categoria = medidaTiposCacheSA.find(t => t.id === f.medida_tipo_id);
                 return `
                 <div class="item-card">
@@ -5406,8 +5435,7 @@
                 <div class="campo campo-full"><label>Nome *</label><input type="text" id="fig-mestre-edit-nome" value="${esc(fe.nome)}" placeholder="Ex: Camisa da Final"></div>
                 <div class="campo"><label>Categoria de Figurino (usa o tamanho dela) *</label><select id="fig-mestre-edit-categoria">${medidaTiposCacheSA.map(t => `<option value="${t.id}" ${fe.medida_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}</select></div>
                 <div class="campo"><label>Público *</label><select id="fig-mestre-edit-publico">
-                    <option value="ritmista" ${fe.publico === 'ritmista' ? 'selected' : ''}>Ritmistas</option>
-                    <option value="diretoria" ${fe.publico === 'diretoria' ? 'selected' : ''}>Diretoria</option>
+                    ${ORDEM_PUBLICO_FIGURINO.map(p => `<option value="${p}" ${fe.publico === p ? 'selected' : ''}>${LABEL_PUBLICO_FIGURINO[p]}</option>`).join('')}
                 </select></div>
                 <div class="campo"><label>Status</label><select id="fig-mestre-edit-ativo">
                     <option value="true" ${fe.ativo ? 'selected' : ''}>Ativo</option>

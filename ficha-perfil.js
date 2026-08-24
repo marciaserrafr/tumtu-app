@@ -425,9 +425,10 @@ async function fpRenderizarEntregaFigurino(alvo) {
     const secao = fpEl('fp-secao-entrega-figurino');
     if (!grid || !secao) return;
     if (!alvo.vinculo_id) { secao.style.display = 'none'; return; }
-    // Peça de Figurino é sempre de um público só -- ritmista só vê peça de
-    // ritmista, Mestre/Diretor/Apoio (Diretoria) só vê peça de diretoria.
-    const publico = alvo.perfil === 'ritmista' ? 'ritmista' : 'diretoria';
+    // Peça de Figurino é sempre de um público só -- publico é literalmente
+    // o mesmo valor de perfil (ritmista/mestre/diretor/apoio), sem bloco
+    // agrupado "diretoria".
+    const publico = alvo.perfil;
     const authHeaders = await fpAuthHeaders();
     const [resAtivos, resMestre, resEntregas] = await Promise.all([
         fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${alvo.bateria_id}&ativo=eq.true`, { headers: authHeaders }),
