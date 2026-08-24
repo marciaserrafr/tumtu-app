@@ -1337,4 +1337,60 @@ Testando o interruptor acima com uma conta de ritmista de teste, o campo "Parent
 
 Testado antes de qualquer prévia: catálogo (criação de peça de teste ligada a um Figurino Pai), tela de entrega (lista combinada Ritmista+Diretoria, tamanho lido corretamente de Medidas, checkbox persistindo no banco), resumo na ficha (100% leitura, sem nenhum elemento editável). Interruptor de Medidas: ligar/persistir/reler no Permissões: confirmado; ciclo completo logado como o ritmista de teste (campo em branco vira editável, campos já preenchidos continuam travados, depois de preencher e salvar o campo recém-preenchido também trava) — confirmado nas duas pontas. Bug do Parentesco: achado, corrigido, testado. Todos os dados de teste (peça de catálogo, entrega, valor de Medida de teste, interruptor da Imperatriz) foram limpos do banco depois — a Imperatriz voltou ao estado de antes do teste, com o interruptor desligado, pra ela decidir quando ligar de verdade.
 
+## 51. Dashboard zerado sem bateria real + Figurino ganha lista mestre e nomenclatura correta (24/ago/2026)
+
+Duas frentes fechadas na mesma sessão: um bug pequeno no Dashboard do Super Admin, e uma reformulação grande do Figurino (seção 50) depois que ela apontou que o modelo entregue tinha um problema de fundo — não era só questão de tela.
+
+### 51.1 Dashboard: números zerados em vez de sumir
+
+Achado dela, com print: sem nenhuma bateria real cadastrada (todas marcadas `demo`), o Dashboard escondia os cards de Escolas/Baterias/Pessoas ativas/Pendências por completo, deixando só o título "Baterias" solto acima de "Nenhuma bateria real cadastrada ainda." — sem os números, o título não fazia sentido nenhum. Causa: `carregarDashboard()` (`admin.html`) tinha um `return` antecipado no caso de zero baterias, que também zerava `kpisEl.innerHTML`.
+
+**Correção**: removido o `return` antecipado — `totalAtivos`/`totalPendentes`/os 4 cards de KPI agora são calculados normalmente sempre (naturalmente ficam em 0 quando não há bateria, já que os arrays filtrados ficam vazios); só a lista de baterias em si (`#dashboard-lista-baterias`) mostra a mensagem de vazio condicionalmente. Testado ao vivo: com a real da sessão (0 escolas reais, 9 demo, depois da Márcia marcar a Imperatriz de teste como `demo`), o Dashboard passou a mostrar "0 Escolas / 0 Baterias / 0 Pessoas ativas / 0 Pendências / 9 Escolas DEMO (fora da contagem)" — números reais, não mais em branco.
+
+### 51.2 Figurino: nomenclatura corrigida e biblioteca mestre
+
+A implementação da seção 50 (23/ago) tinha a arquitetura de dados certa (peça específica ligada a um tipo de Medida só por referência de tamanho), mas errou em três pontos que só apareceram depois dela testar em produção e pensar melhor sobre o modelo:
+
+1. **Nome errado**: o que já existia como "Medidas"/"Tipos de Medida" (Camisa, Calça, Fantasia, Sapato) é conceitualmente **Figurino** — o tipo da peça de roupa. "Medida" deveria significar só o tamanho (P/M/G, 33-48...), nunca o tipo da peça em si. Ela resumiu numa tabela: **Categoria de Figurino** = tipo de peça; **Figurino** = peça específica (ex: Camisa da Final); **Medida** = tamanho de cada pessoa. Renomeado só o *rótulo* nas telas — a tabela `medida_tipos` e tudo que depende dela continuam com o nome técnico antigo, sem risco de quebrar nada.
+2. **Catálogo de Figurino sem lista mestre**: a peça específica (`figurino_itens`, seção 50) era cadastrada do zero em cada bateria, sem nenhum reaproveitamento — diferente do padrão já usado em Instrumentos e Categoria de Figurino, onde o Super Admin cadastra uma vez e cada bateria só ativa o que usa.
+3. **Ritmista e Diretoria misturados**: a peça (`figurino_itens`) não tinha nenhuma distinção de público — a tela de entrega de uma peça listava Ritmistas e Diretoria juntos. Pra ela, são peças diferentes por natureza (uma Camisa da Final de Ritmista não é a mesma peça que uma Camisa de Diretoria), e não deveriam nunca aparecer misturadas.
+
+**Migração de banco** (substitui o `figurino_itens` bateria-scoped da seção 50 — só tinha 1 item de teste, sem dado real em jogo):
+- `figurino_itens_mestre` (`id, nome, medida_tipo_id → medida_tipos, publico` [CHECK `'ritmista'`/`'diretoria'`]`, ativo, ordem, criado_em`) — biblioteca mestre global, mesmo padrão de `medida_tipos`: RLS `super_admin_full_access` (ALL) + `select_autenticado` (SELECT, `true` — qualquer autenticado lê, igual `medida_tipos`).
+- `bateria_figurino_itens` (`id, bateria_id → baterias CASCADE, figurino_item_mestre_id → figurino_itens_mestre CASCADE, ativo, criado_em`, `UNIQUE(bateria_id, figurino_item_mestre_id)`) — ativação por bateria, mesmo formato de `bateria_medida_tipos`, mas com a **convenção invertida** (ver 51.3): sem linha = **inativo**, não ativo.
+- `figurino_entregas.figurino_item_id` repontado de `figurino_itens(id)` pra `figurino_itens_mestre(id)` (`DROP CONSTRAINT` + `ADD CONSTRAINT` da FK) — RLS da tabela não mudou, não referenciava `figurino_itens` diretamente.
+- `figurino_itens` (tabela bateria-scoped da seção 50) apagada — só tinha a peça de teste, já removida antes da migração.
+
+### 51.3 Categoria de Figurino (ex-Medidas) também passa a nascer desligada
+
+No meio da conversa sobre o Figurino novo, ela recuperou um ponto sobre a própria Categoria de Figurino: antes da reforma de 22-23/ago (seção 49), Camisa/Fantasia/Calça/Sapato eram **fixos no código** — por isso qualquer bateria nova "nascia" com eles prontos, sem precisar configurar nada. Depois da reforma, viraram só mais um tipo configurável — mas o comportamento "sem linha ainda = ativo por padrão" (`renderizarConfigMedidas` em `admin.html`, `fpCarregarTiposMedidaAtivos` em `ficha-perfil.js`, view `bateria_medidas_publicas`) ficou de herança do tempo em que eram fixos, sem ninguém ter revisitado a decisão. Regra dela: **"quando eu criar uma bateria, TUDO tem que nascer desligado"** — mesmo padrão que Instrumentos já segue.
+
+**Risco real de mudar esse default**: hoje 5 tipos existem (`Camisa/Fantasia/Calça/Sapato` + `Vestido`, criado em 23/ago) — os 4 originais já tinham linha explícita `ativo=true` em toda bateria (seed da migração da seção 49), mas "Vestido" não tinha nenhuma linha em lugar nenhum, contando como ativo pra **todas** as 9 baterias existentes só pelo comportamento antigo. Trocar o default sem cuidado desligaria "Vestido" pra todo mundo do nada.
+
+**Backfill de segurança, executado antes de qualquer troca de código**: `INSERT INTO bateria_medida_tipos (bateria_id, tipo_id, ativo) SELECT ... true ... WHERE NOT EXISTS (linha já existente)` — cobre qualquer combinação bateria+tipo hoje implicitamente ativa (não só Vestido, generalizado pra qualquer gap futuro). Confirmado por SQL: as 9 baterias passaram de 4 pra 5 linhas cada, todas `ativo=true` — zero mudança de comportamento efetivo pra quem já estava configurado.
+
+**Só depois do backfill**, os três lugares que liam "sem linha = ativo" foram invertidos pra "sem linha = inativo", espelhando exatamente `renderizarConfigInstrumentos`:
+- `admin.html`, `renderizarConfigMedidas()`: `const tipoAtivo = !!(tipoExistente && tipoExistente.ativo);`
+- `ficha-perfil.js`, `fpCarregarTiposMedidaAtivos()`: busca `bateria_medida_tipos?ativo=eq.true` (linhas **ligadas**) em vez de buscar as desligadas e excluir — inclui só quem tem linha explícita.
+- View `bateria_medidas_publicas` (cadastro público): `COALESCE(bmt.ativo, false) = true` (era `COALESCE(bmt.ativo, true)`).
+
+Testado ao vivo na Imperatriz depois da troca: as 5 categorias continuaram todas marcadas ativas na tela — confirma que o backfill segurou o comportamento.
+
+### 51.4 Telas novas/renomeadas
+
+- **Super Admin → Configurações**: "Medidas"/"Tipos de Medida" → **"Categoria de Figurino"** (mesmo editor de sempre — nome + status + escala de tamanhos inline — só o rótulo mudou). Novo item **"Figurino"**: editor da lista mestre (nome + dropdown de Categoria + select de Público Ritmista/Diretoria + status), mesmo padrão visual de card+editor já usado em Instrumentos/Categoria de Figurino.
+- **Bateria → Configurações**: "Medidas" → **"Categoria de Figurino"**. Novo item **"Figurino"**: ativação por bateria, agrupada Ritmistas (sempre primeiro) → Diretoria, sub-agrupada por Categoria dentro de cada público — reaproveita `LABEL_PUBLICO_FIGURINO_CONFIG` compartilhada com a tela de entrega.
+- **Bateria → Mais**: "Figurino" (catálogo+entrega da seção 50) virou **"Entrega de Figurino"**, só entrega — sem nenhum cadastro/edição de peça. Pedido dela: evitar dois itens de menu chamados "Figurino" (o de Configurações e o de Mais) — só o item de Mais foi renomeado, já que o de Configurações fica claro por estar ao lado de "Categoria de Figurino". A lista abre agrupada igual à de Configurações (Ritmistas → Diretoria → Categoria), cada peça clicável abre a tela de busca+check já existente, agora naturalmente filtrada por público (`&perfil=eq.ritmista` ou `&perfil=in.(mestre,diretor,apoio)` na query de `ritmistas_com_instrumento`) — o filtro de instrumento (`select`) só aparece pra peça de Ritmista, escondido pra Diretoria (`style.display` condicional em `abrirEntregasFigurino`).
+- **Ficha da pessoa → "Entrega de Figurinos"**: query atualizada pra ler de `bateria_figurino_itens` (ativo) + `figurino_itens_mestre` (filtrado por `publico` igual ao perfil de quem está vendo — ritmista só vê peça de ritmista, Diretoria só vê peça de diretoria) em vez do antigo `figurino_itens` bateria-scoped.
+
+### 51.5 Bug real achado testando a reestruturação
+
+`abrirEntregasFigurino()` escondia `.config-subtela` pra abrir a tela de detalhe de uma peça, mas `#figurino-lista` (a lista de nível 1) não tem essa classe — as duas telas ficavam sobrepostas na mesma página ao abrir uma peça. Bug já existia desde a implementação original da seção 50 (mesmo padrão de esconder), só não tinha sido notado até testar a versão nova ao vivo. Corrigido com `document.getElementById('figurino-lista').style.display = 'none';` explícito no início da função, mesmo padrão já usado em `abrirConfigTela()`.
+
+### 51.6 Verificação ao vivo
+
+Super Admin → Configurações → Figurino: criação de 2 peças de teste (uma Ritmista, uma Diretoria), confirmado agrupamento Ritmistas-antes-de-Diretoria na lista. Bateria → Configurações → Figurino: as duas peças nasceram desligadas (checkbox vazio), liguei as duas, confirmei gravação. Bateria → Entrega de Figurino: lista agrupada corretamente, peça de Ritmista mostrou os 6 ritmistas da Imperatriz com filtro de instrumento visível, peça de Diretoria mostrou os 4 membros da Diretoria (2 Diretores, 1 Mestre, 1 Apoio) sem filtro de instrumento. Check de entrega persistiu corretamente em `figurino_entregas` apontando pro id da lista mestre (confirmado por SQL). Ficha do Bruno (ritmista de teste): seção "Entrega de Figurinos" mostrou só a peça de Ritmista com o check certo, sem a peça de Diretoria — confirma o filtro por público. Categoria de Figurino: as 5 categorias da Imperatriz continuaram todas ativas depois da troca de default, sem nenhuma mudança visível pra ela. Renomeação de "Figurino" pra "Entrega de Figurino" no menu confirmada ao vivo depois do pedido dela. Dados de teste (as 2 peças + a entrega marcada) apagados do banco antes de publicar.
+
+Publicado em produção depois de aprovação explícita dela ("Pode subir e documenta tudo. Suba tb a questão do dashboard.").
+
 Publicado em produção depois de aprovação explícita dela ("pode subir e registra tudo").
