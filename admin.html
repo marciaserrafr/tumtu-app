@@ -888,6 +888,11 @@
         .config-vaga-contagem.completo { background: #f0faf4; color: #2d7a4f; border-color: #b8ddc8; }
         .config-vaga-contagem.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
         .config-vaga-input { width: 64px; padding: 6px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; text-align: center; }
+        /* Caixinha de tamanho na Entrega de Figurino -- mesma linguagem visual
+           do .config-vaga-input (borda 1.5px, cantos 6px), só que fixa e
+           somente leitura. Pedido dela, 24/ago/2026: "o tamanho da roupa,
+           coloque dentro de uma caixinha, para ficar mais bonito". */
+        .figurino-tamanho-caixa { display: inline-block; width: 44px; padding: 4px 0; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; font-weight: 700; text-align: center; }
         /* .item-acoes é compartilhado com o resto do app (Ritmistas,
            Diretoria) com gap de 8px, pensado pra botões/badges coladinhos
            -- aqui são 2 colunas de dado de verdade, precisam de mais
@@ -1701,14 +1706,18 @@
         <p class="config-sub-desc">Tamanho mostrado só pra consulta (vem de Medidas) — a edição do tamanho continua na ficha da pessoa.</p>
         <!-- Dois interruptores, pedido dela, 24/ago/2026: ativar a peça em
              Configurações (com antecedência) não quer dizer que ela deve
-             aparecer na Visão Geral -- "Mostrar" é uma decisão à parte,
-             sempre nasce desligada. "Entrega Finalizada" é o fim de
+             aparecer na Visão Geral -- "Entrega Iniciada" é uma decisão à
+             parte, sempre nasce desligada. "Entrega Finalizada" é o fim de
              verdade (nada mais pra entregar pra ninguém) -- também some
-             da Visão Geral, mesmo que "Mostrar" esteja ligado. -->
+             da Visão Geral, mesmo que "Entrega Iniciada" esteja ligado.
+             Rótulo "Mostrar na Visão Geral" trocado por "Entrega Iniciada"
+             a pedido dela, 24/ago/2026 -- id/função internos continuam
+             com o nome antigo (mostra_visao_geral/toggleMostraVisaoGeral),
+             só o texto visível mudou. -->
         <div class="item-card" style="margin-bottom:10px;">
             <label class="config-instrumento-check">
                 <input type="checkbox" id="figurino-mostra-visao-geral" onchange="toggleMostraVisaoGeral(this.checked)">
-                <span class="item-nome">Mostrar na Visão Geral</span>
+                <span class="item-nome">Entrega Iniciada</span>
             </label>
         </div>
         <div class="item-card" style="margin-bottom:14px;">
@@ -1717,12 +1726,21 @@
                 <span class="item-nome">Entrega Finalizada</span>
             </label>
         </div>
-        <p class="config-sub-desc" style="margin-top:-8px;">Nasce tudo desligado -- ativar a peça aqui não é o mesmo que querer vê-la na Visão Geral. Ligue "Mostrar" quando quiser acompanhar; ligue "Entrega Finalizada" quando não sobrar mais ninguém pra entregar (esconde de novo, mesmo com "Mostrar" ligado).</p>
+        <p class="config-sub-desc" style="margin-top:-8px;">Nasce tudo desligado -- ativar a peça aqui não é o mesmo que querer vê-la na Visão Geral. Ligue "Entrega Iniciada" quando quiser acompanhar; ligue "Entrega Finalizada" quando não sobrar mais ninguém pra entregar (esconde de novo, mesmo com "Entrega Iniciada" ligado).</p>
         <input type="text" id="figurino-entregas-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarEntregasFigurinoLista()"
             style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;margin-bottom:10px;">
         <select id="figurino-entregas-filtro-instrumento" onchange="renderizarEntregasFigurinoLista()" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;outline:none;margin-bottom:16px;">
             <option value="">Todos os instrumentos</option>
         </select>
+        <!-- Cabeçalho de coluna, mesma receita de "Vagas de Ritmistas" (pedido
+             dela, 24/ago/2026: "igual ao título que tem em Vaga por
+             Instrumento") -- reaproveita .config-vagas-cabecalho, só com
+             largura própria pra bater com a caixa de tamanho e o "Entregue"
+             de cada linha (ver renderizarEntregasFigurinoLista). -->
+        <div class="config-vagas-cabecalho" style="padding:0 0 6px;gap:32px;">
+            <span style="width:44px;">Tamanho</span>
+            <span style="width:78px;">Status</span>
+        </div>
         <div id="figurino-entregas-lista"></div>
     </div>
 
@@ -1775,7 +1793,7 @@
     </div>
 
     <!-- Resumo de entrega de Figurino -- só aparece com pelo menos 1 peça
-         ativa, com "Mostrar na Visão Geral" ligado e "Entrega Finalizada"
+         ativa, com "Entrega Iniciada" ligado e "Entrega Finalizada"
          desligado (os dois interruptores ficam na própria tela de Entrega
          de Figurino). Pedido da Márcia, 24/ago/2026: "não tem como ficar
          todos lá" -- e ativar a peça com antecedência não quer dizer que
@@ -2971,7 +2989,7 @@
     // 24/ago/2026: "não tem como ficar todos lá", e ativar a peça em
     // Configurações (com antecedência) não quer dizer que ela deve
     // aparecer aqui. Só entra quem está ativo pra essa bateria E com
-    // "Mostrar na Visão Geral" ligado E "Entrega Finalizada" desligado
+    // "Entrega Iniciada" ligado E "Entrega Finalizada" desligado
     // (ver toggleMostraVisaoGeral/toggleEntregaFinalizada, na tela Mais →
     // Entrega de Figurino) -- card inteiro some quando não sobra nenhum.
     // Peça de Ritmista quebra por instrumento (mesmo desenho de
@@ -4032,10 +4050,11 @@
     // Dois interruptores independentes de bateria_figurino_itens, pedido da
     // Márcia, 24/ago/2026: ativar a peça em Configurações (com
     // antecedência) não quer dizer que ela deve aparecer na Visão Geral --
-    // "Mostrar" nasce sempre desligada, a pessoa liga quando quiser
-    // acompanhar. "Entrega Finalizada" marca o fim de verdade (nada mais
-    // pra entregar pra ninguém) -- também esconde, mesmo com "Mostrar"
-    // ligado (ver o `&&` em carregarResumoEntregaFigurino). A peça sempre
+    // "Entrega Iniciada" nasce sempre desligada, a pessoa liga quando
+    // quiser acompanhar. "Entrega Finalizada" marca o fim de verdade
+    // (nada mais pra entregar pra ninguém) -- também esconde, mesmo com
+    // "Entrega Iniciada" ligado (ver o `&&` em
+    // carregarResumoEntregaFigurino). A peça sempre
     // tem uma linha em bateriaFigurinoCache nesse ponto (só chega aqui
     // vindo da lista de ativas).
     async function salvarFlagFigurinoEntrega(campo, valor) {
@@ -4103,13 +4122,13 @@
         if (filtrada.length === 0) { container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>'; return; }
         const podeEditar = tenhoCapacidade('editar_figurino');
         container.innerHTML = filtrada.map(p => `
-            <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #eee;">
+            <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
                 <div style="flex:1;min-width:0;">
                     <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
                     <div style="font-size:12px;color:var(--cor-texto-muted);">${esc(p.instrumento_nome || LABEL_PERFIL_FIGURINO[p.perfil] || '')}</div>
                 </div>
-                <div style="font-size:13px;font-weight:700;min-width:36px;text-align:center;">${esc(p.tamanho || '—')}</div>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap;cursor:${podeEditar ? 'pointer' : 'not-allowed'};">
+                <div class="figurino-tamanho-caixa">${esc(p.tamanho || '—')}</div>
+                <label style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;white-space:nowrap;width:78px;cursor:${podeEditar ? 'pointer' : 'not-allowed'};">
                     <input type="checkbox" style="width:18px;height:18px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${p.entregue ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="toggleEntregaFigurino(${p.vinculo_id}, this.checked)">
                     Entregue
                 </label>
