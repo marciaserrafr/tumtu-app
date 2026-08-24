@@ -1164,7 +1164,8 @@
             }
             .sa-sidebar-item { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .sa-sidebar-item .sa-ic { font-size: 18px; width: auto; }
-            .sa-sidebar-item.ativa { background: none; }
+            /* Mesmo ajuste de .aba-btn.ativa mais abaixo -- ver comentário lá. */
+            .sa-sidebar-item.ativa { background: none; color: var(--cor-destaque); }
             .sa-main { margin-left: 0; width: 100%; padding: 16px 12px 82px; }
             /* Sem espaço pra assinatura no rodapé-em-fileira-de-ícones do
                celular -- o cabeçalho já mostra "TumTu" no topo, cobre a
@@ -1186,7 +1187,13 @@
             }
             .aba-btn { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .aba-btn .aba-ic { font-size: 18px; width: auto; }
-            .aba-btn.ativa { background: none; }
+            /* Sem a pílula de fundo (não cabe numa barra horizontal), o
+               destaque de "selecionado" tem que estar na COR -- antes só
+               tirava o fundo dourado e deixava o texto escuro (#12101a) de
+               dentro dele, que sobre o fundo escuro do rodapé ficava
+               invisível (achado da Márcia, 24/ago/2026: "o nome desaparece
+               quando o menu é selecionado"). Ícone+texto dourados aqui. */
+            .aba-btn.ativa { background: none; color: var(--cor-destaque); }
             .main { margin-left: 0; width: 100%; padding: 16px 12px 82px; }
             /* "Mais" continua indo pra tela própria no celular -- o
                acordeão (só computador) não cabe verticalmente no rodapé. */
@@ -4269,7 +4276,12 @@
         if (!u) return;
         const container = document.getElementById('fp-container-sa-meuperfil');
         await fpMontar(container);
-        fpIniciar(u, u.perfil, u.pessoa_id);
+        // Sem isso, salvar uma foto/nome novo em Meu Perfil atualiza o
+        // localStorage (ver fpSalvar em ficha-perfil.js) mas a bolinha do
+        // cabeçalho fica com o valor antigo até a página recarregar --
+        // achado da Márcia, 24/ago/2026 ("acabei de colocar a foto do super
+        // admin e não está aparecendo no ícone do usuário no header").
+        fpIniciar(u, u.perfil, u.pessoa_id, { aoSalvar: (novosDados) => renderizarAvatarHeader(novosDados) });
         container.querySelector('#fp-ver-carteirinha').innerHTML =
             u.status === 'aprovado'
                 ? `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${u.id})">Ver carteirinha ↗</button>`
@@ -5661,7 +5673,8 @@
         if (!u) return;
 
         await fpMontar(document.getElementById('fp-container-meuperfil'));
-        fpIniciar(u, u.perfil, u.pessoa_id);
+        // Mesmo ajuste de iniciarMeuPerfilSaAba (Super Admin) -- ver comentário lá.
+        fpIniciar(u, u.perfil, u.pessoa_id, { aoSalvar: (novosDados) => renderizarAvatarHeader(novosDados) });
 
         // "Ver carteirinha" -- mesmo padrão da ficha de Ritmista/Diretoria,
         // pedido da Márcia, 20/ago/2026: "é praticamente o mesmo modelo de
