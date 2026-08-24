@@ -4341,12 +4341,6 @@
         const idsBateriasReais = new Set(baterias.map(b => b.id));
         const vinculosReais = vinculos.filter(v => idsBateriasReais.has(v.bateria_id));
 
-        if (!baterias || baterias.length === 0) {
-            kpisEl.innerHTML = ''; atencaoEl.innerHTML = '';
-            container.innerHTML = `<div class="estado-vazio"><div class="estado-vazio-icone">📊</div>Nenhuma bateria real cadastrada ainda.</div>`;
-            return;
-        }
-
         const totalAtivos = vinculosReais.filter(v => v.status === 'aprovado').length;
         const totalPendentes = vinculosReais.filter(v => v.status === 'pendente').length;
         kpisEl.innerHTML = `
@@ -4369,20 +4363,22 @@
                     </div>`).join('')}
             </div>`;
 
-        container.innerHTML = baterias.map(b => {
-            const pendentes = vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'pendente').length;
-            const ativos = vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'aprovado').length;
-            const escola = escolaPorId[b.escola_id];
-            const temporada = escola?.temporada_atual;
-            return `<div class="bateria-card" onclick="irParaAcessosDaBateria(${b.escola_id})">
-                <div class="bc-nome">${esc(b.nome)}</div>
-                <div class="bc-escola">${esc(escola?.nome) || ''}${temporada ? ` · ${esc(temporada)}` : ''}</div>
-                <div class="bc-stats">
-                    <div class="bc-stat"><div class="n">${ativos}</div><div class="l">Ativos</div></div>
-                    <div class="bc-stat"><div class="n${pendentes > 0 ? ' aviso' : ''}">${pendentes}</div><div class="l">Pendentes</div></div>
-                </div>
-            </div>`;
-        }).join('');
+        container.innerHTML = baterias.length === 0
+            ? `<div class="estado-vazio"><div class="estado-vazio-icone">📊</div>Nenhuma bateria real cadastrada ainda.</div>`
+            : baterias.map(b => {
+                const pendentes = vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'pendente').length;
+                const ativos = vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'aprovado').length;
+                const escola = escolaPorId[b.escola_id];
+                const temporada = escola?.temporada_atual;
+                return `<div class="bateria-card" onclick="irParaAcessosDaBateria(${b.escola_id})">
+                    <div class="bc-nome">${esc(b.nome)}</div>
+                    <div class="bc-escola">${esc(escola?.nome) || ''}${temporada ? ` · ${esc(temporada)}` : ''}</div>
+                    <div class="bc-stats">
+                        <div class="bc-stat"><div class="n">${ativos}</div><div class="l">Ativos</div></div>
+                        <div class="bc-stat"><div class="n${pendentes > 0 ? ' aviso' : ''}">${pendentes}</div><div class="l">Pendentes</div></div>
+                    </div>
+                </div>`;
+            }).join('');
     }
 
     // ══════════════════════════════════════════════════════════════════
