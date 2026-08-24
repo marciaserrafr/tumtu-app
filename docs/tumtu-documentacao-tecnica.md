@@ -1495,3 +1495,44 @@ Testado ao vivo 2 vezes (uma por versão do desenho) na Imperatriz Leopoldinense
 Verificado em produção com login novo (sessão antiga, criada antes do deploy, não carrega o campo novo até logar de novo — comportamento esperado, não é bug): `localStorage.ritmista.foto_url` presente depois do login, bolinha do cabeçalho mostrando a foto real. Menu do rodapé mobile verificado por simulação de CSS (injeção de `<style>` reproduzindo a media query, sem emulação de viewport real disponível no ambiente) — pedido a ela pra confirmar num celular de verdade antes/depois de aprovar.
 
 **Falso alarme registrado pra não redescobrir**: ao testar em produção logo após o deploy, uma aba de teste antiga (sessão de Supabase Auth expirada, mas com `localStorage.ritmista` ainda presente do app) mostrou Dashboard zerado (0 escolas, sem o card "Escolas DEMO") — parecia bug grave. Confirmado com login novo, numa aba limpa, que é comportamento correto: sem sessão válida do Supabase Auth (`sb.auth.getSession()` vazio), `authHeaders.Authorization` fica preso no valor inicial (a `anon key`, nunca substituída pelo token de sessão de `iniciarSessaoAuth()`), e RLS bloqueia silenciosamente as tabelas protegidas — devolve array vazio, não erro. Não é um bug introduzido nesta sessão; é como o app já se comportava com sessão expirada. Login novo resolve.
+
+## 54. Categoria de Figurino Tradicionais/Especiais, Visão Geral empilhada e polimento de Entrega de Figurino (24/ago/2026, sessão seguinte)
+
+Três frentes pontuais, publicadas juntas em produção depois de aprovação dela ("Perfeito. Pode subir para produção."), cada uma testada numa prévia própria antes (3 branches: `preview/categoria-figurino-tradicionais-especiais`, `preview/visao-geral-empilhada`, `preview/entrega-figurino-cabecalho-e-caixa-tamanho` — merge sequencial pra `main`, com o conflito de sempre em `CACHE_NAME` do `sw.js` resolvido manualmente pra ficar com a versão mais alta das três).
+
+### 54.1 Categoria de Figurino: grupo Tradicionais (obrigatório) / Especiais (opcional)
+
+Pedido dela, mesmo rótulo/agrupamento visual já usado em Instrumentos: "assim como nos Instrumentos, pensei em separá-los entre Tradicionais e Especiais... os tradicionais sempre serão campos obrigatórios de preenchimento e especiais não serão obrigatórios". Motivação concreta que ela deu: se um Repique entra no fim da temporada, o cadastro dele pode mostrar campos de Categoria que só existem pra outro naipe (ex: "Vestido", pensado só pro Chocalho) — sem essa separação, todo campo era obrigatório pra todo mundo, mesmo quando não fazia sentido pra aquela pessoa.
+
+Implementado direto em `medida_tipos` (não existe uma tabela de categoria separada da nomenclatura, diferente de Instrumentos):
+
+```sql
+alter table medida_tipos add column grupo text not null default 'tradicional'
+  check (grupo in ('tradicional', 'especial'));
+```
+
+- **Super Admin (Configurações → Categoria de Figurino)**: editor de tipo ganhou `<select id="mt-edit-grupo">` (Tradicional/Especial); lista mestre agrupada em Tradicionais/Especiais via nova constante `GRUPOS_MEDIDA_TIPO = [['tradicional','Tradicionais'],['especial','Especiais']]` e helper `cardMedidaTipoSA(t)` extraído de `renderizarMedidaTiposListaSA()`.
+- **Admin (Configurações → Categoria de Figurino, por bateria)**: mesma lógica, helper `cardConfigMedidaTipo(tipo)` extraído de `renderizarConfigMedidas()` — reaproveita `GRUPOS_MEDIDA_TIPO`. Comentário no código reverte explicitamente a decisão de 22/ago/2026 de omitir título de grupo nessa tela (fazia sentido só quando cada grupo tinha 1 item — deixou de valer com Tradicionais/Especiais podendo ter vários).
+- **`bateria_medidas_publicas`** (view pública, sem `security_invoker` — nunca teve, então recriar não carrega risco de segurança, confirmado via `pg_class.reloptions` antes de mexer): ganhou `mtip.grupo AS tipo_grupo`.
+- **`cadastro.html`**: campo de Medida só fica `required` (com o `*`) quando `t.grupo !== 'especial'` — Especial fica opcional, sem forçar preenchimento de quem não usa aquela peça.
+
+**Bug real achado e corrigido testando ao vivo**: `sincronizarTamanhosMTDoDOM()` (função criada em 23/ago/2026 pra evitar perder Nome/Ativo no re-render disparado por "+ Adicionar tamanho") não tinha sido estendida pro campo `grupo`, novo nesta sessão — selecionar "Especial" e depois clicar "+ Adicionar tamanho" (sequência natural de uso) resetava a seleção de volta pra "Tradicional" antes de salvar. Confirmado via query direta no banco (registro salvo com `grupo='tradicional'` apesar de ter selecionado "Especial" na tela) e corrigido adicionando `grupo` à mesma função de sincronização.
+
+Testado ao vivo de ponta a ponta na Imperatriz Leopoldinense: categoria de teste ("TESTE Vestido", grupo especial, tamanho "Único") criada, ativada pra bateria, conferida nas 3 telas (lista agrupada do Super Admin, lista agrupada do Admin, formulário público sem `*`/`required`) — depois toda a cadeia de dado de teste apagada (`bateria_medidas`, `bateria_medida_tipos`, `medida_tamanhos`, `medida_tipos`).
+
+### 54.2 Visão Geral: cards empilhados, não mais grid de 2 colunas
+
+Pedido dela, com print mostrando o problema: o grid `.vg-grid-2col` (Ritmistas por Instrumento + Aniversariantes lado a lado) deixava um vão vazio feio embaixo do card mais curto sempre que o outro crescia mais — "fica esse espaço vazio e não achei legal". Pedido explícito de nova ordem: "coloca aniversariantes primeiro... e depois os ritmistas por instrumento e depois as entregas de figurino".
+
+Removido `.vg-grid-2col` e os overrides de `@media (max-width: 560px)` que só existiam por causa dele (o grid já forçava 1 coluna no mobile só nesses overrides — sem grid, não precisam mais existir). Os 3 cards (Aniversariantes, Ritmistas por Instrumento, Entrega de Figurino) viraram `<div class="vg-card">` simples em sequência, cada um com o `margin-bottom:16px` padrão da classe — inclusive o `#vg-figurino-card`, que teve o `margin-top:16px` inline (adicionado em 24/ago, seção 53.3, pra compensar o último card do grid zerando `margin-bottom`) removido: sem grid, não existe mais esse caso especial, o espaçamento padrão entre `.vg-card` já resolve sozinho.
+
+### 54.3 Entrega de Figurino: cabeçalho de coluna, caixinha no tamanho e rótulo "Entrega Iniciada"
+
+Pedido dela olhando a tela de detalhe de uma peça (Mais → Entrega de Figurino → abrir peça): "coloque um título... coloque uma linha e coloque os títulos Tamanho e Status embaixo de medidas e o 'Entregue'... Igual ao título que tem em Vaga por Instrumento. E o tamanho da roupa, coloque dentro de uma caixinha, para ficar mais bonito."
+
+- **Cabeçalho de coluna**: reaproveita `.config-vagas-cabecalho` (mesma classe já usada em Vagas de Ritmistas e no cabeçalho de Instrumentos) com overrides inline pra essa tela — `padding:0 0 6px` (a lista de Entrega não tem o padding horizontal de 20px que a de Vagas tem) e dois `<span>` ("Tamanho" 44px, "Status" 78px) posicionados imediatamente antes de `#figurino-entregas-lista`.
+- **Caixinha de tamanho**: nova classe `.figurino-tamanho-caixa` (borda 1.5px `#e0e0e0`, cantos 6px, mesma linguagem visual de `.config-vaga-input`, mas somente-leitura) envolve o valor de tamanho de cada pessoa em `renderizarEntregasFigurinoLista()`, no lugar do texto solto que existia antes.
+- **Respiro entre colunas**: primeira versão da prévia usou `gap:10px` (igual ao resto da linha, nome+tamanho+status) — ela pediu mais respiro especificamente entre Tamanho e Status, mandando um print de referência de Vagas de Ritmistas com a régua marcada. Corrigido pra `gap:32px` em ambos (linha de dado e cabeçalho), o mesmo valor já usado em `#config-vagas-lista .item-acoes` pro mesmo tipo de par de colunas (achado da Márcia em 19/ago/2026, documentado ali como "2 colunas de dado de verdade, precisam de mais respiro entre si").
+- **Rótulo do interruptor**: "Mostrar na Visão Geral" (criado em 24/ago/2026, seção 53.3) renomeado pra "Entrega Iniciada" — só o texto visível trocou; id (`figurino-mostra-visao-geral`), função (`toggleMostraVisaoGeral`) e coluna no banco (`bateria_figurino_itens.mostra_visao_geral`) continuam com o nome antigo, atualizado também o texto de ajuda logo abaixo dos dois interruptores e os comentários no código que citavam o rótulo antigo entre aspas, pra não ficar desalinhado do que a tela mostra.
+
+Testado ao vivo em 2 rodadas de prévia (cabeçalho/caixinha primeiro, depois o ajuste de respiro + rótulo) na Imperatriz Leopoldinense, item "Camisa da Final" — conferido visualmente com zoom que "Tamanho"/"Status" alinham exatamente acima da caixinha e do checkbox "Entregue" de cada linha.
