@@ -73,15 +73,18 @@ const FP_CAMPO_TABELA = {
 // aqui só resolve pra um selo único, seguindo a regra combinada com a
 // Márcia em 21/ago/2026: Primeira+Segunda vira "Surdo de Marcação",
 // qualquer combinação de 2+ variantes de Repique vira só "Repique", uma
-// opção sozinha (inclusive "Especiais") mostra o nome literal.
+// opção sozinha (inclusive "Especiais") mostra o nome literal. Mesma lógica
+// estendida em 25/ago/2026 pra Caixa de 12"/14" virarem só "Caixa".
 const FP_NAIPE_SURDO_MARCACAO = ['Surdo de Primeira', 'Surdo de Segunda'];
 const FP_NAIPE_REPIQUE = ['Repique', 'Repique Mor', 'Repique de Bossa'];
+const FP_NAIPE_CAIXA = ['Caixa de 12"', 'Caixa de 14"'];
 function fpResolverSeloNaipe(naipe) {
     const lista = Array.isArray(naipe) ? naipe.filter(Boolean) : [];
     if (lista.length === 0) return null;
     if (lista.length === 1) return lista[0];
     if (lista.length >= 2 && lista.every(n => FP_NAIPE_SURDO_MARCACAO.includes(n))) return 'Surdo de Marcação';
     if (lista.length >= 2 && lista.every(n => FP_NAIPE_REPIQUE.includes(n))) return 'Repique';
+    if (lista.length >= 2 && lista.every(n => FP_NAIPE_CAIXA.includes(n))) return 'Caixa';
     return lista.join(', ');
 }
 function fpTabelaDoCampo(col) {
