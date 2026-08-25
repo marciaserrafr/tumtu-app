@@ -135,12 +135,6 @@
            reforçada pra 70% opaca e um pouco mais grossa (1.5px). */
         .btn-sair { background: transparent; border: 1.5px solid rgba(212,175,55,0.7); color: #D4AF37; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
         .btn-sair:hover { background: rgba(212,175,55,0.08); }
-        /* "Trocar de Bateria" só existe pra quem tem 2+ vínculos -- escondido
-           por padrão, JS acrescenta .visivel quando for o caso (ver
-           iniciarUsuario). No celular vira flutuante (ver @media mais
-           abaixo, mesmo padrão do "‹ Escolas"), aqui é só o estado desktop. */
-        #btnTrocarBateriaAdmin { display: none; }
-        #btnTrocarBateriaAdmin.visivel { display: inline-block; }
         /* Assinatura "TumTu" -- morava solta no meio do conteúdo (rodapé de
            verdade), mas nesse layout (cabeçalho fixo, só o miolo rola) o
            vão vazio abaixo de telas com pouco conteúdo fica todo visível
@@ -1270,28 +1264,6 @@
             }
             .nav-abas-voltar .aba-ic { font-size: 13px; width: auto; }
             .nav-abas-voltar:hover { background: rgba(18,16,26,0.95); }
-
-            /* "Trocar de Bateria" (Mestre/Diretor/Apoio com 2+ vínculos) --
-               achado urgente da Márcia, 25/ago/2026: no cabeçalho normal
-               (desktop, ao lado de "Sair"), competia por espaço com o nome
-               da escola/bateria e podia empurrar/quebrar em nomes compridos
-               (ex: "G.R.E.S. Imperatriz Leopoldinense"). Aqui no celular,
-               esse mesmo botão (.visivel, ligado via JS quando a pessoa
-               tem 2+ vínculos) vira flutuante em vez de inline -- mesmo
-               padrão já aprovado do "‹ Escolas" (posição, transparência,
-               --altura-nav-mobile). position:fixed tira do fluxo do
-               cabeçalho, então nunca mais disputa espaço lá. Fica do lado
-               oposto do "‹ Escolas" (direita, não esquerda) pra nunca
-               sobrepor os dois quando ambos aparecem juntos. */
-            #btnTrocarBateriaAdmin.visivel {
-                display: block;
-                position: fixed; top: auto; bottom: calc(var(--altura-nav-mobile, 70px) + 10px); right: 12px; z-index: 150;
-                background: rgba(18,16,26,0.85); color: #D4AF37;
-                border: 1.5px solid rgba(212,175,55,0.5);
-                padding: 7px 14px; border-radius: 999px; font-size: 12px; font-weight: 700;
-                backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0,0,0,0.35);
-            }
-            #btnTrocarBateriaAdmin.visivel:hover { background: rgba(18,16,26,0.95); }
         }
     </style>
 </head>
@@ -1316,7 +1288,6 @@
     </div>
     <div class="header-acoes">
         <div id="headerAvatarWrap" class="header-avatar" title="Meu Perfil"></div>
-        <button class="btn-sair" id="btnTrocarBateriaAdmin" onclick="trocarBateriaAdmin()">Trocar de Bateria</button>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
@@ -1519,6 +1490,16 @@
          apertado como 6º item no rodapé -- vira um link no topo, perto
          do cabeçalho (avaliação minha, 20/ago/2026). -->
     <button id="btnVoltarEscolasNav" type="button" class="nav-abas-voltar" onclick="voltarParaEscolasSA()" style="display:none"><span class="aba-ic">🏫</span><span>Escolas</span></button>
+    <!-- Só pra quem (Mestre/Diretor/Apoio) tem vínculo em mais de uma
+         bateria -- achado urgente da Márcia, 25/ago/2026: não existia
+         NENHUM caminho de volta pra escolher a outra bateria dentro do
+         painel. Mesmo padrão de "‹ Escolas" logo acima (pedido dela: "assim
+         ficaria o mesmo comportamento já existente no sistema") -- os dois
+         nunca aparecem juntos (um é só Super Admin, o outro só Mestre/
+         Diretor/Apoio), por isso reaproveita a mesma posição/estilo sem
+         risco de sobrepor. No celular vira flutuante automaticamente, é a
+         mesma regra CSS de .nav-abas-voltar (sem CSS novo nenhum). -->
+    <button id="btnTrocarBateriaNav" type="button" class="nav-abas-voltar" onclick="trocarBateriaAdmin()" style="display:none"><span class="aba-ic">🔄</span><span>Trocar de Bateria</span></button>
     <div class="sidebar-assinatura">
         <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
         <span class="sidebar-assinatura-tagline">Sistema de gestão de bateria</span>
@@ -3622,7 +3603,7 @@
         // logar de novo -- o botão nunca tinha sido criado aqui, só em
         // carteirinha.html (Ritmista).
         if (usuario.totalVinculos > 1) {
-            document.getElementById('btnTrocarBateriaAdmin').classList.add('visivel');
+            document.getElementById('btnTrocarBateriaNav').style.display = 'flex';
         }
         await carregarBibliotecaInstrumentos();
         await carregarBateriaInstrumentos();
