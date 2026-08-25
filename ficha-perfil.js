@@ -48,6 +48,22 @@ const FP_CAMPOS = [
     { id: 'fp-emergencia-celular',   col: 'emergencia_celular' },
 ];
 
+// Mesmos campos obrigatórios de cadastro.html (input[required]) --
+// achado real dela, 25/ago/2026: cadastro trava esses campos em branco,
+// mas editar (Meu Perfil/Admin/Super Admin) não travava NENHUM deles
+// (só Medida, corrigida mais cedo na mesma sessão) -- dava pra apagar
+// Nome, CPF, Endereço etc. e salvar em branco sem aviso nenhum. CPF,
+// Instrumento e Responsável ficam de fora daqui por serem condicionais
+// (checados à parte em fpSalvar -- CPF exceto quem usa Documento,
+// Instrumento só Ritmista, Responsável só quem é menor de idade hoje).
+// Apelido/Complemento/Bairro/Tipo sanguíneo continuam opcionais nos dois
+// lugares, sem mudança.
+const FP_CAMPOS_OBRIGATORIOS = new Set([
+    'nome', 'nacionalidade', 'nascimento', 'celular', 'email',
+    'endereco', 'numero', 'cidade', 'estado', 'pais',
+    'emergencia_nome', 'emergencia_parentesco', 'emergencia_celular',
+]);
+
 let fpPartialHtml = null;
 let fpFotoBase64 = null;
 // Posição da foto dentro da moldura (equivalente a object-position, em
@@ -825,20 +841,40 @@ async function fpSalvar() {
     const payloadPessoa = {};
     const payloadVinculo = {};
     let dataInvalida = false;
+    // Nascimento entra no laço antes de Responsável (mesma ordem de
+    // FP_CAMPOS), então esse valor já está atualizado quando a checagem de
+    // Responsável (logo abaixo) precisar dele pra saber se a pessoa é menor
+    // HOJE, com o valor que está sendo salvo agora -- não o antigo.
+    let nascimentoAtualISO = fpEstado.alvo.nascimento || null;
+    const camposInvalidos = [];
     FP_CAMPOS.forEach(({ id, col, tipo }) => {
         if (!fpEstado.editaveis.has(col)) return;
         const input = fpEl(id + '-edit');
         if (!input) return;
+        input.classList.remove('campo-invalido');
         const alvoPayload = fpTabelaDoCampo(col) === 'vinculos' ? payloadVinculo : payloadPessoa;
         if (tipo === 'data') {
             const bruto = input.value.trim();
-            if (!bruto) { alvoPayload[col] = null; return; }
+            if (!bruto) {
+                alvoPayload[col] = null;
+                nascimentoAtualISO = null;
+                if (FP_CAMPOS_OBRIGATORIOS.has(col)) camposInvalidos.push(input);
+                return;
+            }
             const iso = fpDataParaISO(bruto);
             if (!iso) { dataInvalida = true; return; }
             alvoPayload[col] = iso;
+            if (col === 'nascimento') nascimentoAtualISO = iso;
             return;
         }
-        alvoPayload[col] = input.value.trim() || null;
+        const valor = input.value.trim();
+        alvoPayload[col] = valor || null;
+        // Responsável só é obrigatório pra quem É menor de idade com a data
+        // que está sendo salva agora -- mesma regra usada pra mostrar/
+        // esconder a seção (fpEhMenorIdade).
+        const ehResponsavel = col === 'responsavel_nome' || col === 'responsavel_cpf' || col === 'responsavel_celular';
+        const obrigatorio = FP_CAMPOS_OBRIGATORIOS.has(col) || (ehResponsavel && fpEhMenorIdade(nascimentoAtualISO));
+        if (obrigatorio && !valor) camposInvalidos.push(input);
     });
     if (dataInvalida) {
         const msg = fpEl('fp-mensagem');
@@ -853,9 +889,34 @@ async function fpSalvar() {
         payloadPessoa.tipo_documento = fpEl('fp-tipo-documento-edit').value.trim() || null;
         payloadPessoa.numero_documento = fpEl('fp-numero-documento-edit').value.trim() || null;
     }
+    // CPF é obrigatório, EXCETO pra quem já usa Documento (Passaporte/RNE)
+    // no lugar -- mesma regra de cadastro.html (toggleSemCpf). Documento em
+    // si não é editável na ficha hoje (nem chega a ser criado esse par de
+    // campos aqui), então essa exceção só existe pra não travar quem já
+    // veio assim do cadastro.
+    if (fpEstado.editaveis.has('cpf')) {
+        const cpfInput = fpEl('fp-cpf-edit');
+        const temDocumento = !!(fpEstado.alvo.tipo_documento && fpEstado.alvo.numero_documento);
+        if (cpfInput && !temDocumento && !cpfInput.value.trim()) camposInvalidos.push(cpfInput);
+    }
     if (fpEstado.editaveis.has('bateria_instrumento_id')) {
-        const val = fpEl('fp-instrumento-edit').value;
+        const selectInstrumento = fpEl('fp-instrumento-edit');
+        const val = selectInstrumento.value;
         payloadVinculo.bateria_instrumento_id = val ? Number(val) : null;
+        // Instrumento só é obrigatório pra Ritmista -- mesma regra de
+        // cadastro.html (campo nem existe pra Mestre/Diretor/Apoio).
+        if (fpEstado.alvo.perfil === 'ritmista' && !val) camposInvalidos.push(selectInstrumento);
+    }
+    if (camposInvalidos.length > 0) {
+        const msg = fpEl('fp-mensagem');
+        if (msg) {
+            msg.className = 'fp-mensagem erro';
+            msg.textContent = 'Preencha os campos obrigatórios em destaque antes de salvar.';
+            msg.style.display = 'block';
+            camposInvalidos[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        camposInvalidos.forEach(input => input.classList.add('campo-invalido'));
+        return;
     }
     if (fpEstado.editaveis.has('repique_bossa')) {
         payloadVinculo.repique_bossa = fpEl('fp-repique-bossa-edit').checked;
