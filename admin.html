@@ -1851,9 +1851,20 @@
         <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
+    <!-- Fechado por padrão, só o total geral na pílula -- clica pra abrir
+         o detalhe por naipe (pedido dela, 25/ago/2026: "se a pessoa quiser
+         ver só o total, vai conseguir. e se quiser ver o detalhe, vai
+         abrir"). Mesma ideia de acordeão já usada em Configurações →
+         Categoria de Figurino. -->
     <div class="vg-card">
-        <div class="vg-secao-titulo">🥁 Ritmistas por Instrumento</div>
-        <div id="vg-instrumentos"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+        <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgInstrumentosAberto()">
+            <span>🥁 Ritmistas por Instrumento</span>
+            <span class="vg-secao-resumo">
+                <span id="vg-instrumentos-total" class="vg-instrumento-qtd">—</span>
+                <span class="vg-secao-seta" id="vg-instrumentos-seta">›</span>
+            </span>
+        </div>
+        <div id="vg-instrumentos" style="display:none;"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
     <!-- Resumo de entrega de Figurino -- só aparece com pelo menos 1 peça
@@ -1861,7 +1872,8 @@
          desligado (os dois interruptores ficam na própria tela de Entrega
          de Figurino). Pedido da Márcia, 24/ago/2026: "não tem como ficar
          todos lá" -- e ativar a peça com antecedência não quer dizer que
-         ela deve aparecer aqui sozinha. -->
+         ela deve aparecer aqui sozinha. Cada peça, dentro do card, também
+         é um acordeão fechado/aberto (25/ago/2026), mesma ideia de cima. -->
     <div class="vg-card" id="vg-figurino-card" style="display:none;">
         <div class="vg-secao-titulo">👕 Entrega de Figurino</div>
         <div id="vg-figurino"></div>
@@ -3011,6 +3023,17 @@
         return '';
     }
 
+    // Card fechado por padrão (25/ago/2026, pedido dela) -- só o total geral
+    // na pílula do cabeçalho, clica pra abrir o detalhe por naipe.
+    let vgInstrumentosAberto = false;
+    function toggleVgInstrumentosAberto() {
+        vgInstrumentosAberto = !vgInstrumentosAberto;
+        const div = document.getElementById('vg-instrumentos');
+        const seta = document.getElementById('vg-instrumentos-seta');
+        if (div) div.style.display = vgInstrumentosAberto ? 'block' : 'none';
+        if (seta) seta.classList.toggle('aberta', vgInstrumentosAberto);
+    }
+
     function renderizarContagemInstrumentos() {
         const div = document.getElementById('vg-instrumentos');
         if (!div) return;
@@ -3043,6 +3066,19 @@
         // faz sentido mostrar "0" fixo pra ele, nem aviso de vaga nenhum.
         if (contagem['sem-instrumento']) {
             linhas.push({ nome: 'Sem instrumento', qtd: contagem['sem-instrumento'], vagas: 0, semVaga: true, excedeu: false, completo: false, faltam: 0, mostrarAviso: false });
+        }
+        // Total geral, mostrado sempre (mesmo com o card fechado) -- soma
+        // ativos de todos os naipes / soma só das vagas que já têm número
+        // definido (naipe sem vaga não entra na soma, mesmo critério de "-"
+        // usado linha a linha).
+        const totalEl = document.getElementById('vg-instrumentos-total');
+        if (totalEl) {
+            const totalQtd = linhas.reduce((s, l) => s + l.qtd, 0);
+            const linhasComVaga = linhas.filter(l => !l.semVaga);
+            const totalVagas = linhasComVaga.reduce((s, l) => s + l.vagas, 0);
+            const excedeuTotal = linhasComVaga.length > 0 && totalQtd > totalVagas;
+            totalEl.textContent = `${totalQtd} / ${linhasComVaga.length > 0 ? totalVagas : '-'}`;
+            totalEl.className = 'vg-instrumento-qtd' + (excedeuTotal ? ' excedeu' : '');
         }
         if (linhas.length === 0) {
             div.innerHTML = '<div style="color:#bbb;font-size:13px;padding:8px 0;">Nenhum instrumento ativo cadastrado.</div>';
@@ -3079,27 +3115,56 @@
         const ativos = resAtivos.ok ? await resAtivos.json() : [];
         if (ativos.length === 0) { card.style.display = 'none'; document.getElementById('vg-figurino').innerHTML = ''; return; }
         const itemIds = ativos.map(a => a.figurino_item_mestre_id);
-        const resItens = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=in.(${itemIds.join(',')})&select=id,nome,publico`, { headers: authHeaders });
+        const resItens = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=in.(${itemIds.join(',')})&select=id,nome,publico,inclui_extras`, { headers: authHeaders });
         const itens = resItens.ok ? await resItens.json() : [];
         if (itens.length === 0) { card.style.display = 'none'; return; }
         const perfis = [...new Set(itens.map(i => i.publico))];
-        const [resPessoas, resEntregas] = await Promise.all([
+        // "Incluir Extras" (25/ago/2026) soma junto o lado certo de Extras
+        // no resumo, mesma lógica de carregarEntregasFigurino.
+        const precisaExtras = itens.some(i => i.inclui_extras);
+        const buscas = [
             fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=in.(${perfis.join(',')})&select=id,perfil,instrumento_nome`, { headers: authHeaders }),
-            fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=in.(${itemIds.join(',')})&entregue_em=not.is.null&select=vinculo_id,figurino_item_id`, { headers: authHeaders }),
-        ]);
+            fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=in.(${itemIds.join(',')})&entregue_em=not.is.null&vinculo_id=not.is.null&select=vinculo_id,figurino_item_id`, { headers: authHeaders }),
+        ];
+        if (precisaExtras) {
+            buscas.push(
+                fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&select=id,grupo`, { headers: authHeaders }),
+                fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=in.(${itemIds.join(',')})&entregue_em=not.is.null&extra_id=not.is.null&select=extra_id,figurino_item_id`, { headers: authHeaders }),
+            );
+        }
+        const [resPessoas, resEntregas, resExtras, resExtrasEntregas] = await Promise.all(buscas);
         const pessoas = resPessoas.ok ? await resPessoas.json() : [];
         const entregas = resEntregas.ok ? await resEntregas.json() : [];
+        const extras = (precisaExtras && resExtras && resExtras.ok) ? await resExtras.json() : [];
+        const extrasEntregas = (precisaExtras && resExtrasEntregas && resExtrasEntregas.ok) ? await resExtrasEntregas.json() : [];
         card.style.display = 'block';
-        renderizarResumoEntregaFigurino(itens, pessoas, entregas);
+        renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas);
     }
 
-    function renderizarResumoEntregaFigurino(itens, pessoas, entregas) {
+    // Cada peça, dentro do card, é seu próprio acordeão fechado/aberto
+    // (25/ago/2026) -- guarda o último resultado carregado pra reabrir/
+    // fechar sem precisar buscar de novo no banco.
+    let vgFigurinoAbertos = new Set();
+    let vgFigurinoUltimoRender = null;
+    function toggleVgFigurinoAberto(itemId) {
+        if (vgFigurinoAbertos.has(itemId)) vgFigurinoAbertos.delete(itemId);
+        else vgFigurinoAbertos.add(itemId);
+        if (vgFigurinoUltimoRender) renderizarResumoEntregaFigurino(...vgFigurinoUltimoRender);
+    }
+
+    function renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas) {
+        vgFigurinoUltimoRender = [itens, pessoas, entregas, extras, extrasEntregas];
         const div = document.getElementById('vg-figurino');
         if (!div) return;
         const entreguesPorItem = {};
         entregas.forEach(e => {
             if (!entreguesPorItem[e.figurino_item_id]) entreguesPorItem[e.figurino_item_id] = new Set();
             entreguesPorItem[e.figurino_item_id].add(e.vinculo_id);
+        });
+        const extrasEntreguesPorItem = {};
+        (extrasEntregas || []).forEach(e => {
+            if (!extrasEntreguesPorItem[e.figurino_item_id]) extrasEntreguesPorItem[e.figurino_item_id] = new Set();
+            extrasEntreguesPorItem[e.figurino_item_id].add(e.extra_id);
         });
         const linhaHtml = (nome, entregues, total) => {
             const faltam = total - entregues;
@@ -3117,11 +3182,9 @@
         div.innerHTML = itensOrdenados.map((item, idx) => {
             const entreguesSet = entreguesPorItem[item.id] || new Set();
             const pessoasAlvo = pessoas.filter(p => p.perfil === item.publico);
-            const titulo = `<div style="font-size:13px;font-weight:700;color:var(--cor-texto-principal);margin:${idx === 0 ? '0' : '18px'} 0 6px;">${esc(item.nome)}</div>`;
-            if (pessoasAlvo.length === 0) {
-                return titulo + `<div style="color:#bbb;font-size:13px;padding:4px 0 9px;">Ninguém em ${LABEL_PUBLICO_FIGURINO[item.publico].toLowerCase()} ainda.</div>`;
-            }
-            if (item.publico === 'ritmista') {
+            let corpoHtml = '';
+            let totalGeral = 0, entreguesGeral = 0;
+            if (item.publico === 'ritmista' && pessoasAlvo.length > 0) {
                 const porInstrumento = {};
                 pessoasAlvo.forEach(p => {
                     const chave = p.instrumento_nome || 'Sem instrumento';
@@ -3131,10 +3194,36 @@
                 });
                 const linhas = Object.entries(porInstrumento).map(([nome, v]) => ({ nome, ...v, faltam: v.total - v.entregues }))
                     .sort((a, b) => b.faltam - a.faltam || a.nome.localeCompare(b.nome, 'pt-BR'));
-                return titulo + linhas.map(l => linhaHtml(l.nome, l.entregues, l.total)).join('');
+                corpoHtml += linhas.map(l => linhaHtml(l.nome, l.entregues, l.total)).join('');
+                linhas.forEach(l => { totalGeral += l.total; entreguesGeral += l.entregues; });
+            } else if (item.publico !== 'ritmista' && pessoasAlvo.length > 0) {
+                const entregues = pessoasAlvo.filter(p => entreguesSet.has(p.id)).length;
+                corpoHtml += linhaHtml(LABEL_PUBLICO_FIGURINO[item.publico], entregues, pessoasAlvo.length);
+                totalGeral += pessoasAlvo.length; entreguesGeral += entregues;
             }
-            const entregues = pessoasAlvo.filter(p => entreguesSet.has(p.id)).length;
-            return titulo + linhaHtml(LABEL_PUBLICO_FIGURINO[item.publico], entregues, pessoasAlvo.length);
+            if (item.inclui_extras) {
+                const grupo = grupoExtraDoPublico(item.publico);
+                const extrasAlvo = (extras || []).filter(e => e.grupo === grupo);
+                if (extrasAlvo.length > 0) {
+                    const extrasEntreguesSet = extrasEntreguesPorItem[item.id] || new Set();
+                    const entreguesExtras = extrasAlvo.filter(e => extrasEntreguesSet.has(e.id)).length;
+                    corpoHtml += linhaHtml('Extras', entreguesExtras, extrasAlvo.length);
+                    totalGeral += extrasAlvo.length; entreguesGeral += entreguesExtras;
+                }
+            }
+            if (!corpoHtml) corpoHtml = `<div style="color:#bbb;font-size:13px;padding:4px 0 9px;">Ninguém em ${LABEL_PUBLICO_FIGURINO[item.publico].toLowerCase()} ainda.</div>`;
+            const aberto = vgFigurinoAbertos.has(item.id);
+            return `
+            <div style="${idx === 0 ? '' : 'margin-top:16px;'}">
+                <div class="vg-secao-titulo--clicavel" style="margin-bottom:${aberto ? '8px' : '0'};" onclick="toggleVgFigurinoAberto(${item.id})">
+                    <span class="vg-figurino-peca-titulo">${esc(item.nome)}</span>
+                    <span class="vg-secao-resumo">
+                        <span class="vg-instrumento-qtd${totalGeral > 0 && entreguesGeral === totalGeral ? ' completo' : ''}">${entreguesGeral} / ${totalGeral}</span>
+                        <span class="vg-secao-seta${aberto ? ' aberta' : ''}">›</span>
+                    </span>
+                </div>
+                ${aberto ? corpoHtml : ''}
+            </div>`;
         }).join('');
     }
 
