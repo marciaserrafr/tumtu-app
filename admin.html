@@ -799,6 +799,12 @@
            da Visão Geral (Ritmistas por Instrumento / Entrega de Figurino). */
         .total-duplo { display: flex; align-items: center; gap: 28px; }
         .total-duplo-item { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+        /* Caixa branca que embrulha o total-duplo no fim da Entrega de
+           Figurino -- inline-flex (não flex) de propósito, pra "abraçar" só
+           o conteúdo em vez de esticar a largura toda da tela e sobrar um
+           vão vazio do lado direito (achado dela, 25/ago/2026: "tudo
+           alinhado à esquerda e o resto todo vazio"). */
+        .total-duplo-card { display: inline-flex; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-radius: 14px; padding: 16px 22px; }
         .total-duplo-numero { font-size: 34px; font-weight: 800; line-height: 1; }
         .total-duplo-numero.total { color: #D4AF37; }
         .total-duplo-numero.faltam { color: var(--cor-terracota); }
@@ -1789,7 +1795,7 @@
              TODO mundo da peça (Ritmistas/Diretoria + Extras do mesmo lado,
              se "Incluir Extras" estiver ligado), nunca só o que está
              filtrado na busca/instrumento -- é o total da peça inteira. -->
-        <div id="figurino-entregas-totalizador" class="config-vagas-total-card" style="margin-top:14px;margin-bottom:0;"></div>
+        <div id="figurino-entregas-totalizador" class="total-duplo-card" style="margin-top:14px;"></div>
     </div>
 
 </div>
