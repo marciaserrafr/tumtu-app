@@ -3182,12 +3182,11 @@
         if (!card) return;
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { card.style.display = 'none'; return; }
-        const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&mostra_visao_geral=eq.true&entrega_finalizada=eq.false&select=id,figurino_item_mestre_id`, { headers: authHeaders });
+        const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&mostra_visao_geral=eq.true&entrega_finalizada=eq.false&select=id,figurino_item_mestre_id,item:figurino_itens_mestre(id,nome,publico,inclui_extras)`, { headers: authHeaders });
         const ativos = resAtivos.ok ? await resAtivos.json() : [];
         if (ativos.length === 0) { card.style.display = 'none'; document.getElementById('vg-figurino').innerHTML = ''; return; }
         const itemIds = ativos.map(a => a.figurino_item_mestre_id);
-        const resItens = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=in.(${itemIds.join(',')})&select=id,nome,publico,inclui_extras`, { headers: authHeaders });
-        const itens = resItens.ok ? await resItens.json() : [];
+        const itens = ativos.map(a => a.item).filter(Boolean);
         if (itens.length === 0) { card.style.display = 'none'; return; }
         const perfis = [...new Set(itens.map(i => i.publico))];
         // "Incluir Extras" (25/ago/2026) soma junto o lado certo de Extras
