@@ -223,6 +223,22 @@ function fpISOparaData(iso) {
     return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
 }
 
+// Mesma regra/número já usado em cadastro.html (verificarMenorIdade,
+// 17/ago/2026) -- duplicada aqui em vez de compartilhada num arquivo
+// comum, mesmo critério já usado em outras funções pequenas repetidas
+// deste arquivo.
+const FP_IDADE_MAIOR = 18;
+function fpEhMenorIdade(nascimentoISO) {
+    if (!nascimentoISO) return false;
+    const nascimento = new Date(nascimentoISO + 'T00:00:00');
+    const hoje = new Date();
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const aniversarioJaPassou = (hoje.getMonth() > nascimento.getMonth())
+        || (hoje.getMonth() === nascimento.getMonth() && hoje.getDate() >= nascimento.getDate());
+    if (!aniversarioJaPassou) idade--;
+    return idade < FP_IDADE_MAIOR;
+}
+
 // Ícone (i) de explicação — mesmo padrão usado em cadastro.html (duplicado
 // aqui, não compartilhado num arquivo comum, mesmo critério já usado em
 // outras funções pequenas de UI do projeto, ex: toggleSenha).
@@ -284,14 +300,21 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         fpEl('fp-bloco-documento').style.display = 'none';
     }
 
-    // Responsável (nome/CPF) só existe pra quem era menor de idade no
-    // cadastro -- some a linha inteira em vez de "—" solto pra quem é
-    // maior (mesmo critério já usado em Documento/Instrumento/"Como se
-    // identifica"), em vez de mostrar campo vazio pra maioria das pessoas.
-    const temResponsavel = !!(alvo.responsavel_nome || alvo.responsavel_cpf);
-    fpEl('fp-bloco-responsavel-nome').style.display = temResponsavel ? '' : 'none';
-    fpEl('fp-bloco-responsavel-cpf').style.display = temResponsavel ? '' : 'none';
-    fpEl('fp-bloco-responsavel-celular').style.display = temResponsavel ? '' : 'none';
+    // Responsável (nome/CPF/celular) aparece pra quem É menor de idade
+    // HOJE (calculado da data de nascimento, mesma regra de
+    // cadastro.html) OU já tinha esse dado salvo antes (ex: fez 18 anos
+    // depois do cadastro -- o dado histórico continua visível, não some).
+    // Bug real achado por ela, 25/ago/2026 ("não está aparecendo os dados
+    // do responsável quando é menor de idade"): antes só aparecia se já
+    // existisse dado salvo -- um menor sem essa informação preenchida
+    // nunca tinha a seção revelada, nem em modo Editar, então nem o Super
+    // Admin (único perfil que pode editar esses campos) conseguia
+    // preencher.
+    const temResponsavel = !!(alvo.responsavel_nome || alvo.responsavel_cpf || alvo.responsavel_celular);
+    const mostrarResponsavel = temResponsavel || fpEhMenorIdade(alvo.nascimento);
+    fpEl('fp-bloco-responsavel-nome').style.display = mostrarResponsavel ? '' : 'none';
+    fpEl('fp-bloco-responsavel-cpf').style.display = mostrarResponsavel ? '' : 'none';
+    fpEl('fp-bloco-responsavel-celular').style.display = mostrarResponsavel ? '' : 'none';
 
     const campoCadastro = fpEl('fp-campo-cadastro');
     if (campoCadastro) {
