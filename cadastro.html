@@ -917,7 +917,11 @@
     // nenhuma mudança de código). idsMedidaAtual guarda quais tipos essa
     // bateria tem hoje, pra lerValoresMedidas() saber quais campos ler.
     let idsMedidaAtual = [];
-    async function carregarOpcoesMedidas(bateriaId) {
+    // perfil filtra quem preenche cada Categoria de Figurino (25/ago/2026,
+    // pedido dela: Calça de Diretoria usa escala numérica, diferente da de
+    // Ritmista -- uma categoria pode ser restrita a só alguns públicos,
+    // configurado em Configurações → Categoria de Figurino).
+    async function carregarOpcoesMedidas(bateriaId, perfil) {
         const container = document.getElementById('linha-medidas-dinamico');
         const secao = document.getElementById('secao-medidas');
         if (!container) return;
@@ -928,6 +932,8 @@
             const opcoes = res.ok ? await res.json() : [];
             const porTipo = {};
             opcoes.forEach(o => {
+                const publico = Array.isArray(o.publico) ? o.publico : ['ritmista', 'mestre', 'diretor', 'apoio'];
+                if (perfil && !publico.includes(perfil)) return;
                 if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { nome: o.tipo_nome, grupo: o.tipo_grupo, tamanhos: [] };
                 porTipo[o.tipo_id].tamanhos.push(o.nome_exibicao);
             });
@@ -1005,7 +1011,7 @@
         linkFixoAtual = { perfil, bateriaId: bateria.id };
         atualizarCampoInstrumento(perfil);
         await carregarOpcoesInstrumento(bateria.id);
-        await carregarOpcoesMedidas(bateria.id);
+        await carregarOpcoesMedidas(bateria.id, perfil);
 
         const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor de Bateria' : perfil === 'apoio' ? 'Diretor' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = cargoLabel;
@@ -1111,7 +1117,7 @@
         modoManualAtual = { cargo, bateriaId: Number(bateriaId), criadoPorId: usuarioLogado.id };
         atualizarCampoInstrumento(cargo);
         await carregarOpcoesInstrumento(Number(bateriaId));
-        await carregarOpcoesMedidas(Number(bateriaId));
+        await carregarOpcoesMedidas(Number(bateriaId), cargo);
         const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor de Bateria' : cargo === 'apoio' ? 'Diretor' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = cargoLabel;
         document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
