@@ -1755,15 +1755,16 @@
 
     <div class="painel-titulo">Visão Geral</div>
 
+    <!-- Os 4 cards (ativos + pendentes, Ritmistas e Diretoria) são clicáveis
+         -- direcionam pra aba correspondente, que já abre com o filtro
+         padrão Ativos+Pendentes (agrupado por status). Pendentes ganharam
+         isso primeiro (24/ago/2026); ativos pedido logo depois, mesma
+         lógica ("quero ver quem já tá ativo" merece o mesmo atalho). -->
     <div class="totalizadores">
-        <div class="total-card">
+        <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
             <div class="total-numero ativo" id="totalAtivos">—</div>
             <div class="total-label">Ritmistas ativos</div>
         </div>
-        <!-- Clicável -- direciona pra Ritmistas, que já abre com o filtro
-             padrão Ativos+Pendentes (agrupado por status), pedido da
-             Márcia, 24/ago/2026: "clicar em ritmistas pendente, direcionar
-             pra tela de ritmistas pra ativar os pendentes". -->
         <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
             <div class="total-numero" id="totalPendentes">—</div>
             <div class="total-label">Ritmistas pendentes</div>
@@ -1774,7 +1775,7 @@
          Márcia, 21/ago/2026) -- só aparece pra quem tem ver_acessos, mesma
          capacidade que libera a aba Diretoria. -->
     <div class="totalizadores" id="totalizadoresDiretoria" style="display:none;">
-        <div class="total-card">
+        <div class="total-card total-card--clicavel" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">
             <div class="total-numero ativo" id="totalDiretoriaAtivos">—</div>
             <div class="total-label">Diretoria ativa</div>
         </div>
