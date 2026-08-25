@@ -1523,24 +1523,41 @@
             // fixas em vinculos, moram em vinculos_medidas (uma linha por
             // tipo preenchido). Precisa do id do vínculo recém-criado, por
             // isso só entra depois do POST acima (Prefer: return=representation).
+            //
+            // Bug real achado em 25/ago/2026: esse insert nunca conferia a
+            // resposta -- quando a regra do banco recusava (RLS), a pessoa
+            // via "Cadastro enviado com sucesso!" sem saber que a medida
+            // tinha se perdido (71 dos 76 ritmistas da Imperatriz afetados).
+            // A causa raiz (RLS) já foi corrigida, mas o aviso abaixo fica
+            // como rede de segurança -- se essa gravação falhar por
+            // qualquer outro motivo no futuro, a pessoa é avisada na hora
+            // em vez do erro sumir em silêncio.
             const medidasPreenchidas = (dados.medidas || []).filter(m => m.valor);
+            let medidaFalhou = false;
             if (medidasPreenchidas.length > 0) {
                 const [novoVinculo] = await res.json();
                 if (novoVinculo && novoVinculo.id) {
-                    await fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas`, {
+                    const resMedida = await fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${tokenCadastro}` },
                         body: JSON.stringify(medidasPreenchidas.map(m => ({ vinculo_id: novoVinculo.id, tipo_id: m.tipoId, valor: m.valor })))
                     });
+                    if (!resMedida.ok) {
+                        medidaFalhou = true;
+                        console.error('Falha ao salvar medidas do cadastro:', await resMedida.text());
+                    }
                 }
             }
+            const avisoMedida = medidaFalhou
+                ? ' Só a medida (Camisa/Fantasia/Calça/Sapato) não foi salva por um problema técnico -- assim que seu acesso for aprovado, abra "Meu Perfil" e preencha de novo.'
+                : '';
             if (linkFixoAtual && linkFixoAtual.perfil !== 'ritmista') {
-                mostrarMensagem('Cadastro enviado! Aguarde a aprovação da diretoria — você vai receber um e-mail assim que for aprovado.', 'sucesso');
+                mostrarMensagem('Cadastro enviado! Aguarde a aprovação da diretoria — você vai receber um e-mail assim que for aprovado.' + avisoMedida, 'sucesso');
                 document.getElementById('formCadastro').style.display = 'none';
                 document.querySelector('.foto-area').style.display = 'none';
                 document.getElementById('convite-banner').style.display = 'none';
             } else {
-                mostrarMensagem('Cadastro enviado com sucesso! Aguarde a aprovação da diretoria — você vai receber um e-mail assim que for aprovado.', 'sucesso');
+                mostrarMensagem('Cadastro enviado com sucesso! Aguarde a aprovação da diretoria — você vai receber um e-mail assim que for aprovado.' + avisoMedida, 'sucesso');
                 document.getElementById('formCadastro').reset();
                 document.querySelector('.foto-preview').innerHTML = '<span>Clique para adicionar foto</span>';
                 travarFormulario(false);
