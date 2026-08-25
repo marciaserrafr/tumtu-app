@@ -5012,11 +5012,22 @@
         // está aplicado, igual ao login.html/carteirinha.html já fazem.
         document.getElementById('overlayCarregandoEscola').classList.add('visivel');
 
-        const resE = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${escolaId}`, { headers: authHeaders });
+        // 25/ago/2026: paraleliza os pedidos ao banco que não dependem um
+        // do outro -- antes eram 5 pedidos em fila, cada um esperando o
+        // anterior terminar sem precisar (achado dela: "demora muito pra
+        // carregar" ao entrar numa escola). Escola, baterias e a
+        // biblioteca mestre de instrumentos não dependem entre si, então
+        // rodam juntos; só o que depende de já saber qual é a bateria
+        // (instrumentos DESSA bateria, nome da escola/bateria) espera essa
+        // primeira leva terminar.
+        const [resE] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${escolaId}`, { headers: authHeaders }),
+            carregarBaterias(escolaId),
+            carregarBibliotecaInstrumentos(),
+        ]);
         const dadosE = await resE.json();
         escolaAtualData = Array.isArray(dadosE) && dadosE[0] ? dadosE[0] : null;
 
-        await carregarBaterias(escolaId);
         bateriaAtualData = bateriasCache[0] || null;
         diretoriaCarregada = false; // troca de escola invalida o cache de Diretoria da escola anterior
 
@@ -5027,18 +5038,17 @@
         document.getElementById('btnVoltarEscolasNav').style.display = 'flex';
         document.querySelectorAll('.aba-btn-sa').forEach(el => el.style.display = '');
 
-        await carregarBibliotecaInstrumentos();
-        await carregarBateriaInstrumentos();
-        construirMultiSelect();
-
-        if (bateriaAtualData) {
-            await carregarNomeEscolaBateria(bateriaAtualData.id);
-        } else {
+        await Promise.all([
+            carregarBateriaInstrumentos(),
+            bateriaAtualData ? carregarNomeEscolaBateria(bateriaAtualData.id) : Promise.resolve(),
+        ]);
+        if (!bateriaAtualData) {
             configEscola.nomeEscola = escolaAtualData ? (escolaAtualData.sigla || escolaAtualData.nome || '') : '';
             configEscola.nomeEscolaCurto = escolaAtualData ? (escolaAtualData.nome_curto || '') : '';
             configEscola.nomeBateria = '(sem bateria cadastrada)';
             configEscola.temaPersonalizadoAtivo = false;
         }
+        construirMultiSelect();
         aplicarConfigEscola();
         // Depois do tema da escola aplicado (pode mudar a altura do
         // cabeçalho com logo/cor própria) -- a barra lateral nova
