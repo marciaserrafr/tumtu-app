@@ -2276,6 +2276,27 @@
         return u ? u.bateria_id : null;
     }
 
+    // Atualização automática de Ritmistas + Diretoria -- pedido dela e do
+    // Diretor dela, 25/ago/2026: "toda hora é necessário atualizar a tela
+    // pra ver novos ritmistas se cadastrando ou fechando e abrindo o app".
+    // Recarrega sozinho a cada 30s (sem precisar apertar nada) enquanto a
+    // pessoa estiver dentro de uma bateria -- atualiza as duas listas, os
+    // totais e a Visão Geral junto, porque carregarRitmistas()/
+    // carregarDiretoria() já cuidam disso. Pausa sozinho enquanto uma ficha
+    // está aberta pra edição (#modalAdmin), pra nunca sobrescrever um
+    // formulário que a pessoa está preenchendo.
+    let ritmistasAutoRefreshInterval = null;
+    function iniciarAutoRefreshRitmistas() {
+        if (ritmistasAutoRefreshInterval) clearInterval(ritmistasAutoRefreshInterval);
+        ritmistasAutoRefreshInterval = setInterval(() => {
+            const modal = document.getElementById('modalAdmin');
+            if (modal && modal.style.display !== 'none') return;
+            carregarRitmistas();
+            diretoriaCarregada = false;
+            carregarDiretoria();
+        }, 30000);
+    }
+
     async function carregarRitmistas() {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); carregarResumoEntregaFigurino(); return; }
@@ -3645,6 +3666,7 @@
         document.getElementById('mainEscola').style.display = 'flex';
         ajustarAlturaNavMobile();
         carregarRitmistas();
+        iniciarAutoRefreshRitmistas();
         // Card "Diretoria ativa" na Visão Geral (novo, 21/ago/2026) --
         // reaproveita a mesma carregarDiretoria() da aba Diretoria (fica em
         // cache pra quando ela clicar lá, sem buscar de novo). Só dispara
@@ -5027,6 +5049,7 @@
 
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
         carregarRitmistas();
+        iniciarAutoRefreshRitmistas();
         carregarDiretoria(); // Super Admin sempre vê o card "Diretoria ativa"
         carregarExtras().then(atualizarTotalizadorExtras); // idem, card "Extras"
 
