@@ -2297,19 +2297,42 @@
             const ritmistaAberto = modalRitmista && modalRitmista.classList.contains('aberto');
             const diretoriaAberta = modalDiretoria && modalDiretoria.style.display !== 'none';
             if (ritmistaAberto || diretoriaAberta) return;
-            carregarRitmistas();
+            carregarRitmistas(true);
             diretoriaCarregada = false;
-            carregarDiretoria();
+            carregarDiretoria(true);
         }, 30000);
     }
 
-    async function carregarRitmistas() {
+    // Colunas da view sem foto_url -- foto de cada pessoa fica guardada como
+    // texto base64 gigante (achado 25/ago/2026: 174KB em média, 22MB juntando
+    // todo mundo de uma bateria de 128 pessoas) direto na linha, não como link
+    // pra um arquivo à parte -- então o navegador NUNCA consegue guardar isso
+    // em cache sozinho, tem que baixar de novo inteiro toda vez que a lista
+    // recarrega. `leve` (usado pela atualização automática de 30s, que roda
+    // sozinha o tempo todo) pula a foto pra não ficar baixando 22MB repetido
+    // sem necessidade -- mantém a foto já carregada de quem já estava na
+    // tela (não apaga nada visível), só quem aparece pela primeira vez nessa
+    // atualização de fundo fica sem foto até a próxima vez que a tela abrir
+    // de verdade. Conserto definitivo (fotos pequenas de verdade) fica pra
+    // depois, com mais calma -- isso aqui é só a mitigação imediata.
+    const COLUNAS_RITMISTAS_SEM_FOTO = 'id,vinculo_id,pessoa_id,created_at,nome,cpf,nascimento,endereco,numero,complemento,bairro,cidade,estado,celular,apelido,email,status,tamanho_camisa,tamanho_fantasia,tamanho_sapato,declaracao_responsavel,motivo_status,motivo_instrumento,membro_desde,perfil,emergencia_nome,emergencia_parentesco,emergencia_celular,bateria_id,tipo_sanguineo,pais,nacionalidade,tamanho_calca,estrangeiro,tipo_documento,numero_documento,cadastro_completo,nivel_acesso,aprovado_por,auth_user_id,consentimento_confirmado,bateria_instrumento_id,instrumento_nome,instrumento_grupo,genero,genero_personalizado,nivel_acesso_id,foto_pos_x,foto_pos_y,capacidades,modo_carteirinha_individual,naipe,repique_bossa,qr_token,responsavel_nome,responsavel_cpf,responsavel_celular';
+
+    function reaproveitarFotosCache(listaNova, listaAntiga) {
+        const fotosPorId = {};
+        (listaAntiga || []).forEach(p => { if (p.foto_url) fotosPorId[p.id] = p.foto_url; });
+        listaNova.forEach(p => { if (fotosPorId[p.id]) p.foto_url = fotosPorId[p.id]; });
+        return listaNova;
+    }
+
+    async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); carregarResumoEntregaFigurino(); return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=*&order=created_at.desc`, {
+        const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=${select}&order=created_at.desc`, {
             headers: authHeaders
         });
-        todosRitmistas = await res.json();
+        const novos = await res.json();
+        todosRitmistas = leve ? reaproveitarFotosCache(novos, todosRitmistas) : novos;
         aplicarFiltros();
         atualizarTotalizadores();
         renderizarVisaoGeral();
@@ -6453,20 +6476,21 @@
     let filtroCargoDiretoriaSelecionados = ['mestre', 'diretor', 'apoio'];
     let filtroStatusDiretoriaSelecionados = ['aprovado', 'pendente'];
 
-    async function carregarDiretoria() {
+    async function carregarDiretoria(leve = false) {
         if (diretoriaCarregada) return;
         const bateriaId = bateriaIdContexto();
         const lista = document.getElementById('listaDiretoria');
         lista.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
 
         if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
-        const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=*`;
+        const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
+        const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=${select}`;
 
         const res = await fetch(url, {
             headers: authHeaders
         });
-        const admins = await res.json();
-        listaDiretoriaAtual = admins || [];
+        const novosAdmins = (await res.json()) || [];
+        listaDiretoriaAtual = leve ? reaproveitarFotosCache(novosAdmins, listaDiretoriaAtual) : novosAdmins;
         aplicarFiltrosDiretoria();
         atualizarTotalizadoresDiretoria();
         // Aniversariantes do mês (Visão Geral) inclui Diretoria -- essa busca
