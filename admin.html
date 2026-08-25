@@ -790,6 +790,24 @@
         }
         .config-vagas-total-numero { font-size: 34px; font-weight: 800; color: #D4AF37; line-height: 1; flex-shrink: 0; }
         .config-vagas-total-label { font-size: 12px; color: #888; line-height: 1.4; }
+        /* Totalizador de dois números (25/ago/2026) -- mesma fonte grande do
+           card acima (.config-vagas-total-numero), mas com dois valores lado
+           a lado em cores diferentes: total em dourado, faltam em terracota
+           (mesma cor que "Pendentes" já usa no resto do app -- pedido dela,
+           "18 poderia estar em terracota, já que são os que faltam"). Usado
+           tanto no fim da Entrega de Figurino quanto nos cabeçalhos fechados
+           da Visão Geral (Ritmistas por Instrumento / Entrega de Figurino). */
+        .total-duplo { display: flex; align-items: center; gap: 28px; }
+        .total-duplo-item { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+        .total-duplo-numero { font-size: 34px; font-weight: 800; line-height: 1; }
+        .total-duplo-numero.total { color: #D4AF37; }
+        .total-duplo-numero.faltam { color: var(--cor-terracota); }
+        .total-duplo-rotulo { font-size: 12px; color: #888; line-height: 1.4; }
+        /* Versão pequena, pro cabeçalho fechado dos cards da Visão Geral --
+           mesmas cores, fonte reduzida pra caber ao lado do título. */
+        .total-duplo--mini { gap: 14px; }
+        .total-duplo--mini .total-duplo-numero { font-size: 18px; }
+        .total-duplo--mini .total-duplo-rotulo { font-size: 10px; }
         /* Cabeçalho leve (só texto, sem caixa/fundo) -- diferente de
            Instrumentos, aqui os dois rótulos ("Ritmistas"/"Vagas")
            apareceriam em TODA linha sem exceção; repetir os dois em cada
@@ -1856,7 +1874,7 @@
         <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgInstrumentosAberto()">
             <span>🥁 Ritmistas por Instrumento</span>
             <span class="vg-secao-resumo">
-                <span id="vg-instrumentos-total" class="vg-instrumento-qtd">—</span>
+                <div id="vg-instrumentos-total"></div>
                 <span class="vg-secao-seta" id="vg-instrumentos-seta">›</span>
             </span>
         </div>
@@ -3019,6 +3037,17 @@
         return '';
     }
 
+    // Total + Faltam lado a lado, mesma fonte grande, cores diferentes
+    // (total dourado, faltam terracota -- mesma cor que "Pendentes" já usa)
+    // -- pedido dela, 25/ago/2026. mini=true pra caber no cabeçalho fechado
+    // dos cards da Visão Geral.
+    function totalDuploHtml(total, faltam, mini) {
+        return `<div class="total-duplo${mini ? ' total-duplo--mini' : ''}">
+            <div class="total-duplo-item"><div class="total-duplo-numero total">${total}</div><div class="total-duplo-rotulo">Total</div></div>
+            <div class="total-duplo-item"><div class="total-duplo-numero faltam">${faltam}</div><div class="total-duplo-rotulo">Faltam</div></div>
+        </div>`;
+    }
+
     // Card fechado por padrão (25/ago/2026, pedido dela) -- só o total geral
     // na pílula do cabeçalho, clica pra abrir o detalhe por naipe.
     let vgInstrumentosAberto = false;
@@ -3072,9 +3101,12 @@
             const totalQtd = linhas.reduce((s, l) => s + l.qtd, 0);
             const linhasComVaga = linhas.filter(l => !l.semVaga);
             const totalVagas = linhasComVaga.reduce((s, l) => s + l.vagas, 0);
-            const excedeuTotal = linhasComVaga.length > 0 && totalQtd > totalVagas;
-            totalEl.textContent = `${totalQtd} / ${linhasComVaga.length > 0 ? totalVagas : '-'}`;
-            totalEl.className = 'vg-instrumento-qtd' + (excedeuTotal ? ' excedeu' : '');
+            // Total = vaga definida (ou, sem nenhuma vaga configurada, o
+            // total de gente ativa); Faltam = quanto falta pra bater a vaga,
+            // nunca negativo (25/ago/2026, mesmo padrão de totalDuploHtml).
+            const totalGeral = linhasComVaga.length > 0 ? totalVagas : totalQtd;
+            const faltamGeral = linhasComVaga.length > 0 ? Math.max(0, totalVagas - totalQtd) : 0;
+            totalEl.innerHTML = totalDuploHtml(totalGeral, faltamGeral, true);
         }
         if (linhas.length === 0) {
             div.innerHTML = '<div style="color:#bbb;font-size:13px;padding:8px 0;">Nenhum instrumento ativo cadastrado.</div>';
@@ -3214,7 +3246,7 @@
                 <div class="vg-secao-titulo--clicavel" style="margin-bottom:${aberto ? '8px' : '0'};" onclick="toggleVgFigurinoAberto(${item.id})">
                     <span class="vg-figurino-peca-titulo">${esc(item.nome)}</span>
                     <span class="vg-secao-resumo">
-                        <span class="vg-instrumento-qtd${totalGeral > 0 && entreguesGeral === totalGeral ? ' completo' : ''}">${entreguesGeral} / ${totalGeral}</span>
+                        ${totalDuploHtml(totalGeral, totalGeral - entreguesGeral, true)}
                         <span class="vg-secao-seta${aberto ? ' aberta' : ''}">›</span>
                     </span>
                 </div>
@@ -4397,18 +4429,14 @@
         }
         // Totalizador sempre soma a peça inteira (Ritmistas/Diretoria +
         // Extras do mesmo lado, se ligado) -- nunca só o que está filtrado
-        // na busca/instrumento, pedido dela 25/ago/2026. Mesmo componente
-        // visual já usado no total de Vagas de Ritmistas (número grande
-        // dourado + texto explicando o que ele é), reaproveitado a pedido
-        // dela ("quero um somatório nesse estilo aqui, com essa fonte").
+        // na busca/instrumento, pedido dela 25/ago/2026. Dois números lado a
+        // lado (total dourado, faltam terracota), ver totalDuploHtml().
         const totalizador = document.getElementById('figurino-entregas-totalizador');
         if (totalizador) {
             const total = figurinoEntregaPessoasCache.length;
             const entregues = figurinoEntregaPessoasCache.filter(p => p.entregue).length;
             const faltam = total - entregues;
-            totalizador.innerHTML = total === 0 ? '' : `
-                <div class="config-vagas-total-numero">${faltam}</div>
-                <div class="config-vagas-total-label">Faltam entregar, de um total de ${total} ${total === 1 ? 'pessoa' : 'pessoas'}</div>`;
+            totalizador.innerHTML = total === 0 ? '' : totalDuploHtml(total, faltam);
         }
     }
 
