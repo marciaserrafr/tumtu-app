@@ -141,7 +141,12 @@ const FP_GENERO_LABEL = { masculino: 'Masculino', feminino: 'Feminino', personal
 // Sem gênero informado (personalizado/não informado/vazio) cai no masculino como padrão neutro.
 function fpCargoLabel(perfil, genero) {
     if (perfil === 'mestre') return genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria';
-    if (perfil === 'diretor') return genero === 'feminino' ? 'Diretora' : 'Diretor';
+    if (perfil === 'diretor') return genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria';
+    // Antes caía no "Ritmista" do fallback abaixo -- bug real achado
+    // 24/ago/2026 junto com a renomeação (Diretor -> Diretor de Bateria,
+    // Apoio -> Diretor) -- abrir a ficha de um Apoio sempre mostrou o
+    // cargo errado.
+    if (perfil === 'apoio') return 'Diretor';
     if (perfil === 'super_admin') return 'Super Admin';
     return 'Ritmista';
 }
