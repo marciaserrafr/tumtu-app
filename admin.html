@@ -907,10 +907,6 @@
            somente leitura. Pedido dela, 24/ago/2026: "o tamanho da roupa,
            coloque dentro de uma caixinha, para ficar mais bonito". */
         .figurino-tamanho-caixa { display: inline-block; width: 44px; padding: 4px 0; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; font-weight: 700; text-align: center; }
-        /* Totalizador no fim da lista de entrega (25/ago/2026) -- soma
-           sempre a peça inteira, não o filtro atual. */
-        .figurino-totalizador { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 14px 16px; background: #faf8f2; border: 1px solid #eee2c2; border-radius: 10px; font-size: 14px; font-weight: 700; color: var(--cor-texto-principal); }
-        .figurino-totalizador .faltam { font-weight: 700; color: #b3261e; }
         /* .item-acoes é compartilhado com o resto do app (Ritmistas,
            Diretoria) com gap de 8px, pensado pra botões/badges coladinhos
            -- aqui são 2 colunas de dado de verdade, precisam de mais
@@ -1775,7 +1771,7 @@
              TODO mundo da peça (Ritmistas/Diretoria + Extras do mesmo lado,
              se "Incluir Extras" estiver ligado), nunca só o que está
              filtrado na busca/instrumento -- é o total da peça inteira. -->
-        <div id="figurino-entregas-totalizador" class="figurino-totalizador"></div>
+        <div id="figurino-entregas-totalizador" class="config-vagas-total-card" style="margin-top:14px;margin-bottom:0;"></div>
     </div>
 
 </div>
@@ -4247,7 +4243,7 @@
         document.getElementById('figurino-entregas-titulo').textContent = item.nome;
         document.getElementById('figurino-entregas-busca').value = '';
         // Filtro de instrumento só faz sentido pra peça de Ritmista -- Diretoria não tem instrumento único.
-        document.getElementById('figurino-entregas-filtro-instrumento').style.display = item.publico === 'ritmista' ? 'block' : 'none';
+        document.getElementById('figurino-entregas-filtro-instrumento').style.display = (item.publico === 'ritmista' || item.inclui_extras) ? 'block' : 'none';
         const bfExistente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === item.id);
         document.getElementById('figurino-mostra-visao-geral').checked = !!(bfExistente && bfExistente.mostra_visao_geral);
         document.getElementById('figurino-entrega-finalizada').checked = !!(bfExistente && bfExistente.entrega_finalizada);
@@ -4343,24 +4339,34 @@
         const select = document.getElementById('figurino-entregas-filtro-instrumento');
         if (!select) return;
         const valorAtual = select.value;
+        const temExtras = figurinoEntregaPessoasCache.some(p => p.tipo === 'extra');
         const instrumentos = Array.from(new Set(figurinoEntregaPessoasCache.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-        select.innerHTML = '<option value="">Todos os instrumentos</option>' + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
+        select.innerHTML = '<option value="">Todos</option>'
+            + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('')
+            + (temExtras ? `<option value="__extras__">Extras</option>` : '');
         select.value = valorAtual;
     }
 
     const LABEL_PERFIL_FIGURINO = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor', ritmista: null };
+    // Lista separada em seções (Ritmistas/Diretoria + Extras) quando a peça
+    // tem "Incluir Extras" ligado e sobra gente dos dois lados na tela --
+    // achado dela, 25/ago/2026: sem nenhuma divisão visual, os Extras
+    // ficavam misturados na lista sem se destacar. Peça sem Extras continua
+    // com a lista simples de sempre (sem título de seção nenhum).
     function renderizarEntregasFigurinoLista() {
         const container = document.getElementById('figurino-entregas-lista');
         if (!container) return;
+        const item = figurinoEntregaItemAtual;
         const busca = (document.getElementById('figurino-entregas-busca').value || '').trim().toLowerCase();
         const instrumentoFiltro = document.getElementById('figurino-entregas-filtro-instrumento').value;
         const filtrada = figurinoEntregaPessoasCache.filter(p => {
             if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
-            if (instrumentoFiltro && p.instrumento_nome !== instrumentoFiltro) return false;
+            if (instrumentoFiltro === '__extras__') return p.tipo === 'extra';
+            if (instrumentoFiltro) return p.instrumento_nome === instrumentoFiltro;
             return true;
         });
         const podeEditar = tenhoCapacidade('editar_figurino');
-        container.innerHTML = filtrada.length === 0 ? '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>' : filtrada.map(p => `
+        const linhaPessoaHtml = p => `
             <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
                 <div style="flex:1;min-width:0;">
                     <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
@@ -4371,16 +4377,38 @@
                     <input type="checkbox" style="width:18px;height:18px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${p.entregue ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="toggleEntregaFigurino('${p.tipo}', ${p.id}, this.checked)">
                     Entregue
                 </label>
-            </div>`).join('');
+            </div>`;
+        if (filtrada.length === 0) {
+            container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>';
+        } else {
+            const principais = filtrada.filter(p => p.tipo === 'vinculo');
+            const extrasList = filtrada.filter(p => p.tipo === 'extra');
+            const mostrarSecoes = principais.length > 0 && extrasList.length > 0;
+            let html = '';
+            if (principais.length > 0) {
+                if (mostrarSecoes) html += `<div class="secao-titulo">${item && LABEL_PUBLICO_FIGURINO[item.publico] || 'Ritmistas'}</div>`;
+                html += principais.map(linhaPessoaHtml).join('');
+            }
+            if (extrasList.length > 0) {
+                if (mostrarSecoes) html += `<div class="secao-titulo">Extras</div>`;
+                html += extrasList.map(linhaPessoaHtml).join('');
+            }
+            container.innerHTML = html;
+        }
         // Totalizador sempre soma a peça inteira (Ritmistas/Diretoria +
         // Extras do mesmo lado, se ligado) -- nunca só o que está filtrado
-        // na busca/instrumento, pedido dela 25/ago/2026.
+        // na busca/instrumento, pedido dela 25/ago/2026. Mesmo componente
+        // visual já usado no total de Vagas de Ritmistas (número grande
+        // dourado + texto explicando o que ele é), reaproveitado a pedido
+        // dela ("quero um somatório nesse estilo aqui, com essa fonte").
         const totalizador = document.getElementById('figurino-entregas-totalizador');
         if (totalizador) {
             const total = figurinoEntregaPessoasCache.length;
             const entregues = figurinoEntregaPessoasCache.filter(p => p.entregue).length;
             const faltam = total - entregues;
-            totalizador.innerHTML = total === 0 ? '' : `<span>Total</span><span>${entregues} / ${total} entregues${faltam > 0 ? ` · <span class="faltam">Faltam ${faltam}</span>` : ''}</span>`;
+            totalizador.innerHTML = total === 0 ? '' : `
+                <div class="config-vagas-total-numero">${faltam}</div>
+                <div class="config-vagas-total-label">Faltam entregar, de um total de ${total} ${total === 1 ? 'pessoa' : 'pessoas'}</div>`;
         }
     }
 
