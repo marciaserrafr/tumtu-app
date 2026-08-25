@@ -123,7 +123,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=23');
+        const res = await fetch('ficha-perfil.partial.html?v=24');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -162,6 +162,48 @@ function fpMascaraData(input) {
     v = v.replace(/^(\d{2})(\d)/, '$1/$2');
     v = v.replace(/^(\d{2})\/(\d{2})(\d)/, '$1/$2/$3');
     input.value = v;
+}
+
+// Máscara de CPF/Celular e maiúscula automática de nome/endereço --
+// mesmas funções já usadas em cadastro.html, duplicadas aqui (não
+// compartilhadas num arquivo comum, mesmo critério de fpMascaraData
+// acima). Achado dela, 25/ago/2026: essas "ajudas" só existiam no
+// cadastro novo -- editar um cadastro já existente (Meu Perfil, ou o
+// Admin editando a ficha de alguém) nunca teve nenhuma delas, em
+// nenhum campo. "Apelido" continua de fora de propósito (abreviações
+// tipo "LC" -- mesma exceção do cadastro).
+function fpMascaraCPF(input) {
+    let v = input.value.replace(/\D/g, '');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    input.value = v;
+}
+function fpMascaraCelular(input) {
+    let v = input.value.replace(/\D/g, '');
+    v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+    v = v.replace(/(\d{5})(\d)/, '$1-$2');
+    input.value = v;
+}
+const FP_PREPOSICOES_MINUSCULAS = new Set(['de', 'da', 'do', 'dos', 'das']);
+function fpCorrigirCapitalizacao(texto) {
+    return texto.trim().toLowerCase().split(/\s+/).map((palavra, i) => {
+        if (i > 0 && FP_PREPOSICOES_MINUSCULAS.has(palavra)) return palavra;
+        return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+    }).join(' ');
+}
+function fpAplicarCapitalizacao(campo) {
+    if (!campo.value.trim()) return;
+    campo.value = fpCorrigirCapitalizacao(campo.value);
+}
+// Nome completo tem uma exceção, pedido dela 25/ago/2026: nomes
+// estrangeiros podem ter uma grafia própria (maiúscula/minúscula fora
+// do padrão), e ela quer poder digitar do jeito certo quando for o
+// caso -- mas só o Super Admin ganha esse escape, todo mundo mais
+// (a própria pessoa editando o próprio nome) continua com a ajuda.
+function fpAplicarCapitalizacaoNome(campo) {
+    if (fpEstado.meuPerfil === 'super_admin') return;
+    fpAplicarCapitalizacao(campo);
 }
 
 function fpDataParaISO(str) {
