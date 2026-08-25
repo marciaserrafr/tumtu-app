@@ -5215,6 +5215,12 @@
         if (!p) return;
         permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, veioDaFicha };
         renderizarEditorPermissoesPessoa();
+        // O editor mora acima da lista/busca -- numa lista longa, clicar
+        // "Editar" numa pessoa mais pra baixo preenchia o formulário fora da
+        // tela visível, parecendo que não tinha acontecido nada (achado
+        // dela, 25/ago/2026). Rola até o editor pra deixar claro que abriu.
+        const editor = document.getElementById('pe-editor');
+        if (editor) editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     // Atalho "Editar permissões" de dentro da ficha (item 4, 22/ago/2026) --
     // fecha a ficha, navega pra aba Permissões e já abre o editor dessa
