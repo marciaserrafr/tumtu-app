@@ -4485,6 +4485,13 @@
         document.querySelectorAll('.sa-painel').forEach(p => p.classList.remove('ativo'));
         const alvo = document.getElementById('sa-painel-' + aba);
         if (alvo) alvo.classList.add('ativo');
+        // Recalcula a altura do cabeçalho toda vez que troca de aba aqui na
+        // casca do Super Admin -- achado dela, 25/ago/2026: saindo de dentro
+        // de uma escola (cabeçalho pode ficar mais alto, com cor/logo
+        // própria) de volta pro Dashboard/Escolas, a barra lateral (.sa-
+        // sidebar, position:fixed) ficava presa na altura antiga (mais alta),
+        // sobrando um vão branco entre o cabeçalho de verdade e ela.
+        ajustarAlturaHeaderAdmin();
         // "return" aqui não muda nada pra quem chama sem esperar (clique na
         // barra lateral, por ex.) -- só existe pra quem PRECISA esperar
         // terminar, como o carregamento inicial do Super Admin (ver
