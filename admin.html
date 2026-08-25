@@ -1288,6 +1288,7 @@
     </div>
     <div class="header-acoes">
         <div id="headerAvatarWrap" class="header-avatar" title="Meu Perfil"></div>
+        <button class="btn-sair" id="btnTrocarBateriaAdmin" onclick="trocarBateriaAdmin()" style="display:none;">Trocar de Bateria</button>
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
@@ -3273,6 +3274,12 @@
         window.location.href = 'login';
     }
 
+    // Reaproveita a sessão já aberta (sem pedir senha de novo) -- mesmo
+    // caminho já usado pelo Ritmista em carteirinha.html.
+    function trocarBateriaAdmin() {
+        window.location.href = 'login?trocar=1';
+    }
+
     function irParaCadastroManualRitmista() {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { alert('Bateria não encontrada para este usuário.'); return; }
@@ -3579,6 +3586,16 @@
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
         renderizarAvatarHeader({ nome: usuario.nome || 'Admin', foto_url: usuario.foto_url });
         document.getElementById('headerAvatarWrap').onclick = () => trocarAba('meu-perfil', null);
+        // "Trocar de Bateria" só aparece pra quem tem 2+ vínculos (mesmo
+        // padrão do rodapé do Ritmista em carteirinha.html) -- achado urgente
+        // da Márcia, 25/ago/2026: Mestre/Diretor com vínculo em mais de uma
+        // bateria (ex: Mestre da Rocinha + Diretor da Imperatriz) ficava sem
+        // NENHUM caminho de volta pra escolher a outra, exceto deslogar e
+        // logar de novo -- o botão nunca tinha sido criado aqui, só em
+        // carteirinha.html (Ritmista).
+        if (usuario.totalVinculos > 1) {
+            document.getElementById('btnTrocarBateriaAdmin').style.display = 'inline-block';
+        }
         await carregarBibliotecaInstrumentos();
         await carregarBateriaInstrumentos();
         construirMultiSelect();
