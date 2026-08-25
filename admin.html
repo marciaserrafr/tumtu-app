@@ -348,6 +348,16 @@
 
         /* VISÃO GERAL */
         .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
+        /* Cabeçalho fechado/aberto dos cards "Ritmistas por Instrumento" e
+           "Entrega de Figurino" (25/ago/2026) -- fechado mostra só o total
+           geral (pílula), clica pra abrir o detalhe por naipe/grupo. Mesma
+           ideia de acordeão já usada em Configurações → Categoria de
+           Figurino (.config-medida-seta). */
+        .vg-secao-titulo--clicavel { display: flex; align-items: center; justify-content: space-between; cursor: pointer; gap: 10px; }
+        .vg-secao-resumo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .vg-secao-seta { font-size: 15px; color: #8b88a0; transition: transform 0.15s; display: inline-block; text-transform: none; letter-spacing: normal; }
+        .vg-secao-seta.aberta { transform: rotate(90deg); }
+        .vg-figurino-peca-titulo { font-size: 13px; font-weight: 700; color: var(--cor-texto-principal); margin: 0; }
         .vg-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 16px; }
         .vg-aniversariante { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
         .vg-aniversariante:last-child { border-bottom: none; }
@@ -897,6 +907,10 @@
            somente leitura. Pedido dela, 24/ago/2026: "o tamanho da roupa,
            coloque dentro de uma caixinha, para ficar mais bonito". */
         .figurino-tamanho-caixa { display: inline-block; width: 44px; padding: 4px 0; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; font-weight: 700; text-align: center; }
+        /* Totalizador no fim da lista de entrega (25/ago/2026) -- soma
+           sempre a peça inteira, não o filtro atual. */
+        .figurino-totalizador { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 14px 16px; background: #faf8f2; border: 1px solid #eee2c2; border-radius: 10px; font-size: 14px; font-weight: 700; color: var(--cor-texto-principal); }
+        .figurino-totalizador .faltam { font-weight: 700; color: #b3261e; }
         /* .item-acoes é compartilhado com o resto do app (Ritmistas,
            Diretoria) com gap de 8px, pensado pra botões/badges coladinhos
            -- aqui são 2 colunas de dado de verdade, precisam de mais
@@ -1756,8 +1770,30 @@
             <span style="width:78px;">Status</span>
         </div>
         <div id="figurino-entregas-lista"></div>
+        <!-- Totalizador no fim da lista -- pedido dela, 25/ago/2026: "total
+             entregues e quantos faltam, mas com um total". Sempre soma
+             TODO mundo da peça (Ritmistas/Diretoria + Extras do mesmo lado,
+             se "Incluir Extras" estiver ligado), nunca só o que está
+             filtrado na busca/instrumento -- é o total da peça inteira. -->
+        <div id="figurino-entregas-totalizador" class="figurino-totalizador"></div>
     </div>
 
+</div>
+
+<!-- PAINEL EXTRAS (25/ago/2026) -- gente de fora que ganha Figurino mas não
+     desfila (amigos que o Mestre/Diretoria convida pra eventos). Cadastro
+     mínimo: nome + de qual lado vieram (Ritmistas ou Diretoria, só pra
+     entrar na peça de Figurino certa) + tamanho. Sem CPF, sem login, sem
+     carteirinha -- não é Ritmista nem Diretoria. -->
+<div class="painel" id="painel-extras">
+    <div id="extras-lista-tela">
+        <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
+        <div class="painel-titulo">Extras</div>
+        <p class="config-sub-desc">Pessoas de fora que ganham Figurino mas não desfilam (amigos convidados pelo Mestre ou pela Diretoria). Cadastro só com nome, de qual lado vieram e o tamanho.</p>
+        <div id="extras-editor" style="display:none;"></div>
+        <button type="button" id="extras-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoExtra()">+ Novo Extra</button>
+        <div id="extras-lista" class="lista-cards"></div>
+    </div>
 </div>
 
 <!-- PAINEL VISÃO GERAL -->
@@ -1792,6 +1828,15 @@
         <div class="total-card total-card--clicavel" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">
             <div class="total-numero" id="totalDiretoriaPendentes">—</div>
             <div class="total-label">Diretoria pendente</div>
+        </div>
+    </div>
+
+    <!-- Card "Extras" (25/ago/2026) -- mesmo padrão do card de Diretoria
+         acima: à parte, só aparece pra quem tem ver_extras. -->
+    <div class="totalizadores" id="totalizadoresExtras" style="display:none;">
+        <div class="total-card total-card--clicavel" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">
+            <div class="total-numero ativo" id="totalExtras">—</div>
+            <div class="total-label">Extras</div>
         </div>
     </div>
 
@@ -2170,6 +2215,16 @@
         const elPendentesDiretoria = document.getElementById('totalDiretoriaPendentes');
         elPendentesDiretoria.textContent = pendentes;
         elPendentesDiretoria.classList.toggle('atencao', pendentes > 0);
+        card.style.display = 'flex';
+    }
+
+    // Card "Extras" na Visão Geral (25/ago/2026) -- mesmo padrão do card de
+    // Diretoria acima, à parte, só pra quem tem ver_extras.
+    function atualizarTotalizadorExtras() {
+        const card = document.getElementById('totalizadoresExtras');
+        if (!card) return;
+        if (!souSuperAdmin && !tenhoCapacidade('ver_extras')) { card.style.display = 'none'; return; }
+        document.getElementById('totalExtras').textContent = (extrasCache || []).length;
         card.style.display = 'flex';
     }
 
@@ -3447,6 +3502,8 @@
         // pra quem tem ver_acessos -- sem a capacidade, RLS devolveria vazio
         // e o card mostraria "0" de forma enganosa em vez de ficar escondido.
         if (souSuperAdmin || tenhoCapacidade('ver_acessos')) carregarDiretoria();
+        // Card "Extras" na Visão Geral, mesmo padrão do card de Diretoria acima.
+        if (souSuperAdmin || tenhoCapacidade('ver_extras')) carregarExtras().then(atualizarTotalizadorExtras);
 
         // Volta pra mesma aba de antes de atualizar a página (mesmo achado
         // da Márcia, 20/ago/2026, aplicado aqui também) -- "visao" já é o
@@ -3872,9 +3929,9 @@
     // alguns públicos (checkboxes, não um valor só -- diferente do Figurino/
     // peça, que é sempre de um público único) e criar uma categoria nova só
     // pra Diretoria com a escala certa, mantendo a antiga só pra Ritmista.
-    const PERFIS_PUBLICO_MEDIDA = [['ritmista', 'Ritmista'], ['mestre', 'Mestre'], ['diretor', 'Diretor de Bateria'], ['apoio', 'Diretor']];
+    const PERFIS_PUBLICO_MEDIDA = [['ritmista', 'Ritmista'], ['mestre', 'Mestre'], ['diretor', 'Diretor de Bateria'], ['apoio', 'Diretor'], ['extra', 'Extras']];
     function publicoMedidaTipo(tipoExistente) {
-        if (!tipoExistente || !Array.isArray(tipoExistente.publico)) return ['ritmista', 'mestre', 'diretor', 'apoio'];
+        if (!tipoExistente || !Array.isArray(tipoExistente.publico)) return ['ritmista', 'mestre', 'diretor', 'apoio', 'extra'];
         return tipoExistente.publico;
     }
     function cardConfigMedidaTipo(tipo) {
@@ -4108,6 +4165,13 @@
         await carregarEntregasFigurino();
     }
 
+    // Peça de Ritmista puxa Extras do lado "ritmista"; peça de Mestre/
+    // Diretor/Apoio puxa Extras do lado "diretoria" -- mesmo agrupamento
+    // já usado no card Diretoria (Mestre+Diretor de Bateria+Diretor formam
+    // um "lado" só). Só entra na conta se "Incluir Extras" estiver ligado
+    // na peça (Super Admin → Configurações → Figurino).
+    function grupoExtraDoPublico(publico) { return publico === 'ritmista' ? 'ritmista' : 'diretoria'; }
+
     // Dois interruptores independentes de bateria_figurino_itens, pedido da
     // Márcia, 24/ago/2026: ativar a peça em Configurações (com
     // antecedência) não quer dizer que ela deve aparecer na Visão Geral --
@@ -4140,22 +4204,48 @@
         container.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         // Peça é sempre de um público só (ritmista/mestre/diretor/apoio) --
         // publico é literalmente o mesmo valor de perfil, filtra direto.
-        const [resPessoas, resValores, resEntregas] = await Promise.all([
+        // "Incluir Extras" (25/ago/2026) soma junto os Extras do mesmo lado
+        // (grupoExtraDoPublico), na mesma lista/mesmo total.
+        const buscas = [
             fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=eq.${item.publico}&order=nome&select=id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas?tipo_id=eq.${item.medida_tipo_id}`, { headers: authHeaders }),
-            fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}`, { headers: authHeaders }),
-        ]);
+            fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}&vinculo_id=not.is.null`, { headers: authHeaders }),
+        ];
+        if (item.inclui_extras) {
+            const grupo = grupoExtraDoPublico(item.publico);
+            buscas.push(
+                fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&grupo=eq.${grupo}&order=nome`, { headers: authHeaders }),
+                fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?tipo_id=eq.${item.medida_tipo_id}`, { headers: authHeaders }),
+                fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}&extra_id=not.is.null`, { headers: authHeaders }),
+            );
+        }
+        const [resPessoas, resValores, resEntregas, resExtras, resExtrasValores, resExtrasEntregas] = await Promise.all(buscas);
         const pessoas = resPessoas.ok ? await resPessoas.json() : [];
         const valores = resValores.ok ? await resValores.json() : [];
         const entregas = resEntregas.ok ? await resEntregas.json() : [];
         const valorPorVinculo = {}; valores.forEach(v => { valorPorVinculo[v.vinculo_id] = v.valor; });
         const entregaPorVinculo = {}; entregas.forEach(e => { entregaPorVinculo[e.vinculo_id] = e; });
-        figurinoEntregaPessoasCache = pessoas.map(p => ({
-            vinculo_id: p.id, nome: p.nome, apelido: p.apelido, perfil: p.perfil,
+        const linhasPessoas = pessoas.map(p => ({
+            tipo: 'vinculo', id: p.id, nome: p.nome, apelido: p.apelido, perfil: p.perfil,
             instrumento_nome: p.instrumento_nome || null,
             tamanho: valorPorVinculo[p.id] || null,
             entregue: !!(entregaPorVinculo[p.id] && entregaPorVinculo[p.id].entregue_em),
         }));
+        let linhasExtras = [];
+        if (item.inclui_extras) {
+            const extras = resExtras.ok ? await resExtras.json() : [];
+            const valoresExtras = resExtrasValores.ok ? await resExtrasValores.json() : [];
+            const entregasExtras = resExtrasEntregas.ok ? await resExtrasEntregas.json() : [];
+            const valorPorExtra = {}; valoresExtras.forEach(v => { valorPorExtra[v.extra_id] = v.valor; });
+            const entregaPorExtra = {}; entregasExtras.forEach(e => { entregaPorExtra[e.extra_id] = e; });
+            linhasExtras = extras.map(e => ({
+                tipo: 'extra', id: e.id, nome: e.nome, apelido: null, perfil: null,
+                instrumento_nome: null,
+                tamanho: valorPorExtra[e.id] || null,
+                entregue: !!(entregaPorExtra[e.id] && entregaPorExtra[e.id].entregue_em),
+            }));
+        }
+        figurinoEntregaPessoasCache = linhasPessoas.concat(linhasExtras);
         popularFiltroInstrumentoEntregasFigurino();
         renderizarEntregasFigurinoLista();
     }
@@ -4180,39 +4270,213 @@
             if (instrumentoFiltro && p.instrumento_nome !== instrumentoFiltro) return false;
             return true;
         });
-        if (filtrada.length === 0) { container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>'; return; }
         const podeEditar = tenhoCapacidade('editar_figurino');
-        container.innerHTML = filtrada.map(p => `
+        container.innerHTML = filtrada.length === 0 ? '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>' : filtrada.map(p => `
             <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
                 <div style="flex:1;min-width:0;">
                     <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
-                    <div style="font-size:12px;color:var(--cor-texto-muted);">${esc(p.instrumento_nome || LABEL_PERFIL_FIGURINO[p.perfil] || '')}</div>
+                    <div style="font-size:12px;color:var(--cor-texto-muted);">${esc(p.instrumento_nome || LABEL_PERFIL_FIGURINO[p.perfil] || (p.tipo === 'extra' ? 'Extra' : ''))}</div>
                 </div>
                 <div class="figurino-tamanho-caixa">${esc(p.tamanho || '—')}</div>
                 <label style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;white-space:nowrap;width:78px;cursor:${podeEditar ? 'pointer' : 'not-allowed'};">
-                    <input type="checkbox" style="width:18px;height:18px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${p.entregue ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="toggleEntregaFigurino(${p.vinculo_id}, this.checked)">
+                    <input type="checkbox" style="width:18px;height:18px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${p.entregue ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="toggleEntregaFigurino('${p.tipo}', ${p.id}, this.checked)">
                     Entregue
                 </label>
             </div>`).join('');
+        // Totalizador sempre soma a peça inteira (Ritmistas/Diretoria +
+        // Extras do mesmo lado, se ligado) -- nunca só o que está filtrado
+        // na busca/instrumento, pedido dela 25/ago/2026.
+        const totalizador = document.getElementById('figurino-entregas-totalizador');
+        if (totalizador) {
+            const total = figurinoEntregaPessoasCache.length;
+            const entregues = figurinoEntregaPessoasCache.filter(p => p.entregue).length;
+            const faltam = total - entregues;
+            totalizador.innerHTML = total === 0 ? '' : `<span>Total</span><span>${entregues} / ${total} entregues${faltam > 0 ? ` · <span class="faltam">Faltam ${faltam}</span>` : ''}</span>`;
+        }
     }
 
-    async function toggleEntregaFigurino(vinculoId, entregar) {
+    async function toggleEntregaFigurino(tipo, id, entregar) {
         const item = figurinoEntregaItemAtual;
         if (!item) return;
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        const coluna = tipo === 'extra' ? 'extra_id' : 'vinculo_id';
         if (entregar) {
-            await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?on_conflict=vinculo_id,figurino_item_id`, {
+            await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?on_conflict=${coluna},figurino_item_id`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates', ...authHeaders },
-                body: JSON.stringify([{ vinculo_id: vinculoId, figurino_item_id: item.id, entregue_em: new Date().toISOString(), confirmado_por: u ? u.pessoa_id : null }]),
+                body: JSON.stringify([{ [coluna]: id, figurino_item_id: item.id, entregue_em: new Date().toISOString(), confirmado_por: u ? u.pessoa_id : null }]),
             });
         } else {
-            await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?vinculo_id=eq.${vinculoId}&figurino_item_id=eq.${item.id}`, {
+            await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?${coluna}=eq.${id}&figurino_item_id=eq.${item.id}`, {
                 method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ entregue_em: null, confirmado_por: null }),
             });
         }
-        const pessoa = figurinoEntregaPessoasCache.find(p => p.vinculo_id === vinculoId);
+        const pessoa = figurinoEntregaPessoasCache.find(p => p.tipo === tipo && p.id === id);
         if (pessoa) pessoa.entregue = entregar;
+        renderizarEntregasFigurinoLista();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // EXTRAS (25/ago/2026) -- gente de fora que ganha Figurino mas não
+    // desfila (amigos convidados pelo Mestre/Diretoria), cadastro mínimo:
+    // nome + grupo (Ritmistas/Diretoria, só pra decidir em qual peça de
+    // Figurino entram, ver grupoExtraDoPublico) + tamanho por Categoria de
+    // Figurino aberta pro público "Extras" (mesmo mecanismo de
+    // bateria_medida_tipos.publico usado em Configurações → Categoria de
+    // Figurino). Sem CPF, sem login, sem vínculo -- não é Ritmista nem
+    // Diretoria.
+    // ══════════════════════════════════════════════════════════════════
+    let extrasCache = [];
+    let extraEditando = null;
+    let extraMedidaTiposAtivos = []; // Categorias de Figurino com "Extras" marcado, pra essa bateria
+
+    async function carregarExtras() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { extrasCache = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&order=nome`, { headers: authHeaders });
+        extrasCache = res.ok ? await res.json() : [];
+    }
+
+    async function iniciarExtrasTab() {
+        extraEditando = null;
+        renderizarEditorExtra();
+        const btnNovo = document.getElementById('extras-btn-novo');
+        if (btnNovo) btnNovo.style.display = tenhoCapacidade('editar_extras') ? '' : 'none';
+        await carregarExtras();
+        renderizarExtrasLista();
+        atualizarTotalizadorExtras();
+    }
+
+    const LABEL_GRUPO_EXTRA = { ritmista: 'Ritmistas', diretoria: 'Diretoria' };
+    function renderizarExtrasLista() {
+        const container = document.getElementById('extras-lista');
+        if (!container) return;
+        if (extrasCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🎽</div>Nenhum Extra cadastrado ainda.</div>'; return; }
+        const podeEditar = tenhoCapacidade('editar_extras');
+        container.innerHTML = ['ritmista', 'diretoria'].map(grupo => {
+            const itens = extrasCache.filter(e => e.grupo === grupo);
+            if (itens.length === 0) return '';
+            return `<div class="secao-titulo">${LABEL_GRUPO_EXTRA[grupo]}</div>` + itens.map(e => `
+                <div class="item-card">
+                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div></div>
+                    ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarExtra(${e.id})">Editar</button></div>` : ''}
+                </div>`).join('');
+        }).join('');
+    }
+
+    // Mesma leitura da view pública bateria_medidas_publicas usada em
+    // cadastro.html, só filtrando por publico incluir 'extra' -- herda
+    // automaticamente qualquer Categoria de Figurino nova, não trava em Camisa.
+    async function carregarMedidaTiposParaExtra() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { extraMedidaTiposAtivos = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas_publicas?bateria_id=eq.${bateriaId}&order=tipo_id,ordem`, { headers: authHeaders });
+        const opcoes = res.ok ? await res.json() : [];
+        const porTipo = {};
+        opcoes.forEach(o => {
+            const publico = Array.isArray(o.publico) ? o.publico : ['ritmista', 'mestre', 'diretor', 'apoio', 'extra'];
+            if (!publico.includes('extra')) return;
+            if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { tipoId: Number(o.tipo_id), nome: o.tipo_nome, tamanhos: [] };
+            porTipo[o.tipo_id].tamanhos.push(o.nome_exibicao);
+        });
+        extraMedidaTiposAtivos = Object.values(porTipo);
+    }
+
+    function abrirNovoExtra() {
+        extraEditando = { id: null, nome: '', grupo: 'ritmista', medidas: {} };
+        carregarMedidaTiposParaExtra().then(renderizarEditorExtra);
+    }
+    async function abrirEditarExtra(id) {
+        const e = extrasCache.find(x => x.id === id);
+        if (!e) return;
+        await carregarMedidaTiposParaExtra();
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?extra_id=eq.${id}`, { headers: authHeaders });
+        const valores = res.ok ? await res.json() : [];
+        const medidas = {};
+        valores.forEach(v => { medidas[v.tipo_id] = v.valor; });
+        extraEditando = { id: e.id, nome: e.nome, grupo: e.grupo, medidas };
+        renderizarEditorExtra();
+    }
+    function renderizarEditorExtra() {
+        const ee = extraEditando;
+        const editor = document.getElementById('extras-editor');
+        if (!editor) return;
+        if (!ee) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${ee.id ? 'Editar Extra' : 'Novo Extra'}</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="extra-edit-nome" value="${esc(ee.nome)}" placeholder="Nome completo"></div>
+                <div class="campo campo-full"><label>De qual lado veio *</label><select id="extra-edit-grupo">
+                    <option value="ritmista" ${ee.grupo === 'ritmista' ? 'selected' : ''}>Ritmistas</option>
+                    <option value="diretoria" ${ee.grupo === 'diretoria' ? 'selected' : ''}>Diretoria</option>
+                </select></div>
+                ${extraMedidaTiposAtivos.map(t => `
+                    <div class="campo"><label>Tamanho: ${esc(t.nome)}</label><select id="extra-edit-medida-${t.tipoId}">
+                        <option value="">Selecione</option>
+                        ${t.tamanhos.map(nome => `<option value="${esc(nome)}" ${ee.medidas[t.tipoId] === nome ? 'selected' : ''}>${esc(nome)}</option>`).join('')}
+                    </select></div>`).join('')}
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarExtra()">Salvar</button>
+                    ${ee.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirExtra(${ee.id})">Excluir</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorExtra()">Cancelar</button>
+            </div>
+        </div>`;
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function fecharEditorExtra() { extraEditando = null; renderizarEditorExtra(); }
+    let salvandoExtra = false;
+    async function salvarExtra() {
+        if (salvandoExtra) return;
+        const nome = document.getElementById('extra-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
+        const grupo = document.getElementById('extra-edit-grupo').value;
+        const bateriaId = bateriaIdContexto();
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        salvandoExtra = true;
+        try {
+            let extraId = extraEditando.id;
+            if (extraId) {
+                await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${extraId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo }) });
+            } else {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/extras`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, grupo, criado_por: u ? u.pessoa_id : null }) });
+                const dados = await res.json();
+                extraId = dados[0].id;
+            }
+            for (const t of extraMedidaTiposAtivos) {
+                const select = document.getElementById(`extra-edit-medida-${t.tipoId}`);
+                const valor = select ? select.value : '';
+                if (valor) {
+                    await fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?on_conflict=extra_id,tipo_id`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates', ...authHeaders },
+                        body: JSON.stringify([{ extra_id: extraId, tipo_id: t.tipoId, valor }]),
+                    });
+                } else {
+                    await fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?extra_id=eq.${extraId}&tipo_id=eq.${t.tipoId}`, { method: 'DELETE', headers: authHeaders });
+                }
+            }
+            mostrarToast(extraEditando.id ? 'Extra atualizado!' : 'Extra cadastrado!');
+            extraEditando = null;
+            await carregarExtras();
+            renderizarEditorExtra();
+            renderizarExtrasLista();
+            atualizarTotalizadorExtras();
+        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
+        finally { salvandoExtra = false; }
+    }
+    async function excluirExtra(id) {
+        if (!confirm('Excluir este Extra? Isso apaga também o tamanho e a entrega de figurino registrada pra ele.')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
+        mostrarToast('Extra excluído.');
+        extraEditando = null;
+        await carregarExtras();
+        renderizarEditorExtra();
+        renderizarExtrasLista();
+        atualizarTotalizadorExtras();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -4261,12 +4525,13 @@
         'historico': 'ver_historico',
         'configuracoes': 'ver_configuracoes',
         'figurino': 'ver_figurino',
+        'extras': 'ver_extras',
     };
     // Sub-módulos agrupados dentro da aba "Administrativo" (19/ago/2026,
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
     // das capacidades dos itens que ela agrupa.
-    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'permissoes', 'historico'];
+    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'extras', 'permissoes', 'historico'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -4309,6 +4574,7 @@
         { aba: 'dados-bateria', label: 'Dados da Bateria' },
         { aba: 'configuracoes', label: 'Configurações' },
         { aba: 'figurino', label: 'Entrega de Figurino' },
+        { aba: 'extras', label: 'Extras' },
         { aba: 'comercial', label: 'Comercial' },
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
@@ -4485,6 +4751,13 @@
         document.querySelectorAll('.sa-painel').forEach(p => p.classList.remove('ativo'));
         const alvo = document.getElementById('sa-painel-' + aba);
         if (alvo) alvo.classList.add('ativo');
+        // Recalcula a altura do cabeçalho toda vez que troca de aba aqui na
+        // casca do Super Admin -- achado dela, 25/ago/2026: saindo de dentro
+        // de uma escola (cabeçalho pode ficar mais alto, com cor/logo
+        // própria) de volta pro Dashboard/Escolas, a barra lateral (.sa-
+        // sidebar, position:fixed) ficava presa na altura antiga (mais alta),
+        // sobrando um vão branco entre o cabeçalho de verdade e ela.
+        ajustarAlturaHeaderAdmin();
         // "return" aqui não muda nada pra quem chama sem esperar (clique na
         // barra lateral, por ex.) -- só existe pra quem PRECISA esperar
         // terminar, como o carregamento inicial do Super Admin (ver
@@ -4578,6 +4851,7 @@
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
         carregarRitmistas();
         carregarDiretoria(); // Super Admin sempre vê o card "Diretoria ativa"
+        carregarExtras().then(atualizarTotalizadorExtras); // idem, card "Extras"
 
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
@@ -5160,6 +5434,7 @@
         { grupo: 'Ritmistas', itens: [{ chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' }, { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar' }, { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas' }] },
         { grupo: 'Diretoria', itens: [{ chave: 'ver_acessos', label: 'Ver Mestres e Diretores de Bateria' }, { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar' }] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Ver entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos' }] },
+        { grupo: 'Extras', itens: [{ chave: 'ver_extras', label: 'Ver' }, { chave: 'editar_extras', label: 'Cadastrar e editar' }] },
         { grupo: 'Relatórios', itens: [{ chave: 'ver_relatorios', label: 'Ver' }] },
         { grupo: 'Configurações', itens: [{ chave: 'ver_configuracoes', label: 'Ver' }, { chave: 'editar_configuracoes', label: 'Editar' }] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Ver' }] },
@@ -5671,7 +5946,7 @@
                 <div class="item-card">
                     <div class="item-info">
                         <div class="item-nome">${esc(f.nome)} ${f.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
-                        <div class="item-detalhe">Categoria: ${esc(categoria ? categoria.nome : '—')}</div>
+                        <div class="item-detalhe">Categoria: ${esc(categoria ? categoria.nome : '—')}${f.inclui_extras ? ' · Inclui Extras' : ''}</div>
                     </div>
                     <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarFigurinoMestre(${f.id})">Editar</button></div>
                 </div>`;
@@ -5679,13 +5954,13 @@
         }).join('');
     }
     function abrirNovoFigurinoMestre() {
-        figurinoMestreEditando = { id: null, nome: '', medida_tipo_id: medidaTiposCacheSA[0] ? medidaTiposCacheSA[0].id : null, publico: 'ritmista', ativo: true };
+        figurinoMestreEditando = { id: null, nome: '', medida_tipo_id: medidaTiposCacheSA[0] ? medidaTiposCacheSA[0].id : null, publico: 'ritmista', ativo: true, inclui_extras: false };
         renderizarEditorFigurinoMestre();
     }
     function abrirEditarFigurinoMestre(id) {
         const f = figurinoMestreCacheSA.find(x => x.id === id);
         if (!f) return;
-        figurinoMestreEditando = { id: f.id, nome: f.nome, medida_tipo_id: f.medida_tipo_id, publico: f.publico, ativo: f.ativo !== false };
+        figurinoMestreEditando = { id: f.id, nome: f.nome, medida_tipo_id: f.medida_tipo_id, publico: f.publico, ativo: f.ativo !== false, inclui_extras: !!f.inclui_extras };
         renderizarEditorFigurinoMestre();
     }
     function renderizarEditorFigurinoMestre() {
@@ -5707,6 +5982,12 @@
                     <option value="true" ${fe.ativo ? 'selected' : ''}>Ativo</option>
                     <option value="false" ${!fe.ativo ? 'selected' : ''}>Inativo</option>
                 </select></div>
+                <div class="campo campo-full">
+                    <label class="config-instrumento-check">
+                        <input type="checkbox" id="fig-mestre-edit-inclui-extras" ${fe.inclui_extras ? 'checked' : ''}>
+                        <span>Incluir Extras (soma junto os Extras do mesmo lado -- Ritmistas ou Diretoria -- na entrega desta peça)</span>
+                    </label>
+                </div>
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -5725,13 +6006,14 @@
         const medidaTipoId = Number(document.getElementById('fig-mestre-edit-categoria').value);
         const publico = document.getElementById('fig-mestre-edit-publico').value;
         const ativo = document.getElementById('fig-mestre-edit-ativo').value === 'true';
+        const inclui_extras = document.getElementById('fig-mestre-edit-inclui-extras').checked;
         salvandoFigurinoMestre = true;
         try {
             if (figurinoMestreEditando.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${figurinoMestreEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, publico, nome, ativo }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${figurinoMestreEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, publico, nome, ativo, inclui_extras }) });
             } else {
                 const ordem = Math.max(0, ...figurinoMestreCacheSA.map(i => i.ordem || 0)) + 1;
-                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, publico, nome, ativo, ordem }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, publico, nome, ativo, ordem, inclui_extras }) });
             }
             mostrarToast(figurinoMestreEditando.id ? 'Figurino atualizado!' : 'Figurino criado!');
             figurinoMestreEditando = null;
@@ -6281,6 +6563,7 @@
         if (aba === 'dados-bateria') renderizarDadosBateriaTab(false);
         if (aba === 'comercial') renderizarComercialTab();
         if (aba === 'figurino') iniciarFigurinoTab();
+        if (aba === 'extras') iniciarExtrasTab();
         if (aba === 'permissoes') { permissoesPessoaEditando = null; renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'historico') carregarHistoricoEscolaSA();
         if (aba === 'administrativo') renderizarAdministrativoLista();
