@@ -1007,7 +1007,7 @@
         await carregarOpcoesInstrumento(bateria.id);
         await carregarOpcoesMedidas(bateria.id);
 
-        const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor' : perfil === 'apoio' ? 'Apoio de Bateria' : 'Ritmista';
+        const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor de Bateria' : perfil === 'apoio' ? 'Diretor' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = cargoLabel;
         document.getElementById('convite-bateria').textContent = bateria.nome;
         document.getElementById('convite-banner').style.display = 'block';
@@ -1112,7 +1112,7 @@
         atualizarCampoInstrumento(cargo);
         await carregarOpcoesInstrumento(Number(bateriaId));
         await carregarOpcoesMedidas(Number(bateriaId));
-        const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor' : cargo === 'apoio' ? 'Apoio de Bateria' : 'Ritmista';
+        const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor de Bateria' : cargo === 'apoio' ? 'Diretor' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = cargoLabel;
         document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
         document.getElementById('convite-banner').style.display = 'block';
@@ -1368,7 +1368,7 @@
         // Cadastro só existe vinculado a uma escola/bateria (link fixo ou modo manual) —
         // o "modo público" sem nenhum parâmetro na URL não é mais um caminho válido.
         if (!linkFixoAtual && !modoManualAtual) {
-            mostrarMensagem('Link de cadastro inválido. Peça um novo link ao seu Mestre ou Diretor.', 'erro');
+            mostrarMensagem('Link de cadastro inválido. Peça um novo link ao seu Mestre ou Diretor de Bateria.', 'erro');
             travarFormulario(false);
             return;
         }

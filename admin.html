@@ -1831,8 +1831,8 @@
     <div id="cadastroDiretoriaConteudo" style="display:none;margin-top:12px;">
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
             <button class="btn-novo" onclick="irParaCadastroManualDiretoria('mestre')">+ Cadastrar Mestre</button>
-            <button class="btn-novo" onclick="irParaCadastroManualDiretoria('diretor')">+ Cadastrar Diretor</button>
-            <button class="btn-novo" onclick="irParaCadastroManualDiretoria('apoio')">+ Cadastrar Apoio</button>
+            <button class="btn-novo" onclick="irParaCadastroManualDiretoria('diretor')">+ Cadastrar Diretor de Bateria</button>
+            <button class="btn-novo" onclick="irParaCadastroManualDiretoria('apoio')">+ Cadastrar Diretor</button>
         </div>
         <div id="linksCadastroDiretoria" style="margin-bottom:20px;"></div>
     </div>
@@ -1852,13 +1852,13 @@
         <!-- FILTRO CARGO -->
         <div class="multi-select" id="cargoSelectWrap">
             <div class="multi-select-trigger" id="cargoSelectTrigger" onclick="toggleCargoSelect()">
-                <span id="cargoSelectLabel">Mestres, Diretores, Apoio</span>
+                <span id="cargoSelectLabel">Mestres, Diretores de Bateria, Diretores</span>
                 <span id="cargoSelectArrow">▼</span>
             </div>
             <div class="multi-select-dropdown" id="cargoSelectDropdown" style="display:none;">
                 <label class="multi-select-option"><input type="checkbox" value="mestre" checked onchange="onChangeCargo()">Mestre de Bateria</label>
-                <label class="multi-select-option"><input type="checkbox" value="diretor" checked onchange="onChangeCargo()">Diretor</label>
-                <label class="multi-select-option"><input type="checkbox" value="apoio" checked onchange="onChangeCargo()">Apoio de Bateria</label>
+                <label class="multi-select-option"><input type="checkbox" value="diretor" checked onchange="onChangeCargo()">Diretor de Bateria</label>
+                <label class="multi-select-option"><input type="checkbox" value="apoio" checked onchange="onChangeCargo()">Diretor</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
                     <span id="cargoMarcarTudoLink" onclick="toggleMarcarTudoCargo()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
                 </div>
@@ -2495,7 +2495,7 @@
         ]},
         grupoMedidasExportDiretoria,
     ];
-    const LABELS_PERFIL_EXPORT = { mestre: 'Mestre de Bateria', diretor: 'Diretor', apoio: 'Apoio de Bateria' };
+    const LABELS_PERFIL_EXPORT = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor' };
     let tipoExportacaoAtual = 'ritmistas';
     let sheetJSCarregado = false;
     function carregarSheetJS() {
@@ -2909,8 +2909,8 @@
             // ritmista sem instrumento aparecia só com "—", sem dizer nem
             // que era ritmista.
             const cargoAniv = r.perfil === 'mestre' ? (r.genero === 'feminino' ? 'Mestra' : 'Mestre')
-                : r.perfil === 'diretor' ? (r.genero === 'feminino' ? 'Diretora' : 'Diretor')
-                : r.perfil === 'apoio' ? 'Apoio' : 'Ritmista';
+                : r.perfil === 'diretor' ? (r.genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria')
+                : r.perfil === 'apoio' ? 'Diretor' : 'Ritmista';
             const detalhe = (r.perfil === 'ritmista' && r.instrumento_nome) ? `${cargoAniv} · ${r.instrumento_nome}` : cargoAniv;
             return `<div class="vg-aniversariante">
                 <span style="font-size:20px;">🎂</span>
@@ -3541,8 +3541,8 @@
         const base = `${window.location.origin}/cadastro?bateria=${codigo}`;
         div.innerHTML = caixaLinkCadastro('linksCadastroDiretoria-box', 'Links de cadastro', [
             { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },
-            { label: 'Diretor', url: `${base}&cargo=diretor` },
-            { label: 'Apoio de Bateria', url: `${base}&cargo=apoio` }
+            { label: 'Diretor de Bateria', url: `${base}&cargo=diretor` },
+            { label: 'Diretor', url: `${base}&cargo=apoio` }
         ]);
     }
 
@@ -3945,7 +3945,7 @@
     // (nunca um bloco agrupado "diretoria") -- pedido da Márcia, 24/ago/2026,
     // pra preparar o sistema pra bateria que queira peça diferente por
     // Mestre/Diretor/Apoio. Ordem sempre Ritmistas primeiro.
-    const LABEL_PUBLICO_FIGURINO = { ritmista: 'Ritmistas', mestre: 'Mestres', diretor: 'Diretores', apoio: 'Apoio' };
+    const LABEL_PUBLICO_FIGURINO = { ritmista: 'Ritmistas', mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretores' };
     const ORDEM_PUBLICO_FIGURINO = ['ritmista', 'mestre', 'diretor', 'apoio'];
     function renderizarConfigFigurino() {
         const container = document.getElementById('config-figurino-lista');
@@ -4117,7 +4117,7 @@
         select.value = valorAtual;
     }
 
-    const LABEL_PERFIL_FIGURINO = { mestre: 'Mestre de Bateria', diretor: 'Diretor', apoio: 'Apoio de Bateria', ritmista: null };
+    const LABEL_PERFIL_FIGURINO = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor', ritmista: null };
     function renderizarEntregasFigurinoLista() {
         const container = document.getElementById('figurino-entregas-lista');
         if (!container) return;
@@ -5106,7 +5106,7 @@
         { grupo: 'Dados da Bateria', itens: [{ chave: 'ver_dados_bateria', label: 'Ver' }, { chave: 'editar_dados_bateria', label: 'Editar' }] },
         { grupo: 'Comercial', itens: [{ chave: 'ver_comercial', label: 'Ver' }, { chave: 'editar_comercial', label: 'Editar' }] },
         { grupo: 'Ritmistas', itens: [{ chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' }, { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar' }, { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas' }] },
-        { grupo: 'Diretoria', itens: [{ chave: 'ver_acessos', label: 'Ver Mestres e Diretores' }, { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar' }] },
+        { grupo: 'Diretoria', itens: [{ chave: 'ver_acessos', label: 'Ver Mestres e Diretores de Bateria' }, { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar' }] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Ver entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos' }] },
         { grupo: 'Relatórios', itens: [{ chave: 'ver_relatorios', label: 'Ver' }] },
         { grupo: 'Configurações', itens: [{ chave: 'ver_configuracoes', label: 'Ver' }, { chave: 'editar_configuracoes', label: 'Editar' }] },
@@ -5178,7 +5178,7 @@
     function renderizarListaPermissoesPessoas() {
         const container = document.getElementById('pe-perfis-lista');
         if (!container) return;
-        if (permissoesPessoaCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum Mestre, Diretor ou Apoio nesta bateria ainda.</div>'; return; }
+        if (permissoesPessoaCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum Mestre, Diretor de Bateria ou Diretor nesta bateria ainda.</div>'; return; }
 
         const buscaEl = document.getElementById('pe-busca');
         const busca = (buscaEl ? buscaEl.value : '').trim().toLowerCase();
@@ -5199,7 +5199,7 @@
             </div>`;
         };
 
-        const grupos = [['mestre', 'Mestres'], ['diretor', 'Diretores'], ['apoio', 'Apoio']];
+        const grupos = [['mestre', 'Mestres'], ['diretor', 'Diretores de Bateria'], ['apoio', 'Diretores']];
         container.innerHTML = grupos.map(([perfil, label]) => {
             const itens = filtrada.filter(p => p.perfil === perfil);
             if (itens.length === 0) return '';
@@ -5705,7 +5705,7 @@
     // invariável (nunca teve forma feminina definida). Pedido dela,
     // 24/ago/2026, depois de eu esquecer disso ao criar o rótulo de cargo
     // em Aniversariantes do mês.
-    function labelPerfilSA(p, genero) { if (p === 'mestre') return genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria'; if (p === 'diretor') return genero === 'feminino' ? 'Diretora' : 'Diretor'; if (p === 'apoio') return 'Apoio de Bateria'; return p; }
+    function labelPerfilSA(p, genero) { if (p === 'mestre') return genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria'; if (p === 'diretor') return genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria'; if (p === 'apoio') return 'Diretor'; return p; }
     function histDataHora(iso) { return iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—'; }
     async function carregarHistoricoEscolaSA() {
         const container = document.getElementById('lista-historico-escola');
@@ -5938,10 +5938,10 @@
         const checks = document.querySelectorAll('#cargoSelectDropdown input[type=checkbox]:checked');
         filtroCargoDiretoriaSelecionados = Array.from(checks).map(c => c.value);
         const total = document.querySelectorAll('#cargoSelectDropdown input[type=checkbox]').length;
-        const labelsCargo = { mestre: 'Mestres', diretor: 'Diretores', apoio: 'Apoio' };
+        const labelsCargo = { mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretores' };
         const label = document.getElementById('cargoSelectLabel');
         if (filtroCargoDiretoriaSelecionados.length === total) {
-            label.textContent = 'Mestres, Diretores, Apoio';
+            label.textContent = 'Mestres, Diretores de Bateria, Diretores';
         } else if (filtroCargoDiretoriaSelecionados.length === 0) {
             label.textContent = 'Nenhum cargo';
         } else {
@@ -6082,8 +6082,8 @@
         const apoios = admins.filter(a => a.perfil === 'apoio');
         let html = '';
         if (mestres.length) html += `<div class="secao-titulo">Mestres</div>` + mestres.map(cardHTML).join('');
-        if (diretores.length) html += `<div class="secao-titulo">Diretores</div>` + diretores.map(cardHTML).join('');
-        if (apoios.length) html += `<div class="secao-titulo">Apoio</div>` + apoios.map(cardHTML).join('');
+        if (diretores.length) html += `<div class="secao-titulo">Diretores de Bateria</div>` + diretores.map(cardHTML).join('');
+        if (apoios.length) html += `<div class="secao-titulo">Diretores</div>` + apoios.map(cardHTML).join('');
         lista.innerHTML = html;
 
         // Guarda admins para uso no modal
@@ -6147,7 +6147,7 @@
         // mesmos modais de motivo (abrirModalSuspender/abrirModalDesligar),
         // só passando o rótulo certo e qual lista recarregar depois.
         const rotulo = a.perfil === 'mestre' ? (a.genero === 'feminino' ? 'Mestra' : 'Mestre')
-            : a.perfil === 'diretor' ? (a.genero === 'feminino' ? 'Diretora' : 'Diretor') : 'Apoio';
+            : a.perfil === 'diretor' ? (a.genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria') : 'Diretor';
         const nomeEscapado = (a.nome || '').replace(/'/g, "\\'");
         let btns = '';
         if (a.status === 'pendente') {
