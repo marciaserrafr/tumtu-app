@@ -348,7 +348,13 @@ function fpAuthHeaders() {
 // Tipos ativos pra essa bateria, na ordem configurada -- fonte única tanto
 // pro modo visualização (fpRenderizarMedidas) quanto pro modo edição
 // (fpAtivarEdicao).
-async function fpCarregarTiposMedidaAtivos(bateriaId) {
+// perfil filtra quem preenche cada Categoria de Figurino (25/ago/2026,
+// pedido dela: Calça de Diretoria usa escala numérica, diferente da de
+// Ritmista -- uma categoria pode ser restrita a só alguns públicos,
+// configurado em Configurações → Categoria de Figurino). Sem público salvo
+// (categoria antiga, de antes dessa mudança), conta como "todo mundo vê" --
+// mesmo default do banco, zero mudança de comportamento pra quem já tinha.
+async function fpCarregarTiposMedidaAtivos(bateriaId, perfil) {
     if (!bateriaId) return [];
     const authHeaders = await fpAuthHeaders();
     // "Sem linha ainda em bateria_medida_tipos" conta como DESLIGADO --
@@ -362,8 +368,10 @@ async function fpCarregarTiposMedidaAtivos(bateriaId) {
     ]);
     const ligados = await resLigados.json();
     const tipos = await resTipos.json();
+    const publicoPorTipo = {};
+    ligados.forEach(d => { publicoPorTipo[d.tipo_id] = Array.isArray(d.publico) ? d.publico : ['ritmista', 'mestre', 'diretor', 'apoio']; });
     const ligadosIds = new Set(ligados.map(d => d.tipo_id));
-    return tipos.filter(t => ligadosIds.has(t.id));
+    return tipos.filter(t => ligadosIds.has(t.id) && (!perfil || publicoPorTipo[t.id].includes(perfil)));
 }
 
 // Valores já preenchidos pra essa pessoa/vínculo, indexados por tipo_id.
@@ -407,7 +415,7 @@ async function fpRenderizarMedidas(alvo) {
     if (!alvo.vinculo_id) { secao.style.display = 'none'; return; }
 
     const [tipos, valores] = await Promise.all([
-        fpCarregarTiposMedidaAtivos(alvo.bateria_id),
+        fpCarregarTiposMedidaAtivos(alvo.bateria_id, alvo.perfil),
         fpCarregarValoresMedidaPessoa(alvo.vinculo_id),
     ]);
 
@@ -468,7 +476,7 @@ async function fpAplicarPermissaoRitmistaMedidas(alvo) {
     const bateriaRows = resBateria.ok ? await resBateria.json() : [];
     if (!(bateriaRows[0] && bateriaRows[0].ritmista_pode_editar_medidas)) return;
     const [tipos, valores] = await Promise.all([
-        fpCarregarTiposMedidaAtivos(alvo.bateria_id),
+        fpCarregarTiposMedidaAtivos(alvo.bateria_id, alvo.perfil),
         fpCarregarValoresMedidaPessoa(alvo.vinculo_id),
     ]);
     const temAlgumEmBranco = tipos.some(t => !valores[t.id]);
@@ -538,7 +546,7 @@ async function fpAtivarEdicao() {
 
     if (fpEstado.editaveis.has('medidas')) {
         const [tipos, opcoesPorTipo, valores] = await Promise.all([
-            fpCarregarTiposMedidaAtivos(fpEstado.alvo.bateria_id),
+            fpCarregarTiposMedidaAtivos(fpEstado.alvo.bateria_id, fpEstado.alvo.perfil),
             fpCarregarOpcoesMedidasPorTipo(fpEstado.alvo.bateria_id),
             fpCarregarValoresMedidaPessoa(fpEstado.alvo.vinculo_id),
         ]);

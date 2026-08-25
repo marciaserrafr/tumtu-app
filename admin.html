@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=16">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=25"></script>
+    <script src="ficha-perfil.js?v=26"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -1034,6 +1034,16 @@
         .config-medida-seta.aberta { transform: rotate(90deg); color: #8b88a0; }
         .config-medida-tamanhos { padding: 4px 20px 16px 49px; border-top: 1px solid #f4f4f4; }
         .config-medida-tamanhos .config-instrumento-linha:last-child { border-bottom: none; }
+        /* Público da Categoria de Figurino (25/ago/2026) -- quem preenche
+           essa categoria no cadastro/ficha. Fica dentro do card aberto,
+           acima dos tamanhos, com um pouco mais de respiro pra separar dos
+           checkboxes de tamanho logo abaixo. */
+        .config-medida-publico { padding: 10px 0 14px; border-bottom: 1px solid #f4f4f4; }
+        .config-medida-publico-label { font-size: 12px; font-weight: 700; color: var(--cor-texto-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 8px; }
+        .config-medida-publico-itens { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+        .config-medida-publico-itens .config-instrumento-check { font-size: 13px; }
+        .config-medida-publico-itens .config-instrumento-check input:disabled { cursor: not-allowed; opacity: 0.4; }
+        .config-medida-publico-itens .config-instrumento-check input:disabled ~ span { color: var(--cor-texto-muted); }
         .badge-ativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #e8f5e9; color: #2e7d32; }
         .badge-inativo { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #fce4ec; color: #c62828; }
         .badge-tag-demo { font-size: 10px; font-weight: 800; letter-spacing: 0.04em; color: #8a6d1a; background: #fdf1cf; padding: 3px 9px; border-radius: 999px; }
@@ -3855,12 +3865,25 @@
     // volta a fazer sentido ter título de grupo agora que "Especial" reúne
     // categorias pontuais de verdade (mais de um card por grupo), diferente
     // do card único e redundante que motivou tirar o título em 22/ago/2026.
+    // Quem preenche essa Categoria de Figurino no cadastro/ficha -- pedido
+    // dela, 25/ago/2026: descobriu que Calça de Diretoria usa número
+    // (36/38/40...) e a de Ritmista usa P/M/G, escalas diferentes de
+    // verdade. Solução: cada bateria pode restringir uma categoria a só
+    // alguns públicos (checkboxes, não um valor só -- diferente do Figurino/
+    // peça, que é sempre de um público único) e criar uma categoria nova só
+    // pra Diretoria com a escala certa, mantendo a antiga só pra Ritmista.
+    const PERFIS_PUBLICO_MEDIDA = [['ritmista', 'Ritmista'], ['mestre', 'Mestre'], ['diretor', 'Diretor de Bateria'], ['apoio', 'Diretor']];
+    function publicoMedidaTipo(tipoExistente) {
+        if (!tipoExistente || !Array.isArray(tipoExistente.publico)) return ['ritmista', 'mestre', 'diretor', 'apoio'];
+        return tipoExistente.publico;
+    }
     function cardConfigMedidaTipo(tipo) {
         const itens = bibliotecaMedidas.filter(t => t.tipo_id === tipo.id).sort((a, b) => a.ordem - b.ordem);
         if (itens.length === 0) return '';
         const tipoExistente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipo.id);
         const tipoAtivo = !!(tipoExistente && tipoExistente.ativo); // sem linha = desligado, mesmo padrão de Instrumentos
         const aberto = medidaTiposAbertos.has(tipo.id);
+        const publico = publicoMedidaTipo(tipoExistente);
         return `
             <div class="item-card config-medida-card">
                 <div class="config-medida-header" onclick="toggleMedidaTipoAberto(${tipo.id})">
@@ -3870,7 +3893,19 @@
                     </label>
                     <span class="config-medida-seta ${aberto ? 'aberta' : ''}">›</span>
                 </div>
-                ${aberto ? `<div class="config-medida-tamanhos">${itens.map(t => renderizarLinhaMedida(t)).join('')}</div>` : ''}
+                ${aberto ? `<div class="config-medida-tamanhos">
+                    <div class="config-medida-publico">
+                        <div class="config-medida-publico-label">Quem preenche esta categoria</div>
+                        <div class="config-medida-publico-itens">
+                            ${PERFIS_PUBLICO_MEDIDA.map(([chave, label]) => `
+                                <label class="config-instrumento-check">
+                                    <input type="checkbox" ${publico.includes(chave) ? 'checked' : ''} ${tipoAtivo ? '' : 'disabled'} onchange="salvarMedidaTipoPublico(${tipo.id}, '${chave}', this.checked)">
+                                    <span>${label}</span>
+                                </label>`).join('')}
+                        </div>
+                    </div>
+                    ${itens.map(t => renderizarLinhaMedida(t)).join('')}
+                </div>` : ''}
             </div>`;
     }
     function renderizarConfigMedidas() {
@@ -3911,6 +3946,23 @@
                 body: JSON.stringify({ bateria_id: bateriaId, tipo_id: tipoId, ativo })
             });
         }
+        await carregarBateriaMedidaTipos();
+        renderizarConfigMedidas();
+    }
+
+    // Só existe pra editar categoria já ativada -- checkbox de público vem
+    // desabilitado quando a categoria ainda está desligada (ver
+    // cardConfigMedidaTipo).
+    async function salvarMedidaTipoPublico(tipoId, perfil, checked) {
+        const existente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipoId);
+        if (!existente) return;
+        const atual = publicoMedidaTipo(existente);
+        const novo = checked ? [...new Set([...atual, perfil])] : atual.filter(p => p !== perfil);
+        await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ publico: novo })
+        });
         await carregarBateriaMedidaTipos();
         renderizarConfigMedidas();
     }
