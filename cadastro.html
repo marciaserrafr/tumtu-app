@@ -1494,6 +1494,12 @@
             bateria_instrumento_id: dados.bateria_instrumento_id,
             membro_desde: dados.membro_desde,
             politica_privacidade_aceita_em: new Date().toISOString(),
+            // Diretor (perfil='apoio', renomeado de "Apoio" em 24/ago/2026)
+            // já nasce com o Modo Carteirinha individual ligado -- pedido
+            // dela, 25/ago/2026: cai direto na própria carteirinha ao
+            // entrar, nunca no painel. Só vale pra cadastro novo a partir
+            // daqui -- quem já estava cadastrado antes não muda.
+            modo_carteirinha_individual: dados.perfil === 'apoio',
         };
         const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos`, {
             method: 'POST',
