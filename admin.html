@@ -2283,14 +2283,20 @@
     // pessoa estiver dentro de uma bateria -- atualiza as duas listas, os
     // totais e a Visão Geral junto, porque carregarRitmistas()/
     // carregarDiretoria() já cuidam disso. Pausa sozinho enquanto uma ficha
-    // está aberta pra edição (#modalAdmin), pra nunca sobrescrever um
-    // formulário que a pessoa está preenchendo.
+    // está aberta pra edição -- Ritmistas e Diretoria abrem modais
+    // DIFERENTES (achado testando ao vivo, 25/ago/2026: #modalCadastroOverlay
+    // é o da ficha de Ritmista -- o mais comum -- e #modalAdmin só o da
+    // ficha de Diretoria; checar só um dos dois deixava o outro sem pausa
+    // nenhuma), então os dois precisam ser checados.
     let ritmistasAutoRefreshInterval = null;
     function iniciarAutoRefreshRitmistas() {
         if (ritmistasAutoRefreshInterval) clearInterval(ritmistasAutoRefreshInterval);
         ritmistasAutoRefreshInterval = setInterval(() => {
-            const modal = document.getElementById('modalAdmin');
-            if (modal && modal.style.display !== 'none') return;
+            const modalRitmista = document.getElementById('modalCadastroOverlay');
+            const modalDiretoria = document.getElementById('modalAdmin');
+            const ritmistaAberto = modalRitmista && modalRitmista.classList.contains('aberto');
+            const diretoriaAberta = modalDiretoria && modalDiretoria.style.display !== 'none';
+            if (ritmistaAberto || diretoriaAberta) return;
             carregarRitmistas();
             diretoriaCarregada = false;
             carregarDiretoria();
