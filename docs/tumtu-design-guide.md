@@ -199,8 +199,13 @@ Se um campo estiver vazio, o espaço fica vazio — nunca preenche com placehold
 /* Desligado */
 .badge-desligado { background: #fde8e8; color: #b3261e; }
 
-/* Menor de idade — AZUL SÓLIDO ESCURO, chama atenção */
-.badge-menor { background: #1a5fa8; color: #ffffff; }
+/* Menor de idade — AZUL translúcido (25/ago/2026: era sólido escuro; trocado
+   pro mesmo estilo "com transparência" já usado no badge de Repique de Bossa) */
+.badge-menor { background: #eff6ff; color: #1a5fa8; }
+
+/* Repique de Bossa — ROXO translúcido (25/ago/2026: era verde/teal, competia
+   visualmente com o selo "Ativo", também verde) */
+.badge-repique-bossa { background: #f5f3ff; color: #6d28d9; }
 
 /* Instrumento — NEUTRO, não dourado */
 .badge-instrumento {
