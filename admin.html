@@ -2324,6 +2324,22 @@
         return listaNova;
     }
 
+    // Achado dela, 25/ago/2026: recarregar a página inteira (não só a
+    // atualização automática) continuava lenta -- ali sim é a primeira vez
+    // de verdade, sem foto nenhuma em cache pra reaproveitar. Em vez de
+    // fazer a tela inteira esperar as 22MB, mostra a lista na hora (nome,
+    // status, tudo já clicável) sem foto -- cada card já cai no mesmo
+    // fallback que sempre existiu pra quem não tem foto (inicial do nome)
+    // -- e busca as fotos de verdade logo em seguida, silenciosamente,
+    // completando os cards assim que chegam. Zero risco: não mexe em
+    // nenhum dado, só na ORDEM de quando cada coisa aparece na tela.
+    function carregarRitmistasComFotos() {
+        return carregarRitmistas(true).then(() => carregarRitmistas());
+    }
+    function carregarDiretoriaComFotos() {
+        return carregarDiretoria(true).then(() => { diretoriaCarregada = false; return carregarDiretoria(); });
+    }
+
     async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); carregarResumoEntregaFigurino(); return; }
@@ -3693,14 +3709,14 @@
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'flex';
         ajustarAlturaNavMobile();
-        carregarRitmistas();
+        carregarRitmistasComFotos();
         iniciarAutoRefreshRitmistas();
         // Card "Diretoria ativa" na Visão Geral (novo, 21/ago/2026) --
         // reaproveita a mesma carregarDiretoria() da aba Diretoria (fica em
         // cache pra quando ela clicar lá, sem buscar de novo). Só dispara
         // pra quem tem ver_acessos -- sem a capacidade, RLS devolveria vazio
         // e o card mostraria "0" de forma enganosa em vez de ficar escondido.
-        if (souSuperAdmin || tenhoCapacidade('ver_acessos')) carregarDiretoria();
+        if (souSuperAdmin || tenhoCapacidade('ver_acessos')) carregarDiretoriaComFotos();
         // Card "Extras" na Visão Geral, mesmo padrão do card de Diretoria acima.
         if (souSuperAdmin || tenhoCapacidade('ver_extras')) carregarExtras().then(atualizarTotalizadorExtras);
 
@@ -5086,9 +5102,9 @@
         renderizarComercialTab();
 
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
-        carregarRitmistas();
+        carregarRitmistasComFotos();
         iniciarAutoRefreshRitmistas();
-        carregarDiretoria(); // Super Admin sempre vê o card "Diretoria ativa"
+        carregarDiretoriaComFotos(); // Super Admin sempre vê o card "Diretoria ativa"
         carregarExtras().then(atualizarTotalizadorExtras); // idem, card "Extras"
 
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
@@ -6480,7 +6496,13 @@
         if (diretoriaCarregada) return;
         const bateriaId = bateriaIdContexto();
         const lista = document.getElementById('listaDiretoria');
-        lista.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        // Só mostra o spinner por cima da lista vazia -- na segunda chamada
+        // de carregarDiretoriaComFotos() (leve -> completa, só pra buscar
+        // foto por trás) a lista já tem conteúdo real na tela; sobrescrever
+        // com spinner de novo causava um pisca-pisca sem necessidade.
+        if (!listaDiretoriaAtual.length) {
+            lista.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        }
 
         if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
