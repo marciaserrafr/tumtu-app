@@ -227,6 +227,16 @@
    achar). Mesmo motor único (ficha-perfil.partial.html) -- vale pra
    Ritmista, Diretoria e Meu Perfil de uma vez, sem duplicar lógica. */
 .ficha-modal-header-linha { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+/* Nome comprido (ex: "Pedro Henrique de Oliveira de Souza") sem isso
+   espremia o botão "Ver carteirinha" junto -- por padrão um item flex pode
+   encolher até o próprio conteúdo (min-width:auto), então os dois lados
+   disputavam espaço e o texto do botão quebrava em duas linhas (achado da
+   Márcia, 25/ago/2026, print mostrando "Ver carteirinha" numa linha e "↗"
+   sozinho embaixo). Agora o nome tem prioridade pra encolher/quebrar
+   (min-width:0) e o botão nunca abre mão da própria largura. */
+.ficha-modal-header-linha > div:first-child { min-width: 0; }
+.ficha-modal-header-linha #fp-ver-carteirinha { flex-shrink: 0; }
+.ficha-modal-header-linha #fp-ver-carteirinha .btn-ficha-carteirinha { white-space: nowrap; }
 /* Fixa (sticky) no rodapé da tela, em vez de só no fim do conteúdo --
    sem isso, ajustar um campo (ex: arrastar a foto) lá no topo da ficha
    exigia rolar até o fim só pra achar "Salvar" (achado da Márcia,

@@ -19,7 +19,7 @@ const APP_SHELL = [
   './config-suporte.js?v=1',
   './manifest.json',
   './styles/tokens.css?v=4',
-  './styles/components.css?v=16',
+  './styles/components.css?v=17',
   './styles/carteirinha-tumtu-novo.css?v=34',
   './icons/icon-192.png',
   './icons/icon-512.png',
