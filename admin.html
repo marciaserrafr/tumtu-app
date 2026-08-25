@@ -2498,7 +2498,7 @@
         container.innerHTML = html;
     }
 
-    async function atualizarStatus(id, status, motivo = null, recarregar = carregarRitmistas) {
+    async function atualizarStatus(id, status, motivo = null, recarregar = () => carregarRitmistas(true)) {
         const body = { status };
         if (motivo !== null) body.motivo_status = motivo;
         if (status === 'aprovado') body.motivo_status = null;
@@ -2530,7 +2530,7 @@
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ declaracao_responsavel: entregue })
         });
-        await carregarRitmistas();
+        await carregarRitmistas(true);
         abrirCadastro(id);
     }
 
@@ -2915,9 +2915,9 @@
     }
 
     // MODAIS
-    let acaoAtualRecarregar = carregarRitmistas;
+    let acaoAtualRecarregar = () => carregarRitmistas(true);
 
-    function abrirModalSuspender(id, nome, rotulo = 'Ritmista', recarregar = carregarRitmistas) {
+    function abrirModalSuspender(id, nome, rotulo = 'Ritmista', recarregar = () => carregarRitmistas(true)) {
         acaoAtualId = id;
         acaoAtualRecarregar = recarregar;
         document.getElementById('modalSuspenderTitulo').textContent = `Suspender ${rotulo}`;
@@ -2931,7 +2931,7 @@
         atualizarStatus(acaoAtualId, 'suspenso', motivo, acaoAtualRecarregar);
     }
 
-    function abrirModalDesligar(id, nome, rotulo = 'Ritmista', recarregar = carregarRitmistas) {
+    function abrirModalDesligar(id, nome, rotulo = 'Ritmista', recarregar = () => carregarRitmistas(true)) {
         acaoAtualId = id;
         acaoAtualRecarregar = recarregar;
         document.getElementById('modalDesligarTitulo').textContent = `Desligar ${rotulo}`;
@@ -5545,7 +5545,7 @@
             renderizarComercialTab();
             renderizarLinkCadastroRitmista();
             renderizarLinksCadastroDiretoria();
-            carregarRitmistas();
+            carregarRitmistas(true);
             mostrarToast(id ? 'Bateria atualizada!' : 'Bateria cadastrada!');
         } else {
             const err = await res.json();
@@ -6587,7 +6587,7 @@
     // Reativar), senão a lista fica presa no estado antigo em tela.
     function recarregarDiretoria() {
         diretoriaCarregada = false;
-        return carregarDiretoria();
+        return carregarDiretoria(true);
     }
 
     function renderizarDiretoria(admins) {
@@ -6678,7 +6678,7 @@
         });
         notificarAprovacao(id);
         diretoriaCarregada = false;
-        await carregarDiretoria();
+        await carregarDiretoria(true);
     }
 
     async function rejeitarDiretor(id) {
@@ -6688,7 +6688,7 @@
             body: JSON.stringify({ status: 'rejeitado' })
         });
         diretoriaCarregada = false;
-        await carregarDiretoria();
+        await carregarDiretoria(true);
     }
 
     async function abrirFichaAdmin(id) {
