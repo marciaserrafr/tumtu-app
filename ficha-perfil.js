@@ -608,6 +608,14 @@ async function fpAtivarEdicao() {
             select.innerHTML = '<option value="">Selecione</option>' + opcoes.map(o =>
                 `<option value="${o.nome}" ${o.nome === valorAtual ? 'selected' : ''}>${o.nome}</option>`
             ).join('');
+            // "Tradicional" (Camisa/Fantasia/Calça/Sapato) é obrigatória,
+            // "Especial" não -- mesmo critério já usado em cadastro.html.
+            // Guardado aqui pra fpSalvar() conferir antes de gravar (pedido
+            // dela, 25/ago/2026: nunca deixar salvar com medida obrigatória
+            // em branco).
+            select.dataset.obrigatoria = t.grupo !== 'especial' ? '1' : '';
+            select.classList.remove('campo-invalido');
+            select.onchange = () => select.classList.remove('campo-invalido');
             strong.style.display = 'none';
             select.style.display = 'block';
         });
@@ -837,7 +845,27 @@ async function fpSalvar() {
         valoresMedida = Array.from(fpEstado.container.querySelectorAll('#fp-medidas-grid select')).map(select => ({
             tipoId: Number(select.dataset.tipoId),
             valor: select.value.trim(),
+            obrigatoria: select.dataset.obrigatoria === '1',
+            select,
         }));
+    }
+    // Medida "tradicional" (Camisa/Fantasia/Calça/Sapato) obrigatória em
+    // branco trava o Salvar -- pedido dela, 25/ago/2026: "quando a pessoa
+    // clicar em editar, vai ter que preencher de qualquer maneira". Mesmo
+    // padrão visual de erro já usado pra data de nascimento inválida.
+    if (valoresMedida) {
+        const faltando = valoresMedida.filter(v => v.obrigatoria && !v.valor);
+        if (faltando.length > 0) {
+            const msg = fpEl('fp-mensagem');
+            if (msg) {
+                msg.className = 'fp-mensagem erro';
+                msg.textContent = 'Preencha todas as medidas obrigatórias antes de salvar.';
+                msg.style.display = 'block';
+                msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            faltando.forEach(v => v.select.classList.add('campo-invalido'));
+            return;
+        }
     }
     if (fpFotoBase64 && fpEstado.editaveis.has('foto_url')) payloadPessoa.foto_url = fpFotoBase64;
     // Posição vale mesmo sem trocar a foto (só arrastar a existente já
