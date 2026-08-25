@@ -254,6 +254,10 @@
             flex: 1; background: white; border-radius: 12px;
             padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
         }
+        /* Card de "pendentes" direcionável -- pedido da Márcia, 24/ago/2026:
+           clicar leva direto pra tela de Ritmistas/Diretoria pra ativar. */
+        .total-card--clicavel { cursor: pointer; transition: box-shadow 0.15s; }
+        .total-card--clicavel:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 0 0 1.5px var(--cor-destaque); }
         .total-numero {
             font-size: 28px; font-weight: 800; color: var(--cor-texto-principal); line-height: 1;
         }
@@ -1756,9 +1760,13 @@
             <div class="total-numero ativo" id="totalAtivos">—</div>
             <div class="total-label">Ritmistas ativos</div>
         </div>
-        <div class="total-card">
+        <!-- Clicável -- direciona pra Ritmistas, que já abre com o filtro
+             padrão Ativos+Pendentes (agrupado por status), pedido da
+             Márcia, 24/ago/2026: "clicar em ritmistas pendente, direcionar
+             pra tela de ritmistas pra ativar os pendentes". -->
+        <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
             <div class="total-numero" id="totalPendentes">—</div>
-            <div class="total-label">Pendentes</div>
+            <div class="total-label">Ritmistas pendentes</div>
         </div>
     </div>
 
@@ -1770,9 +1778,9 @@
             <div class="total-numero ativo" id="totalDiretoriaAtivos">—</div>
             <div class="total-label">Diretoria ativa</div>
         </div>
-        <div class="total-card">
+        <div class="total-card total-card--clicavel" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">
             <div class="total-numero" id="totalDiretoriaPendentes">—</div>
-            <div class="total-label">Pendentes</div>
+            <div class="total-label">Diretoria pendente</div>
         </div>
     </div>
 
