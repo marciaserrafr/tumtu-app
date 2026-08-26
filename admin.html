@@ -1874,6 +1874,16 @@
         </div>
     </div>
 
+    <!-- Card "Menores" (26/ago/2026) -- contador de Ritmistas ativos que são
+         menores de idade hoje, mesmo padrão simples do card "Ritmistas
+         ativos" acima (sem capacidade própria -- quem vê Ritmistas vê este). -->
+    <div class="totalizadores">
+        <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
+            <div class="total-numero ativo" id="totalMenores">—</div>
+            <div class="total-label">Menores ativos</div>
+        </div>
+    </div>
+
     <!-- Card "Extras" (25/ago/2026) -- mesmo padrão do card de Diretoria
          acima: à parte, só aparece pra quem tem ver_extras. -->
     <div class="totalizadores" id="totalizadoresExtras" style="display:none;">
@@ -2260,6 +2270,14 @@
         const elPendentes = document.getElementById('totalPendentes');
         elPendentes.textContent = pendentes;
         elPendentes.classList.toggle('atencao', pendentes > 0);
+        // Menores de idade HOJE (mesmo cálculo do badge "Menor" na lista) --
+        // só entre Ritmistas ativos, pedido dela 26/ago/2026.
+        const menoresAtivos = todosRitmistas.filter(r => {
+            if (r.status !== 'aprovado') return false;
+            const idade = calcularIdade(r.nascimento);
+            return idade !== null && idade < 18;
+        }).length;
+        document.getElementById('totalMenores').textContent = menoresAtivos;
     }
 
     // Card à parte na Visão Geral, com a mesma contagem de Mestres/
@@ -4608,6 +4626,7 @@
     let extrasCache = [];
     let extraEditando = null;
     let extraMedidaTiposAtivos = []; // Categorias de Figurino com "Extras" marcado, pra essa bateria
+    let extraOpcoesInstrumento = []; // Instrumentos ativos da bateria -- só usado quando o Convidado é Tipo "Ritmistas"
 
     async function carregarExtras() {
         const bateriaId = bateriaIdContexto();
@@ -4661,19 +4680,39 @@
         extraMedidaTiposAtivos = Object.values(porTipo);
     }
 
+    // Instrumento só existe pra Convidado do Tipo "Ritmistas" -- mesma lista
+    // de instrumentos ativos da bateria já usada na ficha (fpCarregarOpcoesInstrumento,
+    // compartilhada globalmente por ficha-perfil.js), pra não duplicar a
+    // lógica de categoria+nomenclatura aqui.
+    async function carregarOpcoesInstrumentoParaExtra() {
+        extraOpcoesInstrumento = await fpCarregarOpcoesInstrumento(bateriaIdContexto());
+    }
+
     function abrirNovoExtra() {
-        extraEditando = { id: null, nome: '', grupo: 'ritmista', observacoes: '', medidas: {} };
-        carregarMedidaTiposParaExtra().then(renderizarEditorExtra);
+        extraEditando = { id: null, nome: '', grupo: 'ritmista', observacoes: '', medidas: {}, bateria_instrumento_id: null };
+        Promise.all([carregarMedidaTiposParaExtra(), carregarOpcoesInstrumentoParaExtra()]).then(renderizarEditorExtra);
     }
     async function abrirEditarExtra(id) {
         const e = extrasCache.find(x => x.id === id);
         if (!e) return;
-        await carregarMedidaTiposParaExtra();
+        await Promise.all([carregarMedidaTiposParaExtra(), carregarOpcoesInstrumentoParaExtra()]);
         const res = await fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?extra_id=eq.${id}`, { headers: authHeaders });
         const valores = res.ok ? await res.json() : [];
         const medidas = {};
         valores.forEach(v => { medidas[v.tipo_id] = v.valor; });
-        extraEditando = { id: e.id, nome: e.nome, grupo: e.grupo, observacoes: e.observacoes || '', medidas };
+        extraEditando = { id: e.id, nome: e.nome, grupo: e.grupo, observacoes: e.observacoes || '', medidas, bateria_instrumento_id: e.bateria_instrumento_id };
+        renderizarEditorExtra();
+    }
+    // Troca do Tipo de Convidado precisa re-renderizar (mostra/esconde
+    // Instrumento) sem perder o que já foi digitado nos outros campos.
+    function onchangeGrupoExtra(novoGrupo) {
+        extraEditando.nome = document.getElementById('extra-edit-nome').value;
+        extraEditando.observacoes = document.getElementById('extra-edit-observacoes').value;
+        extraMedidaTiposAtivos.forEach(t => {
+            const select = document.getElementById(`extra-edit-medida-${t.tipoId}`);
+            if (select) extraEditando.medidas[t.tipoId] = select.value;
+        });
+        extraEditando.grupo = novoGrupo;
         renderizarEditorExtra();
     }
     function renderizarEditorExtra() {
@@ -4686,10 +4725,14 @@
             <div class="card-form-titulo">${ee.id ? 'Editar Convidado' : 'Novo Convidado'}</div>
             <div class="form-grid">
                 <div class="campo campo-full"><label>Nome *</label><input type="text" id="extra-edit-nome" value="${esc(ee.nome)}" placeholder="Nome completo"></div>
-                <div class="campo campo-full"><label>Tipo de Convidado *</label><select id="extra-edit-grupo">
+                <div class="campo campo-full"><label>Tipo de Convidado *</label><select id="extra-edit-grupo" onchange="onchangeGrupoExtra(this.value)">
                     <option value="ritmista" ${ee.grupo === 'ritmista' ? 'selected' : ''}>Ritmistas</option>
                     <option value="diretoria" ${ee.grupo === 'diretoria' ? 'selected' : ''}>Diretoria</option>
                 </select></div>
+                ${ee.grupo === 'ritmista' ? `<div class="campo campo-full"><label>Instrumento *</label><select id="extra-edit-instrumento">
+                    <option value="">Selecione</option>
+                    ${extraOpcoesInstrumento.map(o => `<option value="${o.id}" ${String(ee.bateria_instrumento_id) === String(o.id) ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}
+                </select></div>` : ''}
                 ${extraMedidaTiposAtivos.map(t => `
                     <div class="campo"><label>Tamanho: ${esc(t.nome)}</label><select id="extra-edit-medida-${t.tipoId}">
                         <option value="">Selecione</option>
@@ -4714,6 +4757,15 @@
         const nome = document.getElementById('extra-edit-nome').value.trim();
         if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
         const grupo = document.getElementById('extra-edit-grupo').value;
+        // Instrumento só existe (e só é obrigatório) pro Tipo "Ritmistas" --
+        // mesma regra de cadastro.html/ficha-perfil.js.
+        let bateria_instrumento_id = null;
+        if (grupo === 'ritmista') {
+            const selInstrumento = document.getElementById('extra-edit-instrumento');
+            const val = selInstrumento ? selInstrumento.value : '';
+            if (!val) { mostrarToast('Selecione o instrumento.', 'erro'); return; }
+            bateria_instrumento_id = Number(val);
+        }
         const observacoes = document.getElementById('extra-edit-observacoes').value.trim() || null;
         const bateriaId = bateriaIdContexto();
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
@@ -4721,9 +4773,9 @@
         try {
             let extraId = extraEditando.id;
             if (extraId) {
-                await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${extraId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo, observacoes }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${extraId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo, observacoes, bateria_instrumento_id }) });
             } else {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/extras`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, grupo, observacoes, criado_por: u ? u.pessoa_id : null }) });
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/extras`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, grupo, observacoes, bateria_instrumento_id, criado_por: u ? u.pessoa_id : null }) });
                 const dados = await res.json();
                 extraId = dados[0].id;
             }
