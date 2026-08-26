@@ -183,6 +183,10 @@
    cadastro.html, só que aplicado à cor de borda dourada do .fc-input. */
 .fc-input.campo-invalido { border-color: #dc3545; background: #fff5f5; }
 .ficha-modal-overlay .fc-input.campo-invalido { border-color: #dc3545; background: rgba(220,53,69,0.12); }
+/* Asterisco de campo obrigatório na ficha (Meu Perfil/Admin/Super Admin) --
+   mesmo estilo/cor de .auth-form-group .obrigatorio (cadastro.html), só que
+   escopado à marcação da ficha (<span> dentro de .ficha-campo, não <label>). */
+.ficha-campo .obrigatorio { color: red; margin-left: 2px; }
 
 .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
 .ficha-secao { margin-bottom: 14px; }

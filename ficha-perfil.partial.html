@@ -24,7 +24,7 @@
 <div class="ficha-secao" id="fp-secao-dados-pessoais">
     <div class="ficha-secao-titulo">Dados pessoais</div>
     <div class="ficha-grid">
-        <div class="ficha-campo full"><span>Nome completo / Nome social</span><strong id="fp-nome"></strong><input id="fp-nome-edit" class="fc-input" type="text" placeholder="Seu nome completo ou nome social" onblur="fpAplicarCapitalizacaoNome(this)"></div>
+        <div class="ficha-campo full"><span>Nome completo / Nome social <span class="obrigatorio">*</span></span><strong id="fp-nome"></strong><input id="fp-nome-edit" class="fc-input" type="text" placeholder="Seu nome completo ou nome social" onblur="fpAplicarCapitalizacaoNome(this)"></div>
         <div class="ficha-campo"><span>Apelido</span><strong id="fp-apelido"></strong><input id="fp-apelido-edit" class="fc-input" type="text"></div>
         <div class="ficha-campo"><span>Gênero <button type="button" class="btn-info-campo" onclick="toggleInfoCampo(this)" aria-label="Por que perguntamos isso">i</button></span><strong id="fp-genero"></strong>
             <div class="info-campo-texto">Perguntamos isso só pra saber como tratar a pessoa certinho.</div>
@@ -37,7 +37,7 @@
             </select>
         </div>
         <div class="ficha-campo"><span>Como se identifica</span><strong id="fp-genero-personalizado"></strong><input id="fp-genero-personalizado-edit" class="fc-input" type="text" placeholder="Só se escolheu 'Prefiro me identificar como...' acima"></div>
-        <div class="ficha-campo"><span>Nacionalidade</span><strong id="fp-nacionalidade"></strong>
+        <div class="ficha-campo"><span>Nacionalidade <span class="obrigatorio">*</span></span><strong id="fp-nacionalidade"></strong>
             <select id="fp-nacionalidade-edit" class="fc-input">
                 <option value="">Selecione</option>
                 <option value="Brasileira">Brasileira</option>
@@ -102,27 +102,27 @@
                 <option value="Neozelandesa">Neozelandesa</option>
             </select>
         </div>
-        <div class="ficha-campo"><span>CPF</span><strong id="fp-cpf"></strong><input id="fp-cpf-edit" class="fc-input" type="text" maxlength="14" oninput="fpMascaraCPF(this)"></div>
+        <div class="ficha-campo"><span>CPF <span class="obrigatorio" id="fp-cpf-asterisco">*</span></span><strong id="fp-cpf"></strong><input id="fp-cpf-edit" class="fc-input" type="text" maxlength="14" oninput="fpMascaraCPF(this)"></div>
         <div class="ficha-campo" id="fp-bloco-documento" style="display:none">
             <span>Documento</span><strong id="fp-documento"></strong>
             <input id="fp-tipo-documento-edit" class="fc-input" type="text" placeholder="Tipo de documento">
             <input id="fp-numero-documento-edit" class="fc-input" type="text" placeholder="Número" style="margin-top:4px;">
         </div>
-        <div class="ficha-campo"><span>Data de nascimento</span><strong id="fp-nascimento"></strong><input id="fp-nascimento-edit" class="fc-input" type="text" inputmode="numeric" placeholder="DD/MM/AAAA" maxlength="10" oninput="fpMascaraData(this)"></div>
-        <div class="ficha-campo"><span>Celular</span><strong id="fp-celular"></strong><input id="fp-celular-edit" class="fc-input" type="tel" maxlength="15" oninput="fpMascaraCelular(this)"></div>
-        <div class="ficha-campo"><span>E-mail</span><strong id="fp-email"></strong><input id="fp-email-edit" class="fc-input" type="email"></div>
+        <div class="ficha-campo"><span>Data de nascimento <span class="obrigatorio">*</span></span><strong id="fp-nascimento"></strong><input id="fp-nascimento-edit" class="fc-input" type="text" inputmode="numeric" placeholder="DD/MM/AAAA" maxlength="10" oninput="fpMascaraData(this)"></div>
+        <div class="ficha-campo"><span>Celular <span class="obrigatorio">*</span></span><strong id="fp-celular"></strong><input id="fp-celular-edit" class="fc-input" type="tel" maxlength="15" oninput="fpMascaraCelular(this)"></div>
+        <div class="ficha-campo"><span>E-mail <span class="obrigatorio">*</span></span><strong id="fp-email"></strong><input id="fp-email-edit" class="fc-input" type="email"></div>
         <div class="ficha-campo"><span>Membro desde</span><strong id="fp-membro-desde"></strong><input id="fp-membro-desde-edit" class="fc-input" type="text" placeholder="Ex: 2020"></div>
         <div class="ficha-campo" id="fp-campo-cadastro"><span>Cadastro</span><strong id="fp-cadastro"></strong></div>
-        <div class="ficha-campo" id="fp-bloco-responsavel-nome" style="display:none"><span>Nome do responsável</span><strong id="fp-responsavel-nome"></strong><input id="fp-responsavel-nome-edit" class="fc-input" type="text" onblur="fpAplicarCapitalizacao(this)"></div>
-        <div class="ficha-campo" id="fp-bloco-responsavel-cpf" style="display:none"><span>CPF do responsável</span><strong id="fp-responsavel-cpf"></strong><input id="fp-responsavel-cpf-edit" class="fc-input" type="text" maxlength="14" oninput="fpMascaraCPF(this)"></div>
-        <div class="ficha-campo" id="fp-bloco-responsavel-celular" style="display:none"><span>Celular do responsável</span><strong id="fp-responsavel-celular"></strong><input id="fp-responsavel-celular-edit" class="fc-input" type="text" maxlength="15" oninput="fpMascaraCelular(this)"></div>
+        <div class="ficha-campo" id="fp-bloco-responsavel-nome" style="display:none"><span>Nome do responsável <span class="obrigatorio" id="fp-responsavel-asterisco-1">*</span></span><strong id="fp-responsavel-nome"></strong><input id="fp-responsavel-nome-edit" class="fc-input" type="text" onblur="fpAplicarCapitalizacao(this)"></div>
+        <div class="ficha-campo" id="fp-bloco-responsavel-cpf" style="display:none"><span>CPF do responsável <span class="obrigatorio" id="fp-responsavel-asterisco-2">*</span></span><strong id="fp-responsavel-cpf"></strong><input id="fp-responsavel-cpf-edit" class="fc-input" type="text" maxlength="14" oninput="fpMascaraCPF(this)"></div>
+        <div class="ficha-campo" id="fp-bloco-responsavel-celular" style="display:none"><span>Celular do responsável <span class="obrigatorio" id="fp-responsavel-asterisco-3">*</span></span><strong id="fp-responsavel-celular"></strong><input id="fp-responsavel-celular-edit" class="fc-input" type="text" maxlength="15" oninput="fpMascaraCelular(this)"></div>
     </div>
 </div>
 
 <div class="ficha-secao" id="fp-secao-instrumento">
     <div class="ficha-secao-titulo">Instrumento</div>
     <div class="ficha-grid">
-        <div class="ficha-campo"><span>Instrumento</span><strong id="fp-instrumento"></strong>
+        <div class="ficha-campo"><span>Instrumento <span class="obrigatorio">*</span></span><strong id="fp-instrumento"></strong>
             <select id="fp-instrumento-edit" class="fc-input">
                 <option value="">Selecione</option>
             </select>
@@ -150,13 +150,13 @@
 <div class="ficha-secao" id="fp-secao-endereco">
     <div class="ficha-secao-titulo">Endereço</div>
     <div class="ficha-grid">
-        <div class="ficha-campo full"><span>Rua / Logradouro</span><strong id="fp-endereco"></strong><input id="fp-endereco-edit" class="fc-input" type="text" onblur="fpAplicarCapitalizacao(this)"></div>
-        <div class="ficha-campo"><span>Número</span><strong id="fp-numero"></strong><input id="fp-numero-edit" class="fc-input" type="text"></div>
+        <div class="ficha-campo full"><span>Rua / Logradouro <span class="obrigatorio">*</span></span><strong id="fp-endereco"></strong><input id="fp-endereco-edit" class="fc-input" type="text" onblur="fpAplicarCapitalizacao(this)"></div>
+        <div class="ficha-campo"><span>Número <span class="obrigatorio">*</span></span><strong id="fp-numero"></strong><input id="fp-numero-edit" class="fc-input" type="text"></div>
         <div class="ficha-campo"><span>Complemento</span><strong id="fp-complemento"></strong><input id="fp-complemento-edit" class="fc-input" type="text" onblur="fpAplicarCapitalizacao(this)"></div>
         <div class="ficha-campo"><span>Bairro</span><strong id="fp-bairro"></strong><input id="fp-bairro-edit" class="fc-input" type="text" onblur="fpAplicarCapitalizacao(this)"></div>
-        <div class="ficha-campo"><span>Cidade</span><strong id="fp-cidade"></strong><input id="fp-cidade-edit" class="fc-input" type="text" onblur="fpAplicarCapitalizacao(this)"></div>
-        <div class="ficha-campo"><span>Estado</span><strong id="fp-estado"></strong><input id="fp-estado-edit" class="fc-input" type="text"></div>
-        <div class="ficha-campo"><span>País</span><strong id="fp-pais"></strong><input id="fp-pais-edit" class="fc-input" type="text"></div>
+        <div class="ficha-campo"><span>Cidade <span class="obrigatorio">*</span></span><strong id="fp-cidade"></strong><input id="fp-cidade-edit" class="fc-input" type="text" onblur="fpAplicarCapitalizacao(this)"></div>
+        <div class="ficha-campo"><span>Estado <span class="obrigatorio">*</span></span><strong id="fp-estado"></strong><input id="fp-estado-edit" class="fc-input" type="text"></div>
+        <div class="ficha-campo"><span>País <span class="obrigatorio">*</span></span><strong id="fp-pais"></strong><input id="fp-pais-edit" class="fc-input" type="text"></div>
     </div>
 </div>
 
@@ -186,8 +186,8 @@
 <div class="ficha-secao" id="fp-secao-emergencia">
     <div class="ficha-secao-titulo">Contato de emergência</div>
     <div class="ficha-grid">
-        <div class="ficha-campo"><span>Nome</span><strong id="fp-emergencia-nome"></strong><input id="fp-emergencia-nome-edit" class="fc-input" type="text" onblur="fpAplicarCapitalizacao(this)"></div>
-        <div class="ficha-campo"><span>Parentesco</span><strong id="fp-emergencia-parentesco"></strong>
+        <div class="ficha-campo"><span>Nome <span class="obrigatorio">*</span></span><strong id="fp-emergencia-nome"></strong><input id="fp-emergencia-nome-edit" class="fc-input" type="text" onblur="fpAplicarCapitalizacao(this)"></div>
+        <div class="ficha-campo"><span>Parentesco <span class="obrigatorio">*</span></span><strong id="fp-emergencia-parentesco"></strong>
             <select id="fp-emergencia-parentesco-edit" class="fc-input">
                 <option value="">Selecione</option>
                 <option value="Pai">Pai</option>
@@ -203,7 +203,7 @@
                 <option value="Outro">Outro</option>
             </select>
         </div>
-        <div class="ficha-campo full"><span>Celular</span><strong id="fp-emergencia-celular"></strong><input id="fp-emergencia-celular-edit" class="fc-input" type="text" maxlength="15" oninput="fpMascaraCelular(this)"></div>
+        <div class="ficha-campo full"><span>Celular <span class="obrigatorio">*</span></span><strong id="fp-emergencia-celular"></strong><input id="fp-emergencia-celular-edit" class="fc-input" type="text" maxlength="15" oninput="fpMascaraCelular(this)"></div>
     </div>
 </div>
 
