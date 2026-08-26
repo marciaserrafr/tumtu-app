@@ -4624,7 +4624,7 @@
             if (itens.length === 0) return '';
             return `<div class="secao-titulo">${LABEL_GRUPO_EXTRA[grupo]}</div>` + itens.map(e => `
                 <div class="item-card">
-                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div></div>
+                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div>${e.observacoes ? `<div class="item-detalhe">${esc(e.observacoes)}</div>` : ''}</div>
                     ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarExtra(${e.id})">Editar</button></div>` : ''}
                 </div>`).join('');
         }).join('');
@@ -4649,7 +4649,7 @@
     }
 
     function abrirNovoExtra() {
-        extraEditando = { id: null, nome: '', grupo: 'ritmista', medidas: {} };
+        extraEditando = { id: null, nome: '', grupo: 'ritmista', observacoes: '', medidas: {} };
         carregarMedidaTiposParaExtra().then(renderizarEditorExtra);
     }
     async function abrirEditarExtra(id) {
@@ -4660,7 +4660,7 @@
         const valores = res.ok ? await res.json() : [];
         const medidas = {};
         valores.forEach(v => { medidas[v.tipo_id] = v.valor; });
-        extraEditando = { id: e.id, nome: e.nome, grupo: e.grupo, medidas };
+        extraEditando = { id: e.id, nome: e.nome, grupo: e.grupo, observacoes: e.observacoes || '', medidas };
         renderizarEditorExtra();
     }
     function renderizarEditorExtra() {
@@ -4682,6 +4682,7 @@
                         <option value="">Selecione</option>
                         ${t.tamanhos.map(nome => `<option value="${esc(nome)}" ${ee.medidas[t.tipoId] === nome ? 'selected' : ''}>${esc(nome)}</option>`).join('')}
                     </select></div>`).join('')}
+                <div class="campo campo-full"><label>Observações</label><textarea id="extra-edit-observacoes" rows="3" placeholder="Ex: convidado do Lolo. Vai precisar da camisa da final e da camisa da rainha, vai participar do ensaio técnico.">${esc(ee.observacoes)}</textarea></div>
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -4700,15 +4701,16 @@
         const nome = document.getElementById('extra-edit-nome').value.trim();
         if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
         const grupo = document.getElementById('extra-edit-grupo').value;
+        const observacoes = document.getElementById('extra-edit-observacoes').value.trim() || null;
         const bateriaId = bateriaIdContexto();
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         salvandoExtra = true;
         try {
             let extraId = extraEditando.id;
             if (extraId) {
-                await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${extraId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${extraId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo, observacoes }) });
             } else {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/extras`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, grupo, criado_por: u ? u.pessoa_id : null }) });
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/extras`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, grupo, observacoes, criado_por: u ? u.pessoa_id : null }) });
                 const dados = await res.json();
                 extraId = dados[0].id;
             }
