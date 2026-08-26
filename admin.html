@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=18">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=30"></script>
+    <script src="ficha-perfil.js?v=31"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -1566,6 +1566,19 @@
             <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista edite as medidas</label>
         </div>
         <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o ritmista consegue preencher — nunca editar depois de salvo — qualquer campo de Medida que estiver em branco na própria ficha. Útil quando surge uma Categoria de Figurino nova no meio da temporada (ex: um vestido) e as pessoas precisam preencher esse campo sozinhas. Vale pra bateria inteira.</div>
+
+        <!-- Repique de Bossa (26/ago/2026): campo delicado, dois
+             interruptores separados (ver / marcar), independentes um do
+             outro -- pedido explícito dela, nascem os dois desligados. -->
+        <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+            <input type="checkbox" id="pe-ritmista-ve-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('ver', this.checked)">
+            <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja o próprio Repique de Bossa</label>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <input type="checkbox" id="pe-ritmista-marca-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('marcar', this.checked)">
+            <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista marque o próprio Repique de Bossa</label>
+        </div>
+        <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Campo sensível, tratado à parte de Instrumento/Medidas: os dois interruptores acima controlam só a própria ficha do ritmista (Meu Perfil), e são independentes. Pra Mestre/Diretor/Apoio verem ou marcarem o Repique de Bossa de um ritmista, a permissão é dada pessoa por pessoa, abaixo — ninguém tem acesso até ser liberado, mesmo quem já edita Ritmistas normalmente.</div>
     </div>
 
     <div id="pe-editor" style="display:none;"></div>
@@ -5710,7 +5723,7 @@
         { grupo: 'Dados da Escola', itens: [{ chave: 'ver_dados_escola', label: 'Ver' }, { chave: 'editar_dados_escola', label: 'Editar' }] },
         { grupo: 'Dados da Bateria', itens: [{ chave: 'ver_dados_bateria', label: 'Ver' }, { chave: 'editar_dados_bateria', label: 'Editar' }] },
         { grupo: 'Comercial', itens: [{ chave: 'ver_comercial', label: 'Ver' }, { chave: 'editar_comercial', label: 'Editar' }] },
-        { grupo: 'Ritmistas', itens: [{ chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' }, { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar' }, { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas' }] },
+        { grupo: 'Ritmistas', itens: [{ chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' }, { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar' }, { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas' }, { chave: 'ver_repique_bossa', label: 'Ver Repique de Bossa' }, { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa' }] },
         { grupo: 'Diretoria', itens: [{ chave: 'ver_acessos', label: 'Ver Mestres e Diretores de Bateria' }, { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar' }] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Ver entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos' }] },
         { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Ver' }, { chave: 'editar_extras', label: 'Cadastrar e editar' }] },
@@ -5752,11 +5765,23 @@
         if (!container) return;
         const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
         const chkRitmista = document.getElementById('pe-ritmista-edita-medidas');
+        const podeEditarPermissoes = tenhoCapacidade('editar_permissoes');
         if (chkRitmista) {
             chkRitmista.checked = !!(bateriaAtualData && bateriaAtualData.ritmista_pode_editar_medidas);
-            const podeEditarPermissoes = tenhoCapacidade('editar_permissoes');
             chkRitmista.disabled = !podeEditarPermissoes;
             chkRitmista.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
+        }
+        const chkRepiqueVer = document.getElementById('pe-ritmista-ve-repique-bossa');
+        if (chkRepiqueVer) {
+            chkRepiqueVer.checked = !!(bateriaAtualData && bateriaAtualData.ritmista_pode_ver_repique_bossa);
+            chkRepiqueVer.disabled = !podeEditarPermissoes;
+            chkRepiqueVer.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
+        }
+        const chkRepiqueMarcar = document.getElementById('pe-ritmista-marca-repique-bossa');
+        if (chkRepiqueMarcar) {
+            chkRepiqueMarcar.checked = !!(bateriaAtualData && bateriaAtualData.ritmista_pode_marcar_repique_bossa);
+            chkRepiqueMarcar.disabled = !podeEditarPermissoes;
+            chkRepiqueMarcar.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
         }
         if (!bateriaId) { permissoesPessoaCache = []; container.innerHTML = '<div class="estado-vazio">Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual`, { headers: authHeaders });
@@ -5773,6 +5798,23 @@
             const idx = bateriasCache.findIndex(x => x.id === id);
             if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
             mostrarToast(ligado ? 'Ritmistas podem preencher medidas em branco.' : 'Edição de medidas pelo ritmista desligada.');
+        } else {
+            mostrarToast('Erro ao atualizar.', 'erro');
+        }
+    }
+    async function salvarRitmistaRepiqueBossa(acao, ligado) {
+        const id = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!id) return;
+        const coluna = acao === 'ver' ? 'ritmista_pode_ver_repique_bossa' : 'ritmista_pode_marcar_repique_bossa';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ [coluna]: ligado }) });
+        if (res.ok) {
+            const dados = await res.json();
+            bateriaAtualData = dados[0];
+            const idx = bateriasCache.findIndex(x => x.id === id);
+            if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
+            mostrarToast(ligado
+                ? (acao === 'ver' ? 'Ritmistas podem ver o próprio Repique de Bossa.' : 'Ritmistas podem marcar o próprio Repique de Bossa.')
+                : (acao === 'ver' ? 'Ritmistas não veem mais o próprio Repique de Bossa.' : 'Ritmistas não marcam mais o próprio Repique de Bossa.'));
         } else {
             mostrarToast('Erro ao atualizar.', 'erro');
         }
