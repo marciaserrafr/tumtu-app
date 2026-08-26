@@ -1877,7 +1877,13 @@
          vazio e não achei legal". Ordem também mudou a pedido dela:
          Aniversariantes primeiro. -->
     <div class="vg-card">
-        <div class="vg-secao-titulo">🎂 Aniversariantes do mês</div>
+        <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgAniversariantesAberto()">
+            <span>🎂 Aniversariantes do mês</span>
+            <span class="vg-secao-resumo">
+                <div id="vg-aniversariantes-total"></div>
+                <span class="vg-secao-seta aberta" id="vg-aniversariantes-seta">›</span>
+            </span>
+        </div>
         <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
@@ -3068,6 +3074,9 @@
             return dA - dB;
         });
 
+        const totalAnivEl = document.getElementById('vg-aniversariantes-total');
+        if (totalAnivEl) totalAnivEl.innerHTML = `<div class="total-duplo total-duplo--mini"><div class="total-duplo-item"><div class="total-duplo-numero total">${aniv.length}</div><div class="total-duplo-rotulo">Total</div></div></div>`;
+
         const div = document.getElementById('vg-aniversariantes');
         if (aniv.length === 0) {
             div.innerHTML = '<div style="color:#bbb;font-size:13px;padding:8px 0;">Nenhum aniversariante este mês.</div>';
@@ -3128,6 +3137,20 @@
             <div class="total-duplo-item"><div class="total-duplo-numero total">${total}</div><div class="total-duplo-rotulo">Total</div></div>
             <div class="total-duplo-item"><div class="total-duplo-numero faltam">${faltam}</div><div class="total-duplo-rotulo">Faltam</div></div>
         </div>`;
+    }
+
+    // Card nasce sempre ABERTO (25/ago/2026, pedido dela) -- ao contrário
+    // dos outros acordeões da Visão Geral, esse é o único que ela quer
+    // já visível ao entrar na tela; a pessoa pode fechar pra ver o resto
+    // da tela com mais facilidade, mas ele nunca lembra esse fechamento --
+    // toda vez que a tela é recarregada, volta a nascer aberto.
+    let vgAniversariantesAberto = true;
+    function toggleVgAniversariantesAberto() {
+        vgAniversariantesAberto = !vgAniversariantesAberto;
+        const div = document.getElementById('vg-aniversariantes');
+        const seta = document.getElementById('vg-aniversariantes-seta');
+        if (div) div.style.display = vgAniversariantesAberto ? 'block' : 'none';
+        if (seta) seta.classList.toggle('aberta', vgAniversariantesAberto);
     }
 
     // Card fechado por padrão (25/ago/2026, pedido dela) -- só o total geral
