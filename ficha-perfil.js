@@ -118,7 +118,11 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
     }
 
     if ((atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') && alvoPerfil === 'ritmista') {
-        return new Set(['bateria_instrumento_id', 'repique_bossa', 'medidas']);
+        // Repique de Bossa saiu daqui em 26/ago/2026 -- campo delicado,
+        // ganhou capacidade própria (editar_repique_bossa), conferida à
+        // parte em fpAplicarPermissaoRepiqueBossa (nem quem já edita
+        // Ritmistas normalmente tem acesso por padrão).
+        return new Set(['bateria_instrumento_id', 'medidas']);
     }
 
     return new Set();
@@ -344,15 +348,13 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     // depois do resto da tela já estar pronta.
     fpAplicarPermissaoRitmistaMedidas(alvo);
 
-    // Repique de Bossa só existe pra Ritmista de Repique/Repique Mor -- some
-    // a linha inteira pro resto (mesmo critério já usado em Documento/
-    // Responsável/"Como se identifica" acima).
+    // Repique de Bossa (26/ago/2026): campo delicado, começa sempre
+    // escondido -- só aparece depois de fpAplicarPermissaoRepiqueBossa
+    // confirmar que quem está olhando tem permissão de ver (nunca mostra o
+    // valor real na tela antes de confirmar).
     const blocoRepiqueBossa = fpEl('fp-bloco-repique-bossa');
-    if (blocoRepiqueBossa) {
-        const ehRepiqueVariante = alvo.instrumento_nome === 'Repique' || alvo.instrumento_nome === 'Repique Mor';
-        blocoRepiqueBossa.style.display = (alvo.perfil === 'ritmista' && ehRepiqueVariante) ? '' : 'none';
-        fpEl('fp-repique-bossa').textContent = alvo.repique_bossa ? 'Sim' : 'Não';
-    }
+    if (blocoRepiqueBossa) blocoRepiqueBossa.style.display = 'none';
+    fpAplicarPermissaoRepiqueBossa(alvo);
 
     // Naipe só existe pra Diretor -- mesmo critério de esconder a seção
     // inteira pra quem não se aplica.
@@ -553,6 +555,49 @@ async function fpAplicarPermissaoRitmistaMedidas(alvo) {
     fpEstado.editaveis.add('medidas');
     fpEstado.medidasRestritoAoVazio = true;
     if (fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
+}
+
+// Repique de Bossa (26/ago/2026) -- campo delicado, pedido dela: "impacta
+// muito na vaidade das pessoas". Fica escondido por padrão (ver fpIniciar)
+// e só é revelado aqui, depois de confirmar permissão -- nunca antes.
+// Autoedição depende de dois interruptores independentes da bateria
+// (Permissões → Ritmistas: "ver" e "marcar" o próprio Repique de Bossa);
+// Diretoria (Mestre/Diretor/Apoio) depende das capacidades por pessoa
+// ver_repique_bossa/editar_repique_bossa -- ninguém tem acesso até a
+// Márcia liberar, nem quem já edita Ritmistas normalmente (editar_ritmistas
+// não dá esse acesso mais).
+async function fpAplicarPermissaoRepiqueBossa(alvo) {
+    const bloco = fpEl('fp-bloco-repique-bossa');
+    if (!bloco) return;
+    const ehRepiqueVariante = alvo.instrumento_nome === 'Repique' || alvo.instrumento_nome === 'Repique Mor';
+    if (alvo.perfil !== 'ritmista' || !ehRepiqueVariante || !alvo.bateria_id) return;
+
+    let podeVer = false;
+    let podeMarcar = false;
+
+    if (fpEstado.autoedicao) {
+        const authHeaders = await fpAuthHeaders();
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${alvo.bateria_id}&select=ritmista_pode_ver_repique_bossa,ritmista_pode_marcar_repique_bossa`, { headers: authHeaders });
+        const rows = res.ok ? await res.json() : [];
+        podeVer = !!(rows[0] && rows[0].ritmista_pode_ver_repique_bossa);
+        podeMarcar = !!(rows[0] && rows[0].ritmista_pode_marcar_repique_bossa);
+    } else {
+        podeVer = typeof tenhoCapacidade === 'function' && tenhoCapacidade('ver_repique_bossa');
+        podeMarcar = typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_repique_bossa');
+    }
+    podeVer = podeVer || podeMarcar; // quem pode marcar precisa ver o valor atual pra marcar
+
+    if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
+    if (!podeVer) return;
+
+    bloco.style.display = '';
+    fpEl('fp-repique-bossa').textContent = alvo.repique_bossa ? 'Sim' : 'Não';
+    if (podeMarcar) {
+        fpEstado.editaveis.add('repique_bossa');
+        if (fpEstado.autoedicao && fpEl('fp-btn-salvar').style.display !== 'inline-flex') {
+            fpEl('fp-btn-editar').style.display = 'inline-flex';
+        }
+    }
 }
 
 async function fpAtivarEdicao() {
