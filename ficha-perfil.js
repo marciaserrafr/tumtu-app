@@ -146,7 +146,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=25');
+        const res = await fetch('ficha-perfil.partial.html?v=26');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -316,8 +316,14 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     if (alvo.tipo_documento && alvo.numero_documento) {
         fpEl('fp-bloco-documento').style.display = '';
         fpEl('fp-documento').textContent = `${alvo.tipo_documento}: ${alvo.numero_documento}`;
+        // CPF deixa de ser obrigatório pra quem já usa Documento (Passaporte/
+        // RNE) no lugar -- mesma regra de fpSalvar/cadastro.html.
+        const asteriscoCpf = fpEl('fp-cpf-asterisco');
+        if (asteriscoCpf) asteriscoCpf.style.display = 'none';
     } else {
         fpEl('fp-bloco-documento').style.display = 'none';
+        const asteriscoCpf = fpEl('fp-cpf-asterisco');
+        if (asteriscoCpf) asteriscoCpf.style.display = '';
     }
 
     // Responsável (nome/CPF/celular) aparece pra quem É menor de idade
@@ -331,10 +337,18 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     // Admin (único perfil que pode editar esses campos) conseguia
     // preencher.
     const temResponsavel = !!(alvo.responsavel_nome || alvo.responsavel_cpf || alvo.responsavel_celular);
-    const mostrarResponsavel = temResponsavel || fpEhMenorIdade(alvo.nascimento);
+    const ehMenorHoje = fpEhMenorIdade(alvo.nascimento);
+    const mostrarResponsavel = temResponsavel || ehMenorHoje;
     fpEl('fp-bloco-responsavel-nome').style.display = mostrarResponsavel ? '' : 'none';
     fpEl('fp-bloco-responsavel-cpf').style.display = mostrarResponsavel ? '' : 'none';
     fpEl('fp-bloco-responsavel-celular').style.display = mostrarResponsavel ? '' : 'none';
+    // Asterisco só quando É menor de idade hoje (obrigatório de verdade) --
+    // seção pode aparecer mesmo sem ser menor (dado histórico preservado,
+    // ver comentário acima), mas nesse caso não é obrigatório preencher.
+    ['fp-responsavel-asterisco-1', 'fp-responsavel-asterisco-2', 'fp-responsavel-asterisco-3'].forEach(id => {
+        const el = fpEl(id);
+        if (el) el.style.display = ehMenorHoje ? '' : 'none';
+    });
 
     const campoCadastro = fpEl('fp-campo-cadastro');
     if (campoCadastro) {
