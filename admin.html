@@ -1668,7 +1668,7 @@
                 <label class="multi-select-option"><input type="checkbox" value="aprovado" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
                 <label class="multi-select-option"><input type="checkbox" value="desligado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
                 <label class="multi-select-option"><input type="checkbox" value="menor" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1a5fa8;margin:0 4px;"></span>Menores</label>
-                <label class="multi-select-option"><input type="checkbox" value="repique_bossa" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6d28d9;margin:0 4px;"></span>Repique de Bossa</label>
+                <label class="multi-select-option" id="filtro-repique-bossa-label"><input type="checkbox" value="repique_bossa" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6d28d9;margin:0 4px;"></span>Repique de Bossa</label>
                 <label class="multi-select-option"><input type="checkbox" value="pendente" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
                 <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
                 <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
@@ -2507,7 +2507,7 @@
                     </div>
                     <div class="card-linha2">
                         <span class="pill-instrumento">🥁 ${r.instrumento_nome || '—'}</span>
-                        ${r.repique_bossa ? `<span class="badge badge-repique-bossa">Repique de Bossa</span>` : ''}
+                        ${r.repique_bossa && (souSuperAdmin || tenhoCapacidade('ver_repique_bossa')) ? `<span class="badge badge-repique-bossa">Repique de Bossa</span>` : ''}
                         ${menor ? `<span class="badge badge-menor">Menor · ${idade}a</span>` : ''}
                     </div>
                 </div>
@@ -3741,6 +3741,7 @@
         await carregarMinhasCapacidades(usuario.bateria_id);
         aplicarGatingAbas();
         aplicarGatingBotoesExportar();
+        aplicarGatingRepiqueBossa();
 
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'flex';
@@ -4846,6 +4847,17 @@
         const bd = document.getElementById('btnExportarDiretoria');
         if (br) br.style.display = podeExportar ? '' : 'none';
         if (bd) bd.style.display = podeExportar ? '' : 'none';
+    }
+
+    // Repique de Bossa (26/ago/2026): esconde a opção de filtro "Repique de
+    // Bossa" (lista de Ritmistas) de quem não tem a capacidade ver_repique_bossa
+    // -- achado no caminho da própria feature: o selo já estava travado (ver
+    // gating dentro de renderizarRitmistas), mas essa opção de filtro e a
+    // carteirinha continuavam mostrando o dado sem checar nada.
+    function aplicarGatingRepiqueBossa() {
+        if (souSuperAdmin) return;
+        const label = document.getElementById('filtro-repique-bossa-label');
+        if (label) label.style.display = tenhoCapacidade('ver_repique_bossa') ? '' : 'none';
     }
 
     // Lista lançadora da aba "Administrativo" -- cada linha só aparece se a
@@ -6857,7 +6869,12 @@
     }
 
     function abrirCarteirinha(id) {
-        window.open(`carteirinha.html?id=${id}`, '_blank');
+        // Repique de Bossa (26/ago/2026): essa aba abre sozinha (window.open),
+        // sem acesso às capacidades já carregadas aqui -- manda a permissão
+        // já resolvida como parâmetro, em vez de a aba nova ter que refazer
+        // essa checagem sem contexto nenhum.
+        const podeVerRepiqueBossa = souSuperAdmin || tenhoCapacidade('ver_repique_bossa');
+        window.open(`carteirinha.html?id=${id}${podeVerRepiqueBossa ? '&verRepiqueBossa=1' : ''}`, '_blank');
     }
 
     // ── TROCAR ABA (atualizado) ───────────────────────────────────────────────
