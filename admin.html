@@ -1874,20 +1874,18 @@
         </div>
     </div>
 
-    <!-- Card "Menores" (26/ago/2026) -- contador de Ritmistas ativos que são
-         menores de idade hoje, mesmo padrão simples do card "Ritmistas
-         ativos" acima (sem capacidade própria -- quem vê Ritmistas vê este). -->
+    <!-- Menores (26/ago/2026) + Extras/Convidados (25/ago/2026) lado a lado,
+         metade da tela cada -- pedido dela, 26/ago/2026. Menores não tem
+         capacidade própria (quem vê Ritmistas vê este); Convidados continua
+         só aparecendo pra quem tem ver_extras -- por isso o show/hide agora
+         é no card individual (id="totalizadoresExtras"), não na linha
+         inteira, senão escondia os dois juntos. -->
     <div class="totalizadores">
         <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
             <div class="total-numero ativo" id="totalMenores">—</div>
             <div class="total-label">Menores ativos</div>
         </div>
-    </div>
-
-    <!-- Card "Extras" (25/ago/2026) -- mesmo padrão do card de Diretoria
-         acima: à parte, só aparece pra quem tem ver_extras. -->
-    <div class="totalizadores" id="totalizadoresExtras" style="display:none;">
-        <div class="total-card total-card--clicavel" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">
+        <div class="total-card total-card--clicavel" id="totalizadoresExtras" style="display:none;" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">
             <div class="total-numero ativo" id="totalExtras">—</div>
             <div class="total-label">Convidados</div>
         </div>
@@ -2297,14 +2295,16 @@
         card.style.display = 'flex';
     }
 
-    // Card "Extras" na Visão Geral (25/ago/2026) -- mesmo padrão do card de
-    // Diretoria acima, à parte, só pra quem tem ver_extras.
+    // Card "Extras" na Visão Geral (25/ago/2026) -- só pra quem tem
+    // ver_extras. Desde 26/ago/2026 divide a linha com "Menores ativos"
+    // (lado a lado), então o show/hide é no próprio .total-card, não numa
+    // linha .totalizadores inteira -- senão escondia os dois juntos.
     function atualizarTotalizadorExtras() {
         const card = document.getElementById('totalizadoresExtras');
         if (!card) return;
         if (!souSuperAdmin && !tenhoCapacidade('ver_extras')) { card.style.display = 'none'; return; }
         document.getElementById('totalExtras').textContent = (extrasCache || []).length;
-        card.style.display = 'flex';
+        card.style.display = '';
     }
 
     function bateriaIdContexto() {
