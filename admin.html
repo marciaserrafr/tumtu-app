@@ -1818,10 +1818,10 @@
 <div class="painel" id="painel-extras">
     <div id="extras-lista-tela">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <div class="painel-titulo">Extras</div>
-        <p class="config-sub-desc">Pessoas de fora que ganham Figurino mas não desfilam (amigos convidados pelo Mestre ou pela Diretoria). Cadastro só com nome, de qual lado vieram e o tamanho.</p>
+        <div class="painel-titulo">Convidados</div>
+        <p class="config-sub-desc">Pessoas que não compõem a bateria, mas podem ser convidadas para os eventos em que necessitam os figurinos adequados. Cada Convidado é associado ao grupo de Ritmistas ou de Diretoria, pra definir qual figurino ele vai receber.</p>
         <div id="extras-editor" style="display:none;"></div>
-        <button type="button" id="extras-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoExtra()">+ Novo Extra</button>
+        <button type="button" id="extras-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoExtra()">+ Novo Convidado</button>
         <div id="extras-lista" class="lista-cards"></div>
     </div>
 </div>
@@ -1866,7 +1866,7 @@
     <div class="totalizadores" id="totalizadoresExtras" style="display:none;">
         <div class="total-card total-card--clicavel" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">
             <div class="total-numero ativo" id="totalExtras">—</div>
-            <div class="total-label">Extras</div>
+            <div class="total-label">Convidados</div>
         </div>
     </div>
 
@@ -3339,7 +3339,7 @@
                 if (extrasAlvo.length > 0) {
                     const extrasEntreguesSet = extrasEntreguesPorItem[item.id] || new Set();
                     const entreguesExtras = extrasAlvo.filter(e => extrasEntreguesSet.has(e.id)).length;
-                    corpoHtml += linhaHtml('Extras', entreguesExtras, extrasAlvo.length);
+                    corpoHtml += linhaHtml('Convidados', entreguesExtras, extrasAlvo.length);
                     totalGeral += extrasAlvo.length; entreguesGeral += entreguesExtras;
                 }
             }
@@ -4167,7 +4167,7 @@
     // alguns públicos (checkboxes, não um valor só -- diferente do Figurino/
     // peça, que é sempre de um público único) e criar uma categoria nova só
     // pra Diretoria com a escala certa, mantendo a antiga só pra Ritmista.
-    const PERFIS_PUBLICO_MEDIDA = [['ritmista', 'Ritmista'], ['mestre', 'Mestre'], ['diretor', 'Diretor de Bateria'], ['apoio', 'Diretor'], ['extra', 'Extras']];
+    const PERFIS_PUBLICO_MEDIDA = [['ritmista', 'Ritmista'], ['mestre', 'Mestre'], ['diretor', 'Diretor de Bateria'], ['apoio', 'Diretor'], ['extra', 'Convidados']];
     function publicoMedidaTipo(tipoExistente) {
         if (!tipoExistente || !Array.isArray(tipoExistente.publico)) return ['ritmista', 'mestre', 'diretor', 'apoio', 'extra'];
         return tipoExistente.publico;
@@ -4496,7 +4496,7 @@
         const instrumentos = Array.from(new Set(figurinoEntregaPessoasCache.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
         select.innerHTML = '<option value="">Todos</option>'
             + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('')
-            + (temExtras ? `<option value="__extras__">Extras</option>` : '');
+            + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
         select.value = valorAtual;
     }
 
@@ -4523,7 +4523,7 @@
             <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
                 <div style="flex:1;min-width:0;">
                     <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
-                    <div style="font-size:12px;color:var(--cor-texto-muted);">${esc(p.instrumento_nome || LABEL_PERFIL_FIGURINO[p.perfil] || (p.tipo === 'extra' ? 'Extra' : ''))}</div>
+                    <div style="font-size:12px;color:var(--cor-texto-muted);">${esc(p.instrumento_nome || LABEL_PERFIL_FIGURINO[p.perfil] || (p.tipo === 'extra' ? 'Convidado' : ''))}</div>
                 </div>
                 <div class="figurino-tamanho-caixa">${esc(p.tamanho || '—')}</div>
                 <label style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;white-space:nowrap;width:78px;cursor:${podeEditar ? 'pointer' : 'not-allowed'};">
@@ -4543,7 +4543,7 @@
                 html += principais.map(linhaPessoaHtml).join('');
             }
             if (extrasList.length > 0) {
-                if (mostrarSecoes) html += `<div class="secao-titulo">Extras</div>`;
+                if (mostrarSecoes) html += `<div class="secao-titulo">Convidados</div>`;
                 html += extrasList.map(linhaPessoaHtml).join('');
             }
             container.innerHTML = html;
@@ -4617,14 +4617,14 @@
     function renderizarExtrasLista() {
         const container = document.getElementById('extras-lista');
         if (!container) return;
-        if (extrasCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🎽</div>Nenhum Extra cadastrado ainda.</div>'; return; }
+        if (extrasCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🎽</div>Nenhum Convidado cadastrado ainda.</div>'; return; }
         const podeEditar = tenhoCapacidade('editar_extras');
         container.innerHTML = ['ritmista', 'diretoria'].map(grupo => {
             const itens = extrasCache.filter(e => e.grupo === grupo);
             if (itens.length === 0) return '';
             return `<div class="secao-titulo">${LABEL_GRUPO_EXTRA[grupo]}</div>` + itens.map(e => `
                 <div class="item-card">
-                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div></div>
+                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div>${e.observacoes ? `<div class="item-detalhe">${esc(e.observacoes)}</div>` : ''}</div>
                     ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarExtra(${e.id})">Editar</button></div>` : ''}
                 </div>`).join('');
         }).join('');
@@ -4649,7 +4649,7 @@
     }
 
     function abrirNovoExtra() {
-        extraEditando = { id: null, nome: '', grupo: 'ritmista', medidas: {} };
+        extraEditando = { id: null, nome: '', grupo: 'ritmista', observacoes: '', medidas: {} };
         carregarMedidaTiposParaExtra().then(renderizarEditorExtra);
     }
     async function abrirEditarExtra(id) {
@@ -4660,7 +4660,7 @@
         const valores = res.ok ? await res.json() : [];
         const medidas = {};
         valores.forEach(v => { medidas[v.tipo_id] = v.valor; });
-        extraEditando = { id: e.id, nome: e.nome, grupo: e.grupo, medidas };
+        extraEditando = { id: e.id, nome: e.nome, grupo: e.grupo, observacoes: e.observacoes || '', medidas };
         renderizarEditorExtra();
     }
     function renderizarEditorExtra() {
@@ -4670,10 +4670,10 @@
         if (!ee) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
         editor.innerHTML = `<div class="card-form">
-            <div class="card-form-titulo">${ee.id ? 'Editar Extra' : 'Novo Extra'}</div>
+            <div class="card-form-titulo">${ee.id ? 'Editar Convidado' : 'Novo Convidado'}</div>
             <div class="form-grid">
                 <div class="campo campo-full"><label>Nome *</label><input type="text" id="extra-edit-nome" value="${esc(ee.nome)}" placeholder="Nome completo"></div>
-                <div class="campo campo-full"><label>De qual lado veio *</label><select id="extra-edit-grupo">
+                <div class="campo campo-full"><label>Tipo de Convidado *</label><select id="extra-edit-grupo">
                     <option value="ritmista" ${ee.grupo === 'ritmista' ? 'selected' : ''}>Ritmistas</option>
                     <option value="diretoria" ${ee.grupo === 'diretoria' ? 'selected' : ''}>Diretoria</option>
                 </select></div>
@@ -4682,6 +4682,7 @@
                         <option value="">Selecione</option>
                         ${t.tamanhos.map(nome => `<option value="${esc(nome)}" ${ee.medidas[t.tipoId] === nome ? 'selected' : ''}>${esc(nome)}</option>`).join('')}
                     </select></div>`).join('')}
+                <div class="campo campo-full"><label>Observações</label><textarea id="extra-edit-observacoes" rows="3" placeholder="Ex: convidado do Lolo. Vai precisar da camisa da final e da camisa da rainha, vai participar do ensaio técnico.">${esc(ee.observacoes)}</textarea></div>
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -4700,15 +4701,16 @@
         const nome = document.getElementById('extra-edit-nome').value.trim();
         if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
         const grupo = document.getElementById('extra-edit-grupo').value;
+        const observacoes = document.getElementById('extra-edit-observacoes').value.trim() || null;
         const bateriaId = bateriaIdContexto();
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         salvandoExtra = true;
         try {
             let extraId = extraEditando.id;
             if (extraId) {
-                await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${extraId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${extraId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo, observacoes }) });
             } else {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/extras`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, grupo, criado_por: u ? u.pessoa_id : null }) });
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/extras`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, grupo, observacoes, criado_por: u ? u.pessoa_id : null }) });
                 const dados = await res.json();
                 extraId = dados[0].id;
             }
@@ -4724,7 +4726,7 @@
                     await fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?extra_id=eq.${extraId}&tipo_id=eq.${t.tipoId}`, { method: 'DELETE', headers: authHeaders });
                 }
             }
-            mostrarToast(extraEditando.id ? 'Extra atualizado!' : 'Extra cadastrado!');
+            mostrarToast(extraEditando.id ? 'Convidado atualizado!' : 'Convidado cadastrado!');
             extraEditando = null;
             await carregarExtras();
             renderizarEditorExtra();
@@ -4734,10 +4736,10 @@
         finally { salvandoExtra = false; }
     }
     async function excluirExtra(id) {
-        if (!confirm('Excluir este Extra? Isso apaga também o tamanho e a entrega de figurino registrada pra ele.')) return;
+        if (!confirm('Excluir este Convidado? Isso apaga também o tamanho e a entrega de figurino registrada pra ele.')) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
-        mostrarToast('Extra excluído.');
+        mostrarToast('Convidado excluído.');
         extraEditando = null;
         await carregarExtras();
         renderizarEditorExtra();
@@ -4840,7 +4842,7 @@
         { aba: 'dados-bateria', label: 'Dados da Bateria' },
         { aba: 'configuracoes', label: 'Configurações' },
         { aba: 'figurino', label: 'Entrega de Figurino' },
-        { aba: 'extras', label: 'Extras' },
+        { aba: 'extras', label: 'Convidados' },
         { aba: 'comercial', label: 'Comercial' },
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
@@ -5711,7 +5713,7 @@
         { grupo: 'Ritmistas', itens: [{ chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' }, { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar' }, { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas' }] },
         { grupo: 'Diretoria', itens: [{ chave: 'ver_acessos', label: 'Ver Mestres e Diretores de Bateria' }, { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar' }] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Ver entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos' }] },
-        { grupo: 'Extras', itens: [{ chave: 'ver_extras', label: 'Ver' }, { chave: 'editar_extras', label: 'Cadastrar e editar' }] },
+        { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Ver' }, { chave: 'editar_extras', label: 'Cadastrar e editar' }] },
         { grupo: 'Relatórios', itens: [{ chave: 'ver_relatorios', label: 'Ver' }] },
         { grupo: 'Configurações', itens: [{ chave: 'ver_configuracoes', label: 'Ver' }, { chave: 'editar_configuracoes', label: 'Editar' }] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Ver' }] },
@@ -6223,7 +6225,7 @@
                 <div class="item-card">
                     <div class="item-info">
                         <div class="item-nome">${esc(f.nome)} ${f.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
-                        <div class="item-detalhe">Categoria: ${esc(categoria ? categoria.nome : '—')}${f.inclui_extras ? ' · Inclui Extras' : ''}</div>
+                        <div class="item-detalhe">Categoria: ${esc(categoria ? categoria.nome : '—')}${f.inclui_extras ? ' · Inclui Convidados' : ''}</div>
                     </div>
                     <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarFigurinoMestre(${f.id})">Editar</button></div>
                 </div>`;
@@ -6262,7 +6264,7 @@
                 <div class="campo campo-full">
                     <label class="config-instrumento-check">
                         <input type="checkbox" id="fig-mestre-edit-inclui-extras" ${fe.inclui_extras ? 'checked' : ''}>
-                        <span>Incluir Extras (soma junto os Extras do mesmo lado -- Ritmistas ou Diretoria -- na entrega desta peça)</span>
+                        <span>Incluir Convidados (soma junto os Convidados do mesmo lado -- Ritmistas ou Diretoria -- na entrega desta peça)</span>
                     </label>
                 </div>
             </div>
