@@ -1607,3 +1607,118 @@ Pedido dela: mesmo padrão de totalizador (pílula com número) já usado em "Ri
 ### 56.7 Backlog de medida: ver seção separada
 
 O acompanhamento da limpeza manual de medida perdida no autocadastro (bug de antes de 23/ago) tem entrada própria no `CLAUDE.md`, seção "Estado atual" — não duplicado aqui.
+
+## 57. Sessão de 26/ago/2026: Repique de Bossa controlado por permissões, campos obrigatórios (achado: nunca publicado), Convidados com Instrumento, card "Menores ativos", e caso de conta órfã no cadastro
+
+### 57.1 Repique de Bossa vira campo controlado por permissões — só dentro da ficha/Meu Perfil
+
+Pedido dela: "Registro de Bossa" (= Repique de Bossa) é campo delicado ("impacta muito na vaidade das pessoas"), então a linha editável dentro de Meu Perfil/ficha do Ritmista deixou de ser visível/editável por padrão pra Diretoria e passou a depender de permissão explícita, em duas frentes independentes:
+
+- **Ritmista (autoedição)**: dois novos interruptores por bateria em Permissões → Ritmistas — `baterias.ritmista_pode_ver_repique_bossa` e `baterias.ritmista_pode_marcar_repique_bossa` (`boolean NOT NULL DEFAULT false` os dois, nascem desligados).
+- **Diretoria (Mestre/Diretor/Apoio vendo/editando a ficha de um Ritmista)**: duas novas capacidades por pessoa, `ver_repique_bossa`/`editar_repique_bossa`, dentro do grupo "Ritmistas" já existente em Permissões — separadas de `editar_ritmistas` de propósito: ninguém tem acesso até ser liberado pessoa por pessoa, mesmo quem já edita Ritmistas normalmente.
+
+Trava real em dois níveis, não só visual: `aplicar_matriz_edicao_vinculos()` reverte a coluna `repique_bossa` no próprio banco quando falta a capacidade certa (movida de dentro do bloco de `editar_ritmistas` pra um `if` próprio, e adicionada reversão na autoedição condicionada a `ritmista_pode_marcar_repique_bossa`); em `ficha-perfil.js`, o bloco `fp-bloco-repique-bossa` nasce **sempre escondido** em `fpIniciar`, e só é revelado por `fpAplicarPermissaoRepiqueBossa` (nova função assíncrona, mesmo padrão fire-and-forget de `fpAplicarPermissaoRitmistaMedidas`) depois de confirmar a permissão — nunca põe o valor real no DOM antes de checar, em vez de só esconder um bloco já preenchido.
+
+**Correção de escopo, no meio da mesma sessão**: a primeira implementação também escondeu o selo "Repique de Bossa" no card da lista de Ritmistas, a opção de filtro por Repique de Bossa, e o nome mostrado na carteirinha (que trocava pra "Repique de Bossa" no lugar do instrumento) — checando as mesmas capacidades novas. Ela esclareceu que a sensibilidade era só sobre o **campo dentro da ficha/Meu Perfil**; esses 3 pontos sempre foram públicos (o selo funciona como o próprio nome do instrumento) e deviam continuar assim. Revertido de volta ao comportamento de sempre nesses 3 lugares (badge no card, checkbox de filtro em `admin.html`, `nomeInstrumentoExibido` em `carteirinha.html` nos dois modos — self e `?id=` via admin) — só a trava dentro da ficha permanece.
+
+Publicado em produção (merge direto a pedido dela, dado o caráter sensível/urgente do pedido).
+
+### 57.2 Campos obrigatórios com asterisco na ficha — achado real: a trava já existia mas nunca foi publicada
+
+Ela pediu pra marcar com asterisco (`*`) os campos obrigatórios em Meu Perfil/ficha, igual `cadastro.html`. Investigando, achado real: a **trava de Salvar** com campo obrigatório em branco (Nome, CPF, Nascimento, Celular, E-mail, Endereço, Número, Cidade, Estado, País, Emergência, Responsável, Instrumento) tinha sido construída e testada em 25/ago/2026 (commit `eb2aca9`, `FP_CAMPOS_OBRIGATORIOS` em `ficha-perfil.js`) — mas ficou numa branch de preview (`preview/campos-obrigatorios-na-ficha`) que nunca chegou a ser publicada. Ou seja: até esta sessão, essa trava simplesmente **não existia em produção** (só a de Medida, essa sim já estava no ar desde antes).
+
+Corrigido nesta sessão: mergeada essa branch esquecida pra `main` (único conflito real foi `CACHE_NAME` em `sw.js`, resolvido incrementando), e adicionado o asterisco visual (esse sim, novo — nunca tinha sido feito nem naquela branch antiga) em `ficha-perfil.partial.html`, nos mesmos 16 campos que `fpSalvar` já valida. Casos condicionais tratados com toggle de `display` em `fpIniciar`: `#fp-cpf-asterisco` some quando a pessoa já usa Documento (Passaporte/RNE); os 3 asteriscos de Responsável (`#fp-responsavel-asterisco-1/2/3`) só aparecem quando a pessoa É menor de idade **hoje** (não quando só existe dado histórico de antes de fazer 18 anos). Nova classe `.ficha-campo .obrigatorio` em `components.css`, mesma cor/estilo de `.auth-form-group .obrigatorio` (cadastro.html).
+
+**Lição pra lembrar**: sempre que uma branch de preview for aprovada e "pausada" por qualquer motivo, ela pode ficar esquecida — vale conferir de tempos em tempos se algo aprovado ainda não chegou à `main`.
+
+### 57.3 Convidados: placeholder revisado, campo Instrumento (Tipo "Ritmistas"), e "Menores ativos" ao lado de Convidados na Visão Geral
+
+Três ajustes pontuais em Convidados/Visão Geral:
+
+1. **Placeholder de Observações**: "Ex: convidado do Lolo..." → "Ex: convidado da bateria...", pedido dela.
+2. **Campo Instrumento**: quando o Tipo de Convidado é "Ritmistas", o editor (`renderizarEditorExtra`) passa a mostrar um campo Instrumento obrigatório, reaproveitando `fpCarregarOpcoesInstrumento` (já global via `ficha-perfil.js`, mesma lista de instrumentos ativos da bateria usada na ficha) — nova coluna `extras.bateria_instrumento_id` (`bigint REFERENCES bateria_instrumentos(id)`). Campo aparece/some ao trocar o Tipo (`onchangeGrupoExtra`, nova função — preserva Nome/Observações/Medidas já digitados antes de re-renderizar). Validado em `salvarExtra()`: obrigatório só quando `grupo === 'ritmista'`.
+3. **Card "Menores ativos" na Visão Geral**: novo totalizador (Ritmistas ativos que são menores de idade hoje, mesmo cálculo do badge "Menor" já usado na lista) — pedido dela pra ficar **ao lado** do card de Convidados, dividindo a mesma linha (`.totalizadores`) meio a meio, mesmo padrão do par "Ritmistas ativos/pendentes". Isso exigiu mover o show/hide condicional (`ver_extras`) de "esconder a linha inteira" pra "esconder só o card de Convidados" (`atualizarTotalizadorExtras` — antes escondia `#totalizadoresExtras` como linha, agora esconde o próprio `.total-card`), senão os dois desapareciam juntos quando a pessoa não tinha `ver_extras`.
+
+Publicado em produção (merges diretos, a pedido dela em cada um).
+
+### 57.4 Caso de suporte: Julio Cesar Santos Silva (conta saudável, senha esquecida) e Caio Costa (conta órfã de cadastro incompleto)
+
+Dois casos reais de "não consigo entrar/me cadastrar" investigados na mesma sessão, resultados bem diferentes:
+
+- **Julio Cesar Santos Silva** (CPF `089.553.297-25`, pessoa_id 200, bateria Swing da Leopoldina): tudo saudável no banco — vínculo aprovado, e-mail confirmado, sem suspensão, e ele já tinha conseguido logar uma vez no dia anterior. Conclusão: senha simplesmente errada/esquecida, não bug. Como Super Admin nunca vê/define senha de outra pessoa (regra ética do sistema), disparado manualmente o e-mail de "esqueci minha senha" pra ele via `POST /auth/v1/recover` (mesma chamada que o botão da tela de login faz) — confirmado no banco (`auth.users.recovery_sent_at` atualizado no mesmo instante). Ela pediu esclarecimento se "baixar o app" (instalar o PWA) teria relação com o problema — não tem: é o mesmo site, mesmo login, senha mora só no servidor, nunca no aparelho.
+
+- **Caio Costa** (`cayocosta2006@gmail.com`): reportou erro "Erro ao criar acesso: User already registered" tentando se cadastrar (print anexado, mensagem em inglês). CPF que ele citou (`205.006.527-24`) não existe em lugar nenhum (nem `pessoas`, nem a tabela congelada `ritmistas`) — não era colisão de CPF. Causa real, achada ao investigar o e-mail: `cadastro.html` faz o cadastro em **dois passos separados e não-atômicos** — primeiro `sb.auth.signUp()` (cria a conta de acesso), só depois um `POST` pra tabela `pessoas` (salva a ficha). Na primeira tentativa dele (25/ago), o passo 1 teve sucesso mas o passo 2 nunca aconteceu (provável queda de conexão/app fechado nesse meio do caminho) — sobrou uma linha em `auth.users` sem nenhuma linha correspondente em `pessoas`. Como ele nunca viu "Cadastro enviado com sucesso!", tentou de novo (comportamento normal de qualquer pessoa) — e caiu nesse erro, porque a conta de acesso "pela metade" já ocupava o e-mail. Resolvido apagando a linha órfã de `auth.users` (confirmado antes que não existia nenhuma `pessoas.auth_user_id` apontando pra ela) — ele pode recomeçar o cadastro do zero, dessa vez até o fim.
+
+**Pendência criada a partir daqui** (mitigação de verdade, não implementada ainda — ver `CLAUDE.md`, seção "Estado atual"): detectar esse tipo de conta órfã automaticamente na segunda tentativa de cadastro, em vez de precisar de intervenção manual do Super Admin cada vez. Desenho já combinado com ela, bloqueado nesta sessão por uma queda de conexão da ferramenta MCP do Supabase (confirmado, via `curl` direto na API REST com a chave pública, que o banco/site em si continuavam saudáveis — só a ferramenta de acesso administrativo é que caiu).
+
+## 58. Sessão de 26/ago/2026 (continuação): desenho da reforma de Permissões, redesign de Aniversariantes, e modelo "sem carteirinha" — nada implementado, tudo bloqueado pela queda do Supabase MCP
+
+Depois dos itens da seção 57, a sessão continuou só em modo de desenho/planejamento (a ferramenta de banco nunca voltou), cobrindo três frentes. **Nenhum código foi alterado nesta parte** — fica tudo registrado aqui pra não se perder, pra retomar quando o acesso ao banco voltar.
+
+### 58.1 Aniversariantes do mês — redesign combinado, não implementado
+
+Pedido dela: o 🎂 na frente de cada nome (lista "Aniversariantes do mês" da Visão Geral) estava poluído visualmente. Desenho fechado:
+
+1. O 🎂 de cada linha vira o **número do dia** (`dia.toString().padStart(2, '0')`, mesmo valor já calculado hoje pra linha de detalhe).
+2. Título ganha o nome do mês atual: "Aniversariantes do mês" → "Aniversariantes do mês · Agosto" (nome em português, ex: `Intl.DateTimeFormat('pt-BR', { month: 'long' })` ou array fixo de meses).
+3. Quem faz aniversário **hoje** (dia e mês do `nascimento` batendo com `new Date()`) ganha um texto **"🎉 Hoje!"** do lado — ela recusou explicitamente a ideia alternativa de trocar o número pelo bolo só nesse caso ("Não quero bolo no lugar do número, deixa o número. e quero a opção C do É Hoje!").
+
+Ponto ainda não confirmado com ela: a linha de detalhe abaixo do nome hoje mostra "Dia XX · idade anos · cargo" — com o número do dia migrando pra frente do nome, ficaria redundante repetir "Dia XX" ali. Recomendação (a confirmar na hora de implementar): tirar o "Dia XX" da linha de detalhe, deixando só "idade anos · cargo".
+
+Não precisa do banco — é só `admin.html` (`renderizarVisaoGeral`, por volta da linha 3116, e o HTML do título por volta da linha 1900).
+
+### 58.2 Reforma do modelo de Permissões — desenho completo, catálogo proposto, escopo de Diretor de Naipe ainda aberto
+
+**Gatilho**: ela relatou achar o menu Permissões cada dia mais confuso, "toda hora precisamos colocar algo novo na permissão" — mais um Diretor real trazendo um pedido novo e pesado (Diretor de Naipe só ver/agir no próprio naipe), que ela reconheceu como "muda até a forma de filtrar na frente" e pediu ajuda pra estruturar antes de desenhar.
+
+**Levantamento completo** (feito por um agente em fork, lendo `admin.html`, `ficha-perfil.js`, `ficha-perfil.partial.html`, `carteirinha.html`):
+
+- Confirmado que existem **3 mecanismos de controle de acesso hoje, misturados sem distinção visual nenhuma**:
+  1. Capacidade por pessoa (`vinculos.capacidades` jsonb, ~22 chaves no catálogo `GRUPOS_CAPACIDADES`, `admin.html` linha ~5773).
+  2. Interruptor por bateria (colunas soltas em `baterias`: `ritmista_pode_editar_medidas`, `ritmista_pode_ver_repique_bossa`, `ritmista_pode_marcar_repique_bossa`) — na prática já é um "padrão de grupo" (grupo = todo Ritmista da bateria), só que feito ad-hoc, fora do modelo de capacidades.
+  3. Regra fixa no código, sem toggle nenhum — `fpCamposEditaveis()` em `ficha-perfil.js` decide por **nome do cargo** (`atorPerfil`), não por capacidade: base de autoedição sempre editável; `medidas` liberado pra mestre/diretor/apoio; `naipe` liberado só pra `diretor`; editar a ficha de OUTRO Mestre/Diretor/Apoio retorna sempre `new Set()` (só Super Admin consegue, sem capacidade nenhuma pra abrir isso pra mais alguém).
+- **Bugs reais confirmados no caminho**:
+  - O botão Editar de Instrumento/Medidas na ficha de um Ritmista aparece pra **qualquer** Diretoria que abra a ficha (porque `fpCamposEditaveis` pro caso "Diretoria editando Ritmista" sempre retorna `['bateria_instrumento_id', 'medidas']`, sem checar `editar_ritmistas`) — a checagem de verdade só existe no gatilho do banco (`aplicar_matriz_edicao_vinculos`), então quem não tem a capacidade edita, clica Salvar, parece funcionar, e o banco reverte tudo em silêncio, sem nenhum aviso na tela.
+  - Suspender/Desligar/Reativar **dentro do modal da ficha** (tanto Ritmista quanto Diretoria) não checam capacidade nenhuma no botão — só o Ativar/Rejeitar do card principal da lista checa (`aprovar_ritmistas`/`aprovar_acessos`). A ação real continua bloqueada no banco, mas o botão aparece pra qualquer um.
+  - "Ver carteirinha ↗" (4 ocorrências no código) nunca checou capacidade em lugar nenhum, só `status === 'aprovado'`.
+  - "Naipe que lidera" (`fp-secao-naipe`) é visível pra qualquer pessoa com `ver_acessos` — não existe `ver_naipe`/`editar_naipe` em lugar nenhum (nem código, nem banco) — confirmado.
+  - CPF, endereço, contato de emergência, dados do responsável (menor) — sempre visíveis como texto pra qualquer um que abra a ficha; hoje é tudo-ou-nada junto com `ver_ritmistas`/`ver_acessos`, sem granularidade.
+  - `editar_configuracoes` existe no catálogo da tela mas nunca é checado em nenhuma parte do código — capacidade morta/decorativa.
+
+**Modelo aprovado pra resolver a raiz do problema**: cada permissão passa a ter um **padrão por grupo** — os 4 grupos que ela definiu, mapeando 1:1 com os `perfil` já existentes no banco (Ritmista=`ritmista`, Diretor=`apoio`, Diretor de Bateria=`diretor`, Mestre=`mestre`) — e, por cima, um **ajuste por pessoa específica** que vence o padrão do grupo quando existir. Regra de resolução: "se a pessoa tem marcação própria naquela permissão, vale a marcação própria; se não tem, vale o padrão do grupo dela." Na prática mecânica (a implementar), isso significa estender `tenho_capacidade()` pra checar primeiro um valor por pessoa (como hoje) e, se não existir marcação explícita ali, cair pro padrão de uma tabela nova de "padrão por grupo/bateria" — hoje essa tabela não existe.
+
+**Princípio-guia fixado por ela no meio da conversa, vale pra toda a reforma**: *"Ninguém entra em padrão nenhum, tudo tem que ser configurável. Sempre."* — os "padrões por grupo" (ex: Mestre sem restrição por padrão, Diretor de Naipe restrito por padrão) são só **valores iniciais sugeridos**, guardados como dado, nunca uma regra travada direto no código/JS/SQL. Consequência natural discutida com ela, mas **explicitamente não decidida ainda se entra nesta rodada da reforma** (ela pediu só pra eu avisar, não resolver): as regras hoje fixas por nome de cargo em `fpCamposEditaveis` (ex: só Diretor edita o próprio Naipe, só mestre/diretor/apoio editam Medidas, editar outro Diretoria só Super Admin) deveriam, pelo mesmo princípio, também virar dado configurável em vez de `if` no código.
+
+**Regra que fica INTOCÁVEL, fora desse princípio**: Super Admin sempre vê e faz tudo, em qualquer lugar (tela e banco), sem excecão — isso já é assim hoje (`souSuperAdmin` no front, `is_super_admin()` no banco, sempre checados primeiro e sempre vencem) e continua exatamente igual depois da reforma, não é uma "permissão" sujeita a nenhuma reorganização.
+
+**Proposta de catálogo novo** (rascunhada por um segundo agente em fork, a partir do levantamento acima — ainda não revisada/aprovada por ela linha a linha):
+
+| Área | Mudança proposta |
+|---|---|
+| Menu/aba | Praticamente sem mudança — as ~11 capacidades de aba/módulo continuam como estão |
+| Ficha | `ver_naipe`/`editar_naipe` (nova); `aprovar_ritmistas`/`rejeitar_ritmistas`/`suspender_ritmistas`/`desligar_ritmistas`/`reativar_ritmistas` (separadas, eram uma só); mesma separação em 5 pra Diretoria (`aprovar_acessos` etc.); `editar_instrumento_ritmista`/`editar_medidas_ritmista` (separadas, eram `editar_ritmistas`); `ver_dados_sensiveis_ritmistas`/`ver_dados_sensiveis_acessos` (novas); `editar_acessos` (nova — editar outro Mestre/Diretor/Apoio, recomendado **só por pessoa**, nunca por grupo inteiro, por ser muito poder); `ver_carteirinha_outros` (nova) |
+| Carteirinha | Nenhuma mudança — carteirinha sempre foi controlada por status+RLS, não por capacidade de tela, e isso continua fazendo sentido |
+| Outras | `exportar_ritmistas`/`exportar_diretoria` (separadas, eram `ver_relatorios`); `editar_instrumentos`/`editar_medidas`/`editar_vagas`/`editar_figurino_bateria`/`editar_toggles_ritmista` (separadas, eram `ver_configuracoes` inteira); `editar_configuracoes` removida (morta) |
+
+**Pedido separado, mais pesado, escopo de visão restrita ao próprio naipe — SEM DESENHO FECHADO ainda, próxima etapa depois desta reforma de catálogo**: um Diretor real pediu que um Diretor de Naipe só veja/aprove/rejeite/suspenda/desligue/reative/libere figurino do **próprio naipe**, perdendo a visão do resto — isso não é uma permissão de ver/editar simples, é um "raio de visão" que filtra qual CONJUNTO de pessoas cada ação se aplica, uma dimensão nova por cima do catálogo de capacidades. Regras já confirmadas com ela ao longo da conversa, importantes pra não perder ao desenhar isso depois:
+- Ter naipe atribuído (`vinculos.naipe`) e ficar restrito a ele são **duas coisas independentes** — um Diretor pode liderar um naipe E ter função de administrador da bateria, vendo tudo, sem contradição. A restrição nunca deve ser derivada automaticamente de "a pessoa tem naipe"; precisa ser seu próprio interruptor.
+- **Mestre**, por padrão, também não fica restrito (mesma lógica do Diretor com alçada).
+- Ainda **em aberto**, perguntas que ficaram sem resposta: (a) a restrição também esconde outros membros da Diretoria (não só Ritmistas fora do naipe), ou só afeta a lista de Ritmistas? (b) o que acontece com um Diretor sem naipe nenhum atribuído, quando a restrição estiver ativa na bateria — continua vendo tudo, ou fica sem ver nada até alguém marcar um naipe pra ele?
+
+### 58.3 Modelo "sem carteirinha" — caso de uso real de um Mestre, desenho fechado dentro da mesma reforma (não é um "Modelo Comercial" à parte)
+
+Surgiu no meio da conversa acima, a partir de um caso real: um Mestre adorou a ideia de usar a gestão, mas não quer distribuir carteirinha digital pra Ritmistas esta temporada — as carteirinhas físicas já foram pagas por todo mundo, e ele acha injusto agora "dar" a digital de graça, undercutting quem já pagou pela física.
+
+**O que ela queria fazer**: pegar os dados de todos os Ritmistas numa planilha (Google Forms, por exemplo) e me pedir pra cadastrar todo mundo em lote direto no banco, pra esse Mestre já ter a gestão funcionando (aprovar, editar instrumento/medidas, etc.), sem passar pelo autocadastro normal — mas sem ninguém ganhar acesso à carteirinha digital esse ano.
+
+**Decisões tomadas, em sequência**:
+
+1. **Senha de cada conta importada**: ela cogitou senha = CPF da pessoa. **Recusado, mesmo motivo já decidido em 22/jul/2026** (ver seção correspondente no `CLAUDE.md`) — CPF não é segredo, aparece em vários lugares do próprio sistema (carteirinha, exportação, ficha), então usar como senha não protege nada, e piora exatamente o risco que ela queria evitar (alguém "descobrir" acesso). Decisão: senha **aleatória de verdade**, gerada na hora da importação, nunca entregue a ninguém.
+2. **Como a pessoa usa a carteirinha no futuro, se a senha é desconhecida até pra ela mesma**: o caminho natural e já existente é "Esqueci minha senha" (mesmo `resetPasswordForEmail` já usado no caso do Julio Cesar, seção 57.4), usando o e-mail que veio na planilha — **por isso o formulário/Forms precisa coletar um e-mail de verdade que a pessoa realmente acesse**, senão ela não consegue entrar depois.
+3. **O problema real que ela identificou** (e que a simples senha aleatória não resolve): mesmo com senha desconhecida, se a própria pessoa (dona legítima da conta) usar "Esqueci minha senha" com o e-mail certo, ela consegue entrar e ver a carteirinha normalmente — porque tecnicamente é ela mesma entrando, não uma invasão. Só que a Márcia **não quer que ninguém tenha carteirinha esse ano**, mesmo sendo a pessoa certa entrando. Isso pede uma trava de verdade, separada de senha/login.
+4. **Trava desenhada**: um par de novos interruptores por bateria (dentro da mesma reforma da seção 58.2, cada grupo com seu próprio espaço, **não um "Modelo Comercial" à parte** — ela cogitou colocar em Comercial junto com Demo/Somente Carteirinha, mas reconsiderou: "o perfil comercial de sem carteirinha talvez não caiba... teria que ser direto no bloco Ritmista lá em permissões"): **"Ritmistas sem carteirinha esta temporada"** e **"Diretoria sem carteirinha esta temporada"**, independentes um do outro (dá pra ligar um sem o outro — ex: Ritmista sem carteirinha, mas Mestre/Diretor continuam com a própria). Quando ligado pro grupo, `login.html`/`carteirinha.html` mostram uma mensagem explicando (ex: "Sua carteirinha digital não está disponível esta temporada. Fale com a diretoria da sua bateria.") em vez do cartão — mesmo se a pessoa entrar com a senha certa.
+5. **Fluxo completo aprovado, de ponta a ponta**: (a) Diretor pede que os Ritmistas preencham um Forms com todos os dados, inclusive e-mail de verdade; (b) importação em lote direto no banco (pessoas + vínculos + login com senha aleatória, mesmo padrão do cadastro manual de hoje, só que em lote a partir da planilha); (c) Ritmista aparece normalmente na gestão do Mestre, sem acesso à carteirinha; (d) quando decidirem liberar (ex: temporada seguinte): desliga o interruptor "Ritmistas sem carteirinha" + dispara "esqueci minha senha" em lote pra todo mundo de uma vez (mesma chamada usada pro Julio Cesar, só que repetida pra vários e-mails).
+
+**Ideia relacionada, levantada e explicitamente pausada por ela (não descartada, só posta de lado por enquanto)**: tornar configurável até o fato de Ritmista nunca ter acesso a nenhuma parte do painel de gestão hoje (hoje é uma regra estrutural, não uma marcação — Ritmista simplesmente não tem capacidade nenhuma em lugar nenhum do código). Ela mesma reconheceu que, "se for um problema sério, vamos deixar de lado, não faremos agora" — fica registrado como ideia futura, fora do escopo atual da reforma.
+
+**Nada disso foi implementado** — é desenho puro, esperando a ferramenta MCP do Supabase voltar (confirmado, seção 57.4, que o banco/site em si continuavam saudáveis a sessão toda; só a ferramenta de acesso administrativo caiu).
