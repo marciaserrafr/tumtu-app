@@ -4914,9 +4914,15 @@
                     const entregue = entreguesSet.has(it.id);
                     return `<div class="extra-figurino-linha"><span class="extra-figurino-marca ${entregue ? 'sim' : 'nao'}">${entregue ? '✓' : ''}</span>${entregue ? esc(it.nome) : `<span style="color:var(--cor-texto-muted);">${esc(it.nome)} — não entregue</span>`}</div>`;
                 }).join('')}</div>` : '';
+                // Instrumento (só existe pra Convidado do Tipo "Ritmistas") vem
+                // antes da observação -- pedido dela, 27/ago/2026: ajuda a
+                // identificar o Diretor de Naipe responsável por esse
+                // Convidado.
+                const bi = e.bateria_instrumento_id ? (bateriaInstrumentosCache || []).find(b => String(b.id) === String(e.bateria_instrumento_id)) : null;
+                const instrumentoNome = bi ? nomeExibicaoBateriaInstrumento(bi) : null;
                 return `
                 <div class="item-card">
-                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div>${e.observacoes ? `<div class="item-detalhe">${esc(e.observacoes)}</div>` : ''}${figurinoHtml}</div>
+                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div>${instrumentoNome ? `<div class="item-detalhe">${esc(instrumentoNome)}</div>` : ''}${e.observacoes ? `<div class="item-detalhe">${esc(e.observacoes)}</div>` : ''}${figurinoHtml}</div>
                     ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarExtra(${e.id})">Editar</button></div>` : ''}
                 </div>`;
             }).join('');
