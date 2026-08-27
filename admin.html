@@ -1932,10 +1932,21 @@
          24/ago/2026) -- pedido da Márcia depois de reparar que o card
          menor (Aniversariantes) deixava um vão vazio embaixo dele sempre
          que "Ritmistas por Instrumento" era mais alto: "fica esse espaço
-         vazio e não achei legal". Ordem mudou de novo em 27/ago/2026:
-         Aniversariantes vai pro final ("com o tempo, infelizmente esse
-         item será o de menos importância"), e Entrega de Figurino sobe
-         pro 2º lugar, logo abaixo de Ritmistas por Instrumento. -->
+         vazio e não achei legal". Ordem mudou de novo em 27/ago/2026,
+         duas vezes: primeiro Aniversariantes foi pro final, depois ela
+         voltou pra ser o primeiro de novo, "debaixo dos totalizadores".
+         Fechado por padrão (mesmo pedido que já valia pros outros cards). -->
+    <div class="vg-card">
+        <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgAniversariantesAberto()">
+            <span id="vg-aniversariantes-titulo">🎂 Aniversariantes do mês</span>
+            <span class="vg-secao-resumo">
+                <div id="vg-aniversariantes-total"></div>
+                <span class="vg-secao-seta" id="vg-aniversariantes-seta">›</span>
+            </span>
+        </div>
+        <div id="vg-aniversariantes" style="display:none;"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+    </div>
+
     <!-- Fechado por padrão, só o total geral na pílula -- clica pra abrir
          o detalhe por naipe (pedido dela, 25/ago/2026: "se a pessoa quiser
          ver só o total, vai conseguir. e se quiser ver o detalhe, vai
@@ -1978,17 +1989,6 @@
             </span>
         </div>
         <div id="vg-menores" style="display:none;"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
-    </div>
-
-    <div class="vg-card">
-        <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgAniversariantesAberto()">
-            <span id="vg-aniversariantes-titulo">🎂 Aniversariantes do mês</span>
-            <span class="vg-secao-resumo">
-                <div id="vg-aniversariantes-total"></div>
-                <span class="vg-secao-seta aberta" id="vg-aniversariantes-seta">›</span>
-            </span>
-        </div>
-        <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
 </div><!-- /painel-visao -->
@@ -3239,7 +3239,7 @@
     // já visível ao entrar na tela; a pessoa pode fechar pra ver o resto
     // da tela com mais facilidade, mas ele nunca lembra esse fechamento --
     // toda vez que a tela é recarregada, volta a nascer aberto.
-    let vgAniversariantesAberto = true;
+    let vgAniversariantesAberto = false;
     function toggleVgAniversariantesAberto() {
         vgAniversariantesAberto = !vgAniversariantesAberto;
         const div = document.getElementById('vg-aniversariantes');
