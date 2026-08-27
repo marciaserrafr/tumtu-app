@@ -1912,20 +1912,19 @@
         </div>
     </div>
 
-    <!-- Menores (26/ago/2026) + Extras/Convidados (25/ago/2026) lado a lado,
-         metade da tela cada -- pedido dela, 26/ago/2026. Menores não tem
-         capacidade própria (quem vê Ritmistas vê este); Convidados continua
-         só aparecendo pra quem tem ver_extras -- por isso o show/hide agora
-         é no card individual (id="totalizadoresExtras"), não na linha
-         inteira, senão escondia os dois juntos. -->
-    <div class="totalizadores">
-        <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
-            <div class="total-numero ativo" id="totalMenores">—</div>
-            <div class="total-label">Menores ativos</div>
+    <!-- Convidados Ritmistas + Convidados Diretoria lado a lado (27/ago/2026,
+         pedido dela) -- substitui o antigo box único "Convidados" (25/ago) e
+         o box "Menores ativos" (26/ago, que virou o card completo de Menores
+         mais abaixo). Os dois continuam só aparecendo pra quem tem
+         ver_extras, escondidos juntos (mesma linha, mesma capacidade). -->
+    <div class="totalizadores" id="totalizadoresExtras" style="display:none;">
+        <div class="total-card total-card--clicavel" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">
+            <div class="total-numero ativo" id="totalExtrasRitmistas">—</div>
+            <div class="total-label">Convidados Ritmistas</div>
         </div>
-        <div class="total-card total-card--clicavel" id="totalizadoresExtras" style="display:none;" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">
-            <div class="total-numero ativo" id="totalExtras">—</div>
-            <div class="total-label">Convidados</div>
+        <div class="total-card total-card--clicavel" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">
+            <div class="total-numero ativo" id="totalExtrasDiretoria">—</div>
+            <div class="total-label">Convidados Diretoria</div>
         </div>
     </div>
 
@@ -1960,6 +1959,22 @@
             </span>
         </div>
         <div id="vg-instrumentos" style="display:none;"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+    </div>
+
+    <!-- Controle de Menores -- Declaração do Responsável (27/ago/2026,
+         pedido dela). Mesmo padrão de acordeão fechado por padrão de
+         "Ritmistas por Instrumento" -- só o total geral na pílula, clica
+         pra abrir o detalhe por naipe. Só aparece com pelo menos 1 menor
+         ativo (senão o card some sozinho, mesmo critério de Figurino). -->
+    <div class="vg-card" id="vg-menores-card" style="display:none;">
+        <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgMenoresAberto()">
+            <span>📄 Declaração do Responsável (Menores)</span>
+            <span class="vg-secao-resumo">
+                <div id="vg-menores-total"></div>
+                <span class="vg-secao-seta" id="vg-menores-seta">›</span>
+            </span>
+        </div>
+        <div id="vg-menores" style="display:none;"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
     <!-- Resumo de entrega de Figurino -- só aparece com pelo menos 1 peça
@@ -2333,16 +2348,17 @@
         card.style.display = 'flex';
     }
 
-    // Card "Extras" na Visão Geral (25/ago/2026) -- só pra quem tem
-    // ver_extras. Desde 26/ago/2026 divide a linha com "Menores ativos"
-    // (lado a lado), então o show/hide é no próprio .total-card, não numa
-    // linha .totalizadores inteira -- senão escondia os dois juntos.
+    // Cards "Convidados Ritmistas"/"Convidados Diretoria" na Visão Geral --
+    // só pra quem tem ver_extras. Antes (25/ago) era um card só somando
+    // tudo; separado por grupo a pedido dela, 27/ago/2026.
     function atualizarTotalizadorExtras() {
         const card = document.getElementById('totalizadoresExtras');
         if (!card) return;
         if (!souSuperAdmin && !tenhoCapacidade('ver_extras')) { card.style.display = 'none'; return; }
-        document.getElementById('totalExtras').textContent = (extrasCache || []).length;
-        card.style.display = '';
+        const lista = extrasCache || [];
+        document.getElementById('totalExtrasRitmistas').textContent = lista.filter(e => e.grupo === 'ritmista').length;
+        document.getElementById('totalExtrasDiretoria').textContent = lista.filter(e => e.grupo === 'diretoria').length;
+        card.style.display = 'flex';
     }
 
     function bateriaIdContexto() {
@@ -2417,7 +2433,7 @@
 
     async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); carregarResumoEntregaFigurino(); return; }
+        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); carregarResumoEntregaFigurino(); return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=${select}&order=created_at.desc`, {
             headers: authHeaders
@@ -2428,6 +2444,7 @@
         atualizarTotalizadores();
         renderizarVisaoGeral();
         renderizarContagemInstrumentos();
+        renderizarControleMenores();
         carregarResumoEntregaFigurino();
     }
 
@@ -3215,9 +3232,11 @@
     // -- pedido dela, 25/ago/2026. mini=true pra caber no cabeçalho fechado
     // dos cards da Visão Geral.
     function totalDuploHtml(total, faltam, mini) {
+        // Singular quando falta só 1 -- pedido dela, 27/ago/2026: "Falta 1",
+        // nunca "Faltam 1".
         return `<div class="total-duplo${mini ? ' total-duplo--mini' : ''}">
             <div class="total-duplo-item"><div class="total-duplo-numero total">${total}</div><div class="total-duplo-rotulo">Total</div></div>
-            <div class="total-duplo-item"><div class="total-duplo-numero faltam">${faltam}</div><div class="total-duplo-rotulo">Faltam</div></div>
+            <div class="total-duplo-item"><div class="total-duplo-numero faltam">${faltam}</div><div class="total-duplo-rotulo">${faltam === 1 ? 'Falta' : 'Faltam'}</div></div>
         </div>`;
     }
 
@@ -3238,6 +3257,59 @@
     // Card fechado por padrão (25/ago/2026, pedido dela) -- só o total geral
     // na pílula do cabeçalho, clica pra abrir o detalhe por naipe.
     let vgInstrumentosAberto = false;
+    let vgMenoresAberto = false;
+    function toggleVgMenoresAberto() {
+        vgMenoresAberto = !vgMenoresAberto;
+        const div = document.getElementById('vg-menores');
+        const seta = document.getElementById('vg-menores-seta');
+        if (div) div.style.display = vgMenoresAberto ? 'block' : 'none';
+        if (seta) seta.classList.toggle('aberta', vgMenoresAberto);
+    }
+
+    // Controle de Menores -- Declaração do Responsável (27/ago/2026, pedido
+    // dela): total de menores ativos, quantos já entregaram a declaração,
+    // quantos faltam, quebrado por instrumento -- mesmo padrão visual de
+    // "Ritmistas por Instrumento" e do resumo de Figurino ("Falta N (X/Y)").
+    function renderizarControleMenores() {
+        const card = document.getElementById('vg-menores-card');
+        const div = document.getElementById('vg-menores');
+        if (!card || !div) return;
+        const menores = todosRitmistas.filter(r => {
+            if (r.status !== 'aprovado') return false;
+            const idade = calcularIdade(r.nascimento);
+            return idade !== null && idade < 18;
+        });
+        if (menores.length === 0) { card.style.display = 'none'; return; }
+        card.style.display = '';
+        const totalEl = document.getElementById('vg-menores-total');
+        if (totalEl) {
+            const entreguesGeral = menores.filter(r => r.declaracao_responsavel).length;
+            totalEl.innerHTML = totalDuploHtml(menores.length, menores.length - entreguesGeral, true);
+        }
+        const porInstrumento = {};
+        menores.forEach(r => {
+            const chave = r.bateria_instrumento_id || 'sem-instrumento';
+            if (!porInstrumento[chave]) porInstrumento[chave] = { entregues: 0, total: 0 };
+            porInstrumento[chave].total++;
+            if (r.declaracao_responsavel) porInstrumento[chave].entregues++;
+        });
+        const linhas = Object.keys(porInstrumento).map(chave => {
+            const bi = (bateriaInstrumentosCache || []).find(b => String(b.id) === chave);
+            const nome = bi ? nomeExibicaoBateriaInstrumento(bi) : 'Sem instrumento';
+            return { nome, ...porInstrumento[chave] };
+        }).sort((a, b) => b.total - a.total || a.nome.localeCompare(b.nome, 'pt-BR'));
+        div.innerHTML = linhas.map(l => {
+            const faltam = l.total - l.entregues;
+            return `
+            <div class="vg-instrumento-linha">
+                <span>${esc(l.nome)}</span>
+                <span style="display:flex;align-items:center;gap:14px;">
+                    ${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}
+                    <span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}">${l.entregues} / ${l.total}</span>
+                </span>
+            </div>`;
+        }).join('');
+    }
     function toggleVgInstrumentosAberto() {
         vgInstrumentosAberto = !vgInstrumentosAberto;
         const div = document.getElementById('vg-instrumentos');
@@ -3411,8 +3483,13 @@
                 corpoHtml += linhas.map(l => linhaHtml(l.nome, l.entregues, l.total)).join('');
                 linhas.forEach(l => { totalGeral += l.total; entreguesGeral += l.entregues; });
             } else if (item.publico !== 'ritmista' && pessoasAlvo.length > 0) {
+                // Rótulo genérico "Diretoria" em vez do cargo específico
+                // (Mestres/Diretores de Bateria/Diretores) -- pedido dela,
+                // 27/ago/2026, pra bater com a separação Ritmistas/Diretoria
+                // usada no resto da Visão Geral (Convidados, filtro de
+                // Entrega planejado pra Público múltiplo).
                 const entregues = pessoasAlvo.filter(p => entreguesSet.has(p.id)).length;
-                corpoHtml += linhaHtml(LABEL_PUBLICO_FIGURINO[item.publico], entregues, pessoasAlvo.length);
+                corpoHtml += linhaHtml('Diretoria', entregues, pessoasAlvo.length);
                 totalGeral += pessoasAlvo.length; entreguesGeral += entregues;
             }
             if (item.inclui_extras) {
@@ -3421,7 +3498,11 @@
                 if (extrasAlvo.length > 0) {
                     const extrasEntreguesSet = extrasEntreguesPorItem[item.id] || new Set();
                     const entreguesExtras = extrasAlvo.filter(e => extrasEntreguesSet.has(e.id)).length;
-                    corpoHtml += linhaHtml('Convidados', entreguesExtras, extrasAlvo.length);
+                    // Rótulo "Convidados Ritmistas"/"Convidados Diretoria" em
+                    // vez de só "Convidados" -- mesma nomenclatura dos cards
+                    // novos da Visão Geral (27/ago/2026).
+                    const rotuloConvidados = grupo === 'ritmista' ? 'Convidados Ritmistas' : 'Convidados Diretoria';
+                    corpoHtml += linhaHtml(rotuloConvidados, entreguesExtras, extrasAlvo.length);
                     totalGeral += extrasAlvo.length; entreguesGeral += entreguesExtras;
                 }
             }
@@ -6967,9 +7048,13 @@
 
         // Mesma separação já usada no Super Admin (aba Acessos) -- Mestres
         // primeiro, Diretores depois, cada um com seu título de seção.
-        const mestres = admins.filter(a => a.perfil === 'mestre');
-        const diretores = admins.filter(a => a.perfil === 'diretor');
-        const apoios = admins.filter(a => a.perfil === 'apoio');
+        // Dentro de cada seção, pendente sobe pro topo (27/ago/2026, pedido
+        // dela -- vinha só em ordem alfabética, então um pendente podia
+        // ficar escondido no meio da lista, sem chamar atenção pra aprovar).
+        const pendentePrimeiro = (a, b) => (a.status === 'pendente' ? 0 : 1) - (b.status === 'pendente' ? 0 : 1);
+        const mestres = admins.filter(a => a.perfil === 'mestre').sort(pendentePrimeiro);
+        const diretores = admins.filter(a => a.perfil === 'diretor').sort(pendentePrimeiro);
+        const apoios = admins.filter(a => a.perfil === 'apoio').sort(pendentePrimeiro);
         let html = '';
         if (mestres.length) html += `<div class="secao-titulo">Mestres</div>` + mestres.map(cardHTML).join('');
         if (diretores.length) html += `<div class="secao-titulo">Diretores de Bateria</div>` + diretores.map(cardHTML).join('');
