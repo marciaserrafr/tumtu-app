@@ -16,6 +16,14 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=20">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- GridStack (27/ago/2026) -- só usada na Visão Geral, pra deixar a
+         pessoa arrastar/redimensionar os cards de baixo do jeito que
+         preferir (pedido dela). Biblioteca de terceiros gratuita, sem
+         conta/login, carregada só por link -- mesmo padrão do Supabase JS
+         acima. Versão travada (9.5.1) de propósito, pra nunca mudar de
+         comportamento sem eu escolher isso de novo. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@9.5.1/dist/gridstack.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@9.5.1/dist/gridstack-all.js"></script>
     <script src="ficha-perfil.js?v=32"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -359,6 +367,15 @@
         .vg-secao-seta.aberta { transform: rotate(90deg); }
         .vg-figurino-peca-titulo { font-size: 13px; font-weight: 700; color: var(--cor-texto-principal); margin: 0; }
         .vg-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 16px; }
+        /* Quadro arrastável/redimensionável da Visão Geral (GridStack,
+           27/ago/2026) -- dentro do grid, o card não usa mais
+           margin-bottom (o "margin" do GridStack já cuida do respiro) e
+           ocupa 100% da altura do item que o envolve. */
+        .grid-stack-item-content { background: transparent; }
+        .grid-stack-item-content > .vg-card { height: 100%; box-sizing: border-box; margin-bottom: 0; }
+        .vg-drag-alca { cursor: grab; background: transparent; border: none; color: #b0adc2; font-size: 13px; padding: 2px 7px; border-radius: 6px; line-height: 1; }
+        .vg-drag-alca:hover { color: #5a5770; background: #f2f1f7; }
+        .vg-drag-alca:active { cursor: grabbing; }
         .vg-aniversariante { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
         .vg-aniversariante:last-child { border-bottom: none; }
         .vg-aniv-nome { font-weight: 700; color: var(--cor-texto-principal); }
@@ -1928,21 +1945,34 @@
         </div>
     </div>
 
-    <!-- Empilhado, um card embaixo do outro (era grid de 2 colunas até
-         24/ago/2026) -- pedido da Márcia depois de reparar que o card
-         menor (Aniversariantes) deixava um vão vazio embaixo dele sempre
-         que "Ritmistas por Instrumento" era mais alto: "fica esse espaço
-         vazio e não achei legal". Ordem mudou de novo em 27/ago/2026:
-         Aniversariantes vai pro final -- pedido dela, "com o tempo,
-         infelizmente esse item será o de menos importância". -->
+    <!-- Cards de baixo dentro de um "quadro" arrastável/redimensionável
+         (GridStack, 27/ago/2026) -- pedido dela, depois de rejeitar uma
+         1ª tentativa mais simples (botão "Dividir tela"/"Ocupar tela
+         toda"): ela queria puxar a borda do card de verdade e ver o
+         encaixe se ajustar ao vivo, não um clique com 2 estados fixos.
+         Cada card vira um .grid-stack-item; GridStack.init() (ver
+         inicializarGridVisaoGeral(), mais abaixo) detecta os itens
+         estáticos do HTML sozinho -- não precisa de addWidget(). Posição/
+         tamanho de cada pessoa fica só no próprio navegador (localStorage,
+         sem depender do banco -- mesma decisão já tomada na 1ª tentativa).
+         Ordem no HTML = ordem/posição padrão pra quem nunca personalizou:
+         Ritmistas por Instrumento → Declaração do Responsável (Menores) →
+         Entrega de Figurino → Aniversariantes (pedido dela, 27/ago/2026:
+         "com o tempo, esse item será o de menos importância"). Em telas
+         pequenas (celular), a grade vira 1 coluna só e arrastar/
+         redimensionar fica desligado -- meia tela ficaria ilegível. -->
+    <div class="grid-stack" id="vg-grid">
+
     <!-- Fechado por padrão, só o total geral na pílula -- clica pra abrir
          o detalhe por naipe (pedido dela, 25/ago/2026: "se a pessoa quiser
          ver só o total, vai conseguir. e se quiser ver o detalhe, vai
          abrir"). Mesma ideia de acordeão já usada em Configurações →
          Categoria de Figurino. -->
-    <div class="vg-card">
+    <div class="grid-stack-item" gs-id="instrumentos" gs-w="12">
+    <div class="grid-stack-item-content">
+    <div class="vg-card" id="vg-card-instrumentos">
         <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgInstrumentosAberto()">
-            <span>🥁 Ritmistas por Instrumento</span>
+            <span><button type="button" class="vg-drag-alca" onclick="event.stopPropagation()" title="Arrastar pra reorganizar">⠿</button> 🥁 Ritmistas por Instrumento</span>
             <span class="vg-secao-resumo">
                 <div id="vg-instrumentos-total"></div>
                 <span class="vg-secao-seta" id="vg-instrumentos-seta">›</span>
@@ -1950,21 +1980,27 @@
         </div>
         <div id="vg-instrumentos" style="display:none;"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
+    </div>
+    </div>
 
     <!-- Controle de Menores -- Declaração do Responsável (27/ago/2026,
          pedido dela). Mesmo padrão de acordeão fechado por padrão de
          "Ritmistas por Instrumento" -- só o total geral na pílula, clica
          pra abrir o detalhe por naipe. Só aparece com pelo menos 1 menor
          ativo (senão o card some sozinho, mesmo critério de Figurino). -->
+    <div class="grid-stack-item" gs-id="menores" gs-w="12">
+    <div class="grid-stack-item-content">
     <div class="vg-card" id="vg-menores-card" style="display:none;">
         <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgMenoresAberto()">
-            <span>📄 Declaração do Responsável (Menores)</span>
+            <span><button type="button" class="vg-drag-alca" onclick="event.stopPropagation()" title="Arrastar pra reorganizar">⠿</button> 📄 Declaração do Responsável (Menores)</span>
             <span class="vg-secao-resumo">
                 <div id="vg-menores-total"></div>
                 <span class="vg-secao-seta" id="vg-menores-seta">›</span>
             </span>
         </div>
         <div id="vg-menores" style="display:none;"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+    </div>
+    </div>
     </div>
 
     <!-- Resumo de entrega de Figurino -- só aparece com pelo menos 1 peça
@@ -1974,14 +2010,20 @@
          todos lá" -- e ativar a peça com antecedência não quer dizer que
          ela deve aparecer aqui sozinha. Cada peça, dentro do card, também
          é um acordeão fechado/aberto (25/ago/2026), mesma ideia de cima. -->
+    <div class="grid-stack-item" gs-id="figurino" gs-w="12">
+    <div class="grid-stack-item-content">
     <div class="vg-card" id="vg-figurino-card" style="display:none;">
-        <div class="vg-secao-titulo">👕 Entrega de Figurino</div>
+        <div class="vg-secao-titulo"><button type="button" class="vg-drag-alca" title="Arrastar pra reorganizar">⠿</button> 👕 Entrega de Figurino</div>
         <div id="vg-figurino"></div>
     </div>
+    </div>
+    </div>
 
-    <div class="vg-card">
+    <div class="grid-stack-item" gs-id="aniversariantes" gs-w="12">
+    <div class="grid-stack-item-content">
+    <div class="vg-card" id="vg-card-aniversariantes">
         <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgAniversariantesAberto()">
-            <span id="vg-aniversariantes-titulo">🎂 Aniversariantes do mês</span>
+            <span><button type="button" class="vg-drag-alca" onclick="event.stopPropagation()" title="Arrastar pra reorganizar">⠿</button> <span id="vg-aniversariantes-titulo">🎂 Aniversariantes do mês</span></span>
             <span class="vg-secao-resumo">
                 <div id="vg-aniversariantes-total"></div>
                 <span class="vg-secao-seta aberta" id="vg-aniversariantes-seta">›</span>
@@ -1989,6 +2031,10 @@
         </div>
         <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
+    </div>
+    </div>
+
+    </div><!-- /vg-grid -->
 
 </div><!-- /painel-visao -->
 
@@ -2354,6 +2400,81 @@
         card.style.display = 'flex';
     }
 
+    // Quadro arrastável/redimensionável da Visão Geral (GridStack, 27/ago/
+    // 2026) -- ela testou uma versão mais simples (botão "Dividir tela") e
+    // odiou; queria arrastar de verdade, com o encaixe se ajustando na
+    // hora. Cada card pode ser arrastado (pega pela alcinha "⠿" no
+    // cabeçalho, não pelo card inteiro -- senão clicar pra abrir o
+    // acordeão ia às vezes ser interpretado como início de um arrasto) e
+    // redimensionado só na LARGURA (puxando a borda esquerda/direita).
+    // Altura NUNCA é arrastável de propósito: o conteúdo de cada card
+    // muda de tamanho sozinho o tempo todo (acordeão abre/fecha, dados
+    // chegam, card aparece/desaparece) -- deixar arrastar a altura ia só
+    // "voltar sozinho" no próximo carregamento e frustrar mais do que
+    // ajudar. Em telas ≤720px a própria biblioteca (columnOpts) vira 1
+    // coluna só, todo card ocupando a largura inteira. Preferência
+    // guardada só neste navegador (localStorage, sem depender do banco).
+    let vgGrid = null;
+    const VG_GRID_CHAVE = 'tumtu_visao_grid_layout';
+    function obterLayoutGridVisaoGeral() {
+        try { return JSON.parse(localStorage.getItem(VG_GRID_CHAVE) || 'null'); }
+        catch (e) { return null; }
+    }
+    function salvarLayoutGridVisaoGeral() {
+        if (!vgGrid) return;
+        try { localStorage.setItem(VG_GRID_CHAVE, JSON.stringify(vgGrid.save(false))); } catch (e) {}
+    }
+    function inicializarGridVisaoGeral() {
+        if (vgGrid || typeof GridStack === 'undefined') return;
+        vgGrid = GridStack.init({
+            column: 12,
+            cellHeight: 10,
+            margin: 16,
+            float: false,
+            sizeToContent: true,
+            handle: '.vg-drag-alca',
+            resizable: { handles: 'e, w' },
+            columnOpts: { breakpoints: [{ w: 720, c: 1 }] },
+        }, '#vg-grid');
+        const layoutSalvo = obterLayoutGridVisaoGeral();
+        if (layoutSalvo) {
+            try { vgGrid.load(layoutSalvo); }
+            catch (e) { console.error('Falha ao restaurar layout da Visão Geral:', e); }
+        }
+        vgGrid.on('change', salvarLayoutGridVisaoGeral);
+    }
+    // resizeToContent() é sempre manual (a própria biblioteca não sabe
+    // quando o conteúdo interno mudou) -- chamado em todo ponto em que um
+    // card pode ter mudado de altura: fim de carregarRitmistas(), fim de
+    // carregarResumoEntregaFigurino() (assíncrona, termina depois) e cada
+    // vez que um acordeão abre/fecha.
+    function atualizarAlturasGridVisaoGeral() {
+        if (!vgGrid) return;
+        ['vg-card-instrumentos', 'vg-menores-card', 'vg-figurino-card', 'vg-card-aniversariantes'].forEach(elId => {
+            const card = document.getElementById(elId);
+            const item = card && card.closest('.grid-stack-item');
+            if (item && item.gridstackNode) vgGrid.resizeToContent(item);
+        });
+    }
+    // Menores/Figurino somem por completo quando não há nada pra mostrar
+    // (mesmo critério de sempre). Dentro do grid, "esconder" só com
+    // display:none deixaria um buraco vazio reservado no lugar (o
+    // GridStack continuaria contando aquele espaço) -- por isso usa
+    // removeWidget(el, false)/makeWidget(el) pra tirar/devolver o item de
+    // verdade do quadro, com o "false" garantindo que o DOM não é
+    // apagado (só sai da contagem do layout), pra poder voltar depois
+    // sem perder nada.
+    function mostrarCardNoGridVisaoGeral(card, mostrar) {
+        if (!card) return;
+        card.style.display = mostrar ? '' : 'none';
+        if (!vgGrid) return;
+        const item = card.closest('.grid-stack-item');
+        if (!item) return;
+        const jaNoGrid = !!item.gridstackNode;
+        if (mostrar && !jaNoGrid) vgGrid.makeWidget(item);
+        else if (!mostrar && jaNoGrid) vgGrid.removeWidget(item, false);
+    }
+
     function bateriaIdContexto() {
         if (souSuperAdmin) return bateriaAtualData ? bateriaAtualData.id : null;
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
@@ -2426,7 +2547,7 @@
 
     async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); carregarResumoEntregaFigurino(); return; }
+        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); carregarResumoEntregaFigurino(); atualizarAlturasGridVisaoGeral(); return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=${select}&order=created_at.desc`, {
             headers: authHeaders
@@ -2439,6 +2560,7 @@
         renderizarContagemInstrumentos();
         renderizarControleMenores();
         carregarResumoEntregaFigurino();
+        atualizarAlturasGridVisaoGeral();
     }
 
     function toggleStatusSelect() {
@@ -3245,6 +3367,7 @@
         const seta = document.getElementById('vg-aniversariantes-seta');
         if (div) div.style.display = vgAniversariantesAberto ? 'block' : 'none';
         if (seta) seta.classList.toggle('aberta', vgAniversariantesAberto);
+        atualizarAlturasGridVisaoGeral();
     }
 
     // Card fechado por padrão (25/ago/2026, pedido dela) -- só o total geral
@@ -3257,6 +3380,7 @@
         const seta = document.getElementById('vg-menores-seta');
         if (div) div.style.display = vgMenoresAberto ? 'block' : 'none';
         if (seta) seta.classList.toggle('aberta', vgMenoresAberto);
+        atualizarAlturasGridVisaoGeral();
     }
 
     // Controle de Menores -- Declaração do Responsável (27/ago/2026, pedido
@@ -3278,8 +3402,8 @@
                 const idade = calcularIdade(r.nascimento);
                 return idade !== null && idade < 18;
             });
-            if (menores.length === 0) { card.style.display = 'none'; return; }
-            card.style.display = '';
+            if (menores.length === 0) { mostrarCardNoGridVisaoGeral(card, false); return; }
+            mostrarCardNoGridVisaoGeral(card, true);
             const totalEl = document.getElementById('vg-menores-total');
             if (totalEl) {
                 const entreguesGeral = menores.filter(r => r.declaracao_responsavel).length;
@@ -3318,6 +3442,7 @@
         const seta = document.getElementById('vg-instrumentos-seta');
         if (div) div.style.display = vgInstrumentosAberto ? 'block' : 'none';
         if (seta) seta.classList.toggle('aberta', vgInstrumentosAberto);
+        atualizarAlturasGridVisaoGeral();
     }
 
     function renderizarContagemInstrumentos() {
@@ -3398,14 +3523,15 @@
     async function carregarResumoEntregaFigurino() {
         const card = document.getElementById('vg-figurino-card');
         if (!card) return;
+        try {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { card.style.display = 'none'; return; }
+        if (!bateriaId) { mostrarCardNoGridVisaoGeral(card, false); return; }
         const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&mostra_visao_geral=eq.true&entrega_finalizada=eq.false&select=id,figurino_item_mestre_id,item:figurino_itens_mestre(id,nome,publico,inclui_extras)`, { headers: authHeaders });
         const ativos = resAtivos.ok ? await resAtivos.json() : [];
-        if (ativos.length === 0) { card.style.display = 'none'; document.getElementById('vg-figurino').innerHTML = ''; return; }
+        if (ativos.length === 0) { mostrarCardNoGridVisaoGeral(card, false); document.getElementById('vg-figurino').innerHTML = ''; return; }
         const itemIds = ativos.map(a => a.figurino_item_mestre_id);
         const itens = ativos.map(a => a.item).filter(Boolean);
-        if (itens.length === 0) { card.style.display = 'none'; return; }
+        if (itens.length === 0) { mostrarCardNoGridVisaoGeral(card, false); return; }
         const perfis = [...new Set(itens.map(i => i.publico))];
         // "Incluir Extras" (25/ago/2026) soma junto o lado certo de Extras
         // no resumo, mesma lógica de carregarEntregasFigurino.
@@ -3425,8 +3551,11 @@
         const entregas = resEntregas.ok ? await resEntregas.json() : [];
         const extras = (precisaExtras && resExtras && resExtras.ok) ? await resExtras.json() : [];
         const extrasEntregas = (precisaExtras && resExtrasEntregas && resExtrasEntregas.ok) ? await resExtrasEntregas.json() : [];
-        card.style.display = 'block';
+        mostrarCardNoGridVisaoGeral(card, true);
         renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas);
+        } finally {
+            atualizarAlturasGridVisaoGeral();
+        }
     }
 
     // Cada peça, dentro do card, é seu próprio acordeão fechado/aberto
@@ -3438,6 +3567,7 @@
         if (vgFigurinoAbertos.has(itemId)) vgFigurinoAbertos.delete(itemId);
         else vgFigurinoAbertos.add(itemId);
         if (vgFigurinoUltimoRender) renderizarResumoEntregaFigurino(...vgFigurinoUltimoRender);
+        atualizarAlturasGridVisaoGeral();
     }
 
     function renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas) {
@@ -6817,6 +6947,7 @@
 
     (async () => {
         await iniciarSessaoAuth();
+        inicializarGridVisaoGeral();
         await iniciarUsuario();
     })();
 </script>
