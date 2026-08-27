@@ -2321,14 +2321,6 @@
         const elPendentes = document.getElementById('totalPendentes');
         elPendentes.textContent = pendentes;
         elPendentes.classList.toggle('atencao', pendentes > 0);
-        // Menores de idade HOJE (mesmo cálculo do badge "Menor" na lista) --
-        // só entre Ritmistas ativos, pedido dela 26/ago/2026.
-        const menoresAtivos = todosRitmistas.filter(r => {
-            if (r.status !== 'aprovado') return false;
-            const idade = calcularIdade(r.nascimento);
-            return idade !== null && idade < 18;
-        }).length;
-        document.getElementById('totalMenores').textContent = menoresAtivos;
     }
 
     // Card à parte na Visão Geral, com a mesma contagem de Mestres/
