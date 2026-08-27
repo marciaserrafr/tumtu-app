@@ -1882,6 +1882,7 @@
         <p class="config-sub-desc">Pessoas que não compõem a bateria, mas podem ser convidadas para os eventos em que necessitam os figurinos adequados. Cada Convidado é associado ao grupo de Ritmistas ou de Diretoria, pra definir qual figurino ele vai receber.</p>
         <div id="extras-editor" style="display:none;"></div>
         <button type="button" id="extras-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoExtra()">+ Novo Convidado</button>
+        <div id="extras-total-geral" style="font-size:13px;color:#888;margin:-12px 0 16px;"></div>
         <div id="extras-lista" class="lista-cards"></div>
     </div>
 </div>
@@ -4974,12 +4975,18 @@
     function renderizarExtrasLista() {
         const container = document.getElementById('extras-lista');
         if (!container) return;
+        // Contador totalizador (27/ago/2026, pedido dela) -- geral no topo da
+        // tela, e um por tipo colado no título de cada grupo (mesmo estilo
+        // já aprovado hoje pro contador de status em Ritmistas: número
+        // dourado, sem fundo).
+        const totalGeralEl = document.getElementById('extras-total-geral');
+        if (totalGeralEl) totalGeralEl.textContent = `${extrasCache.length} convidado(s) no total`;
         if (extrasCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🎽</div>Nenhum Convidado cadastrado ainda.</div>'; return; }
         const podeEditar = tenhoCapacidade('editar_extras');
         container.innerHTML = ['ritmista', 'diretoria'].map(grupo => {
             const itens = extrasCache.filter(e => e.grupo === grupo);
             if (itens.length === 0) return '';
-            return `<div class="secao-titulo">${LABEL_GRUPO_EXTRA[grupo]}</div>` + itens.map(e => {
+            return `<div class="secao-titulo" style="display:flex;justify-content:space-between;align-items:center;"><span>${LABEL_GRUPO_EXTRA[grupo]}</span><span style="color:#D4AF37;font-weight:800;font-size:14px;letter-spacing:normal;">${itens.length}</span></div>` + itens.map(e => {
                 // Figurinos que esse Convidado já recebeu (26/ago/2026, pedido
                 // dela) -- só peças do mesmo lado (ritmista/diretoria) com
                 // "Incluir Convidados" ligado.
