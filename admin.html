@@ -4894,10 +4894,6 @@
             return true;
         });
         const podeEditar = tenhoCapacidade('editar_figurino');
-        // Não entregues sempre em cima, entregues descem pro fim da lista --
-        // pedido dela, 26/ago/2026: ajuda a ver rápido quem ainda falta,
-        // sem misturar com quem já foi resolvido.
-        const ordenarPendentesPrimeiro = (a, b) => Number(a.entregue) - Number(b.entregue);
         const linhaPessoaHtml = p => {
             const detalhe = esc(p.instrumento_nome || (p.tipo === 'vinculo' ? LABEL_PERFIL_FIGURINO[p.perfil] : null) || (p.tipo === 'extra' ? 'Convidado' : ''));
             let acaoHtml;
@@ -4937,8 +4933,8 @@
         if (filtrada.length === 0) {
             container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>';
         } else if (figurinoEntregaLadoAtual === 'ritmista') {
-            const principais = filtrada.filter(p => p.tipo === 'vinculo').sort(ordenarPendentesPrimeiro);
-            const extrasList = filtrada.filter(p => p.tipo === 'extra').sort(ordenarPendentesPrimeiro);
+            const principais = filtrada.filter(p => p.tipo === 'vinculo');
+            const extrasList = filtrada.filter(p => p.tipo === 'extra');
             const mostrarSecoes = principais.length > 0 && extrasList.length > 0;
             let html = '';
             if (principais.length > 0) {
@@ -4959,8 +4955,8 @@
             // seção do cargo, não misturado com os outros.
             let html = '';
             ['mestre', 'diretor', 'apoio'].forEach(perfil => {
-                const vinculos = filtrada.filter(p => p.tipo === 'vinculo' && p.perfil === perfil).sort(ordenarPendentesPrimeiro);
-                const convidados = filtrada.filter(p => p.tipo === 'extra' && p.perfil === perfil).sort(ordenarPendentesPrimeiro);
+                const vinculos = filtrada.filter(p => p.tipo === 'vinculo' && p.perfil === perfil);
+                const convidados = filtrada.filter(p => p.tipo === 'extra' && p.perfil === perfil);
                 if (vinculos.length === 0 && convidados.length === 0) return;
                 html += `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[perfil]}</div>`;
                 html += vinculos.map(linhaPessoaHtml).join('');
