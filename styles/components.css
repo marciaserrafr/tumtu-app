@@ -186,7 +186,7 @@
 /* Asterisco de campo obrigatório na ficha (Meu Perfil/Admin/Super Admin) --
    mesmo estilo/cor de .auth-form-group .obrigatorio (cadastro.html), só que
    escopado à marcação da ficha (<span> dentro de .ficha-campo, não <label>). */
-.ficha-campo .obrigatorio { color: red; margin-left: 2px; }
+.ficha-campo .obrigatorio { display: inline; color: red; margin-left: 2px; }
 
 .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
 .ficha-secao { margin-bottom: 14px; }
