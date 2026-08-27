@@ -770,6 +770,12 @@
         .btn-voltar-config { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: #D4AF37; padding: 0; margin-bottom: 16px; font-family: inherit; }
         .btn-voltar-config:hover { text-decoration: underline; }
         .config-sub-desc { font-size: 13px; color: #8b88a0; margin: -10px 0 16px; }
+        /* Sub-tela de Configurações em modo "só ver" (Reforma de Permissões,
+           28/ago/2026) -- quem só tem a capacidade "Ver" (sem "Editar") abre
+           a tela normal, mas com tudo acinzentado/travado, pra ficar óbvio
+           que não dá pra mexer (nunca clicável e falhando escondido). */
+        .config-subtela--somente-leitura { opacity: 0.55; }
+        .config-subtela--somente-leitura input, .config-subtela--somente-leitura select { cursor: not-allowed; }
         /* Título das colunas acima da lista de Vagas -- pedido da Márcia,
            19/ago/2026: "parece que está meio solto" sem indicar o que
            cada lado da linha significa. Só nessa tela de Configurações
@@ -4276,21 +4282,50 @@
         }
     });
 
-    // Configurações -> capacidade exigida por sub-tela (Reforma de
-    // Permissões, 27-28/ago/2026).
-    const CAPACIDADE_CONFIG_SUBTELA = { instrumentos: 'editar_instrumentos', vagas: 'editar_vagas', medidas: 'editar_medidas', figurino: 'editar_figurino_bateria' };
+    // Configurações -> capacidades de "ver" e "editar" por sub-tela (Reforma
+    // de Permissões, 28/ago/2026 -- separadas depois dela pedir: "quero que
+    // dê pra alguém só olhar sem poder mexer"). Quem só tem "ver" abre a
+    // tela normal, mas com tudo travado/acinzentado (aplicarSomenteLeitura
+    // ConfigTela) -- nunca clicável e falhando escondido.
+    const CAPACIDADE_CONFIG_SUBTELA = {
+        instrumentos: { ver: 'ver_instrumentos', editar: 'editar_instrumentos' },
+        vagas: { ver: 'ver_vagas', editar: 'editar_vagas' },
+        medidas: { ver: 'ver_medidas', editar: 'editar_medidas' },
+        figurino: { ver: 'ver_figurino_bateria', editar: 'editar_figurino_bateria' },
+    };
+    function podeVerConfigSubtela(nome) {
+        const c = CAPACIDADE_CONFIG_SUBTELA[nome];
+        return !!c && (tenhoCapacidade(c.ver) || tenhoCapacidade(c.editar));
+    }
+    function podeEditarConfigSubtela(nome) {
+        const c = CAPACIDADE_CONFIG_SUBTELA[nome];
+        return !!c && tenhoCapacidade(c.editar);
+    }
 
     function aplicarGatingConfiguracoes() {
         if (souSuperAdmin) return;
         Object.keys(CAPACIDADE_CONFIG_SUBTELA).forEach(nome => {
             const item = document.getElementById('config-item-' + nome);
-            if (item) item.style.display = tenhoCapacidade(CAPACIDADE_CONFIG_SUBTELA[nome]) ? '' : 'none';
+            if (item) item.style.display = podeVerConfigSubtela(nome) ? '' : 'none';
+        });
+    }
+
+    // Trava/destrava a sub-tela inteira pra visualização (checkbox/select/
+    // input desabilitados de verdade, não só visualmente) -- mesmo padrão já
+    // usado no interruptor "Ritmista edita medidas" dentro de Permissões.
+    function aplicarSomenteLeituraConfigTela(nome, somenteLeitura) {
+        const tela = document.getElementById('config-tela-' + nome);
+        if (!tela) return;
+        tela.classList.toggle('config-subtela--somente-leitura', somenteLeitura);
+        tela.querySelectorAll('input, select, button').forEach(el => {
+            if (el.classList.contains('btn-voltar-config')) return;
+            el.disabled = somenteLeitura;
         });
     }
 
     // ── CONFIGURAÇÕES → INSTRUMENTOS ────────────────────────────────────
     function abrirConfigTela(nome) {
-        if (!souSuperAdmin && !tenhoCapacidade(CAPACIDADE_CONFIG_SUBTELA[nome])) return;
+        if (!souSuperAdmin && !podeVerConfigSubtela(nome)) return;
         document.getElementById('config-lista').style.display = 'none';
         document.querySelectorAll('#painel-configuracoes .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('config-tela-' + nome).style.display = 'block';
@@ -4298,6 +4333,7 @@
         if (nome === 'vagas') renderizarConfigVagas();
         if (nome === 'medidas') renderizarConfigMedidas();
         if (nome === 'figurino') renderizarConfigFigurino();
+        aplicarSomenteLeituraConfigTela(nome, !souSuperAdmin && !podeEditarConfigSubtela(nome));
     }
 
     function voltarConfigLista() {
@@ -5386,12 +5422,10 @@
         'extras': 'ver_extras',
     };
 
-    // "Configurações" não tem uma capacidade de "ver" própria -- o catálogo
-    // novo (Reforma de Permissões, 27-28/ago/2026) só tem os 5 "editar_*"
-    // de cada sub-painel. A aba aparece se a pessoa tiver QUALQUER um deles.
-    const CAPACIDADES_CONFIGURACOES = ['editar_instrumentos', 'editar_medidas', 'editar_vagas', 'editar_figurino_bateria'];
+    // A aba "Configurações" aparece se a pessoa tiver QUALQUER capacidade de
+    // ver/editar de qualquer uma das 4 sub-telas (ver CAPACIDADE_CONFIG_SUBTELA).
     function podeVerAba(aba) {
-        if (aba === 'configuracoes') return CAPACIDADES_CONFIGURACOES.some(c => tenhoCapacidade(c));
+        if (aba === 'configuracoes') return Object.keys(CAPACIDADE_CONFIG_SUBTELA).some(nome => podeVerConfigSubtela(nome));
         const capacidadeExigida = CAPACIDADE_DA_ABA[aba];
         return !capacidadeExigida || tenhoCapacidade(capacidadeExigida);
     }
@@ -6363,10 +6397,14 @@
         { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Ver' }, { chave: 'editar_extras', label: 'Cadastrar e editar' }] },
         { grupo: 'Carteirinha', itens: [{ chave: 'ver_carteirinha_outros', label: 'Ver a carteirinha de outra pessoa' }] },
         { grupo: 'Configurações', itens: [
-            { chave: 'editar_instrumentos', label: 'Instrumentos da bateria' },
-            { chave: 'editar_medidas', label: 'Medidas / Categorias de Figurino da bateria' },
-            { chave: 'editar_vagas', label: 'Vagas por instrumento' },
-            { chave: 'editar_figurino_bateria', label: 'Ativar peças de Figurino nesta bateria' },
+            { chave: 'ver_instrumentos', label: 'Ver Instrumentos da bateria' },
+            { chave: 'editar_instrumentos', label: 'Editar Instrumentos da bateria' },
+            { chave: 'ver_medidas', label: 'Ver Medidas / Categorias de Figurino da bateria' },
+            { chave: 'editar_medidas', label: 'Editar Medidas / Categorias de Figurino da bateria' },
+            { chave: 'ver_vagas', label: 'Ver Vagas por instrumento' },
+            { chave: 'editar_vagas', label: 'Editar Vagas por instrumento' },
+            { chave: 'ver_figurino_bateria', label: 'Ver Figurino ativado nesta bateria' },
+            { chave: 'editar_figurino_bateria', label: 'Ativar/editar peças de Figurino nesta bateria' },
         ] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Ver' }] },
         { grupo: 'Permissões', itens: [{ chave: 'ver_permissoes', label: 'Ver' }, { chave: 'editar_permissoes', label: 'Editar' }] },
