@@ -538,14 +538,14 @@ async function fpRenderizarEntregaFigurino(alvo) {
     const secao = fpEl('fp-secao-entrega-figurino');
     if (!grid || !secao) return;
     if (!alvo.vinculo_id) { secao.style.display = 'none'; return; }
-    // Peça de Figurino é sempre de um público só -- publico é literalmente
-    // o mesmo valor de perfil (ritmista/mestre/diretor/apoio), sem bloco
-    // agrupado "diretoria".
+    // Peça pode cobrir mais de um público ao mesmo tempo (27/ago/2026) --
+    // publico virou lista; "cs" (contains) traz toda peça cujo público
+    // inclua o perfil desta pessoa.
     const publico = alvo.perfil;
     const authHeaders = await fpAuthHeaders();
     const [resAtivos, resMestre, resEntregas] = await Promise.all([
         fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${alvo.bateria_id}&ativo=eq.true`, { headers: authHeaders }),
-        fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?publico=eq.${publico}&ativo=eq.true&order=ordem`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?publico=cs.{${publico}}&ativo=eq.true&order=ordem`, { headers: authHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?vinculo_id=eq.${alvo.vinculo_id}`, { headers: authHeaders }),
     ]);
     const ativos = resAtivos.ok ? await resAtivos.json() : [];

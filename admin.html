@@ -1848,6 +1848,12 @@
             </label>
         </div>
         <p class="config-sub-desc" style="margin-top:-8px;">Nasce tudo desligado -- ativar a peça aqui não é o mesmo que querer vê-la na Visão Geral. Ligue "Entrega Iniciada" quando quiser acompanhar; ligue "Entrega Finalizada" quando não sobrar mais ninguém pra entregar (esconde de novo, mesmo com "Entrega Iniciada" ligado).</p>
+        <!-- Filtro de lado (27/ago/2026) -- só aparece quando a peça cobre
+             Ritmista(s) E Diretoria (Mestre/Diretor/Apoio) ao mesmo tempo;
+             peça de um lado só continua sem esse filtro, igual sempre foi.
+             Troca só o que a LISTA mostra -- o totalizador acima sempre
+             soma os dois lados separados, quando existem os dois. -->
+        <div class="figurino-filtro-status" id="figurino-filtro-lado" style="display:none;margin-bottom:14px;"></div>
         <input type="text" id="figurino-entregas-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarEntregasFigurinoLista()"
             style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;margin-bottom:10px;">
         <select id="figurino-entregas-filtro-instrumento" onchange="renderizarEntregasFigurinoLista()" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;outline:none;margin-bottom:10px;">
@@ -2366,7 +2372,7 @@
         if (!souSuperAdmin && !tenhoCapacidade('ver_extras')) { card.style.display = 'none'; return; }
         const lista = extrasCache || [];
         document.getElementById('totalExtrasRitmistas').textContent = lista.filter(e => e.grupo === 'ritmista').length;
-        document.getElementById('totalExtrasDiretoria').textContent = lista.filter(e => e.grupo === 'diretoria').length;
+        document.getElementById('totalExtrasDiretoria').textContent = lista.filter(e => e.grupo === 'diretor' || e.grupo === 'apoio').length;
         card.style.display = 'flex';
     }
 
@@ -3473,7 +3479,7 @@
         const itemIds = ativos.map(a => a.figurino_item_mestre_id);
         const itens = ativos.map(a => a.item).filter(Boolean);
         if (itens.length === 0) { card.style.display = 'none'; return; }
-        const perfis = [...new Set(itens.map(i => i.publico))];
+        const perfis = [...new Set(itens.flatMap(i => i.publico))];
         // "Incluir Extras" (25/ago/2026) soma junto o lado certo de Extras
         // no resumo, mesma lógica de carregarEntregasFigurino.
         const precisaExtras = itens.some(i => i.inclui_extras);
@@ -3533,15 +3539,20 @@
             </div>`;
         };
         const itensOrdenados = [...itens].sort((a, b) =>
-            ORDEM_PUBLICO_FIGURINO.indexOf(a.publico) - ORDEM_PUBLICO_FIGURINO.indexOf(b.publico) || a.nome.localeCompare(b.nome, 'pt-BR'));
+            ORDEM_PUBLICO_FIGURINO.indexOf(a.publico[0]) - ORDEM_PUBLICO_FIGURINO.indexOf(b.publico[0]) || a.nome.localeCompare(b.nome, 'pt-BR'));
         div.innerHTML = itensOrdenados.map((item, idx) => {
             const entreguesSet = entreguesPorItem[item.id] || new Set();
-            const pessoasAlvo = pessoas.filter(p => p.perfil === item.publico);
+            // Peça agora pode cobrir Ritmista(s) E Diretoria (Mestre/Diretor/
+            // Apoio) ao mesmo tempo (27/ago/2026) -- mostra os dois blocos
+            // juntos quando isso acontecer, cada um com seu próprio total.
+            const pessoasAlvo = pessoas.filter(p => item.publico.includes(p.perfil));
+            const pessoasRitmista = pessoasAlvo.filter(p => p.perfil === 'ritmista');
+            const pessoasDiretoria = pessoasAlvo.filter(p => p.perfil !== 'ritmista');
             let corpoHtml = '';
             let totalGeral = 0, entreguesGeral = 0;
-            if (item.publico === 'ritmista' && pessoasAlvo.length > 0) {
+            if (pessoasRitmista.length > 0) {
                 const porInstrumento = {};
-                pessoasAlvo.forEach(p => {
+                pessoasRitmista.forEach(p => {
                     const chave = p.instrumento_nome || 'Sem instrumento';
                     if (!porInstrumento[chave]) porInstrumento[chave] = { total: 0, entregues: 0 };
                     porInstrumento[chave].total++;
@@ -3551,31 +3562,37 @@
                     .sort((a, b) => b.faltam - a.faltam || a.nome.localeCompare(b.nome, 'pt-BR'));
                 corpoHtml += linhas.map(l => linhaHtml(l.nome, l.entregues, l.total)).join('');
                 linhas.forEach(l => { totalGeral += l.total; entreguesGeral += l.entregues; });
-            } else if (item.publico !== 'ritmista' && pessoasAlvo.length > 0) {
+            }
+            if (pessoasDiretoria.length > 0) {
                 // Rótulo genérico "Diretoria" em vez do cargo específico
                 // (Mestres/Diretores de Bateria/Diretores) -- pedido dela,
                 // 27/ago/2026, pra bater com a separação Ritmistas/Diretoria
-                // usada no resto da Visão Geral (Convidados, filtro de
-                // Entrega planejado pra Público múltiplo).
-                const entregues = pessoasAlvo.filter(p => entreguesSet.has(p.id)).length;
-                corpoHtml += linhaHtml('Diretoria', entregues, pessoasAlvo.length);
-                totalGeral += pessoasAlvo.length; entreguesGeral += entregues;
+                // usada no resto da Visão Geral (Convidados).
+                const entregues = pessoasDiretoria.filter(p => entreguesSet.has(p.id)).length;
+                corpoHtml += linhaHtml('Diretoria', entregues, pessoasDiretoria.length);
+                totalGeral += pessoasDiretoria.length; entreguesGeral += entregues;
             }
             if (item.inclui_extras) {
-                const grupo = grupoExtraDoPublico(item.publico);
-                const extrasAlvo = (extras || []).filter(e => e.grupo === grupo);
-                if (extrasAlvo.length > 0) {
-                    const extrasEntreguesSet = extrasEntreguesPorItem[item.id] || new Set();
-                    const entreguesExtras = extrasAlvo.filter(e => extrasEntreguesSet.has(e.id)).length;
-                    // Rótulo "Convidados Ritmistas"/"Convidados Diretoria" em
-                    // vez de só "Convidados" -- mesma nomenclatura dos cards
-                    // novos da Visão Geral (27/ago/2026).
-                    const rotuloConvidados = grupo === 'ritmista' ? 'Convidados - Ritmistas' : 'Convidados - Diretoria';
-                    corpoHtml += linhaHtml(rotuloConvidados, entreguesExtras, extrasAlvo.length);
-                    totalGeral += extrasAlvo.length; entreguesGeral += entreguesExtras;
+                const grupos = gruposExtraDoPublico(item.publico);
+                const extrasAlvo = (extras || []).filter(e => grupos.includes(e.grupo));
+                const extrasRitmista = extrasAlvo.filter(e => e.grupo === 'ritmista');
+                const extrasDiretoria = extrasAlvo.filter(e => e.grupo !== 'ritmista');
+                const extrasEntreguesSet = extrasEntreguesPorItem[item.id] || new Set();
+                // Rótulo "Convidados - Ritmistas"/"Convidados - Diretoria" em
+                // vez de só "Convidados" -- mesma nomenclatura dos cards
+                // novos da Visão Geral (27/ago/2026).
+                if (extrasRitmista.length > 0) {
+                    const entreguesExtras = extrasRitmista.filter(e => extrasEntreguesSet.has(e.id)).length;
+                    corpoHtml += linhaHtml('Convidados - Ritmistas', entreguesExtras, extrasRitmista.length);
+                    totalGeral += extrasRitmista.length; entreguesGeral += entreguesExtras;
+                }
+                if (extrasDiretoria.length > 0) {
+                    const entreguesExtras = extrasDiretoria.filter(e => extrasEntreguesSet.has(e.id)).length;
+                    corpoHtml += linhaHtml('Convidados - Diretoria', entreguesExtras, extrasDiretoria.length);
+                    totalGeral += extrasDiretoria.length; entreguesGeral += entreguesExtras;
                 }
             }
-            if (!corpoHtml) corpoHtml = `<div style="color:#bbb;font-size:13px;padding:4px 0 9px;">Ninguém em ${LABEL_PUBLICO_FIGURINO[item.publico].toLowerCase()} ainda.</div>`;
+            if (!corpoHtml) corpoHtml = `<div style="color:#bbb;font-size:13px;padding:4px 0 9px;">Ninguém em ${item.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(' / ').toLowerCase()} ainda.</div>`;
             const aberto = vgFigurinoAbertos.has(item.id);
             return `
             <div style="${idx === 0 ? '' : 'margin-top:16px;'}">
@@ -4541,7 +4558,7 @@
         if (!container) return;
         if (bibliotecaFigurino.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino cadastrado na lista mestre ainda. Peça pro Super Admin cadastrar em Configurações → Figurino.</div>'; return; }
         container.innerHTML = ORDEM_PUBLICO_FIGURINO.map(publico => {
-            const itensPublico = bibliotecaFigurino.filter(f => f.publico === publico);
+            const itensPublico = bibliotecaFigurino.filter(f => f.publico.includes(publico));
             if (itensPublico.length === 0) return '';
             const categoriaIds = [...new Set(itensPublico.map(f => f.medida_tipo_id))];
             const categorias = categoriaIds.map(id => bibliotecaMedidaTipos.find(t => t.id === id)).filter(Boolean)
@@ -4555,11 +4572,16 @@
     function renderizarLinhaFigurinoConfig(f) {
         const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === f.id);
         const ativo = !!(existente && existente.ativo);
+        // Peça pode cobrir mais de um público (27/ago/2026) -- aparece
+        // repetida em cada seção correspondente, mas o rótulo sempre mostra
+        // TODOS os públicos cobertos, pra deixar claro que é a mesma peça e
+        // que o interruptor abaixo liga/desliga ela inteira, não só nesta seção.
+        const publicosTexto = f.publico.length > 1 ? f.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(', ') : '';
         return `
             <div class="item-card">
                 <label class="config-instrumento-check">
                     <input type="checkbox" ${ativo ? 'checked' : ''} onchange="salvarFigurinoBateria(${f.id}, this.checked)">
-                    <span class="item-nome">${esc(f.nome)}</span>
+                    <span class="item-nome">${esc(f.nome)}${publicosTexto ? ` <span style="font-weight:400;color:var(--cor-texto-muted);">(${esc(publicosTexto)})</span>` : ''}</span>
                 </label>
             </div>`;
     }
@@ -4590,6 +4612,10 @@
     // ══════════════════════════════════════════════════════════════════
     let figurinoEntregaItemAtual = null;
     let figurinoEntregaPessoasCache = [];
+    // Qual "lado" a lista mostra agora -- só importa quando a peça cobre
+    // Ritmista(s) E Diretoria ao mesmo tempo (27/ago/2026); nasce no lado
+    // que a peça cobrir primeiro (Ritmista, se cobrir).
+    let figurinoEntregaLadoAtual = 'ritmista';
 
     function voltarFigurinoLista() {
         document.querySelectorAll('#painel-figurino .config-subtela').forEach(el => el.style.display = 'none');
@@ -4611,7 +4637,7 @@
         const itensAtivos = bibliotecaFigurino.filter(f => ativosIds.has(f.id));
         if (itensAtivos.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino ativo nesta bateria ainda. Ative em Configurações → Figurino.</div>'; return; }
         container.innerHTML = ORDEM_PUBLICO_FIGURINO.map(publico => {
-            const itensPublico = itensAtivos.filter(f => f.publico === publico);
+            const itensPublico = itensAtivos.filter(f => f.publico.includes(publico));
             if (itensPublico.length === 0) return '';
             const categoriaIds = [...new Set(itensPublico.map(f => f.medida_tipo_id))];
             const categorias = categoriaIds.map(id => bibliotecaMedidaTipos.find(t => t.id === id)).filter(Boolean)
@@ -4632,25 +4658,32 @@
         const item = bibliotecaFigurino.find(i => i.id === itemId);
         if (!item) return;
         figurinoEntregaItemAtual = item;
+        // Nasce no lado Ritmista se a peça cobrir Ritmista, senão Diretoria
+        // -- só existe escolha de verdade quando cobre os dois (ver
+        // renderizarFiltroLadoFigurino).
+        figurinoEntregaLadoAtual = item.publico.includes('ritmista') ? 'ritmista' : 'diretoria';
         document.getElementById('figurino-lista').style.display = 'none';
         document.querySelectorAll('#painel-figurino .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('figurino-tela-entregas').style.display = 'block';
         document.getElementById('figurino-entregas-titulo').textContent = item.nome;
         document.getElementById('figurino-entregas-busca').value = '';
-        // Filtro de instrumento só faz sentido pra peça de Ritmista -- Diretoria não tem instrumento único.
-        document.getElementById('figurino-entregas-filtro-instrumento').style.display = (item.publico === 'ritmista' || item.inclui_extras) ? 'block' : 'none';
         const bfExistente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === item.id);
         document.getElementById('figurino-mostra-visao-geral').checked = !!(bfExistente && bfExistente.mostra_visao_geral);
         document.getElementById('figurino-entrega-finalizada').checked = !!(bfExistente && bfExistente.entrega_finalizada);
         await carregarEntregasFigurino();
     }
 
-    // Peça de Ritmista puxa Extras do lado "ritmista"; peça de Mestre/
-    // Diretor/Apoio puxa Extras do lado "diretoria" -- mesmo agrupamento
-    // já usado no card Diretoria (Mestre+Diretor de Bateria+Diretor formam
-    // um "lado" só). Só entra na conta se "Incluir Extras" estiver ligado
-    // na peça (Super Admin → Configurações → Figurino).
-    function grupoExtraDoPublico(publico) { return publico === 'ritmista' ? 'ritmista' : 'diretoria'; }
+    // Cada valor de público mapeia direto pro mesmo grupo em extras.grupo --
+    // não existe mais bloco combinado "diretoria" (27/ago/2026, peça agora
+    // pode cobrir vários públicos ao mesmo tempo). "mestre" fica de fora --
+    // não existe "Convidado do Mestre" ("só o Mestre que é único mesmo").
+    // Só entra na conta se "Incluir Extras" estiver ligado na peça
+    // (Super Admin → Configurações → Figurino).
+    function gruposExtraDoPublico(publicoArray) { return publicoArray.filter(p => p !== 'mestre'); }
+    // Ritmista é seu próprio "lado"; Mestre/Diretor/Apoio formam o "lado"
+    // Diretoria -- usado pelo filtro de 2 opções da tela de Entrega, quando
+    // a peça cobre os dois lados ao mesmo tempo.
+    function ladoDoPerfil(perfil) { return perfil === 'ritmista' ? 'ritmista' : 'diretoria'; }
 
     // Dois interruptores independentes de bateria_figurino_itens, pedido da
     // Márcia, 24/ago/2026: ativar a peça em Configurações (com
@@ -4682,19 +4715,19 @@
         const bateriaId = bateriaIdContexto();
         const container = document.getElementById('figurino-entregas-lista');
         container.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
-        // Peça é sempre de um público só (ritmista/mestre/diretor/apoio) --
-        // publico é literalmente o mesmo valor de perfil, filtra direto.
-        // "Incluir Extras" (25/ago/2026) soma junto os Extras do mesmo lado
-        // (grupoExtraDoPublico), na mesma lista/mesmo total.
+        // Peça pode cobrir vários públicos ao mesmo tempo agora (27/ago/2026)
+        // -- busca todo mundo relevante de uma vez (perfil=in.(...)); qual
+        // "lado" (Ritmista/Diretoria) a lista mostra é decidido depois, na
+        // renderização, pelo filtro figurinoEntregaLadoAtual.
         const buscas = [
-            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=eq.${item.publico}&order=nome&select=id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=in.(${item.publico.join(',')})&order=nome&select=id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas?tipo_id=eq.${item.medida_tipo_id}`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}&vinculo_id=not.is.null`, { headers: authHeaders }),
         ];
-        if (item.inclui_extras) {
-            const grupo = grupoExtraDoPublico(item.publico);
+        const gruposExtras = gruposExtraDoPublico(item.publico);
+        if (item.inclui_extras && gruposExtras.length > 0) {
             buscas.push(
-                fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&grupo=eq.${grupo}&order=nome`, { headers: authHeaders }),
+                fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&grupo=in.(${gruposExtras.join(',')})&order=nome`, { headers: authHeaders }),
                 fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?tipo_id=eq.${item.medida_tipo_id}`, { headers: authHeaders }),
                 fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}&extra_id=not.is.null`, { headers: authHeaders }),
             );
@@ -4712,20 +4745,46 @@
             entregue: !!(entregaPorVinculo[p.id] && entregaPorVinculo[p.id].entregue_em),
         }));
         let linhasExtras = [];
-        if (item.inclui_extras) {
+        if (item.inclui_extras && gruposExtras.length > 0) {
             const extras = resExtras.ok ? await resExtras.json() : [];
             const valoresExtras = resExtrasValores.ok ? await resExtrasValores.json() : [];
             const entregasExtras = resExtrasEntregas.ok ? await resExtrasEntregas.json() : [];
             const valorPorExtra = {}; valoresExtras.forEach(v => { valorPorExtra[v.extra_id] = v.valor; });
             const entregaPorExtra = {}; entregasExtras.forEach(e => { entregaPorExtra[e.extra_id] = e; });
+            // perfil recebe o próprio grupo do Convidado (ritmista/diretor/
+            // apoio) -- ladoDoPerfil() trata igual ao perfil de um vínculo.
             linhasExtras = extras.map(e => ({
-                tipo: 'extra', id: e.id, nome: e.nome, apelido: null, perfil: null,
+                tipo: 'extra', id: e.id, nome: e.nome, apelido: null, perfil: e.grupo,
                 instrumento_nome: null,
                 tamanho: valorPorExtra[e.id] || null,
                 entregue: !!(entregaPorExtra[e.id] && entregaPorExtra[e.id].entregue_em),
             }));
         }
         figurinoEntregaPessoasCache = linhasPessoas.concat(linhasExtras);
+        popularFiltroInstrumentoEntregasFigurino();
+        renderizarFiltroLadoFigurino();
+        renderizarEntregasFigurinoLista();
+    }
+
+    // Filtro de 2 opções (27/ago/2026) -- só aparece quando a peça cobre
+    // Ritmista(s) E Diretoria (Mestre/Diretor/Apoio) ao mesmo tempo. Troca só
+    // o que a LISTA mostra; o totalizador continua somando os dois lados
+    // separados, sempre visível.
+    function renderizarFiltroLadoFigurino() {
+        const el = document.getElementById('figurino-filtro-lado');
+        if (!el) return;
+        const item = figurinoEntregaItemAtual;
+        const cobreRitmista = item.publico.includes('ritmista');
+        const cobreDiretoria = item.publico.some(p => p !== 'ritmista');
+        if (!(cobreRitmista && cobreDiretoria)) { el.style.display = 'none'; el.innerHTML = ''; return; }
+        el.style.display = '';
+        el.innerHTML = ['ritmista', 'diretoria'].map(lado =>
+            `<button type="button" class="${figurinoEntregaLadoAtual === lado ? 'ativo' : ''}" onclick="mudarLadoFigurino('${lado}')">${lado === 'ritmista' ? 'Ritmista' : 'Diretoria'}</button>`
+        ).join('');
+    }
+    function mudarLadoFigurino(lado) {
+        figurinoEntregaLadoAtual = lado;
+        renderizarFiltroLadoFigurino();
         popularFiltroInstrumentoEntregasFigurino();
         renderizarEntregasFigurinoLista();
     }
@@ -4734,8 +4793,9 @@
         const select = document.getElementById('figurino-entregas-filtro-instrumento');
         if (!select) return;
         const valorAtual = select.value;
-        const temExtras = figurinoEntregaPessoasCache.some(p => p.tipo === 'extra');
-        const instrumentos = Array.from(new Set(figurinoEntregaPessoasCache.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        const doLado = figurinoEntregaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
+        const temExtras = doLado.some(p => p.tipo === 'extra');
+        const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
         select.innerHTML = '<option value="">Todos</option>'
             + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('')
             + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
@@ -4770,9 +4830,17 @@
         if (!container) return;
         renderizarFiltroStatusFigurino();
         const item = figurinoEntregaItemAtual;
+        // Filtro de lado (27/ago/2026) primeiro -- Ritmista e Diretoria nunca
+        // aparecem misturados na mesma lista, mesmo quando a peça cobre os
+        // dois. Instrumento só faz sentido do lado Ritmista (ou pro
+        // pseudo-filtro "Convidados", se sobrar algum Convidado desse lado).
+        const doLado = figurinoEntregaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
+        const filtroInstrumentoEl = document.getElementById('figurino-entregas-filtro-instrumento');
+        const mostrarFiltroInstrumento = doLado.some(p => p.instrumento_nome) || doLado.some(p => p.tipo === 'extra');
+        filtroInstrumentoEl.style.display = mostrarFiltroInstrumento ? 'block' : 'none';
         const busca = (document.getElementById('figurino-entregas-busca').value || '').trim().toLowerCase();
-        const instrumentoFiltro = document.getElementById('figurino-entregas-filtro-instrumento').value;
-        const filtrada = figurinoEntregaPessoasCache.filter(p => {
+        const instrumentoFiltro = filtroInstrumentoEl.value;
+        const filtrada = doLado.filter(p => {
             if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
             if (instrumentoFiltro === '__extras__' && p.tipo !== 'extra') return false;
             if (instrumentoFiltro && instrumentoFiltro !== '__extras__' && p.instrumento_nome !== instrumentoFiltro) return false;
@@ -4786,7 +4854,7 @@
         // sem misturar com quem já foi resolvido.
         const ordenarPendentesPrimeiro = (a, b) => Number(a.entregue) - Number(b.entregue);
         const linhaPessoaHtml = p => {
-            const detalhe = esc(p.instrumento_nome || LABEL_PERFIL_FIGURINO[p.perfil] || (p.tipo === 'extra' ? 'Convidado' : ''));
+            const detalhe = esc(p.instrumento_nome || (p.tipo === 'vinculo' ? LABEL_PERFIL_FIGURINO[p.perfil] : null) || (p.tipo === 'extra' ? 'Convidado' : ''));
             let acaoHtml;
             if (p.entregue) {
                 acaoHtml = podeEditar
@@ -4824,9 +4892,10 @@
             const principais = filtrada.filter(p => p.tipo === 'vinculo').sort(ordenarPendentesPrimeiro);
             const extrasList = filtrada.filter(p => p.tipo === 'extra').sort(ordenarPendentesPrimeiro);
             const mostrarSecoes = principais.length > 0 && extrasList.length > 0;
+            const rotuloLado = figurinoEntregaLadoAtual === 'ritmista' ? 'Ritmistas' : 'Diretoria';
             let html = '';
             if (principais.length > 0) {
-                if (mostrarSecoes) html += `<div class="secao-titulo">${item && LABEL_PUBLICO_FIGURINO[item.publico] || 'Ritmistas'}</div>`;
+                if (mostrarSecoes) html += `<div class="secao-titulo">${rotuloLado}</div>`;
                 html += principais.map(linhaPessoaHtml).join('');
             }
             if (extrasList.length > 0) {
@@ -4835,36 +4904,31 @@
             }
             container.innerHTML = html;
         }
-        // Totalizador sempre soma a peça inteira (Ritmistas/Diretoria +
-        // Extras do mesmo lado, se ligado) -- nunca só o que está filtrado
-        // na busca/instrumento/status, pedido dela 25/ago/2026. Quando a
-        // peça inclui Convidados, o total vem separado por tipo (pedido
-        // dela, 26/ago/2026: "no contador, preciso que esteja separado a
-        // contagem de quantos são ritmistas e quantos são convidados") --
-        // sem isso, os dois se misturavam num número só.
+        // Totalizador (27/ago/2026) -- passou a separar Diretoria x Ritmista
+        // (2 blocos), não mais Vínculo x Convidado -- mais simples, e sempre
+        // soma a peça inteira (nunca só o que está filtrado na busca/
+        // instrumento/status/lado, pedido dela 25/ago/2026). Peça de um lado
+        // só continua com um total simples, sem quebrar em blocos à toa.
         const totalizador = document.getElementById('figurino-entregas-totalizador');
         if (totalizador) {
-            const todosPrincipais = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo');
-            const todosExtras = figurinoEntregaPessoasCache.filter(p => p.tipo === 'extra');
+            const doLadoTotal = lado => figurinoEntregaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === lado);
+            const ritmista = doLadoTotal('ritmista');
+            const diretoria = doLadoTotal('diretoria');
             if (figurinoEntregaPessoasCache.length === 0) {
                 totalizador.innerHTML = '';
-            } else if (item && item.inclui_extras && todosExtras.length > 0) {
-                const totalP = todosPrincipais.length, entreguesP = todosPrincipais.filter(p => p.entregue).length;
-                const totalE = todosExtras.length, entreguesE = todosExtras.filter(p => p.entregue).length;
-                // Totalzão geral primeiro (Ritmistas + Convidados somados),
-                // depois o detalhe por tipo de pessoa, menor -- pedido dela,
-                // 27/ago/2026: "pode ser assim? o total por tipo de pessoa
-                // pode ser menor".
+            } else if (ritmista.length > 0 && diretoria.length > 0) {
+                const totalR = ritmista.length, entreguesR = ritmista.filter(p => p.entregue).length;
+                const totalD = diretoria.length, entreguesD = diretoria.filter(p => p.entregue).length;
                 totalizador.innerHTML = `<div>
-                    ${totalDuploHtml(totalP + totalE, (totalP - entreguesP) + (totalE - entreguesE))}
+                    ${totalDuploHtml(totalR + totalD, (totalR - entreguesR) + (totalD - entreguesD))}
                     <div class="figurino-totalizadores-grupo" style="margin-top:16px;padding-top:16px;border-top:1px solid #eee;">
                         <div>
-                            <div class="secao-titulo" style="margin-bottom:8px;">${LABEL_PUBLICO_FIGURINO[item.publico] || 'Ritmistas'}</div>
-                            ${totalDuploHtml(totalP, totalP - entreguesP, true)}
+                            <div class="secao-titulo" style="margin-bottom:8px;">Ritmistas</div>
+                            ${totalDuploHtml(totalR, totalR - entreguesR, true)}
                         </div>
                         <div>
-                            <div class="secao-titulo" style="margin-bottom:8px;">Convidados</div>
-                            ${totalDuploHtml(totalE, totalE - entreguesE, true)}
+                            <div class="secao-titulo" style="margin-bottom:8px;">Diretoria</div>
+                            ${totalDuploHtml(totalD, totalD - entreguesD, true)}
                         </div>
                     </div>
                 </div>`;
@@ -4971,7 +5035,11 @@
         atualizarTotalizadorExtras();
     }
 
-    const LABEL_GRUPO_EXTRA = { ritmista: 'Ritmistas', diretoria: 'Diretoria' };
+    // 3 grupos (27/ago/2026, era só Ritmistas/Diretoria) -- sem grupo
+    // próprio pra Mestre ("só o Mestre que é único mesmo, rs" -- não existe
+    // "Convidado do Mestre"). Mesmo rótulo plural já usado nos títulos de
+    // seção da aba Diretoria.
+    const LABEL_GRUPO_EXTRA = { ritmista: 'Ritmistas', diretor: 'Diretores de Bateria', apoio: 'Diretores (Apoio)' };
     function renderizarExtrasLista() {
         const container = document.getElementById('extras-lista');
         if (!container) return;
@@ -4983,14 +5051,14 @@
         if (totalGeralEl) totalGeralEl.textContent = `${extrasCache.length} convidado(s) no total`;
         if (extrasCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🎽</div>Nenhum Convidado cadastrado ainda.</div>'; return; }
         const podeEditar = tenhoCapacidade('editar_extras');
-        container.innerHTML = ['ritmista', 'diretoria'].map(grupo => {
+        container.innerHTML = ['ritmista', 'diretor', 'apoio'].map(grupo => {
             const itens = extrasCache.filter(e => e.grupo === grupo);
             if (itens.length === 0) return '';
             return `<div class="secao-titulo" style="display:flex;justify-content:space-between;align-items:center;"><span>${LABEL_GRUPO_EXTRA[grupo]}</span><span style="color:#D4AF37;font-weight:800;font-size:14px;letter-spacing:normal;">${itens.length}</span></div>` + itens.map(e => {
                 // Figurinos que esse Convidado já recebeu (26/ago/2026, pedido
-                // dela) -- só peças do mesmo lado (ritmista/diretoria) com
-                // "Incluir Convidados" ligado.
-                const itensDesseGrupo = extraFigurinoItensAtivos.filter(it => grupoExtraDoPublico(it.publico) === e.grupo);
+                // dela) -- só peças cujo público cobre o mesmo grupo do
+                // Convidado (ritmista/diretor/apoio), com "Incluir Convidados" ligado.
+                const itensDesseGrupo = extraFigurinoItensAtivos.filter(it => it.publico.includes(e.grupo));
                 const entreguesSet = extraFigurinoEntreguesPorExtra[e.id] || new Set();
                 const figurinoHtml = itensDesseGrupo.length > 0 ? `<div class="extra-figurino-status">${itensDesseGrupo.map(it => {
                     const entregue = entreguesSet.has(it.id);
@@ -5079,8 +5147,7 @@
             <div class="form-grid">
                 <div class="campo campo-full"><label>Nome *</label><input type="text" id="extra-edit-nome" value="${esc(ee.nome)}" placeholder="Nome completo"></div>
                 <div class="campo campo-full"><label>Tipo de Convidado *</label><select id="extra-edit-grupo" onchange="onchangeGrupoExtra(this.value)">
-                    <option value="ritmista" ${ee.grupo === 'ritmista' ? 'selected' : ''}>Ritmistas</option>
-                    <option value="diretoria" ${ee.grupo === 'diretoria' ? 'selected' : ''}>Diretoria</option>
+                    ${['ritmista', 'diretor', 'apoio'].map(g => `<option value="${g}" ${ee.grupo === g ? 'selected' : ''}>${LABEL_GRUPO_EXTRA[g]}</option>`).join('')}
                 </select></div>
                 ${ee.grupo === 'ritmista' ? `<div class="campo campo-full"><label>Instrumento *</label><select id="extra-edit-instrumento">
                     <option value="">Selecione</option>
@@ -6664,15 +6731,21 @@
         const container = document.getElementById('sa-figurino-lista');
         if (figurinoMestreCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino cadastrado ainda.</div>'; return; }
         container.innerHTML = ORDEM_PUBLICO_FIGURINO.map(publico => {
-            const itens = figurinoMestreCacheSA.filter(f => f.publico === publico).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            const itens = figurinoMestreCacheSA.filter(f => f.publico.includes(publico)).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
             if (itens.length === 0) return '';
             return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[publico]}</div>` + itens.map(f => {
                 const categoria = medidaTiposCacheSA.find(t => t.id === f.medida_tipo_id);
+                // Peça pode cobrir mais de um público ao mesmo tempo
+                // (27/ago/2026) -- por isso aparece repetida em cada seção
+                // correspondente; o detalhe sempre mostra TODOS os públicos
+                // cobertos, não só o desta seção, pra ficar claro que é a
+                // mesma peça.
+                const publicosTexto = f.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(', ');
                 return `
                 <div class="item-card">
                     <div class="item-info">
                         <div class="item-nome">${esc(f.nome)} ${f.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
-                        <div class="item-detalhe">Categoria: ${esc(categoria ? categoria.nome : '—')}${f.inclui_extras ? ' · Inclui Convidados' : ''}</div>
+                        <div class="item-detalhe">Categoria: ${esc(categoria ? categoria.nome : '—')} · Público: ${esc(publicosTexto)}${f.inclui_extras ? ' · Inclui Convidados' : ''}</div>
                     </div>
                     <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarFigurinoMestre(${f.id})">Editar</button></div>
                 </div>`;
@@ -6680,14 +6753,22 @@
         }).join('');
     }
     function abrirNovoFigurinoMestre() {
-        figurinoMestreEditando = { id: null, nome: '', medida_tipo_id: medidaTiposCacheSA[0] ? medidaTiposCacheSA[0].id : null, publico: 'ritmista', ativo: true, inclui_extras: false };
+        figurinoMestreEditando = { id: null, nome: '', medida_tipo_id: medidaTiposCacheSA[0] ? medidaTiposCacheSA[0].id : null, publico: ['ritmista'], ativo: true, inclui_extras: false };
         renderizarEditorFigurinoMestre();
     }
     function abrirEditarFigurinoMestre(id) {
         const f = figurinoMestreCacheSA.find(x => x.id === id);
         if (!f) return;
-        figurinoMestreEditando = { id: f.id, nome: f.nome, medida_tipo_id: f.medida_tipo_id, publico: f.publico, ativo: f.ativo !== false, inclui_extras: !!f.inclui_extras };
+        figurinoMestreEditando = { id: f.id, nome: f.nome, medida_tipo_id: f.medida_tipo_id, publico: [...f.publico], ativo: f.ativo !== false, inclui_extras: !!f.inclui_extras };
         renderizarEditorFigurinoMestre();
+    }
+    // Público virou checkboxes (27/ago/2026, pedido dela) -- uma peça agora
+    // pode cobrir vários públicos ao mesmo tempo (ex: mesma "Camisa da
+    // Final" pra Ritmista e Diretor de Bateria, sem precisar cadastrar duas
+    // vezes). Ativação por bateria continua sendo por peça inteira, não
+    // muda -- só o rótulo passa a mostrar todos os públicos cobertos.
+    function onCheckPublicoFigurinoMestre() {
+        figurinoMestreEditando.publico = ORDEM_PUBLICO_FIGURINO.filter(p => document.getElementById(`fig-mestre-edit-publico-${p}`).checked);
     }
     function renderizarEditorFigurinoMestre() {
         const fe = figurinoMestreEditando;
@@ -6701,9 +6782,16 @@
             <div class="form-grid">
                 <div class="campo campo-full"><label>Nome *</label><input type="text" id="fig-mestre-edit-nome" value="${esc(fe.nome)}" placeholder="Ex: Camisa da Final"></div>
                 <div class="campo"><label>Categoria de Figurino (usa o tamanho dela) *</label><select id="fig-mestre-edit-categoria">${medidaTiposCacheSA.map(t => `<option value="${t.id}" ${fe.medida_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}</select></div>
-                <div class="campo"><label>Público *</label><select id="fig-mestre-edit-publico">
-                    ${ORDEM_PUBLICO_FIGURINO.map(p => `<option value="${p}" ${fe.publico === p ? 'selected' : ''}>${LABEL_PUBLICO_FIGURINO[p]}</option>`).join('')}
-                </select></div>
+                <div class="campo campo-full">
+                    <label>Público * <span style="font-weight:400;color:var(--cor-texto-muted);">(pode marcar mais de um)</span></label>
+                    <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;">
+                        ${ORDEM_PUBLICO_FIGURINO.map(p => `
+                            <label class="config-instrumento-check">
+                                <input type="checkbox" id="fig-mestre-edit-publico-${p}" ${fe.publico.includes(p) ? 'checked' : ''} onchange="onCheckPublicoFigurinoMestre()">
+                                <span>${LABEL_PUBLICO_FIGURINO[p]}</span>
+                            </label>`).join('')}
+                    </div>
+                </div>
                 <div class="campo"><label>Status</label><select id="fig-mestre-edit-ativo">
                     <option value="true" ${fe.ativo ? 'selected' : ''}>Ativo</option>
                     <option value="false" ${!fe.ativo ? 'selected' : ''}>Inativo</option>
@@ -6711,7 +6799,7 @@
                 <div class="campo campo-full">
                     <label class="config-instrumento-check">
                         <input type="checkbox" id="fig-mestre-edit-inclui-extras" ${fe.inclui_extras ? 'checked' : ''}>
-                        <span>Incluir Convidados (soma junto os Convidados do mesmo lado -- Ritmistas ou Diretoria -- na entrega desta peça)</span>
+                        <span>Incluir Convidados (soma junto os Convidados dos mesmos públicos marcados acima na entrega desta peça)</span>
                     </label>
                 </div>
             </div>
@@ -6730,7 +6818,8 @@
         const nome = document.getElementById('fig-mestre-edit-nome').value.trim();
         if (!nome) { mostrarToast('Informe o nome do Figurino.', 'erro'); return; }
         const medidaTipoId = Number(document.getElementById('fig-mestre-edit-categoria').value);
-        const publico = document.getElementById('fig-mestre-edit-publico').value;
+        const publico = ORDEM_PUBLICO_FIGURINO.filter(p => document.getElementById(`fig-mestre-edit-publico-${p}`).checked);
+        if (publico.length === 0) { mostrarToast('Marque pelo menos um público.', 'erro'); return; }
         const ativo = document.getElementById('fig-mestre-edit-ativo').value === 'true';
         const inclui_extras = document.getElementById('fig-mestre-edit-inclui-extras').checked;
         salvandoFigurinoMestre = true;
