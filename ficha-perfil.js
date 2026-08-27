@@ -558,9 +558,9 @@ async function fpRenderizarEntregaFigurino(alvo) {
     const entregaPorItem = {};
     entregas.forEach(e => { entregaPorItem[e.figurino_item_id] = !!e.entregue_em; });
     grid.innerHTML = itens.map(it => `
-        <div class="ficha-campo">
+        <div class="ficha-campo full ficha-campo--linha">
             <span>${it.nome}</span>
-            <strong>${entregaPorItem[it.id] ? '✓ Entregue' : '—'}</strong>
+            <strong class="${entregaPorItem[it.id] ? 'ficha-valor-entregue' : ''}">${entregaPorItem[it.id] ? '✓ Entregue' : '—'}</strong>
         </div>`).join('');
 }
 
