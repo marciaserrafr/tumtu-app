@@ -5412,7 +5412,6 @@
     const CAPACIDADE_DA_ABA = {
         'dados-escola': 'ver_dados_escola',
         'dados-bateria': 'ver_dados_bateria',
-        'comercial': 'ver_comercial',
         'visao': 'ver_visao_geral',
         'ritmistas': 'ver_ritmistas',
         'diretoria': 'ver_acessos',
@@ -5424,7 +5423,14 @@
 
     // A aba "Configurações" aparece se a pessoa tiver QUALQUER capacidade de
     // ver/editar de qualquer uma das 4 sub-telas (ver CAPACIDADE_CONFIG_SUBTELA).
+    // "Comercial" (Modo Carteirinha) é EXCLUSIVO de Super Admin, sempre --
+    // decisão comercial, nunca uma permissão configurável pra Mestre/Diretor/
+    // Apoio, nem por engano (achado da Márcia, 28/ago/2026: existia
+    // ver_comercial/editar_comercial no catálogo, dava pra conceder sem
+    // querer). `tenhoCapacidade` sozinho não bastava aqui -- precisa negar
+    // mesmo que `souSuperAdmin` mude de contexto no futuro.
     function podeVerAba(aba) {
+        if (aba === 'comercial') return souSuperAdmin;
         if (aba === 'configuracoes') return Object.keys(CAPACIDADE_CONFIG_SUBTELA).some(nome => podeVerConfigSubtela(nome));
         const capacidadeExigida = CAPACIDADE_DA_ABA[aba];
         return !capacidadeExigida || tenhoCapacidade(capacidadeExigida);
@@ -6363,7 +6369,6 @@
         { grupo: 'Visão Geral', itens: [{ chave: 'ver_visao_geral', label: 'Ver' }] },
         { grupo: 'Dados da Escola', itens: [{ chave: 'ver_dados_escola', label: 'Ver' }, { chave: 'editar_dados_escola', label: 'Editar' }] },
         { grupo: 'Dados da Bateria', itens: [{ chave: 'ver_dados_bateria', label: 'Ver' }, { chave: 'editar_dados_bateria', label: 'Editar' }] },
-        { grupo: 'Comercial', itens: [{ chave: 'ver_comercial', label: 'Ver' }, { chave: 'editar_comercial', label: 'Editar' }] },
         { grupo: 'Ritmistas', itens: [
             { chave: 'ver_ritmistas', label: 'Ver lista (nome, apelido, instrumento, status)' },
             { chave: 'ver_dados_sensiveis_ritmistas', label: 'Ver CPF, endereço, contato de emergência e dados do responsável' },
