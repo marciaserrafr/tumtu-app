@@ -970,6 +970,11 @@
         .figurino-filtros-linha { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
         .figurino-pill-select { appearance: none; -webkit-appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 6L9 0z' fill='%23888'/%3E%3C/svg%3E") no-repeat right 12px center; border: 1.5px solid #e0e0e0; border-radius: 20px; padding: 7px 30px 7px 14px; font-family: inherit; font-size: 12.5px; font-weight: 600; color: #12101a; cursor: pointer; }
         .figurino-totalizadores-grupo { display: flex; flex-wrap: wrap; gap: 40px; }
+        /* Totalizador + interruptores lado a lado em tela larga, empilhado
+           em tela estreita -- sem media query, só o wrap natural do flex
+           (27/ago/2026, ideia dela). */
+        .figurino-entrega-topo { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
+        .figurino-entrega-flags { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 220px; }
         /* Figurinos recebidos, direto no card do Convidado (26/ago/2026, pedido dela). */
         .extra-figurino-status { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e0e0e0; }
         .extra-figurino-linha { display: flex; align-items: center; gap: 7px; font-size: 12.5px; }
@@ -1829,35 +1834,43 @@
         <button class="btn-voltar-config" onclick="voltarFigurinoLista()">← Entrega de Figurino</button>
         <div class="painel-titulo" id="figurino-entregas-titulo">Entregas</div>
         <p class="config-sub-desc">Tamanho mostrado só pra consulta (vem de Medidas) — a edição do tamanho continua na ficha da pessoa.</p>
-        <!-- Totalizador logo no topo (26/ago/2026, pedido dela: "precisavam
-             ficar mais na parte de cima... tenho que escrolar tudo para
-             ver") -- antes ficava no fim da lista, escondido até rolar a
-             tela inteira. Sempre soma TODO mundo da peça (Ritmistas/
-             Diretoria + Extras do mesmo lado, se "Incluir Extras" estiver
-             ligado), nunca só o que está filtrado na busca/instrumento --
-             é o total da peça inteira, ver renderizarEntregasFigurinoLista(). -->
-        <div id="figurino-entregas-totalizador" class="total-duplo-card" style="margin-bottom:24px;"></div>
-        <!-- Dois interruptores, pedido dela, 24/ago/2026: ativar a peça em
-             Configurações (com antecedência) não quer dizer que ela deve
-             aparecer na Visão Geral -- "Entrega Iniciada" é uma decisão à
-             parte, sempre nasce desligada. "Entrega Finalizada" é o fim de
-             verdade (nada mais pra entregar pra ninguém) -- também some
-             da Visão Geral, mesmo que "Entrega Iniciada" esteja ligado.
-             Rótulo "Mostrar na Visão Geral" trocado por "Entrega Iniciada"
-             a pedido dela, 24/ago/2026 -- id/função internos continuam
-             com o nome antigo (mostra_visao_geral/toggleMostraVisaoGeral),
-             só o texto visível mudou. -->
-        <div class="item-card" style="margin-bottom:10px;">
-            <label class="config-instrumento-check">
-                <input type="checkbox" id="figurino-mostra-visao-geral" onchange="toggleMostraVisaoGeral(this.checked)">
-                <span class="item-nome">Entrega Iniciada</span>
-            </label>
-        </div>
-        <div class="item-card" style="margin-bottom:14px;">
-            <label class="config-instrumento-check">
-                <input type="checkbox" id="figurino-entrega-finalizada" onchange="toggleEntregaFinalizada(this.checked)">
-                <span class="item-nome">Entrega Finalizada</span>
-            </label>
+        <!-- Totalizador + os 2 interruptores lado a lado (27/ago/2026,
+             ideia dela: aproveitar o espaço vazio ao lado do card em telas
+             largas, em vez de empilhar tudo embaixo) -- em tela estreita
+             (celular) o wrap natural do flex empilha sozinho, sem precisar
+             de media query. Totalizador sempre no topo (26/ago/2026, pedido
+             dela: "precisavam ficar mais na parte de cima... tenho que
+             escrolar tudo para ver") -- antes ficava no fim da lista.
+             Sempre soma TODO mundo da peça (Ritmistas/Diretoria + Extras do
+             mesmo lado, se "Incluir Extras" estiver ligado), nunca só o que
+             está filtrado na busca/instrumento -- é o total da peça
+             inteira, ver renderizarEntregasFigurinoLista(). -->
+        <div class="figurino-entrega-topo">
+            <div id="figurino-entregas-totalizador" class="total-duplo-card"></div>
+            <!-- Dois interruptores, pedido dela, 24/ago/2026: ativar a peça em
+                 Configurações (com antecedência) não quer dizer que ela deve
+                 aparecer na Visão Geral -- "Entrega Iniciada" é uma decisão à
+                 parte, sempre nasce desligada. "Entrega Finalizada" é o fim de
+                 verdade (nada mais pra entregar pra ninguém) -- também some
+                 da Visão Geral, mesmo que "Entrega Iniciada" esteja ligado.
+                 Rótulo "Mostrar na Visão Geral" trocado por "Entrega Iniciada"
+                 a pedido dela, 24/ago/2026 -- id/função internos continuam
+                 com o nome antigo (mostra_visao_geral/toggleMostraVisaoGeral),
+                 só o texto visível mudou. -->
+            <div class="figurino-entrega-flags">
+                <div class="item-card">
+                    <label class="config-instrumento-check">
+                        <input type="checkbox" id="figurino-mostra-visao-geral" onchange="toggleMostraVisaoGeral(this.checked)">
+                        <span class="item-nome">Entrega Iniciada</span>
+                    </label>
+                </div>
+                <div class="item-card">
+                    <label class="config-instrumento-check">
+                        <input type="checkbox" id="figurino-entrega-finalizada" onchange="toggleEntregaFinalizada(this.checked)">
+                        <span class="item-nome">Entrega Finalizada</span>
+                    </label>
+                </div>
+            </div>
         </div>
         <p class="config-sub-desc" style="margin-top:-8px;">Nasce tudo desligado -- ativar a peça aqui não é o mesmo que querer vê-la na Visão Geral. Ligue "Entrega Iniciada" quando quiser acompanhar; ligue "Entrega Finalizada" quando não sobrar mais ninguém pra entregar (esconde de novo, mesmo com "Entrega Iniciada" ligado).</p>
         <!-- Filtro de lado (27/ago/2026) -- aba, não pílula: é navegação
