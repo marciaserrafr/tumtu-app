@@ -4886,20 +4886,39 @@
         };
         if (filtrada.length === 0) {
             container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>';
-        } else {
+        } else if (figurinoEntregaLadoAtual === 'ritmista') {
             const principais = filtrada.filter(p => p.tipo === 'vinculo').sort(ordenarPendentesPrimeiro);
             const extrasList = filtrada.filter(p => p.tipo === 'extra').sort(ordenarPendentesPrimeiro);
             const mostrarSecoes = principais.length > 0 && extrasList.length > 0;
-            const rotuloLado = figurinoEntregaLadoAtual === 'ritmista' ? 'Ritmistas' : 'Diretoria';
             let html = '';
             if (principais.length > 0) {
-                if (mostrarSecoes) html += `<div class="secao-titulo">${rotuloLado}</div>`;
+                if (mostrarSecoes) html += `<div class="secao-titulo">Ritmistas</div>`;
                 html += principais.map(linhaPessoaHtml).join('');
             }
             if (extrasList.length > 0) {
                 if (mostrarSecoes) html += `<div class="secao-titulo">Convidados</div>`;
                 html += extrasList.map(linhaPessoaHtml).join('');
             }
+            container.innerHTML = html;
+        } else {
+            // Lado Diretoria sub-divide por cargo específico (Mestres/
+            // Diretores de Bateria/Diretoria (Apoio)) -- mesma divisão de 3
+            // grupos já usada em Convidados (27/ago/2026, pedido dela: a
+            // lista estava misturando Diretor de Bateria e Diretoria (Apoio)
+            // sem separar). Convidado de cada cargo entra dentro da mesma
+            // seção do cargo, não misturado com os outros.
+            let html = '';
+            ['mestre', 'diretor', 'apoio'].forEach(perfil => {
+                const vinculos = filtrada.filter(p => p.tipo === 'vinculo' && p.perfil === perfil).sort(ordenarPendentesPrimeiro);
+                const convidados = filtrada.filter(p => p.tipo === 'extra' && p.perfil === perfil).sort(ordenarPendentesPrimeiro);
+                if (vinculos.length === 0 && convidados.length === 0) return;
+                html += `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[perfil]}</div>`;
+                html += vinculos.map(linhaPessoaHtml).join('');
+                if (convidados.length > 0) {
+                    html += `<div style="font-size:12px;font-weight:700;color:var(--cor-texto-muted);margin:8px 0 4px;">Convidados</div>`;
+                    html += convidados.map(linhaPessoaHtml).join('');
+                }
+            });
             container.innerHTML = html;
         }
         // Totalizador (27/ago/2026) -- passou a separar Diretoria x Ritmista
