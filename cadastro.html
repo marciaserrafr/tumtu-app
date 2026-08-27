@@ -1013,7 +1013,7 @@
         await carregarOpcoesInstrumento(bateria.id);
         await carregarOpcoesMedidas(bateria.id, perfil);
 
-        const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor de Bateria' : perfil === 'apoio' ? 'Diretor' : 'Ritmista';
+        const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor de Bateria' : perfil === 'apoio' ? 'Diretoria (Apoio)' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = cargoLabel;
         document.getElementById('convite-bateria').textContent = bateria.nome;
         document.getElementById('convite-banner').style.display = 'block';
@@ -1118,7 +1118,7 @@
         atualizarCampoInstrumento(cargo);
         await carregarOpcoesInstrumento(Number(bateriaId));
         await carregarOpcoesMedidas(Number(bateriaId), cargo);
-        const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor de Bateria' : cargo === 'apoio' ? 'Diretor' : 'Ritmista';
+        const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor de Bateria' : cargo === 'apoio' ? 'Diretoria (Apoio)' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = cargoLabel;
         document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
         document.getElementById('convite-banner').style.display = 'block';

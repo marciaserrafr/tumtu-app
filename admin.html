@@ -2021,7 +2021,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
             <button class="btn-novo" onclick="irParaCadastroManualDiretoria('mestre')">+ Cadastrar Mestre</button>
             <button class="btn-novo" onclick="irParaCadastroManualDiretoria('diretor')">+ Cadastrar Diretor de Bateria</button>
-            <button class="btn-novo" onclick="irParaCadastroManualDiretoria('apoio')">+ Cadastrar Diretor</button>
+            <button class="btn-novo" onclick="irParaCadastroManualDiretoria('apoio')">+ Cadastrar Diretoria (Apoio)</button>
         </div>
         <div id="linksCadastroDiretoria" style="margin-bottom:20px;"></div>
     </div>
@@ -2050,7 +2050,7 @@
             <div class="multi-select-dropdown" id="cargoSelectDropdown" style="display:none;">
                 <label class="multi-select-option"><input type="checkbox" value="mestre" checked onchange="onChangeCargo()">Mestre de Bateria</label>
                 <label class="multi-select-option"><input type="checkbox" value="diretor" checked onchange="onChangeCargo()">Diretor de Bateria</label>
-                <label class="multi-select-option"><input type="checkbox" value="apoio" checked onchange="onChangeCargo()">Diretor</label>
+                <label class="multi-select-option"><input type="checkbox" value="apoio" checked onchange="onChangeCargo()">Diretoria (Apoio)</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="cargoMarcarTudoLink" onclick="toggleMarcarTudoCargo()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
                     <button type="button" class="btn-ficha" onclick="aplicarFiltroCargo()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
@@ -2820,7 +2820,7 @@
         ]},
         grupoMedidasExportDiretoria,
     ];
-    const LABELS_PERFIL_EXPORT = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor' };
+    const LABELS_PERFIL_EXPORT = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretoria (Apoio)' };
     let tipoExportacaoAtual = 'ritmistas';
     let sheetJSCarregado = false;
     function carregarSheetJS() {
@@ -3247,7 +3247,7 @@
             // que era ritmista.
             const cargoAniv = r.perfil === 'mestre' ? (r.genero === 'feminino' ? 'Mestra' : 'Mestre')
                 : r.perfil === 'diretor' ? (r.genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria')
-                : r.perfil === 'apoio' ? 'Diretor' : 'Ritmista';
+                : r.perfil === 'apoio' ? 'Diretoria (Apoio)' : 'Ritmista';
             const detalhe = (r.perfil === 'ritmista' && r.instrumento_nome) ? `${cargoAniv} · ${r.instrumento_nome}` : cargoAniv;
             // Dia vira o número em vez do 🎂 (26/ago/2026, pedido dela: "não
             // quero bolo no lugar do número, deixa o número") -- e quem faz
@@ -4079,7 +4079,7 @@
         div.innerHTML = caixaLinkCadastro('linksCadastroDiretoria-box', 'Links de cadastro', [
             { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },
             { label: 'Diretor de Bateria', url: `${base}&cargo=diretor` },
-            { label: 'Diretor', url: `${base}&cargo=apoio` }
+            { label: 'Diretoria (Apoio)', url: `${base}&cargo=apoio` }
         ]);
     }
 
@@ -4409,7 +4409,7 @@
     // alguns públicos (checkboxes, não um valor só -- diferente do Figurino/
     // peça, que é sempre de um público único) e criar uma categoria nova só
     // pra Diretoria com a escala certa, mantendo a antiga só pra Ritmista.
-    const PERFIS_PUBLICO_MEDIDA = [['ritmista', 'Ritmista'], ['mestre', 'Mestre'], ['diretor', 'Diretor de Bateria'], ['apoio', 'Diretor'], ['extra', 'Convidados']];
+    const PERFIS_PUBLICO_MEDIDA = [['ritmista', 'Ritmista'], ['mestre', 'Mestre'], ['diretor', 'Diretor de Bateria'], ['apoio', 'Diretoria (Apoio)'], ['extra', 'Convidados']];
     function publicoMedidaTipo(tipoExistente) {
         if (!tipoExistente || !Array.isArray(tipoExistente.publico)) return ['ritmista', 'mestre', 'diretor', 'apoio', 'extra'];
         return tipoExistente.publico;
@@ -4534,7 +4534,7 @@
     // (nunca um bloco agrupado "diretoria") -- pedido da Márcia, 24/ago/2026,
     // pra preparar o sistema pra bateria que queira peça diferente por
     // Mestre/Diretor/Apoio. Ordem sempre Ritmistas primeiro.
-    const LABEL_PUBLICO_FIGURINO = { ritmista: 'Ritmistas', mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretores' };
+    const LABEL_PUBLICO_FIGURINO = { ritmista: 'Ritmistas', mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretoria (Apoio)' };
     const ORDEM_PUBLICO_FIGURINO = ['ritmista', 'mestre', 'diretor', 'apoio'];
     function renderizarConfigFigurino() {
         const container = document.getElementById('config-figurino-lista');
@@ -4742,7 +4742,7 @@
         select.value = valorAtual;
     }
 
-    const LABEL_PERFIL_FIGURINO = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor', ritmista: null };
+    const LABEL_PERFIL_FIGURINO = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretoria (Apoio)', ritmista: null };
     // Lista separada em seções (Ritmistas/Diretoria + Extras) quando a peça
     // tem "Incluir Extras" ligado e sobra gente dos dois lados na tela --
     // achado dela, 25/ago/2026: sem nenhuma divisão visual, os Extras
@@ -6252,7 +6252,7 @@
             </div>`;
         };
 
-        const grupos = [['mestre', 'Mestres'], ['diretor', 'Diretores de Bateria'], ['apoio', 'Diretores']];
+        const grupos = [['mestre', 'Mestres'], ['diretor', 'Diretores de Bateria'], ['apoio', 'Diretoria (Apoio)']];
         container.innerHTML = grupos.map(([perfil, label]) => {
             const itens = filtrada.filter(p => p.perfil === perfil);
             if (itens.length === 0) return '';
@@ -6771,7 +6771,7 @@
     // invariável (nunca teve forma feminina definida). Pedido dela,
     // 24/ago/2026, depois de eu esquecer disso ao criar o rótulo de cargo
     // em Aniversariantes do mês.
-    function labelPerfilSA(p, genero) { if (p === 'mestre') return genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria'; if (p === 'diretor') return genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria'; if (p === 'apoio') return 'Diretor'; return p; }
+    function labelPerfilSA(p, genero) { if (p === 'mestre') return genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria'; if (p === 'diretor') return genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria'; if (p === 'apoio') return 'Diretoria (Apoio)'; return p; }
     function histDataHora(iso) { return iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—'; }
     async function carregarHistoricoEscolaSA() {
         const container = document.getElementById('lista-historico-escola');
@@ -7019,10 +7019,10 @@
         const checks = document.querySelectorAll('#cargoSelectDropdown input[type=checkbox]:checked');
         filtroCargoDiretoriaSelecionados = Array.from(checks).map(c => c.value);
         const total = document.querySelectorAll('#cargoSelectDropdown input[type=checkbox]').length;
-        const labelsCargo = { mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretores' };
+        const labelsCargo = { mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretoria (Apoio)' };
         const label = document.getElementById('cargoSelectLabel');
         if (filtroCargoDiretoriaSelecionados.length === total) {
-            label.textContent = 'Mestres, Diretores de Bateria, Diretores';
+            label.textContent = 'Mestres, Diretores de Bateria, Diretoria (Apoio)';
         } else if (filtroCargoDiretoriaSelecionados.length === 0) {
             label.textContent = 'Nenhum cargo';
         } else {
@@ -7163,10 +7163,14 @@
         const mestres = admins.filter(a => a.perfil === 'mestre').sort(pendentePrimeiro);
         const diretores = admins.filter(a => a.perfil === 'diretor').sort(pendentePrimeiro);
         const apoios = admins.filter(a => a.perfil === 'apoio').sort(pendentePrimeiro);
+        // Contador ao lado do título de cada seção (27/ago/2026, pedido dela)
+        // -- mesmo estilo já aprovado hoje pro contador de status em
+        // Ritmistas: número dourado, sem fundo.
+        const tituloSecaoComContador = (rotulo, qtd) => `<div class="secao-titulo" style="display:flex;justify-content:space-between;align-items:center;"><span>${rotulo}</span><span style="color:#D4AF37;font-weight:800;font-size:14px;letter-spacing:normal;">${qtd}</span></div>`;
         let html = '';
-        if (mestres.length) html += `<div class="secao-titulo">Mestres</div>` + mestres.map(cardHTML).join('');
-        if (diretores.length) html += `<div class="secao-titulo">Diretores de Bateria</div>` + diretores.map(cardHTML).join('');
-        if (apoios.length) html += `<div class="secao-titulo">Diretores</div>` + apoios.map(cardHTML).join('');
+        if (mestres.length) html += tituloSecaoComContador('Mestres', mestres.length) + mestres.map(cardHTML).join('');
+        if (diretores.length) html += tituloSecaoComContador('Diretores de Bateria', diretores.length) + diretores.map(cardHTML).join('');
+        if (apoios.length) html += tituloSecaoComContador('Diretoria (Apoio)', apoios.length) + apoios.map(cardHTML).join('');
         lista.innerHTML = html;
 
         // Guarda admins para uso no modal

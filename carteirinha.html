@@ -290,7 +290,7 @@
         const feminino = ritmista.genero === 'feminino';
         const labelCargo = perfil === 'mestre' ? (feminino ? 'Mestra de Bateria' : 'Mestre de Bateria')
             : perfil === 'diretor' ? (feminino ? 'Diretora de Bateria' : 'Diretor de Bateria')
-            : perfil === 'apoio' ? 'Diretor'
+            : perfil === 'apoio' ? (feminino ? 'Diretora' : 'Diretor')
             : 'Ritmista';
         // Cargo e instrumento viraram uma linha só sobre a foto (ex: "Ritmista · Caixa") —
         // Mestre/Diretor não têm instrumento, então ficam sozinhos, sem o "·" solto.
