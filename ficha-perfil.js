@@ -169,7 +169,7 @@ function fpCargoLabel(perfil, genero) {
     // 24/ago/2026 junto com a renomeação (Diretor -> Diretor de Bateria,
     // Apoio -> Diretor) -- abrir a ficha de um Apoio sempre mostrou o
     // cargo errado.
-    if (perfil === 'apoio') return 'Diretoria (Apoio)';
+    if (perfil === 'apoio') return genero === 'feminino' ? 'Diretora (Apoio)' : 'Diretor (Apoio)';
     if (perfil === 'super_admin') return 'Super Admin';
     return 'Ritmista';
 }

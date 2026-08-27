@@ -299,7 +299,7 @@
         // dela: "Dir. Bateria"/"Dir.ª Bateria".
         const cargoLabelVinculo = v => v.perfil === 'mestre' ? (v.genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria')
             : v.perfil === 'diretor' ? (v.genero === 'feminino' ? 'Dir.ª Bateria' : 'Dir. Bateria')
-            : v.perfil === 'apoio' ? 'Diretoria (Apoio)'
+            : v.perfil === 'apoio' ? (v.genero === 'feminino' ? 'Diretora (Apoio)' : 'Diretor (Apoio)')
             : 'Ritmista';
         const rotuloStatus = { pendente: 'Pendente', suspenso: 'Suspenso' };
 
