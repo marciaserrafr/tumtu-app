@@ -3473,6 +3473,10 @@
             const faltam = (!semVaga && qtd < vagas) ? (vagas - qtd) : 0;
             return { nome, qtd, vagas, semVaga, excedeu: !semVaga && qtd > vagas, completo: !semVaga && qtd === vagas, faltam, mostrarAviso: true };
         });
+        // Ordem alfabética (27/ago/2026, pedido dela: "não tem mistério") --
+        // antes vinha sem nenhum order-by no banco, ou seja, sem critério
+        // nenhum (a ordem "física" que o Postgres decidia guardar as linhas).
+        linhas.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
         // Ritmista sem instrumento atribuído (raro, dado antigo) só entra
         // na lista se existir de verdade -- não é um naipe de bateria, não
         // faz sentido mostrar "0" fixo pra ele, nem aviso de vaga nenhum.
