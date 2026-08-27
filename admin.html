@@ -4920,9 +4920,13 @@
                 // Convidado.
                 const bi = e.bateria_instrumento_id ? (bateriaInstrumentosCache || []).find(b => String(b.id) === String(e.bateria_instrumento_id)) : null;
                 const instrumentoNome = bi ? nomeExibicaoBateriaInstrumento(bi) : null;
+                // Um ao lado do outro, separados por " - " (ex: "Repique -
+                // Teste") -- pedido dela, 27/ago/2026, corrigindo minha 1ª
+                // tentativa (que tinha colocado em linhas separadas).
+                const detalheTexto = [instrumentoNome, e.observacoes].filter(Boolean).map(esc).join(' - ');
                 return `
                 <div class="item-card">
-                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div>${instrumentoNome ? `<div class="item-detalhe">${esc(instrumentoNome)}</div>` : ''}${e.observacoes ? `<div class="item-detalhe">${esc(e.observacoes)}</div>` : ''}${figurinoHtml}</div>
+                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div>${detalheTexto ? `<div class="item-detalhe">${detalheTexto}</div>` : ''}${figurinoHtml}</div>
                     ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarExtra(${e.id})">Editar</button></div>` : ''}
                 </div>`;
             }).join('');
