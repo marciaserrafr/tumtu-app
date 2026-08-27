@@ -1815,7 +1815,7 @@
              Diretoria + Extras do mesmo lado, se "Incluir Extras" estiver
              ligado), nunca só o que está filtrado na busca/instrumento --
              é o total da peça inteira, ver renderizarEntregasFigurinoLista(). -->
-        <div id="figurino-entregas-totalizador" class="total-duplo-card" style="margin-bottom:18px;"></div>
+        <div id="figurino-entregas-totalizador" class="total-duplo-card" style="margin-bottom:24px;"></div>
         <!-- Dois interruptores, pedido dela, 24/ago/2026: ativar a peça em
              Configurações (com antecedência) não quer dizer que ela deve
              aparecer na Visão Geral -- "Entrega Iniciada" é uma decisão à
@@ -4775,14 +4775,21 @@
             } else if (item && item.inclui_extras && todosExtras.length > 0) {
                 const totalP = todosPrincipais.length, entreguesP = todosPrincipais.filter(p => p.entregue).length;
                 const totalE = todosExtras.length, entreguesE = todosExtras.filter(p => p.entregue).length;
-                totalizador.innerHTML = `<div class="figurino-totalizadores-grupo">
-                    <div>
-                        <div class="secao-titulo" style="margin-bottom:8px;">${LABEL_PUBLICO_FIGURINO[item.publico] || 'Ritmistas'}</div>
-                        ${totalDuploHtml(totalP, totalP - entreguesP)}
-                    </div>
-                    <div>
-                        <div class="secao-titulo" style="margin-bottom:8px;">Convidados</div>
-                        ${totalDuploHtml(totalE, totalE - entreguesE)}
+                // Totalzão geral primeiro (Ritmistas + Convidados somados),
+                // depois o detalhe por tipo de pessoa, menor -- pedido dela,
+                // 27/ago/2026: "pode ser assim? o total por tipo de pessoa
+                // pode ser menor".
+                totalizador.innerHTML = `<div>
+                    ${totalDuploHtml(totalP + totalE, (totalP - entreguesP) + (totalE - entreguesE))}
+                    <div class="figurino-totalizadores-grupo" style="margin-top:16px;padding-top:16px;border-top:1px solid #eee;">
+                        <div>
+                            <div class="secao-titulo" style="margin-bottom:8px;">${LABEL_PUBLICO_FIGURINO[item.publico] || 'Ritmistas'}</div>
+                            ${totalDuploHtml(totalP, totalP - entreguesP, true)}
+                        </div>
+                        <div>
+                            <div class="secao-titulo" style="margin-bottom:8px;">Convidados</div>
+                            ${totalDuploHtml(totalE, totalE - entreguesE, true)}
+                        </div>
                     </div>
                 </div>`;
             } else {
