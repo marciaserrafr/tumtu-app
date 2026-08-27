@@ -1421,7 +1421,7 @@
         // novo com esta bateria, em vez de tentar criar uma conta duplicada (o que
         // sempre falhava quando a pessoa já tocava em outra bateria).
         const { data: checagem, error: erroChecagem } = await sb.rpc('verificar_pessoa_existente', { p_email: email, p_cpf: cpf || '', p_numero_documento: dados.numero_documento || '' });
-        const info = checagem && checagem[0] ? checagem[0] : { existe_email: false, existe_cpf: false, cpf_bate_email: false, existe_documento: false, documento_bate_email: false };
+        const info = checagem && checagem[0] ? checagem[0] : { existe_email: false, existe_cpf: false, cpf_bate_email: false, existe_documento: false, documento_bate_email: false, existe_conta_orfa: false };
 
         if (info.existe_cpf && !info.cpf_bate_email) {
             mostrarMensagem('Esse CPF já tem cadastro no TumTu com outro e-mail. Use o e-mail original ou clique em "Esqueci minha senha" no login.', 'erro');
@@ -1439,8 +1439,26 @@
         // quanto pro caminho "pessoa já existe, só entra numa bateria nova".
         let pessoaId = null;
         let tokenCadastro = SUPABASE_KEY;
+        let authUserIdNovo = null;
 
-        if (info.existe_email) {
+        if (info.existe_conta_orfa) {
+            // Achado real, 26/ago/2026 (caso do Caio Costa): o cadastro cria a
+            // conta de login e SÓ DEPOIS salva a ficha em pessoas -- se a
+            // pessoa fechar/cair no meio disso, sobra uma conta "órfã" (login
+            // existe, ficha nunca chegou a existir). Antes disso caía direto
+            // no signUp() e o Supabase recusava com "User already registered"
+            // (erro em inglês, sem explicação). Agora tenta entrar com a senha
+            // que a pessoa acabou de digitar: se for a mesma da tentativa
+            // anterior, completa o cadastro sozinho, sem erro nenhum visível.
+            const { data: authData, error: authError } = await sb.auth.signInWithPassword({ email, password: senha });
+            if (authError || !authData.user) {
+                mostrarMensagem('Esse e-mail já tem um início de cadastro no TumTu. Se essa não é a senha que você usou da última vez, clique em "Esqueci minha senha" no login pra recuperar o acesso.', 'erro');
+                travarFormulario(false);
+                return;
+            }
+            tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
+            authUserIdNovo = authData.user.id;
+        } else if (info.existe_email) {
             const { data: authData, error: authError } = await sb.auth.signInWithPassword({ email, password: senha });
             if (authError || !authData.user) {
                 const mensagemErro = pessoaExistente
@@ -1464,8 +1482,16 @@
                 return;
             }
             tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
+            authUserIdNovo = authData.user.id;
+        }
+
+        // Cria a ficha (pessoas) tanto pra quem é pessoa nova quanto pra quem
+        // está completando agora uma conta órfã (os dois nunca tiveram linha
+        // em pessoas ainda) -- quem já tinha ficha (existe_email) já pegou o
+        // pessoaId acima e cai direto pro vínculo novo.
+        if (!pessoaId && authUserIdNovo) {
             const dadosPessoa = {
-                auth_user_id: authData.user.id,
+                auth_user_id: authUserIdNovo,
                 foto_url: dados.foto_url,
                 nome: dados.nome, apelido: dados.apelido, genero: dados.genero, genero_personalizado: dados.genero_personalizado,
                 nacionalidade: dados.nacionalidade, cpf: dados.cpf,
