@@ -2587,12 +2587,17 @@
         // chega ordenada por status (aplicarFiltros), então basta juntar os
         // consecutivos do mesmo grupo.
         const tituloStatus = { pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', rejeitado: 'Rejeitados', desligado: 'Desligados' };
+        // Contador ao lado do título de cada grupo -- sempre reflete a
+        // lista já filtrada (com filtro ativo ou não), pedido dela,
+        // 27/ago/2026.
+        const contagemPorStatus = {};
+        lista.forEach(r => { const s = r.status || 'pendente'; contagemPorStatus[s] = (contagemPorStatus[s] || 0) + 1; });
         let html = '';
         let statusAnterior = null;
         lista.forEach(r => {
             const status = r.status || 'pendente';
             if (status !== statusAnterior) {
-                html += `<div class="secao-titulo">${tituloStatus[status] || status}</div>`;
+                html += `<div class="secao-titulo" style="display:flex;justify-content:space-between;align-items:center;"><span>${tituloStatus[status] || status}</span><span>${contagemPorStatus[status]}</span></div>`;
                 statusAnterior = status;
             }
             html += cardHTML(r);
