@@ -6267,17 +6267,61 @@
     // todo mundo). Aba só visível pra quem tiver ver_permissoes/
     // editar_permissoes -- ter acesso a Diretoria não dá acesso a isso.
     // ══════════════════════════════════════════════════════════════════
+    // Reforma de Permissões (27-28/ago/2026) -- catálogo antigo era muito
+    // grosso ("editar_ritmistas" cobria instrumento E medidas, "ver_ritmistas"
+    // já destravava CPF/endereço/emergência junto, várias ações como
+    // Suspender/Desligar/Reativar nunca tiveram permissão própria nenhuma).
+    // Catálogo novo é mais fino, mas a MECÂNICA continua a mesma: um objeto
+    // jsonb por pessoa (vinculos.capacidades), tudo-ou-nada por chave, Super
+    // Admin sempre bypassa (tenhoCapacidade()). Migração de quem já tinha
+    // permissão configurada: ver seção 62 da documentação técnica.
     const GRUPOS_CAPACIDADES = [
         { grupo: 'Visão Geral', itens: [{ chave: 'ver_visao_geral', label: 'Ver' }] },
         { grupo: 'Dados da Escola', itens: [{ chave: 'ver_dados_escola', label: 'Ver' }, { chave: 'editar_dados_escola', label: 'Editar' }] },
         { grupo: 'Dados da Bateria', itens: [{ chave: 'ver_dados_bateria', label: 'Ver' }, { chave: 'editar_dados_bateria', label: 'Editar' }] },
         { grupo: 'Comercial', itens: [{ chave: 'ver_comercial', label: 'Ver' }, { chave: 'editar_comercial', label: 'Editar' }] },
-        { grupo: 'Ritmistas', itens: [{ chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' }, { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar' }, { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas' }, { chave: 'ver_repique_bossa', label: 'Ver Repique de Bossa' }, { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa' }] },
-        { grupo: 'Diretoria', itens: [{ chave: 'ver_acessos', label: 'Ver Mestres e Diretores de Bateria' }, { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar' }] },
+        { grupo: 'Ritmistas', itens: [
+            { chave: 'ver_ritmistas', label: 'Ver lista (nome, apelido, instrumento, status)' },
+            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Ver CPF, endereço, contato de emergência e dados do responsável' },
+            { chave: 'criar_cadastro_ritmistas', label: 'Criar/copiar link de cadastro' },
+            { chave: 'aprovar_ritmistas', label: 'Aprovar' },
+            { chave: 'rejeitar_ritmistas', label: 'Rejeitar' },
+            { chave: 'suspender_ritmistas', label: 'Suspender' },
+            { chave: 'desligar_ritmistas', label: 'Desligar' },
+            { chave: 'reativar_ritmistas', label: 'Reativar' },
+            { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento' },
+            { chave: 'editar_medidas_ritmista', label: 'Editar medidas' },
+            { chave: 'ver_naipe', label: 'Ver naipe que lidera' },
+            { chave: 'editar_naipe', label: 'Editar naipe que lidera' },
+            { chave: 'ver_repique_bossa', label: 'Ver Repique de Bossa' },
+            { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa' },
+            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)' },
+            { chave: 'exportar_ritmistas', label: 'Exportar pra Excel' },
+        ] },
+        { grupo: 'Diretoria', itens: [
+            { chave: 'ver_acessos', label: 'Ver lista (nome, apelido, cargo)' },
+            { chave: 'ver_dados_sensiveis_acessos', label: 'Ver CPF, endereço e contato de emergência' },
+            { chave: 'criar_cadastro_diretoria', label: 'Criar/copiar link de cadastro' },
+            { chave: 'aprovar_acessos', label: 'Aprovar' },
+            { chave: 'rejeitar_acessos', label: 'Rejeitar' },
+            { chave: 'suspender_acessos', label: 'Suspender' },
+            { chave: 'desligar_acessos', label: 'Desligar' },
+            { chave: 'reativar_acessos', label: 'Reativar' },
+            { chave: 'editar_mestre', label: 'Editar ficha de Mestre' },
+            { chave: 'editar_diretor', label: 'Editar ficha de Diretor de Bateria' },
+            { chave: 'editar_apoio', label: 'Editar ficha de Diretoria (Apoio)' },
+            { chave: 'exportar_diretoria', label: 'Exportar pra Excel' },
+        ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Ver entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos' }] },
         { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Ver' }, { chave: 'editar_extras', label: 'Cadastrar e editar' }] },
-        { grupo: 'Relatórios', itens: [{ chave: 'ver_relatorios', label: 'Ver' }] },
-        { grupo: 'Configurações', itens: [{ chave: 'ver_configuracoes', label: 'Ver' }, { chave: 'editar_configuracoes', label: 'Editar' }] },
+        { grupo: 'Carteirinha', itens: [{ chave: 'ver_carteirinha_outros', label: 'Ver a carteirinha de outra pessoa' }] },
+        { grupo: 'Configurações', itens: [
+            { chave: 'editar_instrumentos', label: 'Instrumentos da bateria' },
+            { chave: 'editar_medidas', label: 'Medidas / Categorias de Figurino da bateria' },
+            { chave: 'editar_vagas', label: 'Vagas por instrumento' },
+            { chave: 'editar_figurino_bateria', label: 'Ativar peças de Figurino nesta bateria' },
+            { chave: 'editar_toggles_ritmista', label: 'Interruptores do Ritmista (editar medidas, Repique de Bossa)' },
+        ] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Ver' }] },
         { grupo: 'Permissões', itens: [{ chave: 'ver_permissoes', label: 'Ver' }, { chave: 'editar_permissoes', label: 'Editar' }] },
     ];
