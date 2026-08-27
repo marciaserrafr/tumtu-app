@@ -14,9 +14,9 @@
     <script src="pwa-register.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=19">
+    <link rel="stylesheet" href="styles/components.css?v=20">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=31"></script>
+    <script src="ficha-perfil.js?v=32"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -931,6 +931,39 @@
            somente leitura. Pedido dela, 24/ago/2026: "o tamanho da roupa,
            coloque dentro de uma caixinha, para ficar mais bonito". */
         .figurino-tamanho-caixa { display: inline-block; width: 44px; padding: 4px 0; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; font-weight: 700; text-align: center; }
+        /* Entrega de Figurino: marcar exige confirmação (dois toques de
+           propósito -- pedido dela, 26/ago/2026: um toque sozinho nunca marca
+           ninguém, só abre a pergunta) e, depois de marcado, o check vira
+           travado -- só desfaz clicando em "Desfazer" de propósito. Coluna de
+           check com largura fixa (presente ou não) pra nome/detalhe sempre
+           alinharem no mesmo x; coluna de ação com largura fixa e conteúdo
+           centralizado pra Marcar/Confirmar/Desfazer nunca pularem de lugar. */
+        .figurino-coluna-check { width: 17px; flex-shrink: 0; display: flex; justify-content: center; }
+        .figurino-check-verde { width: 17px; height: 17px; border-radius: 50%; background: #2d7a4f; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; flex-shrink: 0; }
+        .figurino-coluna-acao { width: 96px; flex-shrink: 0; display: flex; justify-content: center; }
+        .figurino-btn-marcar { display: flex; align-items: center; gap: 6px; background: transparent; border: 1.5px solid #e0e0e0; color: #888; border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; }
+        .figurino-btn-marcar:hover { border-color: #D4AF37; color: #b8922a; }
+        .figurino-btn-marcar .quadrado { width: 13px; height: 13px; border-radius: 4px; border: 1.5px solid currentColor; flex-shrink: 0; }
+        .figurino-confirmacao { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .figurino-confirmacao .pergunta { font-size: 11px; color: #888; }
+        .figurino-confirmacao .botoes { display: flex; gap: 5px; }
+        .figurino-confirmacao button { border: none; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; }
+        .figurino-btn-sim { background: #D4AF37; color: #12101a; }
+        .figurino-btn-sim:hover { background: #b8922a; }
+        .figurino-btn-nao { background: transparent; color: #888; }
+        .figurino-btn-nao:hover { color: #333; }
+        .figurino-desfazer { background: none; border: none; color: #888; font-size: 12px; font-family: inherit; text-decoration: underline; cursor: pointer; padding: 0; white-space: nowrap; }
+        .figurino-desfazer:hover { color: #333; }
+        .figurino-filtro-status { display: flex; gap: 6px; margin-bottom: 12px; }
+        .figurino-filtro-status button { flex: 1; background: transparent; border: 1.5px solid #e0e0e0; color: #888; border-radius: 20px; padding: 8px 10px; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; }
+        .figurino-filtro-status button.ativo { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
+        .figurino-totalizadores-grupo { display: flex; flex-wrap: wrap; gap: 16px; }
+        /* Figurinos recebidos, direto no card do Convidado (26/ago/2026, pedido dela). */
+        .extra-figurino-status { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e0e0e0; }
+        .extra-figurino-linha { display: flex; align-items: center; gap: 7px; font-size: 12.5px; }
+        .extra-figurino-marca { width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; }
+        .extra-figurino-marca.sim { background: #2d7a4f; color: #fff; }
+        .extra-figurino-marca.nao { border: 1.5px solid #e0e0e0; }
         /* .item-acoes é compartilhado com o resto do app (Ritmistas,
            Diretoria) com gap de 8px, pensado pra botões/badges coladinhos
            -- aqui são 2 colunas de dado de verdade, precisam de mais
@@ -1800,17 +1833,20 @@
         <p class="config-sub-desc" style="margin-top:-8px;">Nasce tudo desligado -- ativar a peça aqui não é o mesmo que querer vê-la na Visão Geral. Ligue "Entrega Iniciada" quando quiser acompanhar; ligue "Entrega Finalizada" quando não sobrar mais ninguém pra entregar (esconde de novo, mesmo com "Entrega Iniciada" ligado).</p>
         <input type="text" id="figurino-entregas-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarEntregasFigurinoLista()"
             style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;margin-bottom:10px;">
-        <select id="figurino-entregas-filtro-instrumento" onchange="renderizarEntregasFigurinoLista()" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;outline:none;margin-bottom:16px;">
+        <select id="figurino-entregas-filtro-instrumento" onchange="renderizarEntregasFigurinoLista()" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;outline:none;margin-bottom:10px;">
             <option value="">Todos os instrumentos</option>
         </select>
+        <!-- Filtro por status (26/ago/2026, pedido dela) -- complementa o
+             filtro de instrumento acima, não substitui. -->
+        <div class="figurino-filtro-status" id="figurino-filtro-status"></div>
         <!-- Cabeçalho de coluna, mesma receita de "Vagas de Ritmistas" (pedido
              dela, 24/ago/2026: "igual ao título que tem em Vaga por
              Instrumento") -- reaproveita .config-vagas-cabecalho, só com
-             largura própria pra bater com a caixa de tamanho e o "Entregue"
-             de cada linha (ver renderizarEntregasFigurinoLista). -->
+             largura própria pra bater com a caixa de tamanho e a coluna de
+             ação de cada linha (ver renderizarEntregasFigurinoLista). -->
         <div class="config-vagas-cabecalho" style="padding:0 0 6px;gap:32px;">
             <span style="width:44px;">Tamanho</span>
-            <span style="width:78px;">Status</span>
+            <span style="width:96px;">Status</span>
         </div>
         <div id="figurino-entregas-lista"></div>
         <!-- Totalizador no fim da lista -- pedido dela, 25/ago/2026: "total
@@ -1899,7 +1935,7 @@
          Aniversariantes primeiro. -->
     <div class="vg-card">
         <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgAniversariantesAberto()">
-            <span>🎂 Aniversariantes do mês</span>
+            <span id="vg-aniversariantes-titulo">🎂 Aniversariantes do mês</span>
             <span class="vg-secao-resumo">
                 <div id="vg-aniversariantes-total"></div>
                 <span class="vg-secao-seta aberta" id="vg-aniversariantes-seta">›</span>
@@ -3088,8 +3124,15 @@
         document.getElementById('modalCadastroOverlay').classList.add('aberto');
     }
 
+    const MESES_PT = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     function renderizarVisaoGeral() {
-        const mesAtual = new Date().getMonth() + 1;
+        const hoje = new Date();
+        const mesAtual = hoje.getMonth() + 1;
+        const diaAtual = hoje.getDate();
+
+        const tituloAnivEl = document.getElementById('vg-aniversariantes-titulo');
+        if (tituloAnivEl) tituloAnivEl.textContent = `🎂 Aniversariantes do mês · ${MESES_PT[hoje.getMonth()]}`;
+
         // Aniversariantes do mês inclui a Diretoria inteira (Mestre/Diretor/
         // Apoio) junto com Ritmistas -- pedido da Márcia, 21/ago/2026:
         // "diretoria" pra ela é o módulo inteiro, não só uma parte. Some
@@ -3115,7 +3158,9 @@
         }
         div.innerHTML = aniv.map(r => {
             const nasc = new Date(r.nascimento + 'T00:00:00');
-            const dia = nasc.getDate().toString().padStart(2, '0');
+            const dia = nasc.getDate();
+            const diaFormatado = dia.toString().padStart(2, '0');
+            const ehHoje = dia === diaAtual;
             const idade = calcularIdade(r.nascimento);
             // Pedido dela, 24/ago/2026: sempre mostrar o cargo (Ritmista/
             // Mestre/Diretor/Apoio), não só o instrumento -- antes um
@@ -3125,11 +3170,15 @@
                 : r.perfil === 'diretor' ? (r.genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria')
                 : r.perfil === 'apoio' ? 'Diretor' : 'Ritmista';
             const detalhe = (r.perfil === 'ritmista' && r.instrumento_nome) ? `${cargoAniv} · ${r.instrumento_nome}` : cargoAniv;
+            // Dia vira o número em vez do 🎂 (26/ago/2026, pedido dela: "não
+            // quero bolo no lugar do número, deixa o número") -- e quem faz
+            // aniversário hoje ganha um aviso ao lado, sem trocar o número
+            // por nada (ela recusou a versão que trocava por bolo).
             return `<div class="vg-aniversariante">
-                <span style="font-size:20px;">🎂</span>
+                <span style="font-size:15px;font-weight:800;color:#D4AF37;min-width:20px;text-align:center;">${diaFormatado}</span>
                 <div>
-                    <div class="vg-aniv-nome">${r.nome}${r.apelido ? ` <span style="color:#D4AF37;font-weight:400;font-style:italic;">${r.apelido}</span>` : ''}</div>
-                    <div class="vg-aniv-detalhe">Dia ${dia} · ${idade} anos · ${detalhe}</div>
+                    <div class="vg-aniv-nome">${r.nome}${r.apelido ? ` <span style="color:#D4AF37;font-weight:400;font-style:italic;">${r.apelido}</span>` : ''}${ehHoje ? ' <span style="font-size:12px;font-weight:700;">🎉 Hoje!</span>' : ''}</div>
+                    <div class="vg-aniv-detalhe">${idade} anos · ${detalhe}</div>
                 </div>
             </div>`;
         }).join('');
@@ -4537,36 +4586,81 @@
     // achado dela, 25/ago/2026: sem nenhuma divisão visual, os Extras
     // ficavam misturados na lista sem se destacar. Peça sem Extras continua
     // com a lista simples de sempre (sem título de seção nenhum).
+    // Filtro por status (26/ago/2026, pedido dela) -- complementa o filtro
+    // de instrumento, não substitui. Vive à parte da busca/instrumento
+    // porque é um conjunto fechado de 3 opções, não um <select>.
+    let figurinoEntregaFiltroStatus = 'todos';
+    function renderizarFiltroStatusFigurino() {
+        const el = document.getElementById('figurino-filtro-status');
+        if (!el) return;
+        const opcoes = [['todos', 'Todos'], ['pendentes', 'Não entregues'], ['entregues', 'Entregues']];
+        el.innerHTML = opcoes.map(([valor, label]) =>
+            `<button type="button" class="${figurinoEntregaFiltroStatus === valor ? 'ativo' : ''}" onclick="mudarFiltroStatusFigurino('${valor}')">${label}</button>`
+        ).join('');
+    }
+    function mudarFiltroStatusFigurino(valor) {
+        figurinoEntregaFiltroStatus = valor;
+        renderizarEntregasFigurinoLista();
+    }
+
     function renderizarEntregasFigurinoLista() {
         const container = document.getElementById('figurino-entregas-lista');
         if (!container) return;
+        renderizarFiltroStatusFigurino();
         const item = figurinoEntregaItemAtual;
         const busca = (document.getElementById('figurino-entregas-busca').value || '').trim().toLowerCase();
         const instrumentoFiltro = document.getElementById('figurino-entregas-filtro-instrumento').value;
         const filtrada = figurinoEntregaPessoasCache.filter(p => {
             if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
-            if (instrumentoFiltro === '__extras__') return p.tipo === 'extra';
-            if (instrumentoFiltro) return p.instrumento_nome === instrumentoFiltro;
+            if (instrumentoFiltro === '__extras__' && p.tipo !== 'extra') return false;
+            if (instrumentoFiltro && instrumentoFiltro !== '__extras__' && p.instrumento_nome !== instrumentoFiltro) return false;
+            if (figurinoEntregaFiltroStatus === 'pendentes' && p.entregue) return false;
+            if (figurinoEntregaFiltroStatus === 'entregues' && !p.entregue) return false;
             return true;
         });
         const podeEditar = tenhoCapacidade('editar_figurino');
-        const linhaPessoaHtml = p => `
+        // Não entregues sempre em cima, entregues descem pro fim da lista --
+        // pedido dela, 26/ago/2026: ajuda a ver rápido quem ainda falta,
+        // sem misturar com quem já foi resolvido.
+        const ordenarPendentesPrimeiro = (a, b) => Number(a.entregue) - Number(b.entregue);
+        const linhaPessoaHtml = p => {
+            const detalhe = esc(p.instrumento_nome || LABEL_PERFIL_FIGURINO[p.perfil] || (p.tipo === 'extra' ? 'Convidado' : ''));
+            let acaoHtml;
+            if (p.entregue) {
+                acaoHtml = podeEditar
+                    ? `<button type="button" class="figurino-desfazer" onclick="toggleEntregaFigurino('${p.tipo}', ${p.id}, false)">↺ Desfazer</button>`
+                    : '';
+            } else if (p.confirmando) {
+                acaoHtml = `<div class="figurino-confirmacao">
+                    <span class="pergunta">Confirma?</span>
+                    <div class="botoes">
+                        <button type="button" class="figurino-btn-nao" onclick="cancelarConfirmacaoEntregaFigurino('${p.tipo}', ${p.id})">Cancelar</button>
+                        <button type="button" class="figurino-btn-sim" onclick="toggleEntregaFigurino('${p.tipo}', ${p.id}, true)">Sim</button>
+                    </div>
+                </div>`;
+            } else {
+                acaoHtml = podeEditar
+                    ? `<button type="button" class="figurino-btn-marcar" onclick="pedirConfirmacaoEntregaFigurino('${p.tipo}', ${p.id})"><span class="quadrado"></span> Marcar</button>`
+                    : `<span style="font-size:12px;color:var(--cor-texto-muted);">Não entregue</span>`;
+            }
+            return `
             <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
-                <div style="flex:1;min-width:0;">
-                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
-                    <div style="font-size:12px;color:var(--cor-texto-muted);">${esc(p.instrumento_nome || LABEL_PERFIL_FIGURINO[p.perfil] || (p.tipo === 'extra' ? 'Convidado' : ''))}</div>
+                <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+                    <div class="figurino-coluna-check">${p.entregue ? '<span class="figurino-check-verde">✓</span>' : ''}</div>
+                    <div style="min-width:0;">
+                        <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
+                        <div style="font-size:12px;color:var(--cor-texto-muted);">${detalhe}</div>
+                    </div>
                 </div>
                 <div class="figurino-tamanho-caixa">${esc(p.tamanho || '—')}</div>
-                <label style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;white-space:nowrap;width:78px;cursor:${podeEditar ? 'pointer' : 'not-allowed'};">
-                    <input type="checkbox" style="width:18px;height:18px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${p.entregue ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="toggleEntregaFigurino('${p.tipo}', ${p.id}, this.checked)">
-                    Entregue
-                </label>
+                <div class="figurino-coluna-acao">${acaoHtml}</div>
             </div>`;
+        };
         if (filtrada.length === 0) {
             container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>';
         } else {
-            const principais = filtrada.filter(p => p.tipo === 'vinculo');
-            const extrasList = filtrada.filter(p => p.tipo === 'extra');
+            const principais = filtrada.filter(p => p.tipo === 'vinculo').sort(ordenarPendentesPrimeiro);
+            const extrasList = filtrada.filter(p => p.tipo === 'extra').sort(ordenarPendentesPrimeiro);
             const mostrarSecoes = principais.length > 0 && extrasList.length > 0;
             let html = '';
             if (principais.length > 0) {
@@ -4581,15 +4675,52 @@
         }
         // Totalizador sempre soma a peça inteira (Ritmistas/Diretoria +
         // Extras do mesmo lado, se ligado) -- nunca só o que está filtrado
-        // na busca/instrumento, pedido dela 25/ago/2026. Dois números lado a
-        // lado (total dourado, faltam terracota), ver totalDuploHtml().
+        // na busca/instrumento/status, pedido dela 25/ago/2026. Quando a
+        // peça inclui Convidados, o total vem separado por tipo (pedido
+        // dela, 26/ago/2026: "no contador, preciso que esteja separado a
+        // contagem de quantos são ritmistas e quantos são convidados") --
+        // sem isso, os dois se misturavam num número só.
         const totalizador = document.getElementById('figurino-entregas-totalizador');
         if (totalizador) {
-            const total = figurinoEntregaPessoasCache.length;
-            const entregues = figurinoEntregaPessoasCache.filter(p => p.entregue).length;
-            const faltam = total - entregues;
-            totalizador.innerHTML = total === 0 ? '' : totalDuploHtml(total, faltam);
+            const todosPrincipais = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo');
+            const todosExtras = figurinoEntregaPessoasCache.filter(p => p.tipo === 'extra');
+            if (figurinoEntregaPessoasCache.length === 0) {
+                totalizador.innerHTML = '';
+            } else if (item && item.inclui_extras && todosExtras.length > 0) {
+                const totalP = todosPrincipais.length, entreguesP = todosPrincipais.filter(p => p.entregue).length;
+                const totalE = todosExtras.length, entreguesE = todosExtras.filter(p => p.entregue).length;
+                totalizador.innerHTML = `<div class="figurino-totalizadores-grupo">
+                    <div>
+                        <div class="secao-titulo" style="margin-bottom:8px;">${LABEL_PUBLICO_FIGURINO[item.publico] || 'Ritmistas'}</div>
+                        ${totalDuploHtml(totalP, totalP - entreguesP)}
+                    </div>
+                    <div>
+                        <div class="secao-titulo" style="margin-bottom:8px;">Convidados</div>
+                        ${totalDuploHtml(totalE, totalE - entreguesE)}
+                    </div>
+                </div>`;
+            } else {
+                const total = figurinoEntregaPessoasCache.length;
+                const entregues = figurinoEntregaPessoasCache.filter(p => p.entregue).length;
+                totalizador.innerHTML = totalDuploHtml(total, total - entregues);
+            }
         }
+    }
+
+    // Marcar exige confirmação de propósito (26/ago/2026, pedido dela): um
+    // toque sozinho nunca marca ninguém, só abre a pergunta inline -- só
+    // marca de verdade quem clicar em "Sim". Reduz a chance real de marcar
+    // por engano quem não recebeu nada.
+    function pedirConfirmacaoEntregaFigurino(tipo, id) {
+        figurinoEntregaPessoasCache.forEach(p => { p.confirmando = false; });
+        const pessoa = figurinoEntregaPessoasCache.find(p => p.tipo === tipo && p.id === id);
+        if (pessoa) pessoa.confirmando = true;
+        renderizarEntregasFigurinoLista();
+    }
+    function cancelarConfirmacaoEntregaFigurino(tipo, id) {
+        const pessoa = figurinoEntregaPessoasCache.find(p => p.tipo === tipo && p.id === id);
+        if (pessoa) pessoa.confirmando = false;
+        renderizarEntregasFigurinoLista();
     }
 
     async function toggleEntregaFigurino(tipo, id, entregar) {
@@ -4609,7 +4740,7 @@
             });
         }
         const pessoa = figurinoEntregaPessoasCache.find(p => p.tipo === tipo && p.id === id);
-        if (pessoa) pessoa.entregue = entregar;
+        if (pessoa) { pessoa.entregue = entregar; pessoa.confirmando = false; }
         renderizarEntregasFigurinoLista();
     }
 
@@ -4635,12 +4766,38 @@
         extrasCache = res.ok ? await res.json() : [];
     }
 
+    // Quais figurinos cada Convidado já recebeu, mostrado direto no card
+    // dele (26/ago/2026, pedido dela) -- só peças com "Incluir Convidados"
+    // ligado fazem sentido aqui, filtradas pelo mesmo lado (ritmista/
+    // diretoria) do Convidado, via grupoExtraDoPublico já usado na Entrega.
+    let extraFigurinoItensAtivos = [];
+    let extraFigurinoEntreguesPorExtra = {};
+    async function carregarFigurinoParaExtras() {
+        extraFigurinoItensAtivos = [];
+        extraFigurinoEntreguesPorExtra = {};
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId || extrasCache.length === 0) return;
+        const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&select=id,figurino_item_mestre_id,item:figurino_itens_mestre(id,nome,publico,inclui_extras)`, { headers: authHeaders });
+        const ativos = resAtivos.ok ? await resAtivos.json() : [];
+        extraFigurinoItensAtivos = ativos.map(a => a.item).filter(it => it && it.inclui_extras);
+        if (extraFigurinoItensAtivos.length === 0) return;
+        const itemIds = extraFigurinoItensAtivos.map(it => it.id);
+        const extraIds = extrasCache.map(e => e.id);
+        const resEntregas = await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=in.(${itemIds.join(',')})&extra_id=in.(${extraIds.join(',')})&entregue_em=not.is.null&select=extra_id,figurino_item_id`, { headers: authHeaders });
+        const entregas = resEntregas.ok ? await resEntregas.json() : [];
+        entregas.forEach(e => {
+            if (!extraFigurinoEntreguesPorExtra[e.extra_id]) extraFigurinoEntreguesPorExtra[e.extra_id] = new Set();
+            extraFigurinoEntreguesPorExtra[e.extra_id].add(e.figurino_item_id);
+        });
+    }
+
     async function iniciarExtrasTab() {
         extraEditando = null;
         renderizarEditorExtra();
         const btnNovo = document.getElementById('extras-btn-novo');
         if (btnNovo) btnNovo.style.display = tenhoCapacidade('editar_extras') ? '' : 'none';
         await carregarExtras();
+        await carregarFigurinoParaExtras();
         renderizarExtrasLista();
         atualizarTotalizadorExtras();
     }
@@ -4654,11 +4811,22 @@
         container.innerHTML = ['ritmista', 'diretoria'].map(grupo => {
             const itens = extrasCache.filter(e => e.grupo === grupo);
             if (itens.length === 0) return '';
-            return `<div class="secao-titulo">${LABEL_GRUPO_EXTRA[grupo]}</div>` + itens.map(e => `
+            return `<div class="secao-titulo">${LABEL_GRUPO_EXTRA[grupo]}</div>` + itens.map(e => {
+                // Figurinos que esse Convidado já recebeu (26/ago/2026, pedido
+                // dela) -- só peças do mesmo lado (ritmista/diretoria) com
+                // "Incluir Convidados" ligado.
+                const itensDesseGrupo = extraFigurinoItensAtivos.filter(it => grupoExtraDoPublico(it.publico) === e.grupo);
+                const entreguesSet = extraFigurinoEntreguesPorExtra[e.id] || new Set();
+                const figurinoHtml = itensDesseGrupo.length > 0 ? `<div class="extra-figurino-status">${itensDesseGrupo.map(it => {
+                    const entregue = entreguesSet.has(it.id);
+                    return `<div class="extra-figurino-linha"><span class="extra-figurino-marca ${entregue ? 'sim' : 'nao'}">${entregue ? '✓' : ''}</span>${entregue ? esc(it.nome) : `<span style="color:var(--cor-texto-muted);">${esc(it.nome)} — não entregue</span>`}</div>`;
+                }).join('')}</div>` : '';
+                return `
                 <div class="item-card">
-                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div>${e.observacoes ? `<div class="item-detalhe">${esc(e.observacoes)}</div>` : ''}</div>
+                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div>${e.observacoes ? `<div class="item-detalhe">${esc(e.observacoes)}</div>` : ''}${figurinoHtml}</div>
                     ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarExtra(${e.id})">Editar</button></div>` : ''}
-                </div>`).join('');
+                </div>`;
+            }).join('');
         }).join('');
     }
 

@@ -200,6 +200,12 @@
 .ficha-campo span { display: block; font-size: 12px; color: #999; margin-bottom: 2px; }
 .ficha-campo strong { font-size: 15px; color: #0f172a; }
 .ficha-campo.full { grid-column: 1 / -1; }
+/* Entrega de Figurinos (26/ago/2026, pedido dela): rótulo e status na
+   mesma linha, não empilhados como o resto da ficha -- caso específico
+   desse bloco, não muda o padrão geral de .ficha-campo. */
+.ficha-campo--linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ficha-campo--linha span { margin-bottom: 0; }
+.ficha-valor-entregue { color: #2d7a4f; }
 @media (max-width: 480px) {
   .ficha-grid { grid-template-columns: 1fr; }
 }
