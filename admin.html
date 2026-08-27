@@ -5122,6 +5122,13 @@
     let dentroDeEscolaSA = false;
     let saAbaAtual = 'dashboard';
     let escolaSelecionadaId = null;
+    // Evita corrida entre entrarContextoEscolaSA() (que já dispara seu
+    // próprio carregamento completo, com foto) e o recarregamento "leve"
+    // que trocarAba('visao') passou a disparar sozinho (27/ago/2026) --
+    // sem essa trava, trocar de escola dispara os dois ao mesmo tempo,
+    // competindo pelos mesmos dados (achado real dela, 27/ago/2026:
+    // trocou de escola e a tela não atualizou).
+    let trocandoDeEscolaSA = false;
     let escolaAtualData = null;
 
     // Capacidades da PESSOA LOGADA (não a de quem está sendo visualizada) --
@@ -5434,6 +5441,7 @@
         window.scrollTo(0, 0);
         escolaSelecionadaId = escolaId;
         dentroDeEscolaSA = true;
+        trocandoDeEscolaSA = true;
 
         // Spinner dourado cobre a tela enquanto busca a cor/logo real da
         // escola -- sem isso, o cabeçalho nascia preto/TumTu por um instante
@@ -5493,6 +5501,7 @@
         renderizarComercialTab();
 
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
+        trocandoDeEscolaSA = false;
         carregarRitmistasComFotos();
         iniciarAutoRefreshRitmistas();
         carregarDiretoriaComFotos(); // Super Admin sempre vê o card "Diretoria ativa"
@@ -7248,7 +7257,11 @@
         // antigo). Versão "leve" (sem foto) de propósito, mesmo cuidado
         // de performance já usado no auto-refresh de 30s -- ver seção 56
         // da documentação técnica sobre o custo real de recarregar foto.
-        if (aba === 'visao') {
+        // Pulado durante a troca de escola do Super Admin -- entrarContextoEscolaSA()
+        // já dispara o próprio carregamento completo (com foto) logo depois de
+        // chamar trocarAba('visao'); sem essa trava, os dois competiam pelos
+        // mesmos dados ao mesmo tempo (ver trocandoDeEscolaSA).
+        if (aba === 'visao' && !trocandoDeEscolaSA) {
             carregarRitmistas(true);
             if (souSuperAdmin || tenhoCapacidade('ver_acessos')) { diretoriaCarregada = false; carregarDiretoria(true); }
             if (souSuperAdmin || tenhoCapacidade('ver_extras')) carregarExtras().then(atualizarTotalizadorExtras);
