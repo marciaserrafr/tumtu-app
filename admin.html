@@ -1715,7 +1715,7 @@
                 <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="statusMarcarTudoLink" onclick="toggleMarcarTudoStatus()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
-                    <button type="button" class="btn-ficha" onclick="aplicarFiltros()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
+                    <button type="button" class="btn-ficha" onclick="onChangeStatus()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
                 </div>
             </div>
         </div>
@@ -2052,7 +2052,7 @@
                 <label class="multi-select-option"><input type="checkbox" value="apoio" checked onchange="onChangeCargo()">Diretor</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="cargoMarcarTudoLink" onclick="toggleMarcarTudoCargo()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
-                    <button type="button" class="btn-ficha" onclick="aplicarFiltrosDiretoria()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
+                    <button type="button" class="btn-ficha" onclick="onChangeCargo()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
                 </div>
             </div>
         </div>
@@ -2070,7 +2070,7 @@
                 <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="statusDiretoriaMarcarTudoLink" onclick="toggleMarcarTudoStatusDiretoria()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
-                    <button type="button" class="btn-ficha" onclick="aplicarFiltrosDiretoria()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
+                    <button type="button" class="btn-ficha" onclick="onChangeStatusDiretoria()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
                 </div>
             </div>
         </div>
@@ -4079,7 +4079,7 @@
         btnAplicar.className = 'btn-ficha';
         btnAplicar.textContent = 'Aplicar';
         btnAplicar.style.cssText = 'padding:4px 12px;font-size:12px;';
-        btnAplicar.onclick = aplicarFiltros;
+        btnAplicar.onclick = onCheckInstrumento;
         rodape.appendChild(btnAplicar);
         dropdown.appendChild(rodape);
         filtroInstrumentosSelecionados = instrumentosAtivosDaBateria().map(i => i.id);
@@ -5122,13 +5122,6 @@
     let dentroDeEscolaSA = false;
     let saAbaAtual = 'dashboard';
     let escolaSelecionadaId = null;
-    // Evita corrida entre entrarContextoEscolaSA() (que já dispara seu
-    // próprio carregamento completo, com foto) e o recarregamento "leve"
-    // que trocarAba('visao') passou a disparar sozinho (27/ago/2026) --
-    // sem essa trava, trocar de escola dispara os dois ao mesmo tempo,
-    // competindo pelos mesmos dados (achado real dela, 27/ago/2026:
-    // trocou de escola e a tela não atualizou).
-    let trocandoDeEscolaSA = false;
     let escolaAtualData = null;
 
     // Capacidades da PESSOA LOGADA (não a de quem está sendo visualizada) --
@@ -5441,7 +5434,6 @@
         window.scrollTo(0, 0);
         escolaSelecionadaId = escolaId;
         dentroDeEscolaSA = true;
-        trocandoDeEscolaSA = true;
 
         // Spinner dourado cobre a tela enquanto busca a cor/logo real da
         // escola -- sem isso, o cabeçalho nascia preto/TumTu por um instante
@@ -5501,7 +5493,6 @@
         renderizarComercialTab();
 
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
-        trocandoDeEscolaSA = false;
         carregarRitmistasComFotos();
         iniciarAutoRefreshRitmistas();
         carregarDiretoriaComFotos(); // Super Admin sempre vê o card "Diretoria ativa"
@@ -7250,23 +7241,16 @@
         if (btn) btn.classList.add('ativa');
         salvarEstadoNavegacao(souSuperAdmin ? 'sa-escola' : 'mestre-diretor', aba, souSuperAdmin ? escolaSelecionadaId : null);
 
-        // Visão Geral e Ritmistas não recarregavam ao entrar -- só
-        // mostravam o que já estava em memória, esperando os 30s do
-        // auto-refresh pra se atualizar (achado real dela, 27/ago/2026:
-        // cadastrou um Convidado, voltou pra Visão Geral e viu o número
-        // antigo). Versão "leve" (sem foto) de propósito, mesmo cuidado
-        // de performance já usado no auto-refresh de 30s -- ver seção 56
-        // da documentação técnica sobre o custo real de recarregar foto.
-        // Pulado durante a troca de escola do Super Admin -- entrarContextoEscolaSA()
-        // já dispara o próprio carregamento completo (com foto) logo depois de
-        // chamar trocarAba('visao'); sem essa trava, os dois competiam pelos
-        // mesmos dados ao mesmo tempo (ver trocandoDeEscolaSA).
-        if (aba === 'visao' && !trocandoDeEscolaSA) {
-            carregarRitmistas(true);
-            if (souSuperAdmin || tenhoCapacidade('ver_acessos')) { diretoriaCarregada = false; carregarDiretoria(true); }
-            if (souSuperAdmin || tenhoCapacidade('ver_extras')) carregarExtras().then(atualizarTotalizadorExtras);
-        }
-        if (aba === 'ritmistas') carregarRitmistas(true);
+        // Tentativa de 27/ago/2026 de recarregar Visão Geral/Ritmistas ao
+        // entrar na aba (sem esperar os 30s do auto-refresh) REVERTIDA no
+        // mesmo dia -- depois de publicada, apareceram 3 problemas
+        // estranhos em sequência (filtro "travando", confusão ao trocar
+        // de escola, fotos parando de aparecer) todos girando em torno
+        // dessa área. Sem ferramenta de navegador pra confirmar a causa
+        // exata, mais seguro voltar ao comportamento antigo (só o
+        // auto-refresh de 30s atualiza sozinho) do que manter algo
+        // suspeito no ar. Não retomar sem investigar com calma, com
+        // ferramenta de teste disponível.
         if (aba === 'diretoria') carregarDiretoria();
         if (aba === 'meu-perfil') iniciarMeuPerfilAba();
         if (aba === 'configuracoes') iniciarConfiguracoesAba();
