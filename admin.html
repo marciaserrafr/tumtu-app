@@ -2447,6 +2447,17 @@
             headers: authHeaders
         });
         const novos = await res.json();
+        // Rede de segurança real, 27/ago/2026: o banco respondeu com erro
+        // 500 nessa consulta (achado dela, via print do Console) e a
+        // resposta de erro (um objeto, não uma lista) ficou guardada em
+        // todosRitmistas -- a partir daí, TODA renderização quebrava pra
+        // sempre (nada nunca corrigia esse valor sozinho). Sem isso, um
+        // erro passageiro do banco travava a tela até recarregar a
+        // página inteira.
+        if (!Array.isArray(novos)) {
+            console.error('carregarRitmistas: resposta inesperada do banco (não é uma lista) -- mantendo a lista anterior:', novos);
+            return;
+        }
         todosRitmistas = leve ? reaproveitarFotosCache(novos, todosRitmistas) : novos;
         aplicarFiltros();
         atualizarTotalizadores();
@@ -6932,6 +6943,14 @@
             headers: authHeaders
         });
         const novosAdmins = (await res.json()) || [];
+        // Mesma rede de segurança de carregarRitmistas() -- um erro do
+        // banco (ex: 500) vem como objeto, não lista; sem essa checagem,
+        // listaDiretoriaAtual ficava corrompida pra sempre.
+        if (!Array.isArray(novosAdmins)) {
+            console.error('carregarDiretoria: resposta inesperada do banco (não é uma lista) -- mantendo a lista anterior:', novosAdmins);
+            diretoriaCarregada = true;
+            return;
+        }
         listaDiretoriaAtual = leve ? reaproveitarFotosCache(novosAdmins, listaDiretoriaAtual) : novosAdmins;
         aplicarFiltrosDiretoria();
         atualizarTotalizadoresDiretoria();
