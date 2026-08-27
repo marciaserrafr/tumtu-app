@@ -1715,7 +1715,7 @@
                 <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="statusMarcarTudoLink" onclick="toggleMarcarTudoStatus()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
-                    <button type="button" class="btn-ficha" onclick="onChangeStatus()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
+                    <button type="button" class="btn-ficha" onclick="aplicarFiltroStatus()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
                 </div>
             </div>
         </div>
@@ -2052,7 +2052,7 @@
                 <label class="multi-select-option"><input type="checkbox" value="apoio" checked onchange="onChangeCargo()">Diretor</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="cargoMarcarTudoLink" onclick="toggleMarcarTudoCargo()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
-                    <button type="button" class="btn-ficha" onclick="onChangeCargo()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
+                    <button type="button" class="btn-ficha" onclick="aplicarFiltroCargo()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
                 </div>
             </div>
         </div>
@@ -2070,7 +2070,7 @@
                 <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="statusDiretoriaMarcarTudoLink" onclick="toggleMarcarTudoStatusDiretoria()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
-                    <button type="button" class="btn-ficha" onclick="onChangeStatusDiretoria()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
+                    <button type="button" class="btn-ficha" onclick="aplicarFiltroStatusDiretoria()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
                 </div>
             </div>
         </div>
@@ -2498,7 +2498,42 @@
         document.getElementById('statusSelectTrigger').classList.toggle('ativo', filtroStatusSelecionados.length > 0 && filtroStatusSelecionados.length < total);
         const marcarTudoEl = document.getElementById('statusMarcarTudoLink');
         if (marcarTudoEl) marcarTudoEl.textContent = filtroStatusSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
+    }
+
+    // 27/ago/2026: ela apontou que o filtro estava aplicando sozinho a cada
+    // clique na caixinha, mesmo com o botão "Aplicar" do lado -- os dois
+    // caminhos chamavam a mesma função. Agora onChange* só atualiza o
+    // estado/rótulo (visual); só o clique em "Aplicar" filtra de verdade
+    // E fecha o dropdown -- nunca os dois ao mesmo tempo por engano.
+    function fecharDropdown(ddId, arrowId) {
+        const dd = document.getElementById(ddId);
+        const arrow = document.getElementById(arrowId);
+        if (dd) dd.style.display = 'none';
+        if (arrow) arrow.textContent = '▼';
+    }
+
+    function aplicarFiltroStatus() {
+        onChangeStatus();
         aplicarFiltros();
+        fecharDropdown('statusSelectDropdown', 'statusSelectArrow');
+    }
+
+    function aplicarFiltroInstrumento() {
+        onCheckInstrumento();
+        aplicarFiltros();
+        fecharDropdown('multiSelectDropdown', 'multiSelectArrow');
+    }
+
+    function aplicarFiltroCargo() {
+        onChangeCargo();
+        aplicarFiltrosDiretoria();
+        fecharDropdown('cargoSelectDropdown', 'cargoSelectArrow');
+    }
+
+    function aplicarFiltroStatusDiretoria() {
+        onChangeStatusDiretoria();
+        aplicarFiltrosDiretoria();
+        fecharDropdown('statusDiretoriaSelectDropdown', 'statusDiretoriaSelectArrow');
     }
 
     function aplicarFiltros() {
@@ -4090,7 +4125,7 @@
         btnAplicar.className = 'btn-ficha';
         btnAplicar.textContent = 'Aplicar';
         btnAplicar.style.cssText = 'padding:4px 12px;font-size:12px;';
-        btnAplicar.onclick = onCheckInstrumento;
+        btnAplicar.onclick = aplicarFiltroInstrumento;
         rodape.appendChild(btnAplicar);
         dropdown.appendChild(rodape);
         filtroInstrumentosSelecionados = instrumentosAtivosDaBateria().map(i => i.id);
@@ -4129,7 +4164,6 @@
         document.getElementById('multiSelectTrigger').classList.toggle('ativo', filtroInstrumentosSelecionados.length > 0 && filtroInstrumentosSelecionados.length < ativos.length);
         const marcarTudoEl = document.getElementById('multiSelectMarcarTudo');
         if (marcarTudoEl) marcarTudoEl.textContent = filtroInstrumentosSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
-        aplicarFiltros();
     }
 
     // Fecha dropdowns ao clicar fora
@@ -6990,7 +7024,6 @@
         document.getElementById('cargoSelectTrigger').classList.toggle('ativo', filtroCargoDiretoriaSelecionados.length > 0 && filtroCargoDiretoriaSelecionados.length < total);
         const marcarTudoEl = document.getElementById('cargoMarcarTudoLink');
         if (marcarTudoEl) marcarTudoEl.textContent = filtroCargoDiretoriaSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
-        aplicarFiltrosDiretoria();
     }
 
     function toggleStatusDiretoriaSelect() {
@@ -7022,7 +7055,6 @@
         document.getElementById('statusDiretoriaSelectTrigger').classList.toggle('ativo', filtroStatusDiretoriaSelecionados.length > 0 && filtroStatusDiretoriaSelecionados.length < total);
         const marcarTudoEl = document.getElementById('statusDiretoriaMarcarTudoLink');
         if (marcarTudoEl) marcarTudoEl.textContent = filtroStatusDiretoriaSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
-        aplicarFiltrosDiretoria();
     }
 
     function aplicarFiltrosDiretoria() {
