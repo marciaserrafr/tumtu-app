@@ -2029,9 +2029,12 @@
          precisamos padronizar essas duas telas"). Cargo (Mestre/Diretor)
          faz o papel de "Instrumento" aqui -- mesmo padrão Excel (tudo
          marcado por padrão, "Limpar"/"Marcar todos"). -->
-    <div style="margin:16px 0;">
-        <input type="text" id="campoBuscaDiretoria" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltrosDiretoria()"
-            style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+    <!-- Botão "Buscar" (27/ago/2026) -- mesma rede de segurança já
+         adicionada em Ritmistas, padronizando as duas telas. -->
+    <div style="margin:16px 0;display:flex;gap:8px;">
+        <input type="text" id="campoBuscaDiretoria" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltrosDiretoria()" onkeydown="if(event.key==='Enter') aplicarFiltrosDiretoria()"
+            style="flex:1;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        <button type="button" class="btn-ficha" onclick="aplicarFiltrosDiretoria()" style="flex-shrink:0;">Buscar</button>
     </div>
 
     <div class="secao-titulo secao-titulo-neutro" style="margin-top:0;">Filtros</div>
