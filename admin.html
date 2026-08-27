@@ -938,12 +938,19 @@
            check com largura fixa (presente ou não) pra nome/detalhe sempre
            alinharem no mesmo x; coluna de ação com largura fixa e conteúdo
            centralizado pra Marcar/Confirmar/Desfazer nunca pularem de lugar. */
-        .figurino-coluna-check { width: 17px; flex-shrink: 0; display: flex; justify-content: center; }
-        .figurino-check-verde { width: 17px; height: 17px; border-radius: 50%; background: #2d7a4f; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; flex-shrink: 0; }
-        .figurino-coluna-acao { width: 96px; flex-shrink: 0; display: flex; justify-content: center; }
-        .figurino-btn-marcar { display: flex; align-items: center; gap: 6px; background: transparent; border: 1.5px solid #e0e0e0; color: #888; border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; }
-        .figurino-btn-marcar:hover { border-color: #D4AF37; color: #b8922a; }
-        .figurino-btn-marcar .quadrado { width: 13px; height: 13px; border-radius: 4px; border: 1.5px solid currentColor; flex-shrink: 0; }
+        .figurino-coluna-acao { min-width: 112px; flex-shrink: 0; display: flex; justify-content: flex-end; }
+        /* Selo de status (27/ago/2026, era um botão "Marcar" -- ela achou
+           estranho a coluna "Status" mostrar uma ação em vez de um status.
+           Agora o próprio selo já diz o status (Não entregue/Entregue) e
+           continua sendo o clique de marcar/desfazer, igual sempre foi --
+           marcar ainda pede confirmação, desfazer continua direto (não mudei
+           essa parte). */
+        .figurino-selo { display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 700; font-family: inherit; white-space: nowrap; border: none; }
+        button.figurino-selo { cursor: pointer; }
+        .figurino-selo-pendente { background: #f0f0f0; color: #888; }
+        button.figurino-selo-pendente:hover { background: #e6e6e6; }
+        .figurino-selo-entregue { background: #e8f5e8; color: #1f4d1f; }
+        button.figurino-selo-entregue:hover { background: #d7ecd7; }
         .figurino-confirmacao { display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .figurino-confirmacao .pergunta { font-size: 11px; color: #888; }
         .figurino-confirmacao .botoes { display: flex; gap: 5px; }
@@ -952,8 +959,6 @@
         .figurino-btn-sim:hover { background: #b8922a; }
         .figurino-btn-nao { background: transparent; color: #888; }
         .figurino-btn-nao:hover { color: #333; }
-        .figurino-desfazer { background: none; border: none; color: #888; font-size: 12px; font-family: inherit; text-decoration: underline; cursor: pointer; padding: 0; white-space: nowrap; }
-        .figurino-desfazer:hover { color: #333; }
         /* Filtro de lado (Ritmista/Diretoria) virou aba, não mais pílula
            cheia -- 27/ago/2026, pedido dela: "muito filtro misturado" (o
            lado é navegação, não um filtro igual aos outros, então separa
@@ -1870,9 +1875,13 @@
                         <span class="item-nome">Entrega Finalizada</span>
                     </label>
                 </div>
+                <!-- Movido pra dentro da coluna dos interruptores (27/ago/2026,
+                     achado dela): ficando fora, a frase caía lá embaixo do
+                     card do totalizador (que é mais alto), longe do que ela
+                     explica. Aqui do lado, cola certinho embaixo dos dois. -->
+                <p class="config-sub-desc" style="margin:0;">Os dois nascem desligados. Ligue "Entrega Iniciada" pra acompanhar essa peça na Visão Geral; ligue "Entrega Finalizada" quando não sobrar mais ninguém pra entregar, pra ela sumir de novo.</p>
             </div>
         </div>
-        <p class="config-sub-desc" style="margin-top:-8px;">Os dois nascem desligados. Ligue "Entrega Iniciada" pra acompanhar essa peça na Visão Geral; ligue "Entrega Finalizada" quando não sobrar mais ninguém pra entregar, pra ela sumir de novo.</p>
         <!-- Filtro de lado (27/ago/2026) -- aba, não pílula: é navegação
              (qual lado da bateria estou vendo), não um filtro de refino como
              os de baixo. Só aparece quando a peça cobre Ritmista(s) E
@@ -4893,9 +4902,12 @@
             const detalhe = esc(p.instrumento_nome || (p.tipo === 'vinculo' ? LABEL_PERFIL_FIGURINO[p.perfil] : null) || (p.tipo === 'extra' ? 'Convidado' : ''));
             let acaoHtml;
             if (p.entregue) {
+                // Desfazer continua sem pedir confirmação -- não mudei essa
+                // parte, só o rótulo/aparência (era um link "↺ Desfazer",
+                // agora é o próprio selo de status "✓ Entregue").
                 acaoHtml = podeEditar
-                    ? `<button type="button" class="figurino-desfazer" onclick="toggleEntregaFigurino('${p.tipo}', ${p.id}, false)">↺ Desfazer</button>`
-                    : '';
+                    ? `<button type="button" class="figurino-selo figurino-selo-entregue" onclick="toggleEntregaFigurino('${p.tipo}', ${p.id}, false)">✓ Entregue</button>`
+                    : `<span class="figurino-selo figurino-selo-entregue">✓ Entregue</span>`;
             } else if (p.confirmando) {
                 acaoHtml = `<div class="figurino-confirmacao">
                     <span class="pergunta">Confirma?</span>
@@ -4905,18 +4917,18 @@
                     </div>
                 </div>`;
             } else {
+                // Marcar continua pedindo confirmação -- não mudei essa
+                // parte, só o rótulo/aparência (era um botão "Marcar", agora
+                // é o próprio selo de status "Não entregue").
                 acaoHtml = podeEditar
-                    ? `<button type="button" class="figurino-btn-marcar" onclick="pedirConfirmacaoEntregaFigurino('${p.tipo}', ${p.id})"><span class="quadrado"></span> Marcar</button>`
-                    : `<span style="font-size:12px;color:var(--cor-texto-muted);">Não entregue</span>`;
+                    ? `<button type="button" class="figurino-selo figurino-selo-pendente" onclick="pedirConfirmacaoEntregaFigurino('${p.tipo}', ${p.id})">Não entregue</button>`
+                    : `<span class="figurino-selo figurino-selo-pendente">Não entregue</span>`;
             }
             return `
             <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
-                <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
-                    <div class="figurino-coluna-check">${p.entregue ? '<span class="figurino-check-verde">✓</span>' : ''}</div>
-                    <div style="min-width:0;">
-                        <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
-                        <div style="font-size:12px;color:var(--cor-texto-muted);">${detalhe}</div>
-                    </div>
+                <div style="min-width:0;flex:1;">
+                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
+                    <div style="font-size:12px;color:var(--cor-texto-muted);">${detalhe}</div>
                 </div>
                 <div class="figurino-tamanho-caixa">${esc(p.tamanho || '—')}</div>
                 <div class="figurino-coluna-acao">${acaoHtml}</div>
