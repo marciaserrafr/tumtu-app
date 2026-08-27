@@ -1664,9 +1664,17 @@
          os ritmistas por instrumento" -- filtro é usado com frequência,
          20/ago/2026, então busca E filtros ficam sempre à vista, sem
          precisar clicar em nada) -->
-    <div style="margin:16px 0;">
-        <input type="text" id="campoBusca" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltros()"
-            style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+    <!-- Botão "Buscar" (27/ago/2026, pedido dela) -- rede de segurança:
+         a busca já filtra sozinha a cada letra digitada (oninput), mas
+         ela relatou a tela "travando" depois da 1ª tentativa de filtrar/
+         buscar, só voltando ao normal recarregando a página. Clicar aqui
+         chama exatamente a mesma função (aplicarFiltros()) por um
+         caminho novo -- se o travamento for algo específico do evento
+         oninput/onchange, esse botão contorna. -->
+    <div style="margin:16px 0;display:flex;gap:8px;">
+        <input type="text" id="campoBusca" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltros()" onkeydown="if(event.key==='Enter') aplicarFiltros()"
+            style="flex:1;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        <button type="button" class="btn-ficha" onclick="aplicarFiltros()" style="flex-shrink:0;">Buscar</button>
     </div>
 
     <!-- Título estático (não clicável, não recolhe) -- pedido da Márcia,
@@ -2597,7 +2605,7 @@
         lista.forEach(r => {
             const status = r.status || 'pendente';
             if (status !== statusAnterior) {
-                html += `<div class="secao-titulo" style="display:flex;justify-content:space-between;align-items:center;"><span>${tituloStatus[status] || status}</span><span>${contagemPorStatus[status]}</span></div>`;
+                html += `<div class="secao-titulo" style="display:flex;justify-content:space-between;align-items:center;"><span>${tituloStatus[status] || status}</span><span style="color:#D4AF37;font-weight:800;font-size:14px;letter-spacing:normal;">${contagemPorStatus[status]}</span></div>`;
                 statusAnterior = status;
             }
             html += cardHTML(r);
