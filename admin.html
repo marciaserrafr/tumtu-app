@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=21">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=32"></script>
+    <script src="ficha-perfil.js?v=33"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -770,6 +770,12 @@
         .btn-voltar-config { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: #D4AF37; padding: 0; margin-bottom: 16px; font-family: inherit; }
         .btn-voltar-config:hover { text-decoration: underline; }
         .config-sub-desc { font-size: 13px; color: #8b88a0; margin: -10px 0 16px; }
+        /* Sub-tela de Configurações em modo "só ver" (Reforma de Permissões,
+           28/ago/2026) -- quem só tem a capacidade "Ver" (sem "Editar") abre
+           a tela normal, mas com tudo acinzentado/travado, pra ficar óbvio
+           que não dá pra mexer (nunca clicável e falhando escondido). */
+        .config-subtela--somente-leitura { opacity: 0.55; }
+        .config-subtela--somente-leitura input, .config-subtela--somente-leitura select { cursor: not-allowed; }
         /* Título das colunas acima da lista de Vagas -- pedido da Márcia,
            19/ago/2026: "parece que está meio solto" sem indicar o que
            cada lado da linha significa. Só nessa tela de Configurações
@@ -1680,7 +1686,7 @@
          e o Link de cadastro (era a aba "Convites", incorporado aqui em
          19/ago/2026) só aparecem depois de clicar, pra não ocupar espaço
          fixo na tela toda vez. -->
-    <div class="cadastro-cabecalho" onclick="toggleCadastroRitmista()">
+    <div id="cadastroRitmistaCabecalho" class="cadastro-cabecalho" onclick="toggleCadastroRitmista()">
         <span class="cadastro-cabecalho-titulo"><span class="cadastro-cabecalho-tracinho"></span>Novo cadastro</span>
         <span class="config-item-seta" id="cadastroRitmistaSeta">›</span>
     </div>
@@ -1767,19 +1773,19 @@
     <div id="config-lista">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
         <div class="painel-titulo">Configurações</div>
-        <div class="config-item" onclick="abrirConfigTela('instrumentos')">
+        <div id="config-item-instrumentos" class="config-item" onclick="abrirConfigTela('instrumentos')">
             <span>Instrumentos</span>
             <span class="config-item-seta">›</span>
         </div>
-        <div class="config-item" onclick="abrirConfigTela('vagas')">
+        <div id="config-item-vagas" class="config-item" onclick="abrirConfigTela('vagas')">
             <span>Vagas de Ritmistas</span>
             <span class="config-item-seta">›</span>
         </div>
-        <div class="config-item" onclick="abrirConfigTela('medidas')">
+        <div id="config-item-medidas" class="config-item" onclick="abrirConfigTela('medidas')">
             <span>Categoria de Figurino</span>
             <span class="config-item-seta">›</span>
         </div>
-        <div class="config-item" onclick="abrirConfigTela('figurino')">
+        <div id="config-item-figurino" class="config-item" onclick="abrirConfigTela('figurino')">
             <span>Figurino</span>
             <span class="config-item-seta">›</span>
         </div>
@@ -2072,7 +2078,7 @@
          Links de cadastro (era a aba "Convites", incorporado aqui em
          19/ago/2026) + "+ Cadastrar Mestre/Diretor" só aparecem depois
          de clicar. -->
-    <div class="cadastro-cabecalho" onclick="toggleCadastroDiretoria()">
+    <div id="cadastroDiretoriaCabecalho" class="cadastro-cabecalho" onclick="toggleCadastroDiretoria()">
         <span class="cadastro-cabecalho-titulo"><span class="cadastro-cabecalho-tracinho"></span>Novo cadastro</span>
         <span class="config-item-seta" id="cadastroDiretoriaSeta">›</span>
     </div>
@@ -2764,14 +2770,18 @@
     function renderToggleDeclaracao(id, entregue) {
         const area = document.getElementById('fc-declaracao-area');
         if (!area) return;
+        // Reforma de Permissões (27-28/ago/2026): quem não tem
+        // editar_declaracao_responsavel vê o mesmo selo, mas sem clique --
+        // nunca aparece clicável e falha em silêncio.
+        const podeEditar = tenhoCapacidade('editar_declaracao_responsavel');
         const trackBg = entregue ? '#1f4d1f' : '#c62828';
         const trackBorder = 'none';
         const thumbPos = entregue ? '21px' : '3px';
         const labelColor = entregue ? '#1f4d1f' : '#c62828';
         const labelText = entregue ? 'Entregue' : 'Não entregue';
         area.innerHTML = `
-            <div onclick="alternarDeclaracao(${id},${!entregue})"
-                 style="display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+            <div ${podeEditar ? `onclick="alternarDeclaracao(${id},${!entregue})"` : ''}
+                 style="display:inline-flex;align-items:center;gap:10px;${podeEditar ? 'cursor:pointer;' : ''}user-select:none;">
                 <div style="width:44px;height:24px;border-radius:12px;background:${trackBg};border:${trackBorder};
                             position:relative;transition:background 0.2s;flex-shrink:0;display:block;box-sizing:border-box;">
                     <div style="position:absolute;top:3px;left:${thumbPos};
@@ -3228,18 +3238,28 @@
         // fpCancelarEdicao() já escondem/mostram esse hook sozinhas durante
         // a edição, então também resolve Editar/Salvar/Cancelar sem
         // precisar de nenhum código extra aqui.
+        // Reforma de Permissões (27-28/ago/2026): cada botão de ação de
+        // status só aparece com a capacidade específica correspondente --
+        // nunca aparece habilitado e falha em silêncio (regra da Márcia).
         let btns = '';
         if (status === 'pendente') {
-            btns = `<button class="btn-ficha btn-ficha-ativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Ativar</button>
-                    <button class="btn-ficha btn-ficha-rejeitar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'rejeitado')">Rejeitar</button>`;
+            if (tenhoCapacidade('aprovar_ritmistas'))
+                btns += `<button class="btn-ficha btn-ficha-ativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Ativar</button>`;
+            if (tenhoCapacidade('rejeitar_ritmistas'))
+                btns += `<button class="btn-ficha btn-ficha-rejeitar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'rejeitado')">Rejeitar</button>`;
         } else if (status === 'aprovado') {
-            btns = `<button class="btn-ficha btn-ficha-suspender" onclick="fecharModal('modalCadastroOverlay');abrirModalSuspender(${r.id},'${r.nome.replace(/'/g,"\\'")}')">Suspender</button>
-                    <button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');abrirModalDesligar(${r.id},'${r.nome.replace(/'/g,"\\'")}')">Desligar</button>`;
+            if (tenhoCapacidade('suspender_ritmistas'))
+                btns += `<button class="btn-ficha btn-ficha-suspender" onclick="fecharModal('modalCadastroOverlay');abrirModalSuspender(${r.id},'${r.nome.replace(/'/g,"\\'")}')">Suspender</button>`;
+            if (tenhoCapacidade('desligar_ritmistas'))
+                btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');abrirModalDesligar(${r.id},'${r.nome.replace(/'/g,"\\'")}')">Desligar</button>`;
         } else if (status === 'suspenso') {
-            btns = `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Reativar</button>
-                    <button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');abrirModalDesligar(${r.id},'${r.nome.replace(/'/g,"\\'")}')">Desligar</button>`;
+            if (tenhoCapacidade('reativar_ritmistas'))
+                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Reativar</button>`;
+            if (tenhoCapacidade('desligar_ritmistas'))
+                btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');abrirModalDesligar(${r.id},'${r.nome.replace(/'/g,"\\'")}')">Desligar</button>`;
         } else {
-            btns = `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Reativar</button>`;
+            if (tenhoCapacidade('reativar_ritmistas'))
+                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Reativar</button>`;
         }
         btns += `<button class="btn-ficha" onclick="fecharModal('modalCadastroOverlay')">Fechar</button>`;
         document.getElementById('fp-container-ritmista').querySelector('#fp-acoes-extra').innerHTML = btns;
@@ -3250,7 +3270,7 @@
         // Só aparece pra quem está Ativo -- achado dela, 20/ago/2026:
         // quem ainda não foi aprovado não tem carteirinha nenhuma pra ver.
         document.getElementById('fp-container-ritmista').querySelector('#fp-ver-carteirinha').innerHTML =
-            status === 'aprovado'
+            (status === 'aprovado' && tenhoCapacidade('ver_carteirinha_outros'))
                 ? `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${r.id})">Ver carteirinha ↗</button>`
                 : '';
 
@@ -4034,6 +4054,7 @@
         await carregarMinhasCapacidades(usuario.bateria_id);
         aplicarGatingAbas();
         aplicarGatingBotoesExportar();
+        aplicarGatingNovoCadastro();
 
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'flex';
@@ -4261,8 +4282,50 @@
         }
     });
 
+    // Configurações -> capacidades de "ver" e "editar" por sub-tela (Reforma
+    // de Permissões, 28/ago/2026 -- separadas depois dela pedir: "quero que
+    // dê pra alguém só olhar sem poder mexer"). Quem só tem "ver" abre a
+    // tela normal, mas com tudo travado/acinzentado (aplicarSomenteLeitura
+    // ConfigTela) -- nunca clicável e falhando escondido.
+    const CAPACIDADE_CONFIG_SUBTELA = {
+        instrumentos: { ver: 'ver_instrumentos', editar: 'editar_instrumentos' },
+        vagas: { ver: 'ver_vagas', editar: 'editar_vagas' },
+        medidas: { ver: 'ver_medidas', editar: 'editar_medidas' },
+        figurino: { ver: 'ver_figurino_bateria', editar: 'editar_figurino_bateria' },
+    };
+    function podeVerConfigSubtela(nome) {
+        const c = CAPACIDADE_CONFIG_SUBTELA[nome];
+        return !!c && (tenhoCapacidade(c.ver) || tenhoCapacidade(c.editar));
+    }
+    function podeEditarConfigSubtela(nome) {
+        const c = CAPACIDADE_CONFIG_SUBTELA[nome];
+        return !!c && tenhoCapacidade(c.editar);
+    }
+
+    function aplicarGatingConfiguracoes() {
+        if (souSuperAdmin) return;
+        Object.keys(CAPACIDADE_CONFIG_SUBTELA).forEach(nome => {
+            const item = document.getElementById('config-item-' + nome);
+            if (item) item.style.display = podeVerConfigSubtela(nome) ? '' : 'none';
+        });
+    }
+
+    // Trava/destrava a sub-tela inteira pra visualização (checkbox/select/
+    // input desabilitados de verdade, não só visualmente) -- mesmo padrão já
+    // usado no interruptor "Ritmista edita medidas" dentro de Permissões.
+    function aplicarSomenteLeituraConfigTela(nome, somenteLeitura) {
+        const tela = document.getElementById('config-tela-' + nome);
+        if (!tela) return;
+        tela.classList.toggle('config-subtela--somente-leitura', somenteLeitura);
+        tela.querySelectorAll('input, select, button').forEach(el => {
+            if (el.classList.contains('btn-voltar-config')) return;
+            el.disabled = somenteLeitura;
+        });
+    }
+
     // ── CONFIGURAÇÕES → INSTRUMENTOS ────────────────────────────────────
     function abrirConfigTela(nome) {
+        if (!souSuperAdmin && !podeVerConfigSubtela(nome)) return;
         document.getElementById('config-lista').style.display = 'none';
         document.querySelectorAll('#painel-configuracoes .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('config-tela-' + nome).style.display = 'block';
@@ -4270,6 +4333,7 @@
         if (nome === 'vagas') renderizarConfigVagas();
         if (nome === 'medidas') renderizarConfigMedidas();
         if (nome === 'figurino') renderizarConfigFigurino();
+        aplicarSomenteLeituraConfigTela(nome, !souSuperAdmin && !podeEditarConfigSubtela(nome));
     }
 
     function voltarConfigLista() {
@@ -4279,6 +4343,7 @@
 
     async function iniciarConfiguracoesAba() {
         voltarConfigLista();
+        aplicarGatingConfiguracoes();
         if (bibliotecaInstrumentos.length === 0) await carregarBibliotecaInstrumentos();
         await carregarBateriaInstrumentos();
         if (bibliotecaMedidas.length === 0) await carregarBibliotecaMedidas();
@@ -5353,10 +5418,17 @@
         'diretoria': 'ver_acessos',
         'permissoes': 'ver_permissoes',
         'historico': 'ver_historico',
-        'configuracoes': 'ver_configuracoes',
         'figurino': 'ver_figurino',
         'extras': 'ver_extras',
     };
+
+    // A aba "Configurações" aparece se a pessoa tiver QUALQUER capacidade de
+    // ver/editar de qualquer uma das 4 sub-telas (ver CAPACIDADE_CONFIG_SUBTELA).
+    function podeVerAba(aba) {
+        if (aba === 'configuracoes') return Object.keys(CAPACIDADE_CONFIG_SUBTELA).some(nome => podeVerConfigSubtela(nome));
+        const capacidadeExigida = CAPACIDADE_DA_ABA[aba];
+        return !capacidadeExigida || tenhoCapacidade(capacidadeExigida);
+    }
     // Sub-módulos agrupados dentro da aba "Administrativo" (19/ago/2026,
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
@@ -5372,8 +5444,8 @@
         document.querySelectorAll('#navAbasEscola .aba-btn').forEach(btn => {
             const aba = btn.dataset.aba;
             const visivel = aba === 'administrativo'
-                ? ABAS_ADMINISTRATIVO.some(a => tenhoCapacidade(CAPACIDADE_DA_ABA[a]))
-                : (!CAPACIDADE_DA_ABA[aba] || tenhoCapacidade(CAPACIDADE_DA_ABA[aba]));
+                ? ABAS_ADMINISTRATIVO.some(a => podeVerAba(a))
+                : podeVerAba(aba);
             btn.style.display = visivel ? '' : 'none';
             if (visivel && !primeiraVisivel) primeiraVisivel = aba;
         });
@@ -5386,15 +5458,27 @@
 
     // Botões de Exportar (dentro de Ritmistas/Diretoria, era a aba
     // "Relatórios" -- incorporados em 19/ago/2026) continuam com trava
-    // própria (ver_relatorios), separada de só poder ver a lista: exportar
-    // tira dado sensível (CPF, endereço...) de dentro do sistema.
+    // própria (exportar_ritmistas/exportar_diretoria, separadas desde a
+    // Reforma de Permissões de 27-28/ago/2026), diferente de só poder ver a
+    // lista: exportar tira dado sensível (CPF, endereço...) de dentro do
+    // sistema.
     function aplicarGatingBotoesExportar() {
         if (souSuperAdmin) return;
-        const podeExportar = tenhoCapacidade('ver_relatorios');
         const br = document.getElementById('btnExportarRitmistas');
         const bd = document.getElementById('btnExportarDiretoria');
-        if (br) br.style.display = podeExportar ? '' : 'none';
-        if (bd) bd.style.display = podeExportar ? '' : 'none';
+        if (br) br.style.display = tenhoCapacidade('exportar_ritmistas') ? '' : 'none';
+        if (bd) bd.style.display = tenhoCapacidade('exportar_diretoria') ? '' : 'none';
+    }
+
+    // "+ Novo cadastro" (Ritmistas/Diretoria) -- nem todo mundo pode
+    // cadastrar/pegar o link de cadastro (Reforma de Permissões, 27-28/
+    // ago/2026). Some por completo (cabeçalho + conteúdo), não só desabilita.
+    function aplicarGatingNovoCadastro() {
+        if (souSuperAdmin) return;
+        const cr = document.getElementById('cadastroRitmistaCabecalho');
+        const cd = document.getElementById('cadastroDiretoriaCabecalho');
+        if (cr) cr.style.display = tenhoCapacidade('criar_cadastro_ritmistas') ? '' : 'none';
+        if (cd) cd.style.display = tenhoCapacidade('criar_cadastro_diretoria') ? '' : 'none';
     }
 
     // Lista lançadora da aba "Administrativo" -- cada linha só aparece se a
@@ -5410,7 +5494,7 @@
         { aba: 'historico', label: 'Histórico' },
     ];
     function itensAdministrativoVisiveis() {
-        return ADMINISTRATIVO_ITENS.filter(i => souSuperAdmin || tenhoCapacidade(CAPACIDADE_DA_ABA[i.aba]));
+        return ADMINISTRATIVO_ITENS.filter(i => souSuperAdmin || podeVerAba(i.aba));
     }
     function renderizarAdministrativoLista() {
         const div = document.getElementById('admListaConteudo');
@@ -6267,17 +6351,61 @@
     // todo mundo). Aba só visível pra quem tiver ver_permissoes/
     // editar_permissoes -- ter acesso a Diretoria não dá acesso a isso.
     // ══════════════════════════════════════════════════════════════════
+    // Reforma de Permissões (27-28/ago/2026) -- catálogo antigo era muito
+    // grosso ("editar_ritmistas" cobria instrumento E medidas, "ver_ritmistas"
+    // já destravava CPF/endereço/emergência junto, várias ações como
+    // Suspender/Desligar/Reativar nunca tiveram permissão própria nenhuma).
+    // Catálogo novo é mais fino, mas a MECÂNICA continua a mesma: um objeto
+    // jsonb por pessoa (vinculos.capacidades), tudo-ou-nada por chave, Super
+    // Admin sempre bypassa (tenhoCapacidade()). Migração de quem já tinha
+    // permissão configurada: ver seção 62 da documentação técnica.
     const GRUPOS_CAPACIDADES = [
         { grupo: 'Visão Geral', itens: [{ chave: 'ver_visao_geral', label: 'Ver' }] },
         { grupo: 'Dados da Escola', itens: [{ chave: 'ver_dados_escola', label: 'Ver' }, { chave: 'editar_dados_escola', label: 'Editar' }] },
         { grupo: 'Dados da Bateria', itens: [{ chave: 'ver_dados_bateria', label: 'Ver' }, { chave: 'editar_dados_bateria', label: 'Editar' }] },
         { grupo: 'Comercial', itens: [{ chave: 'ver_comercial', label: 'Ver' }, { chave: 'editar_comercial', label: 'Editar' }] },
-        { grupo: 'Ritmistas', itens: [{ chave: 'ver_ritmistas', label: 'Ver lista de ritmistas' }, { chave: 'aprovar_ritmistas', label: 'Aprovar, rejeitar, suspender ou desligar' }, { chave: 'editar_ritmistas', label: 'Editar instrumento e medidas' }, { chave: 'ver_repique_bossa', label: 'Ver Repique de Bossa' }, { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa' }] },
-        { grupo: 'Diretoria', itens: [{ chave: 'ver_acessos', label: 'Ver Mestres e Diretores de Bateria' }, { chave: 'aprovar_acessos', label: 'Aprovar ou rejeitar' }] },
+        { grupo: 'Ritmistas', itens: [
+            { chave: 'ver_ritmistas', label: 'Ver lista (nome, apelido, instrumento, status)' },
+            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Ver CPF, endereço, contato de emergência e dados do responsável' },
+            { chave: 'criar_cadastro_ritmistas', label: 'Criar/copiar link de cadastro' },
+            { chave: 'aprovar_ritmistas', label: 'Aprovar' },
+            { chave: 'rejeitar_ritmistas', label: 'Rejeitar' },
+            { chave: 'suspender_ritmistas', label: 'Suspender' },
+            { chave: 'desligar_ritmistas', label: 'Desligar' },
+            { chave: 'reativar_ritmistas', label: 'Reativar' },
+            { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento' },
+            { chave: 'editar_medidas_ritmista', label: 'Editar medidas' },
+            { chave: 'ver_naipe', label: 'Ver naipe que lidera' },
+            { chave: 'editar_naipe', label: 'Editar naipe que lidera' },
+            { chave: 'ver_repique_bossa', label: 'Ver Repique de Bossa' },
+            { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa' },
+            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)' },
+            { chave: 'exportar_ritmistas', label: 'Exportar pra Excel' },
+        ] },
+        { grupo: 'Diretoria', itens: [
+            { chave: 'ver_acessos', label: 'Ver lista (nome, apelido, cargo)' },
+            { chave: 'ver_dados_sensiveis_acessos', label: 'Ver CPF, endereço e contato de emergência' },
+            { chave: 'criar_cadastro_diretoria', label: 'Criar/copiar link de cadastro' },
+            { chave: 'aprovar_acessos', label: 'Aprovar' },
+            { chave: 'rejeitar_acessos', label: 'Rejeitar' },
+            { chave: 'suspender_acessos', label: 'Suspender' },
+            { chave: 'desligar_acessos', label: 'Desligar' },
+            { chave: 'reativar_acessos', label: 'Reativar' },
+            { chave: 'exportar_diretoria', label: 'Exportar pra Excel' },
+        ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Ver entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos' }] },
         { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Ver' }, { chave: 'editar_extras', label: 'Cadastrar e editar' }] },
-        { grupo: 'Relatórios', itens: [{ chave: 'ver_relatorios', label: 'Ver' }] },
-        { grupo: 'Configurações', itens: [{ chave: 'ver_configuracoes', label: 'Ver' }, { chave: 'editar_configuracoes', label: 'Editar' }] },
+        { grupo: 'Carteirinha', itens: [{ chave: 'ver_carteirinha_outros', label: 'Ver a carteirinha de outra pessoa' }] },
+        { grupo: 'Configurações', itens: [
+            { chave: 'ver_instrumentos', label: 'Ver Instrumentos da bateria' },
+            { chave: 'editar_instrumentos', label: 'Editar Instrumentos da bateria' },
+            { chave: 'ver_medidas', label: 'Ver Medidas / Categorias de Figurino da bateria' },
+            { chave: 'editar_medidas', label: 'Editar Medidas / Categorias de Figurino da bateria' },
+            { chave: 'ver_vagas', label: 'Ver Vagas por instrumento' },
+            { chave: 'editar_vagas', label: 'Editar Vagas por instrumento' },
+            { chave: 'ver_figurino_bateria', label: 'Ver Figurino ativado nesta bateria' },
+            { chave: 'editar_figurino_bateria', label: 'Ativar/editar peças de Figurino nesta bateria' },
+        ] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Ver' }] },
         { grupo: 'Permissões', itens: [{ chave: 'ver_permissoes', label: 'Ver' }, { chave: 'editar_permissoes', label: 'Editar' }] },
     ];
@@ -7301,7 +7429,7 @@
             // Selo de Naipe só pra Diretor (é atributo dele, ver
             // fpResolverSeloNaipe em ficha-perfil.js) -- só no painel, nunca
             // na carteirinha (decisão da Márcia, 21/ago/2026).
-            const seloNaipe = a.perfil === 'diretor' ? fpResolverSeloNaipe(a.naipe) : null;
+            const seloNaipe = (a.perfil === 'diretor' && tenhoCapacidade('ver_naipe')) ? fpResolverSeloNaipe(a.naipe) : null;
 
             return `
             <div class="card-ritmista ${a.status}" onclick="abrirFichaAdmin(${a.id})">
@@ -7404,18 +7532,27 @@
         const rotulo = a.perfil === 'mestre' ? (a.genero === 'feminino' ? 'Mestra' : 'Mestre')
             : a.perfil === 'diretor' ? (a.genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria') : 'Diretor';
         const nomeEscapado = (a.nome || '').replace(/'/g, "\\'");
+        // Reforma de Permissões (27-28/ago/2026): mesma gate por capacidade
+        // específica já aplicada em abrirCadastro() (Ritmistas).
         let btns = '';
         if (a.status === 'pendente') {
-            btns = `<button class="btn-ficha btn-ficha-ativar" onclick="fecharModalAdmin();aprovarDiretor(${a.id})">Aprovar</button>
-                    <button class="btn-ficha btn-ficha-rejeitar" onclick="fecharModalAdmin();rejeitarDiretor(${a.id})">Rejeitar</button>`;
+            if (tenhoCapacidade('aprovar_acessos'))
+                btns += `<button class="btn-ficha btn-ficha-ativar" onclick="fecharModalAdmin();aprovarDiretor(${a.id})">Aprovar</button>`;
+            if (tenhoCapacidade('rejeitar_acessos'))
+                btns += `<button class="btn-ficha btn-ficha-rejeitar" onclick="fecharModalAdmin();rejeitarDiretor(${a.id})">Rejeitar</button>`;
         } else if (a.status === 'aprovado') {
-            btns = `<button class="btn-ficha btn-ficha-suspender" onclick="fecharModalAdmin();abrirModalSuspender(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Suspender</button>
-                    <button class="btn-ficha btn-ficha-desligar" onclick="fecharModalAdmin();abrirModalDesligar(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Desligar</button>`;
+            if (tenhoCapacidade('suspender_acessos'))
+                btns += `<button class="btn-ficha btn-ficha-suspender" onclick="fecharModalAdmin();abrirModalSuspender(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Suspender</button>`;
+            if (tenhoCapacidade('desligar_acessos'))
+                btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModalAdmin();abrirModalDesligar(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Desligar</button>`;
         } else if (a.status === 'suspenso') {
-            btns = `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModalAdmin();atualizarStatus(${a.id},'aprovado',null,recarregarDiretoria)">Reativar</button>
-                    <button class="btn-ficha btn-ficha-desligar" onclick="fecharModalAdmin();abrirModalDesligar(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Desligar</button>`;
+            if (tenhoCapacidade('reativar_acessos'))
+                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModalAdmin();atualizarStatus(${a.id},'aprovado',null,recarregarDiretoria)">Reativar</button>`;
+            if (tenhoCapacidade('desligar_acessos'))
+                btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModalAdmin();abrirModalDesligar(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Desligar</button>`;
         } else {
-            btns = `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModalAdmin();atualizarStatus(${a.id},'aprovado',null,recarregarDiretoria)">Reativar</button>`;
+            if (tenhoCapacidade('reativar_acessos'))
+                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModalAdmin();atualizarStatus(${a.id},'aprovado',null,recarregarDiretoria)">Reativar</button>`;
         }
         btns += `<button class="btn-ficha" onclick="fecharModalAdmin()">Fechar</button>`;
         document.querySelector('#fp-container-admin #fp-acoes-extra').innerHTML = btns;
@@ -7425,7 +7562,7 @@
         // Só aparece pra quem está Ativo -- suspenso/rejeitado/desligado/
         // pendente não tem carteirinha (achado da Márcia, 20/ago/2026).
         document.querySelector('#fp-container-admin #fp-ver-carteirinha').innerHTML =
-            a.status === 'aprovado'
+            (a.status === 'aprovado' && tenhoCapacidade('ver_carteirinha_outros'))
                 ? `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${a.id})">Ver carteirinha ↗</button>`
                 : '';
 
@@ -7452,8 +7589,7 @@
         // Reforço na tela (a segurança de verdade é o RLS -- mesmo se alguém
         // forçar isso via console, os dados não carregam) -- evita cair numa
         // aba vazia/quebrada que a pessoa não tem capacidade pra ver.
-        const capacidadeExigida = CAPACIDADE_DA_ABA[aba];
-        if (capacidadeExigida && !tenhoCapacidade(capacidadeExigida)) return;
+        if (!podeVerAba(aba)) return;
         window.scrollTo(0, 0);
         document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
         document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));

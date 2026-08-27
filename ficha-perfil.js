@@ -138,7 +138,15 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
         // ganhou capacidade própria (editar_repique_bossa), conferida à
         // parte em fpAplicarPermissaoRepiqueBossa (nem quem já edita
         // Ritmistas normalmente tem acesso por padrão).
-        return new Set(['bateria_instrumento_id', 'medidas']);
+        // Reforma de Permissões (27-28/ago/2026): "editar_ritmistas" virou
+        // duas capacidades separadas -- instrumento e medidas, cada uma só
+        // aparece editável se a pessoa tiver a capacidade correspondente
+        // (antes o botão aparecia pra qualquer Diretoria e o banco revertia
+        // em silêncio quem não tinha permissão de verdade).
+        const campos = new Set();
+        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_instrumento_ritmista')) campos.add('bateria_instrumento_id');
+        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_medidas_ritmista')) campos.add('medidas');
+        return campos;
     }
 
     return new Set();
@@ -349,6 +357,24 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         const el = fpEl(id);
         if (el) el.style.display = ehMenorHoje ? '' : 'none';
     });
+
+    // Dados sensíveis (Reforma de Permissões, 27-28/ago/2026): CPF, documento,
+    // endereço, contato de emergência e dados do responsável só aparecem pra
+    // quem tem a capacidade "ver dados sensíveis" -- a própria pessoa e o
+    // Super Admin sempre veem os próprios/de qualquer um. Some a linha
+    // inteira (nunca mostra "restrito" no lugar do dado).
+    const capacidadeSensiveis = alvo.perfil === 'ritmista' ? 'ver_dados_sensiveis_ritmistas' : 'ver_dados_sensiveis_acessos';
+    const podeVerSensiveis = autoedicao || meuPerfil === 'super_admin' || (typeof tenhoCapacidade === 'function' && tenhoCapacidade(capacidadeSensiveis));
+    if (!podeVerSensiveis) {
+        ['fp-cpf', 'fp-bloco-documento', 'fp-endereco', 'fp-numero', 'fp-complemento', 'fp-bairro', 'fp-cidade', 'fp-estado', 'fp-pais',
+         'fp-emergencia-nome', 'fp-emergencia-parentesco', 'fp-emergencia-celular',
+         'fp-bloco-responsavel-nome', 'fp-bloco-responsavel-cpf', 'fp-bloco-responsavel-celular'].forEach(id => {
+            const el = fpEl(id);
+            if (!el) return;
+            const bloco = el.classList.contains('ficha-campo') ? el : el.closest('.ficha-campo');
+            if (bloco) bloco.style.display = 'none';
+        });
+    }
 
     const campoCadastro = fpEl('fp-campo-cadastro');
     if (campoCadastro) {
