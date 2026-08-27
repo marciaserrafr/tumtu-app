@@ -1876,7 +1876,7 @@
         <div class="figurino-filtros-rotulo">Filtros</div>
         <div class="figurino-filtros-linha">
             <select id="figurino-entregas-filtro-instrumento" class="figurino-pill-select" onchange="renderizarEntregasFigurinoLista()">
-                <option value="">Todos os instrumentos</option>
+                <option value="">Todos</option>
             </select>
             <select id="figurino-entregas-filtro-status" class="figurino-pill-select" onchange="renderizarEntregasFigurinoLista()">
                 <option value="todos">Todos os status</option>
@@ -4809,16 +4809,28 @@
         renderizarEntregasFigurinoLista();
     }
 
+    // Mesma pílula serve pros dois lados (27/ago/2026, pedido dela: faltava
+    // um filtro na Diretoria, equivalente ao Instrumento da Ritmista) --
+    // Ritmista filtra por instrumento, Diretoria filtra por tipo de pessoa
+    // (Mestre/Diretor de Bateria/Diretoria (Apoio)). Convidados continua
+    // sendo uma opção à parte nos dois lados.
     function popularFiltroInstrumentoEntregasFigurino() {
         const select = document.getElementById('figurino-entregas-filtro-instrumento');
         if (!select) return;
         const valorAtual = select.value;
         const doLado = figurinoEntregaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
         const temExtras = doLado.some(p => p.tipo === 'extra');
-        const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-        select.innerHTML = '<option value="">Todos</option>'
-            + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('')
-            + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
+        if (figurinoEntregaLadoAtual === 'ritmista') {
+            const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+            select.innerHTML = '<option value="">Todos</option>'
+                + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('')
+                + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
+        } else {
+            const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.tipo === 'vinculo' && x.perfil === p));
+            select.innerHTML = '<option value="">Todos</option>'
+                + tipos.map(p => `<option value="${p}">${LABEL_PUBLICO_FIGURINO[p]}</option>`).join('')
+                + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
+        }
         select.value = valorAtual;
     }
 
@@ -4834,11 +4846,15 @@
         const item = figurinoEntregaItemAtual;
         // Filtro de lado (27/ago/2026) primeiro -- Ritmista e Diretoria nunca
         // aparecem misturados na mesma lista, mesmo quando a peça cobre os
-        // dois. Instrumento só faz sentido do lado Ritmista (ou pro
-        // pseudo-filtro "Convidados", se sobrar algum Convidado desse lado).
+        // dois. A mesma pílula filtra por Instrumento do lado Ritmista, ou
+        // por Tipo de pessoa (Mestre/Diretor de Bateria/Diretoria (Apoio))
+        // do lado Diretoria (27/ago/2026, pedido dela) -- Convidados
+        // continua uma opção à parte nos dois.
         const doLado = figurinoEntregaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
         const filtroInstrumentoEl = document.getElementById('figurino-entregas-filtro-instrumento');
-        const mostrarFiltroInstrumento = doLado.some(p => p.instrumento_nome) || doLado.some(p => p.tipo === 'extra');
+        const mostrarFiltroInstrumento = figurinoEntregaLadoAtual === 'ritmista'
+            ? (doLado.some(p => p.instrumento_nome) || doLado.some(p => p.tipo === 'extra'))
+            : doLado.length > 0;
         filtroInstrumentoEl.style.display = mostrarFiltroInstrumento ? '' : 'none';
         const busca = (document.getElementById('figurino-entregas-busca').value || '').trim().toLowerCase();
         const instrumentoFiltro = filtroInstrumentoEl.value;
@@ -4846,7 +4862,11 @@
         const filtrada = doLado.filter(p => {
             if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
             if (instrumentoFiltro === '__extras__' && p.tipo !== 'extra') return false;
-            if (instrumentoFiltro && instrumentoFiltro !== '__extras__' && p.instrumento_nome !== instrumentoFiltro) return false;
+            if (instrumentoFiltro && instrumentoFiltro !== '__extras__') {
+                if (figurinoEntregaLadoAtual === 'ritmista') {
+                    if (p.instrumento_nome !== instrumentoFiltro) return false;
+                } else if (p.perfil !== instrumentoFiltro) return false;
+            }
             if (statusFiltro === 'pendentes' && p.entregue) return false;
             if (statusFiltro === 'entregues' && !p.entregue) return false;
             return true;
