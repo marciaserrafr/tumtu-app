@@ -1438,7 +1438,7 @@
         <div id="sa-config-tela-figurino" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Figurino</div>
-            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada peça (ex: Camisa da Final) é ligada a uma Categoria de Figurino só pra usar o tamanho dela, e é sempre de um público só (Ritmista ou Diretoria). Cada bateria escolhe quais peças usa em "Configurações → Figurino" no painel dela — nasce tudo desligado.</p>
+            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada peça (ex: Camisa da Final) é ligada a uma Categoria de Figurino só pra usar o tamanho dela, e pode cobrir um ou mais públicos ao mesmo tempo. Cada bateria escolhe quais peças usa em "Configurações → Figurino" no painel dela — nasce tudo desligado.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoFigurinoMestre()">+ Novo Figurino</button>
             <div id="sa-figurino-editor" style="display:none;"></div>
             <div id="sa-figurino-lista" class="lista-cards"></div>
@@ -4557,31 +4557,29 @@
         const container = document.getElementById('config-figurino-lista');
         if (!container) return;
         if (bibliotecaFigurino.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino cadastrado na lista mestre ainda. Peça pro Super Admin cadastrar em Configurações → Figurino.</div>'; return; }
-        container.innerHTML = ORDEM_PUBLICO_FIGURINO.map(publico => {
-            const itensPublico = bibliotecaFigurino.filter(f => f.publico.includes(publico));
-            if (itensPublico.length === 0) return '';
-            const categoriaIds = [...new Set(itensPublico.map(f => f.medida_tipo_id))];
-            const categorias = categoriaIds.map(id => bibliotecaMedidaTipos.find(t => t.id === id)).filter(Boolean)
-                .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[publico]}</div>` + categorias.map(cat => {
-                const itensCat = itensPublico.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
-                return `<div style="font-size:13px;font-weight:700;color:var(--cor-texto-muted);margin:12px 0 6px;">${esc(cat.nome)}</div>${itensCat.map(f => renderizarLinhaFigurinoConfig(f)).join('')}`;
-            }).join('');
+        // Agrupa por Categoria de Figurino, não mais por público (mesmo
+        // achado dela na lista mestre, 27/ago/2026) -- evita a mesma peça
+        // repetir numa seção pra cada público que ela cobre.
+        const categoriaIds = [...new Set(bibliotecaFigurino.map(f => f.medida_tipo_id))];
+        const categorias = categoriaIds.map(id => bibliotecaMedidaTipos.find(t => t.id === id)).filter(Boolean)
+            .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        container.innerHTML = categorias.map(cat => {
+            const itensCat = bibliotecaFigurino.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            if (itensCat.length === 0) return '';
+            return `<div class="secao-titulo">${esc(cat.nome)}</div>${itensCat.map(f => renderizarLinhaFigurinoConfig(f)).join('')}`;
         }).join('');
     }
     function renderizarLinhaFigurinoConfig(f) {
         const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === f.id);
         const ativo = !!(existente && existente.ativo);
-        // Peça pode cobrir mais de um público (27/ago/2026) -- aparece
-        // repetida em cada seção correspondente, mas o rótulo sempre mostra
-        // TODOS os públicos cobertos, pra deixar claro que é a mesma peça e
-        // que o interruptor abaixo liga/desliga ela inteira, não só nesta seção.
-        const publicosTexto = f.publico.length > 1 ? f.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(', ') : '';
+        // A seção agora é a Categoria, não o público (27/ago/2026) -- então
+        // sempre mostra quais públicos a peça cobre, mesmo sendo só um.
+        const publicosTexto = f.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(', ');
         return `
             <div class="item-card">
                 <label class="config-instrumento-check">
                     <input type="checkbox" ${ativo ? 'checked' : ''} onchange="salvarFigurinoBateria(${f.id}, this.checked)">
-                    <span class="item-nome">${esc(f.nome)}${publicosTexto ? ` <span style="font-weight:400;color:var(--cor-texto-muted);">(${esc(publicosTexto)})</span>` : ''}</span>
+                    <span class="item-nome">${esc(f.nome)} <span style="font-weight:400;color:var(--cor-texto-muted);">(${esc(publicosTexto)})</span></span>
                 </label>
             </div>`;
     }
@@ -4636,20 +4634,20 @@
         const ativosIds = new Set(bateriaFigurinoCache.filter(bf => bf.ativo).map(bf => bf.figurino_item_mestre_id));
         const itensAtivos = bibliotecaFigurino.filter(f => ativosIds.has(f.id));
         if (itensAtivos.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino ativo nesta bateria ainda. Ative em Configurações → Figurino.</div>'; return; }
-        container.innerHTML = ORDEM_PUBLICO_FIGURINO.map(publico => {
-            const itensPublico = itensAtivos.filter(f => f.publico.includes(publico));
-            if (itensPublico.length === 0) return '';
-            const categoriaIds = [...new Set(itensPublico.map(f => f.medida_tipo_id))];
-            const categorias = categoriaIds.map(id => bibliotecaMedidaTipos.find(t => t.id === id)).filter(Boolean)
-                .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[publico]}</div>` + categorias.map(cat => {
-                const itensCat = itensPublico.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
-                return `<div style="font-size:13px;font-weight:700;color:var(--cor-texto-muted);margin:12px 0 6px;">${esc(cat.nome)}</div>` + itensCat.map(it => `
+        // Agrupa por Categoria de Figurino, não mais por público (27/ago/2026)
+        // -- senão a mesma peça (mesmo clique, mesma tela de entrega) aparecia
+        // repetida uma vez por público que ela cobre.
+        const categoriaIds = [...new Set(itensAtivos.map(f => f.medida_tipo_id))];
+        const categorias = categoriaIds.map(id => bibliotecaMedidaTipos.find(t => t.id === id)).filter(Boolean)
+            .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        container.innerHTML = categorias.map(cat => {
+            const itensCat = itensAtivos.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            if (itensCat.length === 0) return '';
+            return `<div class="secao-titulo">${esc(cat.nome)}</div>` + itensCat.map(it => `
                     <div class="item-card" onclick="abrirEntregasFigurino(${it.id})" style="cursor:pointer;">
-                        <div class="item-info"><div class="item-nome">${esc(it.nome)}</div></div>
+                        <div class="item-info"><div class="item-nome">${esc(it.nome)}</div><div class="item-detalhe">Público: ${esc(it.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(', '))}</div></div>
                         <span class="config-item-seta">›</span>
                     </div>`).join('');
-            }).join('');
         }).join('');
     }
 
@@ -6730,22 +6728,24 @@
     function renderizarFigurinoMestreListaSA() {
         const container = document.getElementById('sa-figurino-lista');
         if (figurinoMestreCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino cadastrado ainda.</div>'; return; }
-        container.innerHTML = ORDEM_PUBLICO_FIGURINO.map(publico => {
-            const itens = figurinoMestreCacheSA.filter(f => f.publico.includes(publico)).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
-            if (itens.length === 0) return '';
-            return `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[publico]}</div>` + itens.map(f => {
-                const categoria = medidaTiposCacheSA.find(t => t.id === f.medida_tipo_id);
-                // Peça pode cobrir mais de um público ao mesmo tempo
-                // (27/ago/2026) -- por isso aparece repetida em cada seção
-                // correspondente; o detalhe sempre mostra TODOS os públicos
-                // cobertos, não só o desta seção, pra ficar claro que é a
-                // mesma peça.
+        // Agrupa por Categoria de Figurino, não mais por público (27/ago/2026,
+        // achado dela: a peça já mostra todos os públicos que cobre no
+        // próprio card, então agrupar por público fazia a mesma peça se
+        // repetir numa seção pra cada público marcado -- confuso e
+        // redundante). Categoria continua sendo dono único de cada peça,
+        // então agrupar por ela nunca repete nada.
+        const categoriaIds = [...new Set(figurinoMestreCacheSA.map(f => f.medida_tipo_id))];
+        const categorias = categoriaIds.map(id => medidaTiposCacheSA.find(t => t.id === id)).filter(Boolean)
+            .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        container.innerHTML = categorias.map(cat => {
+            const itens = figurinoMestreCacheSA.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+            return `<div class="secao-titulo">${esc(cat.nome)}</div>` + itens.map(f => {
                 const publicosTexto = f.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(', ');
                 return `
                 <div class="item-card">
                     <div class="item-info">
                         <div class="item-nome">${esc(f.nome)} ${f.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
-                        <div class="item-detalhe">Categoria: ${esc(categoria ? categoria.nome : '—')} · Público: ${esc(publicosTexto)}${f.inclui_extras ? ' · Inclui Convidados' : ''}</div>
+                        <div class="item-detalhe">Público: ${esc(publicosTexto)}${f.inclui_extras ? ' · Inclui Convidados' : ''}</div>
                     </div>
                     <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarFigurinoMestre(${f.id})">Editar</button></div>
                 </div>`;
