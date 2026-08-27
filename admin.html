@@ -1713,8 +1713,9 @@
                 <label class="multi-select-option"><input type="checkbox" value="pendente" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
                 <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
                 <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
-                <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
+                <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="statusMarcarTudoLink" onclick="toggleMarcarTudoStatus()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+                    <button type="button" class="btn-ficha" onclick="aplicarFiltros()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
                 </div>
             </div>
         </div>
@@ -2049,8 +2050,9 @@
                 <label class="multi-select-option"><input type="checkbox" value="mestre" checked onchange="onChangeCargo()">Mestre de Bateria</label>
                 <label class="multi-select-option"><input type="checkbox" value="diretor" checked onchange="onChangeCargo()">Diretor de Bateria</label>
                 <label class="multi-select-option"><input type="checkbox" value="apoio" checked onchange="onChangeCargo()">Diretor</label>
-                <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
+                <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="cargoMarcarTudoLink" onclick="toggleMarcarTudoCargo()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+                    <button type="button" class="btn-ficha" onclick="aplicarFiltrosDiretoria()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
                 </div>
             </div>
         </div>
@@ -2066,8 +2068,9 @@
                 <label class="multi-select-option"><input type="checkbox" value="pendente" checked onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
                 <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
                 <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
-                <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;">
+                <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="statusDiretoriaMarcarTudoLink" onclick="toggleMarcarTudoStatusDiretoria()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+                    <button type="button" class="btn-ficha" onclick="aplicarFiltrosDiretoria()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
                 </div>
             </div>
         </div>
@@ -4060,13 +4063,24 @@
             dropdown.appendChild(label);
         });
         const rodape = document.createElement('div');
-        rodape.style.cssText = 'border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;text-align:right;';
+        rodape.style.cssText = 'border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;';
         const link = document.createElement('span');
         link.id = 'multiSelectMarcarTudo';
         link.textContent = 'Limpar';
         link.style.cssText = 'font-size:12px;color:#888;cursor:pointer;font-weight:500;';
         link.onclick = toggleMarcarTudoInstrumento;
         rodape.appendChild(link);
+        // Botão "Aplicar" (27/ago/2026) -- mesma rede de segurança do
+        // "Buscar": chama aplicarFiltros() por um clique explícito, não
+        // só pelo onchange do checkbox (ela relatou o filtro "travando"
+        // depois da 1ª tentativa).
+        const btnAplicar = document.createElement('button');
+        btnAplicar.type = 'button';
+        btnAplicar.className = 'btn-ficha';
+        btnAplicar.textContent = 'Aplicar';
+        btnAplicar.style.cssText = 'padding:4px 12px;font-size:12px;';
+        btnAplicar.onclick = aplicarFiltros;
+        rodape.appendChild(btnAplicar);
         dropdown.appendChild(rodape);
         filtroInstrumentosSelecionados = instrumentosAtivosDaBateria().map(i => i.id);
         const labelEl = document.getElementById('multiSelectLabel');
