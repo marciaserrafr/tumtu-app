@@ -359,6 +359,18 @@
         .vg-secao-seta.aberta { transform: rotate(90deg); }
         .vg-figurino-peca-titulo { font-size: 13px; font-weight: 700; color: var(--cor-texto-principal); margin: 0; }
         .vg-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 16px; }
+        /* Layout flexível dos cards de baixo da Visão Geral (27/ago/2026,
+           pedido dela) -- dentro do contêiner flex, o próprio card não usa
+           mais margin-bottom (o "gap" do contêiner já cuida do respiro
+           entre as fileiras). Tamanho "meio" é aplicado via JS (flex-basis
+           inline), não por classe -- ver aplicarLayoutVisaoGeral(). */
+        .vg-cards-flex { display: flex; flex-wrap: wrap; gap: 16px; }
+        .vg-cards-flex > .vg-card { margin-bottom: 0; min-width: 0; flex: 1 1 100%; }
+        @media (max-width: 720px) {
+            .vg-cards-flex > .vg-card { flex-basis: 100% !important; }
+        }
+        .vg-card-tamanho-btn { background: transparent; border: none; padding: 3px 8px; margin: 0; font-family: inherit; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #b0adc2; cursor: pointer; white-space: nowrap; border-radius: 6px; }
+        .vg-card-tamanho-btn:hover { color: #5a5770; background: #f2f1f7; }
         .vg-aniversariante { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f4f4f4; font-size: 13px; }
         .vg-aniversariante:last-child { border-bottom: none; }
         .vg-aniv-nome { font-weight: 700; color: var(--cor-texto-principal); }
@@ -1928,22 +1940,34 @@
         </div>
     </div>
 
-    <!-- Empilhado, um card embaixo do outro (era grid de 2 colunas até
+    <!-- Cards de baixo, empilhados por padrão (era grid de 2 colunas até
          24/ago/2026) -- pedido da Márcia depois de reparar que o card
          menor (Aniversariantes) deixava um vão vazio embaixo dele sempre
          que "Ritmistas por Instrumento" era mais alto: "fica esse espaço
          vazio e não achei legal". Ordem mudou de novo em 27/ago/2026:
          Aniversariantes vai pro final -- pedido dela, "com o tempo,
-         infelizmente esse item será o de menos importância". -->
+         infelizmente esse item será o de menos importância".
+         Cada card ganhou (27/ago/2026, pedido dela) um botão "Dividir
+         tela"/"Ocupar tela toda" -- cada pessoa escolhe o tamanho que
+         prefere pra CADA card, guardado só no próprio navegador
+         (localStorage, sem depender do banco -- ver aplicarLayoutVisaoGeral).
+         Quando 2 cards em "meio" ficam vizinhos na lista (entre os que
+         estão realmente visíveis pra essa bateria), eles ficam lado a
+         lado; um card em "meio" sem vizinho em "meio" do lado simplesmente
+         ocupa a fileira inteira sozinho, nunca deixando buraco -- mesmo
+         cuidado de já não empilhar card vazio. -->
+    <div class="vg-cards-flex" id="vg-cards-flex">
+
     <!-- Fechado por padrão, só o total geral na pílula -- clica pra abrir
          o detalhe por naipe (pedido dela, 25/ago/2026: "se a pessoa quiser
          ver só o total, vai conseguir. e se quiser ver o detalhe, vai
          abrir"). Mesma ideia de acordeão já usada em Configurações →
          Categoria de Figurino. -->
-    <div class="vg-card">
+    <div class="vg-card" id="vg-card-instrumentos">
         <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgInstrumentosAberto()">
             <span>🥁 Ritmistas por Instrumento</span>
             <span class="vg-secao-resumo">
+                <button type="button" class="vg-card-tamanho-btn" onclick="event.stopPropagation(); toggleTamanhoCard('instrumentos')">Dividir tela</button>
                 <div id="vg-instrumentos-total"></div>
                 <span class="vg-secao-seta" id="vg-instrumentos-seta">›</span>
             </span>
@@ -1960,6 +1984,7 @@
         <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgMenoresAberto()">
             <span>📄 Declaração do Responsável (Menores)</span>
             <span class="vg-secao-resumo">
+                <button type="button" class="vg-card-tamanho-btn" onclick="event.stopPropagation(); toggleTamanhoCard('menores')">Dividir tela</button>
                 <div id="vg-menores-total"></div>
                 <span class="vg-secao-seta" id="vg-menores-seta">›</span>
             </span>
@@ -1975,20 +2000,26 @@
          ela deve aparecer aqui sozinha. Cada peça, dentro do card, também
          é um acordeão fechado/aberto (25/ago/2026), mesma ideia de cima. -->
     <div class="vg-card" id="vg-figurino-card" style="display:none;">
-        <div class="vg-secao-titulo">👕 Entrega de Figurino</div>
+        <div class="vg-secao-titulo" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>👕 Entrega de Figurino</span>
+            <button type="button" class="vg-card-tamanho-btn" onclick="toggleTamanhoCard('figurino')">Dividir tela</button>
+        </div>
         <div id="vg-figurino"></div>
     </div>
 
-    <div class="vg-card">
+    <div class="vg-card" id="vg-card-aniversariantes">
         <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgAniversariantesAberto()">
             <span id="vg-aniversariantes-titulo">🎂 Aniversariantes do mês</span>
             <span class="vg-secao-resumo">
+                <button type="button" class="vg-card-tamanho-btn" onclick="event.stopPropagation(); toggleTamanhoCard('aniversariantes')">Dividir tela</button>
                 <div id="vg-aniversariantes-total"></div>
                 <span class="vg-secao-seta aberta" id="vg-aniversariantes-seta">›</span>
             </span>
         </div>
         <div id="vg-aniversariantes"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
+
+    </div><!-- /vg-cards-flex -->
 
 </div><!-- /painel-visao -->
 
@@ -2354,6 +2385,65 @@
         card.style.display = 'flex';
     }
 
+    // Layout flexível dos cards de baixo da Visão Geral (27/ago/2026,
+    // pedido dela: "de acordo com o gosto pessoal de cada um"). Preferência
+    // guardada só neste navegador (localStorage) -- nada de banco por
+    // enquanto (ela pediu pra deixar a versão "ela mesma configura o padrão
+    // de fábrica numa tela", que precisa de banco, registrada em CLAUDE.md
+    // pra fazer quando a ferramenta de banco voltar). Padrão de hoje =
+    // todo card em "cheio" (igual já era antes desse recurso existir).
+    const VG_LAYOUT_CHAVE = 'tumtu_visao_layout';
+    function obterLayoutVisaoGeral() {
+        try { return JSON.parse(localStorage.getItem(VG_LAYOUT_CHAVE) || '{}'); }
+        catch (e) { return {}; }
+    }
+    function toggleTamanhoCard(chave) {
+        const layout = obterLayoutVisaoGeral();
+        layout[chave] = layout[chave] === 'meio' ? 'cheio' : 'meio';
+        try { localStorage.setItem(VG_LAYOUT_CHAVE, JSON.stringify(layout)); } catch (e) {}
+        aplicarLayoutVisaoGeral();
+    }
+    // Roda de novo a cada atualização da Visão Geral (carregarRitmistas/
+    // carregarResumoEntregaFigurino), porque um card pode aparecer/
+    // desaparecer (Menores, Figurino) e o encaixe precisa reagir a isso --
+    // nunca deixar um card em "meio" sozinho numa fileira, sem par visível
+    // do lado (ela foi explícita: "nem todas as baterias podem ter os
+    // mesmos boxes, a tela teria que se ajustar com os boxes que tiver").
+    function aplicarLayoutVisaoGeral() {
+        const layout = obterLayoutVisaoGeral();
+        const mapaEl = {
+            instrumentos: document.getElementById('vg-card-instrumentos'),
+            menores: document.getElementById('vg-menores-card'),
+            figurino: document.getElementById('vg-figurino-card'),
+            aniversariantes: document.getElementById('vg-card-aniversariantes'),
+        };
+        Object.keys(mapaEl).forEach(chave => {
+            const el = mapaEl[chave];
+            if (!el) return;
+            const meio = layout[chave] === 'meio';
+            const btn = el.querySelector('.vg-card-tamanho-btn');
+            if (btn) btn.textContent = meio ? 'Ocupar tela toda' : 'Dividir tela';
+        });
+        const visiveis = Object.values(mapaEl).filter(el => el && el.style.display !== 'none');
+        let i = 0;
+        while (i < visiveis.length) {
+            const atual = visiveis[i];
+            const chaveAtual = Object.keys(mapaEl).find(c => mapaEl[c] === atual);
+            const proximo = visiveis[i + 1];
+            const chaveProximo = proximo && Object.keys(mapaEl).find(c => mapaEl[c] === proximo);
+            const meioAtual = layout[chaveAtual] === 'meio';
+            const meioProximo = proximo && layout[chaveProximo] === 'meio';
+            if (meioAtual && meioProximo) {
+                atual.style.flexBasis = 'calc(50% - 8px)';
+                proximo.style.flexBasis = 'calc(50% - 8px)';
+                i += 2;
+            } else {
+                atual.style.flexBasis = '100%';
+                i += 1;
+            }
+        }
+    }
+
     function bateriaIdContexto() {
         if (souSuperAdmin) return bateriaAtualData ? bateriaAtualData.id : null;
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
@@ -2426,7 +2516,7 @@
 
     async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); carregarResumoEntregaFigurino(); return; }
+        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); carregarResumoEntregaFigurino(); aplicarLayoutVisaoGeral(); return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=${select}&order=created_at.desc`, {
             headers: authHeaders
@@ -2439,6 +2529,7 @@
         renderizarContagemInstrumentos();
         renderizarControleMenores();
         carregarResumoEntregaFigurino();
+        aplicarLayoutVisaoGeral();
     }
 
     function toggleStatusSelect() {
@@ -3398,6 +3489,7 @@
     async function carregarResumoEntregaFigurino() {
         const card = document.getElementById('vg-figurino-card');
         if (!card) return;
+        try {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { card.style.display = 'none'; return; }
         const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&mostra_visao_geral=eq.true&entrega_finalizada=eq.false&select=id,figurino_item_mestre_id,item:figurino_itens_mestre(id,nome,publico,inclui_extras)`, { headers: authHeaders });
@@ -3427,6 +3519,9 @@
         const extrasEntregas = (precisaExtras && resExtrasEntregas && resExtrasEntregas.ok) ? await resExtrasEntregas.json() : [];
         card.style.display = 'block';
         renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas);
+        } finally {
+            aplicarLayoutVisaoGeral();
+        }
     }
 
     // Cada peça, dentro do card, é seu próprio acordeão fechado/aberto
