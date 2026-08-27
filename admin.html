@@ -3271,44 +3271,53 @@
     // quantos faltam, quebrado por instrumento -- mesmo padrão visual de
     // "Ritmistas por Instrumento" e do resumo de Figurino ("Falta N (X/Y)").
     function renderizarControleMenores() {
-        const card = document.getElementById('vg-menores-card');
-        const div = document.getElementById('vg-menores');
-        if (!card || !div) return;
-        const menores = todosRitmistas.filter(r => {
-            if (r.status !== 'aprovado') return false;
-            const idade = calcularIdade(r.nascimento);
-            return idade !== null && idade < 18;
-        });
-        if (menores.length === 0) { card.style.display = 'none'; return; }
-        card.style.display = '';
-        const totalEl = document.getElementById('vg-menores-total');
-        if (totalEl) {
-            const entreguesGeral = menores.filter(r => r.declaracao_responsavel).length;
-            totalEl.innerHTML = totalDuploHtml(menores.length, menores.length - entreguesGeral, true);
+        // Rede de segurança (27/ago/2026, depois de um susto real em
+        // produção): qualquer erro aqui dentro NUNCA pode travar as
+        // chamadas seguintes de carregarRitmistas() (Figurino, etc.) --
+        // fica só registrado no console, o card de Menores simplesmente
+        // não aparece nesse ciclo, e o resto da tela continua funcionando.
+        try {
+            const card = document.getElementById('vg-menores-card');
+            const div = document.getElementById('vg-menores');
+            if (!card || !div) return;
+            const menores = todosRitmistas.filter(r => {
+                if (r.status !== 'aprovado') return false;
+                const idade = calcularIdade(r.nascimento);
+                return idade !== null && idade < 18;
+            });
+            if (menores.length === 0) { card.style.display = 'none'; return; }
+            card.style.display = '';
+            const totalEl = document.getElementById('vg-menores-total');
+            if (totalEl) {
+                const entreguesGeral = menores.filter(r => r.declaracao_responsavel).length;
+                totalEl.innerHTML = totalDuploHtml(menores.length, menores.length - entreguesGeral, true);
+            }
+            const porInstrumento = {};
+            menores.forEach(r => {
+                const chave = r.bateria_instrumento_id || 'sem-instrumento';
+                if (!porInstrumento[chave]) porInstrumento[chave] = { entregues: 0, total: 0 };
+                porInstrumento[chave].total++;
+                if (r.declaracao_responsavel) porInstrumento[chave].entregues++;
+            });
+            const linhas = Object.keys(porInstrumento).map(chave => {
+                const bi = (bateriaInstrumentosCache || []).find(b => String(b.id) === chave);
+                const nome = bi ? nomeExibicaoBateriaInstrumento(bi) : 'Sem instrumento';
+                return { nome, ...porInstrumento[chave] };
+            }).sort((a, b) => b.total - a.total || a.nome.localeCompare(b.nome, 'pt-BR'));
+            div.innerHTML = linhas.map(l => {
+                const faltam = l.total - l.entregues;
+                return `
+                <div class="vg-instrumento-linha">
+                    <span>${esc(l.nome)}</span>
+                    <span style="display:flex;align-items:center;gap:14px;">
+                        ${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}
+                        <span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}">${l.entregues} / ${l.total}</span>
+                    </span>
+                </div>`;
+            }).join('');
+        } catch (erro) {
+            console.error('renderizarControleMenores falhou:', erro);
         }
-        const porInstrumento = {};
-        menores.forEach(r => {
-            const chave = r.bateria_instrumento_id || 'sem-instrumento';
-            if (!porInstrumento[chave]) porInstrumento[chave] = { entregues: 0, total: 0 };
-            porInstrumento[chave].total++;
-            if (r.declaracao_responsavel) porInstrumento[chave].entregues++;
-        });
-        const linhas = Object.keys(porInstrumento).map(chave => {
-            const bi = (bateriaInstrumentosCache || []).find(b => String(b.id) === chave);
-            const nome = bi ? nomeExibicaoBateriaInstrumento(bi) : 'Sem instrumento';
-            return { nome, ...porInstrumento[chave] };
-        }).sort((a, b) => b.total - a.total || a.nome.localeCompare(b.nome, 'pt-BR'));
-        div.innerHTML = linhas.map(l => {
-            const faltam = l.total - l.entregues;
-            return `
-            <div class="vg-instrumento-linha">
-                <span>${esc(l.nome)}</span>
-                <span style="display:flex;align-items:center;gap:14px;">
-                    ${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}
-                    <span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}">${l.entregues} / ${l.total}</span>
-                </span>
-            </div>`;
-        }).join('');
     }
     function toggleVgInstrumentosAberto() {
         vgInstrumentosAberto = !vgInstrumentosAberto;
