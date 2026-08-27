@@ -1808,6 +1808,14 @@
         <button class="btn-voltar-config" onclick="voltarFigurinoLista()">← Entrega de Figurino</button>
         <div class="painel-titulo" id="figurino-entregas-titulo">Entregas</div>
         <p class="config-sub-desc">Tamanho mostrado só pra consulta (vem de Medidas) — a edição do tamanho continua na ficha da pessoa.</p>
+        <!-- Totalizador logo no topo (26/ago/2026, pedido dela: "precisavam
+             ficar mais na parte de cima... tenho que escrolar tudo para
+             ver") -- antes ficava no fim da lista, escondido até rolar a
+             tela inteira. Sempre soma TODO mundo da peça (Ritmistas/
+             Diretoria + Extras do mesmo lado, se "Incluir Extras" estiver
+             ligado), nunca só o que está filtrado na busca/instrumento --
+             é o total da peça inteira, ver renderizarEntregasFigurinoLista(). -->
+        <div id="figurino-entregas-totalizador" class="total-duplo-card" style="margin-bottom:18px;"></div>
         <!-- Dois interruptores, pedido dela, 24/ago/2026: ativar a peça em
              Configurações (com antecedência) não quer dizer que ela deve
              aparecer na Visão Geral -- "Entrega Iniciada" é uma decisão à
@@ -1849,12 +1857,6 @@
             <span style="width:96px;">Status</span>
         </div>
         <div id="figurino-entregas-lista"></div>
-        <!-- Totalizador no fim da lista -- pedido dela, 25/ago/2026: "total
-             entregues e quantos faltam, mas com um total". Sempre soma
-             TODO mundo da peça (Ritmistas/Diretoria + Extras do mesmo lado,
-             se "Incluir Extras" estiver ligado), nunca só o que está
-             filtrado na busca/instrumento -- é o total da peça inteira. -->
-        <div id="figurino-entregas-totalizador" class="total-duplo-card" style="margin-top:14px;"></div>
     </div>
 
 </div>
