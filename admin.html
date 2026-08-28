@@ -1790,8 +1790,8 @@
         <span class="config-item-seta" id="cadastroRitmistaSeta">›</span>
     </div>
     <div id="cadastroRitmistaConteudo" style="display:none;margin-top:12px;">
-        <div style="margin-bottom:16px;">
-            <button class="btn-novo" onclick="irParaCadastroManualRitmista()">+ Cadastrar Ritmista</button>
+        <div id="cadastroRitmistaBotoes" style="margin-bottom:16px;">
+            <button class="btn-novo" id="btnCadastrarRitmista" onclick="irParaCadastroManualRitmista()">+ Cadastrar Ritmista</button>
         </div>
         <div id="linkCadastroRitmista" style="margin-bottom:20px;"></div>
     </div>
@@ -2219,7 +2219,7 @@
         <span class="config-item-seta" id="cadastroDiretoriaSeta">›</span>
     </div>
     <div id="cadastroDiretoriaConteudo" style="display:none;margin-top:12px;">
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+        <div id="cadastroDiretoriaBotoes" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
             <button class="btn-novo" onclick="irParaCadastroManualDiretoria('mestre')">+ Cadastrar Mestre</button>
             <button class="btn-novo" onclick="irParaCadastroManualDiretoria('diretor')">+ Cadastrar Diretor de Bateria</button>
             <button class="btn-novo" onclick="irParaCadastroManualDiretoria('apoio')">+ Cadastrar Diretor (Apoio)</button>
@@ -4215,8 +4215,6 @@
         // (.sa-sidebar); Mestre/Diretor nunca chamava, porque nunca teve
         // barra lateral até agora (20/ago/2026).
         ajustarAlturaHeaderAdmin();
-        renderizarLinkCadastroRitmista();
-        renderizarLinksCadastroDiretoria();
 
         // Carrega bateria/escola completas -- não só o resumo de
         // carregarNomeEscolaBateria() (que só preenche configEscola pro
@@ -4239,6 +4237,13 @@
         aplicarGatingAbas();
         aplicarGatingBotoesExportar();
         aplicarGatingNovoCadastro();
+        // Precisa vir DEPOIS de carregarMinhasCapacidades -- a caixinha do
+        // link decide na hora de desenhar (não com CSS depois) se mostra o
+        // endereço de verdade ou o aviso mascarado (achado real, 28/ago/
+        // 2026: chamar isso cedo demais deixava o link sempre mascarado
+        // pra Mestre/Diretor comum, mesmo pra quem tinha a permissão).
+        renderizarLinkCadastroRitmista();
+        renderizarLinksCadastroDiretoria();
 
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'flex';
@@ -4310,17 +4315,22 @@
     // seta que sugeria algo clicável); quem controla mostrar/esconder
     // agora é só o "Cadastro" por fora (toggleCadastroRitmista/
     // toggleCadastroDiretoria).
-    function caixaLinkCadastro(id, titulo, linhas) {
+    // podeCopiar (28/ago/2026, permissão nova "Copiar Link de Cadastro"):
+    // quando falso, o endereço de verdade NUNCA entra no HTML -- não é só
+    // esconder visualmente, senão continuaria dando pra pegar o link
+    // olhando o código da página. Mostra um aviso no lugar do campo,
+    // sem input nenhum pra selecionar/copiar.
+    function caixaLinkCadastro(id, titulo, linhas, podeCopiar) {
         return `
             <div class="secao-titulo" style="margin-top:4px;">${titulo}</div>
             <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
-                <p style="font-size:13px;color:#8b88a0;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>
-                ${linhas.map((l, i) => `
+                ${podeCopiar ? `<p style="font-size:13px;color:#8b88a0;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>` : ''}
+                ${podeCopiar ? linhas.map((l, i) => `
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;${i > 0 ? 'margin-top:10px;' : ''}">
                     <label style="width:120px;flex-shrink:0;font-size:12px;color:#5a5770;font-weight:600;">${l.label}</label>
-                    <input type="text" readonly value="${l.url}" style="flex:1;min-width:200px;padding:9px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;color:#333;">
+                    <input type="text" readonly value="${esc(l.url)}" style="flex:1;min-width:200px;padding:9px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;color:#333;">
                     <button class="btn-modal-confirmar verde" onclick="copiarLinkCadastroAdmin(this)">Copiar</button>
-                </div>`).join('')}
+                </div>`).join('') : `<p style="font-size:13px;color:#8b88a0;margin:0;">Link disponível — peça a alguém com mais acesso pra te enviar.</p>`}
             </div>`;
     }
     // "Cadastro" recolhido (Ritmistas/Diretoria) -- pedido da Márcia,
@@ -4346,20 +4356,22 @@
         if (!div) return;
         const codigo = codigoConviteBateria || bateriaIdContexto();
         if (!codigo) { div.innerHTML = ''; return; }
+        const podeCopiar = souSuperAdmin || tenhoCapacidade('copiar_link_cadastro_ritmistas');
         const base = `${window.location.origin}/cadastro?bateria=${codigo}`;
-        div.innerHTML = caixaLinkCadastro('linkCadastroRitmista-box', 'Link de cadastro', [{ label: 'Ritmista', url: base }]);
+        div.innerHTML = caixaLinkCadastro('linkCadastroRitmista-box', 'Link de cadastro', [{ label: 'Ritmista', url: base }], podeCopiar);
     }
     function renderizarLinksCadastroDiretoria() {
         const div = document.getElementById('linksCadastroDiretoria');
         if (!div) return;
         const codigo = codigoConviteBateria || bateriaIdContexto();
         if (!codigo) { div.innerHTML = ''; return; }
+        const podeCopiar = souSuperAdmin || tenhoCapacidade('copiar_link_cadastro_diretoria');
         const base = `${window.location.origin}/cadastro?bateria=${codigo}`;
         div.innerHTML = caixaLinkCadastro('linksCadastroDiretoria-box', 'Links de cadastro', [
             { label: 'Mestre de Bateria', url: `${base}&cargo=mestre` },
             { label: 'Diretor de Bateria', url: `${base}&cargo=diretor` },
             { label: 'Diretor (Apoio)', url: `${base}&cargo=apoio` }
-        ]);
+        ], podeCopiar);
     }
 
     function copiarLinkCadastroAdmin(btn) {
@@ -5663,15 +5675,44 @@
         if (bd) bd.style.display = tenhoCapacidade('exportar_diretoria') ? '' : 'none';
     }
 
-    // "+ Novo cadastro" (Ritmistas/Diretoria) -- nem todo mundo pode
-    // cadastrar/pegar o link de cadastro (Reforma de Permissões, 27-28/
-    // ago/2026). Some por completo (cabeçalho + conteúdo), não só desabilita.
+    // "+ Novo cadastro" (Ritmistas/Diretoria) -- três camadas independentes
+    // (28/ago/2026, pedido dela): "Visualizar Novo Cadastro" (a seção
+    // inteira só existe com essa), "Criar Novo Cadastro" (só o botão de
+    // cadastro manual) e "Copiar Link de Cadastro" (só a caixinha do
+    // link) -- dá pra ter uma sem a outra, nas duas combinações (ex:
+    // alguém que cadastra pessoalmente mas não deve ficar espalhando o
+    // link sozinho). O cabeçalho inteiro some sem "Visualizar"; com ele,
+    // o botão de cadastrar fica cinza/travado sem "Criar" (nunca some --
+    // é o único caso, junto do link, onde "ver sem poder mexer" faz
+    // sentido, mesmo padrão já usado em Configurações). A caixinha do
+    // link em si (mostrar o endereço de verdade ou o aviso mascarado) é
+    // decidida dentro de renderizarLinkCadastroRitmista/Diretoria, na
+    // hora de desenhar o HTML -- não dá pra só esconder com CSS aqui,
+    // senão o endereço real ainda estaria no código da página.
     function aplicarGatingNovoCadastro() {
         if (souSuperAdmin) return;
         const cr = document.getElementById('cadastroRitmistaCabecalho');
         const cd = document.getElementById('cadastroDiretoriaCabecalho');
-        if (cr) cr.style.display = tenhoCapacidade('criar_cadastro_ritmistas') ? '' : 'none';
-        if (cd) cd.style.display = tenhoCapacidade('criar_cadastro_diretoria') ? '' : 'none';
+        if (cr) cr.style.display = tenhoCapacidade('ver_novo_cadastro_ritmistas') ? '' : 'none';
+        if (cd) cd.style.display = tenhoCapacidade('ver_novo_cadastro_diretoria') ? '' : 'none';
+
+        const podeCriarRitmista = tenhoCapacidade('criar_cadastro_ritmistas');
+        const btnCadRitmista = document.getElementById('btnCadastrarRitmista');
+        if (btnCadRitmista) {
+            btnCadRitmista.disabled = !podeCriarRitmista;
+            btnCadRitmista.style.opacity = podeCriarRitmista ? '1' : '0.5';
+            btnCadRitmista.style.cursor = podeCriarRitmista ? 'pointer' : 'not-allowed';
+        }
+
+        const podeCriarDiretoria = tenhoCapacidade('criar_cadastro_diretoria');
+        const botoesDiretoria = document.getElementById('cadastroDiretoriaBotoes');
+        if (botoesDiretoria) {
+            botoesDiretoria.querySelectorAll('button').forEach(b => {
+                b.disabled = !podeCriarDiretoria;
+                b.style.opacity = podeCriarDiretoria ? '1' : '0.5';
+                b.style.cursor = podeCriarDiretoria ? 'pointer' : 'not-allowed';
+            });
+        }
     }
 
     // Lista lançadora da aba "Administrativo" -- cada linha só aparece se a
@@ -6559,7 +6600,9 @@
         { grupo: 'Ritmistas', itens: [
             { chave: 'ver_ritmistas', label: 'Visualizar lista (nome, apelido, instrumento, status)' },
             { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, endereço, contato de emergência e dados do responsável', dependeDe: 'ver_ritmistas' },
-            { chave: 'criar_cadastro_ritmistas', label: 'Criar/copiar link de cadastro', dependeDe: 'ver_ritmistas' },
+            { chave: 'ver_novo_cadastro_ritmistas', label: 'Visualizar Novo Cadastro', dependeDe: 'ver_ritmistas' },
+            { chave: 'criar_cadastro_ritmistas', label: 'Criar Novo Cadastro', dependeDe: 'ver_novo_cadastro_ritmistas' },
+            { chave: 'copiar_link_cadastro_ritmistas', label: 'Copiar Link de Cadastro', dependeDe: 'ver_novo_cadastro_ritmistas' },
             { chave: 'aprovar_ritmistas', label: 'Aprovar', dependeDe: 'ver_ritmistas' },
             { chave: 'rejeitar_ritmistas', label: 'Rejeitar', dependeDe: 'ver_ritmistas' },
             { chave: 'suspender_ritmistas', label: 'Suspender', dependeDe: 'ver_ritmistas' },
@@ -6582,7 +6625,9 @@
         { grupo: 'Diretoria', itens: [
             { chave: 'ver_acessos', label: 'Visualizar lista (nome, apelido, cargo)' },
             { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, endereço e contato de emergência', dependeDe: 'ver_acessos' },
-            { chave: 'criar_cadastro_diretoria', label: 'Criar/copiar link de cadastro', dependeDe: 'ver_acessos' },
+            { chave: 'ver_novo_cadastro_diretoria', label: 'Visualizar Novo Cadastro', dependeDe: 'ver_acessos' },
+            { chave: 'criar_cadastro_diretoria', label: 'Criar Novo Cadastro', dependeDe: 'ver_novo_cadastro_diretoria' },
+            { chave: 'copiar_link_cadastro_diretoria', label: 'Copiar Link de Cadastro', dependeDe: 'ver_novo_cadastro_diretoria' },
             { chave: 'aprovar_acessos', label: 'Aprovar', dependeDe: 'ver_acessos' },
             { chave: 'rejeitar_acessos', label: 'Rejeitar', dependeDe: 'ver_acessos' },
             { chave: 'suspender_acessos', label: 'Suspender', dependeDe: 'ver_acessos' },
