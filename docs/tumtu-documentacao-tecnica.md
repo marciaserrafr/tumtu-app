@@ -1947,3 +1947,145 @@ Depois da reforma de público múltiplo (seção 61.2), ela pediu uma sequência
 Reação final dela, depois de tudo publicado: "Nossa, ficou tudo lindo. Muito obrigada de verdade por essa tela."
 
 Cache-busting desta sessão: `sw.js` v337→v361 (bump a cada publicação — filtro Aplicar, asterisco, fotos/timeout [sem mudança de front, só backend], filtro Instrumento/Status/Cargo, cadastro pela metade, contador Convidados, renomeação Apoio + contadores Diretoria, ajuste plural/singular/gênero, migração + implementação completa do Figurino, correção de repetição por Categoria, sub-divisão Diretoria por cargo, filtro por tipo em Diretoria, respiro Total/Faltam, selo de status + posição do texto, resumo do texto explicativo, remoção do reordenamento, alinhamento em grid).
+
+## 62. Sessão de 28/ago/2026: Reforma de Permissões — catálogo novo, enforcement real no front, RLS corrigido, Comercial travado pra Super Admin
+
+Desenho tinha sido fechado com ela em 26/ago (seção 58) mas ficou bloqueado o dia inteiro pelo Supabase MCP fora do ar. Nesta sessão, com prazo apertado dela ("preciso dela funcionando até amanhã"), a implementação de ponta a ponta: catálogo revisado com ela → migração dos dados existentes → trigger reescrita → enforcement no front inteiro → um RLS desalinhado achado e corrigido → dois ajustes pedidos por ela ao vivo, testando o link de preview (Ver/Editar separado em Configurações, Comercial travado pra Super Admin) → publicado em produção.
+
+### 62.1 Catálogo revisado com ela antes de implementar
+
+O rascunho da seção 58 (feito por um agente) foi apresentado pra ela grupo por grupo. Três correções que ela pediu antes de eu tocar em qualquer código:
+
+1. **"Editar Diretoria" (editar outro Mestre/Diretor/Apoio) não devia ser um bloco só** — ela: "eu acho que deveria ser Editar por tipo de pessoa (mestre, diretores de bateria e diretores (apoio). pq eu posso não querer que ngm edite o mestre, somente ele mesmo." Isso virou `editar_mestre`/`editar_diretor`/`editar_apoio` no catálogo — **e depois foi removido de novo no meio da sessão**, ver 62.6.
+2. **Relatórios (Exportar) levantou uma pergunta que virou regra pra toda a reforma**: "se a pessoa não tiver acesso, como aparece o botão? ele fica desabilitado, ou ele simplesmente não aparece? O que não pode acontecer é o botão aparecer habilitado e não funcionar, isso é péssimo e isso tem que valer para todo o site e permissões." — essa frase dela é a regra-mãe de toda a implementação: qualquer botão de ação (Ativar/Suspender/Novo Cadastro/Ver carteirinha/etc.) **some por completo** quando falta a permissão, nunca fica visível e falhando escondido.
+3. **"Convites" (Novo Cadastro) precisava virar permissão própria** — "nem todo mundo poderia ter permissão para cadastrar alguém e pegar o link do ritmista." Virou `criar_cadastro_ritmistas`/`criar_cadastro_diretoria`.
+
+Ela também aceitou fazer o resto (Diretor de Naipe restrito ao próprio naipe, "sem carteirinha esta temporada") como etapas **separadas**, depois desta: "vc quer fazer o resto separado? Ok. [...] Vambora."
+
+### 62.2 Catálogo final, publicado
+
+```
+Visão Geral        ver_visao_geral
+Dados da Escola     ver_dados_escola, editar_dados_escola
+Dados da Bateria    ver_dados_bateria, editar_dados_bateria
+Ritmistas           ver_ritmistas, ver_dados_sensiveis_ritmistas, criar_cadastro_ritmistas,
+                    aprovar_ritmistas, rejeitar_ritmistas, suspender_ritmistas,
+                    desligar_ritmistas, reativar_ritmistas,
+                    editar_instrumento_ritmista, editar_medidas_ritmista,
+                    ver_naipe, editar_naipe, ver_repique_bossa, editar_repique_bossa,
+                    editar_declaracao_responsavel, exportar_ritmistas
+Diretoria           ver_acessos, ver_dados_sensiveis_acessos, criar_cadastro_diretoria,
+                    aprovar_acessos, rejeitar_acessos, suspender_acessos,
+                    desligar_acessos, reativar_acessos, exportar_diretoria
+Figurino            ver_figurino, editar_figurino
+Convidados          ver_extras, editar_extras
+Carteirinha         ver_carteirinha_outros
+Configurações       ver_instrumentos, editar_instrumentos, ver_medidas, editar_medidas,
+                    ver_vagas, editar_vagas, ver_figurino_bateria, editar_figurino_bateria
+Histórico           ver_historico
+Permissões          ver_permissoes, editar_permissoes
+```
+
+Comparado ao catálogo antigo: `aprovar_ritmistas`/`aprovar_acessos` (que cobriam aprovar+rejeitar+suspender+desligar+reativar juntos) viraram 5 chaves cada; `editar_ritmistas` virou `editar_instrumento_ritmista`/`editar_medidas_ritmista`; `ver_ritmistas`/`ver_acessos` (que já destravavam CPF/endereço/emergência/responsável junto) ganharam `ver_dados_sensiveis_ritmistas`/`ver_dados_sensiveis_acessos` separado; `ver_relatorios` virou `exportar_ritmistas`/`exportar_diretoria`; `ver_configuracoes` (única, morta — nunca checada em lugar nenhum) virou 8 chaves reais (`ver_`/`editar_` por sub-tela); `editar_configuracoes` (também nunca exposta na tela, mas viva no RLS — ver 62.5) foi removida; `editar_mestre`/`editar_diretor`/`editar_apoio` foram removidas de novo (62.6); `ver_comercial`/`editar_comercial` foram removidas (62.7). `TODAS_CAPACIDADES` (usada por `salvarPermissoesPessoa()`/`renderizarEditorPermissoesPessoa()`) continua derivada automaticamente de `GRUPOS_CAPACIDADES` via `flatMap` — nenhuma das duas funções precisou de mudança pra suportar o catálogo novo.
+
+### 62.3 Migração dos dados existentes — aditiva, verificada
+
+`vinculos.capacidades` é um jsonb sobrescrito por inteiro toda vez que alguém salva permissões pela tela (`salvarPermissoesPessoa()`) — então trocar o catálogo por si só não apaga nada de quem já tinha configuração salva, mas também não dá as chaves novas equivalentes sozinho. Antes de mexer no front, backup + migração:
+
+- `CREATE TABLE vinculos_capacidades_backup_20260827 AS SELECT id, capacidades FROM vinculos WHERE capacidades IS NOT NULL AND capacidades <> '{}'::jsonb;` (20 linhas).
+- `UPDATE vinculos SET capacidades = capacidades || jsonb_build_object(...)` — **aditivo** (`||` faz merge, nunca substitui): quem tinha `ver_ritmistas=true` ganhou `criar_cadastro_ritmistas`, `ver_dados_sensiveis_ritmistas`, `ver_carteirinha_outros`, `editar_declaracao_responsavel` também `=true`; quem tinha `editar_ritmistas=true` ganhou `editar_instrumento_ritmista`, `editar_medidas_ritmista`, e as 5 ações de status (`aprovar_`/`rejeitar_`/`suspender_`/`desligar_`/`reativar_ritmistas`); mesmo padrão espelhado pro lado Diretoria (`ver_acessos`→`criar_cadastro_diretoria`+sensíveis, `editar_ritmistas` já geral→5 ações de `_acessos`); quem tinha `ver_relatorios=true` ganhou `exportar_ritmistas`/`exportar_diretoria`; quem tinha `ver_configuracoes=true` ganhou as 4 chaves `editar_*` de Configurações (na época ainda sem separação Ver/Editar, ver 62.6) mais a antiga `editar_configuracoes` preservada (ver 62.5). Chaves antigas (`editar_ritmistas`, `ver_relatorios`, `ver_configuracoes`, `editar_configuracoes`, etc.) **não foram apagadas** — ficam como lixo inofensivo no jsonb até a próxima vez que alguém salvar as permissões dessa pessoa pela tela (`salvarPermissoesPessoa()` reescreve do zero, só com `TODAS_CAPACIDADES` do catálogo atual).
+- **Verificação, feita via `execute_sql` antes de tocar em qualquer tela**: as 20 linhas migradas conferidas uma a uma — confirmado que quem tinha acesso configurado antes (`Jhones Silva`, `Luiz Alberto`, `Luiz Alberto Barros Barbosa` com acesso quase total; um punhado de Diretores com `ver_ritmistas`/`editar_ritmistas` parciais) ganhou exatamente as chaves novas equivalentes, sem gap. `Adenilson Bemvindo dos Santos` e outros com tudo `false` continuaram com tudo `false` (sem regressão nem ganho indevido).
+
+### 62.4 Trigger `aplicar_matriz_edicao_vinculos()` reescrita (migração `reforma_permissoes_trigger_vinculos_granular`)
+
+Antes, a trigger só sabia bloquear tudo-ou-nada por `editar_ritmistas` numa ação de status genérica. Reescrita pra checar a capacidade certa por tipo de mudança:
+
+```sql
+if old.perfil = 'ritmista' then
+  if new.status is distinct from old.status and not tenho_capacidade(
+    case
+      when new.status = 'aprovado' and old.status in ('suspenso','desligado') then 'reativar_ritmistas'
+      when new.status = 'aprovado' then 'aprovar_ritmistas'
+      when new.status = 'rejeitado' then 'rejeitar_ritmistas'
+      when new.status = 'suspenso' then 'suspender_ritmistas'
+      when new.status = 'desligado' then 'desligar_ritmistas'
+      else 'aprovar_ritmistas'
+    end, old.bateria_id) then
+    new.status := old.status; new.aprovado_por := old.aprovado_por; new.motivo_status := old.motivo_status;
+  end if;
+  if not tenho_capacidade('editar_instrumento_ritmista', old.bateria_id) then
+    new.bateria_instrumento_id := old.bateria_instrumento_id; ...
+  end if;
+  if not tenho_capacidade('editar_medidas_ritmista', old.bateria_id) then
+    new.tamanho_camisa := old.tamanho_camisa; ...
+  end if;
+  if not tenho_capacidade('editar_declaracao_responsavel', old.bateria_id) then
+    new.declaracao_responsavel := old.declaracao_responsavel;
+  end if;
+else
+  -- Mestre/Diretor/Apoio: mesma separação de ações de status (aprovar_/rejeitar_/
+  -- suspender_/desligar_/reativar_acessos). naipe, bateria_instrumento_id,
+  -- cadastro_completo continuam SEMPRE travados aqui -- nunca dependeram de
+  -- editar_mestre/diretor/apoio, então removê-las do catálogo (62.6) não mudou
+  -- nada de verdade no banco.
+end if;
+```
+
+Mesmo padrão de sempre: `is_super_admin()`/`service_role` bypassam tudo no topo da função; autoedição (a própria pessoa editando o próprio vínculo) tem sua própria ramificação, sem checar capacidade nenhuma pros próprios dados.
+
+### 62.5 Achado sério: RLS de Configurações ainda checava a chave morta `editar_configuracoes`
+
+Antes de tocar em qualquer tela, conferido o RLS real de `bateria_instrumentos`/`bateria_medidas`/`bateria_medida_tipos`/`bateria_figurino_itens` (as 4 tabelas por trás de Configurações) — surpresa: **`editar_configuracoes` não era morta de verdade**, como uma nota antiga (seção 41/58) tinha registrado. Ela nunca aparecia em nenhuma tela, mas as políticas de INSERT/UPDATE/DELETE dessas 4 tabelas checavam literalmente `tenho_capacidade('editar_configuracoes', bateria_id)`. Como o catálogo novo só oferece as 8 chaves granulares (`editar_instrumentos`/`editar_medidas`/`editar_vagas`/`editar_figurino_bateria` + os 4 `ver_*` equivalentes), sem essa correção, conceder "Editar Instrumentos" pra alguém novo pareceria salvar (o checkbox marca, a tela recarrega) mas o `PATCH`/`POST` de verdade seria rejeitado pelo RLS em silêncio — exatamente o tipo de "botão que parece funcionar mas não funciona" que ela proibiu.
+
+**Corrigido** (migração `reforma_permissoes_rls_configuracoes_granular`): as 4 tabelas passaram a checar as chaves granulares novas:
+- `bateria_instrumentos` (serve duas capacidades — Instrumentos ativa/desativa, Vagas escreve `vagas`, mesma tabela, colunas diferentes): `tenho_capacidade('editar_instrumentos', bateria_id) OR tenho_capacidade('editar_vagas', bateria_id)`.
+- `bateria_medidas` e `bateria_medida_tipos`: `tenho_capacidade('editar_medidas', bateria_id)`.
+- `bateria_figurino_itens`: `tenho_capacidade('editar_figurino_bateria', bateria_id)`.
+
+Zero regressão pra quem já tinha acesso: a migração da seção 62.3 já tinha dado a chave antiga (`editar_configuracoes`) E as novas granulares pra quem já usava Configurações — a troca do RLS só passou a ignorar a chave antiga, que ninguém mais vai ganhar de novo (não está mais no catálogo).
+
+### 62.6 "Editar Mestre/Diretor/Apoio" removida — dado pessoal é só a própria pessoa ou Super Admin, sempre
+
+No meio da implementação, perguntada sobre por que a permissão "Editar Diretoria" (item 62.1) estava sendo tratada como fase separada, ela reagiu: "Peraí... dado pessoal ngm pode editar mesmo. Somente a própria pessoa, PELO AMOR DE DEUS." e, depois de eu confirmar (incorretamente, na hora) que "nem Super Admin" editava, ela corrigiu: **"Ou eu."** — a regra certa, confirmada: **só a própria pessoa, ou Super Admin. Nunca ninguém mais, nunca configurável.**
+
+Conferido o que já valia (sem eu ter mexido em nada): `aplicar_matriz_edicao_pessoas()` — quando quem edita não é nem a própria pessoa nem Super Admin — já travava incondicionalmente foto, nome, apelido, nacionalidade, CPF, documento, nascimento, celular, e-mail, tipo sanguíneo, endereço completo, **contato de emergência (nome/parentesco/celular)** e gênero. Ela perguntou explicitamente se isso cobria Contato de Emergência ("Dados pessoais, nunca. Nem de Contato de Emergência. Vc quer repassar isso?") — confirmado que sim, já cobria, sem precisar de nenhuma mudança.
+
+O que existia de errado era só no **catálogo de Permissões** — `editar_mestre`/`editar_diretor`/`editar_apoio` (criadas no rascunho de 26/ago, item 62.1) sugeriam que dava pra configurar isso, quando na prática nunca dava (o trigger de `vinculos` já trava `naipe`/`bateria_instrumento_id`/etc. de outra pessoa incondicionalmente, nunca checou essas 3 chaves). Removidas do catálogo — puramente uma limpeza de texto, zero mudança de comportamento no banco.
+
+### 62.7 Ver/Editar separado em Configurações — pedido dela ao vivo, testando o link
+
+Ela testou o link de preview e estranhou: "Continuo não entendendo. a pessoa nunca pode só ver. vai ter a opção de editar tb. é isso?" — os outros grupos (Dados da Escola, Dados da Bateria) já tinham Ver/Editar separados, mas Configurações (Instrumentos/Medidas/Vagas/Figurino da bateria) só tinha uma permissão por sub-tela (ver+editar juntos, decisão minha ao montar o catálogo, nunca aprovada por ela nesse nível de detalhe). Ela: "eu acho justo sim, se o mestre tiver curiosidade, ele poder olhar o que foi cadastrado na bateria dele, mesmo que ele não mexa" — pediu pra criar.
+
+Implementado: cada uma das 4 sub-telas ganhou `ver_X`/`editar_X` separados (8 chaves no total, ver 62.2). Quem só tem "Ver": a tela abre normal (não esconde nada), mas **todo `input`/`select`/`button` dentro dela fica `disabled` de verdade** (não só visual) + `opacity:0.55` na tela inteira (`.config-subtela--somente-leitura`) — mesmo padrão já usado no interruptor "Ritmista edita medidas" dentro de Permissões (`chkRitmista.disabled = !podeEditarPermissoes`). `abrirConfigTela(nome)` chama `aplicarSomenteLeituraConfigTela(nome, !podeEditarConfigSubtela(nome))` logo depois de renderizar; como os controles ficam desabilitados de verdade, os `onchange`/`onclick` nunca disparam, então não precisa re-aplicar a trava depois — só quem tem "Editar" consegue interagir e re-renderizar a tela.
+
+### 62.8 Comercial vira exclusivo de Super Admin — achado dela depois de publicar
+
+Já com a reforma publicada em produção, ela se deu conta: "eu preciso fazer uma coisa... eu acho que vou ter que criar algo de permissões diferente. o menu Comercial só poderia ser visto pelo Super Admin." O catálogo (herdado de antes da reforma, seção 41) tinha `ver_comercial`/`editar_comercial` tratados como qualquer outra permissão configurável — abria a possibilidade (mesmo que ninguém tivesse usado ainda, confirmado nos dados migrados) de um Super Admin conceder sem querer acesso ao interruptor "Modo Carteirinha" (decisão comercial, nunca deveria ser opção de Mestre/Diretor/Apoio).
+
+Corrigido: `ver_comercial`/`editar_comercial` removidas do catálogo (não aparecem mais como algo pra conceder) e `podeVerAba('comercial')` passou a checar `souSuperAdmin` direto, sem passar pela capacidade nenhuma — trava tanto a lista do "Administrativo" (item some) quanto `trocarAba('comercial')` chamado direto (ex: forçado via console). Publicado direto (sem link de preview) por decisão dela — mudança só restringe, ninguém tinha essa permissão hoje.
+
+### 62.9 Enforcement no front — lista completa do que passou a checar capacidade
+
+Todos os itens abaixo, antes desta reforma, ou não checavam capacidade nenhuma (apareciam pra qualquer um com acesso à tela/ficha) ou checavam uma capacidade genérica demais (`ver_ritmistas`/`editar_ritmistas`/`ver_relatorios`). Todos seguem a regra da Márcia: **some por completo quando falta a permissão, nunca fica visível e falhando escondido** — exceção única e deliberada é 62.7 (Ver-sem-Editar em Configurações), onde "olhar sem poder mexer" é o comportamento pedido.
+
+- **Ficha do Ritmista** (`admin.html`, dentro de `abrirCadastro()`): Ativar/Rejeitar/Suspender/Desligar/Reativar, cada um checando sua própria chave (`aprovar_`/`rejeitar_`/`suspender_`/`desligar_`/`reativar_ritmistas`) — antes, os 5 apareciam juntos sem checagem nenhuma dentro do modal (só o card da lista já checava `aprovar_ritmistas` pro Ativar).
+- **Ficha da Diretoria** (`admin.html`, dentro da função equivalente): mesmos 5 botões, mesma separação, com as chaves `_acessos`.
+- **"+ Novo Cadastro"** (Ritmistas e Diretoria): cabeçalho inteiro (não só o conteúdo) some sem `criar_cadastro_ritmistas`/`criar_cadastro_diretoria` — `aplicarGatingNovoCadastro()`, chamada uma vez no carregamento da tela do Admin.
+- **"Ver carteirinha ↗"** de outra pessoa (dentro da ficha de Ritmista e de Diretoria): checa `ver_carteirinha_outros`.
+- **Botões Exportar** (Ritmistas/Diretoria): split de `ver_relatorios` pra `exportar_ritmistas`/`exportar_diretoria`, cada botão checando o seu.
+- **Configurações**: aba inteira só aparece se a pessoa tiver ANY `ver_`/`editar_` de qualquer uma das 4 sub-telas (`podeVerAba('configuracoes')`); cada item da lista (Instrumentos/Vagas/Categoria de Figurino/Figurino) some individualmente sem `ver_X`/`editar_X`; `abrirConfigTela(nome)` bloqueia abrir mesmo forçado via console.
+- **Selo de Naipe** (card de Diretor, aba Diretoria): checa `ver_naipe` — antes aparecia pra qualquer um com `ver_acessos`.
+- **Declaração do Responsável** (toggle na ficha de um Ritmista menor de idade): quem não tem `editar_declaracao_responsavel` vê o mesmo selo (Entregue/Não entregue), mas sem `onclick` nem `cursor:pointer` — nunca parece clicável.
+- **`ficha-perfil.js` (`fpCamposEditaveis`)**: a entrada que liberava `bateria_instrumento_id`/`medidas` pra qualquer Diretoria editando um Ritmista virou duas checagens independentes (`editar_instrumento_ritmista`/`editar_medidas_ritmista`) — essa era a lacuna mais séria encontrada no levantamento de 26/ago ("a pessoa edita, salva, parece funcionar, mas o banco reverte em silêncio").
+- **`ficha-perfil.js` (`fpIniciar`)**: CPF, documento (Passaporte/RNE), endereço completo, contato de emergência e dados do responsável somem por inteiro da ficha (não só ficam vazios) quando quem olha não é a própria pessoa, não é Super Admin, e não tem `ver_dados_sensiveis_ritmistas`/`ver_dados_sensiveis_acessos` (dependendo do perfil de quem está sendo visto).
+
+### 62.10 Workflow de publicação
+
+Trabalho feito em branch dedicado `preview/reforma-permissoes` (3 commits: catálogo, enforcement no front, Ver/Editar em Configurações), com link de preview gerado a cada rodada (`get_access_to_vercel_url`) — ela testou ao vivo antes de aprovar, e foi nesse teste que surgiram os dois ajustes das seções 62.6 (removido antes de qualquer publicação) e 62.7 (pedido durante o teste). Depois do "Pode publicar.", merge pra `main` (`git merge preview/reforma-permissoes`, 1 conflito em `sw.js` — número de cache divergente entre os dois branches, resolvido ficando com o maior). A correção do Comercial (62.8) veio depois, direto na `main` (sem branch de preview — mudança só restritiva, aprovado por ela explicitamente pra pular esse passo desta vez).
+
+### 62.11 Fora de escopo desta rodada (fica pra depois)
+
+- **Diretor de Naipe restrito ao próprio naipe** — segue sem desenho fechado (ver CLAUDE.md).
+- **"Ritmistas/Diretoria sem carteirinha esta temporada"** (par de interruptores por bateria, caso do Mestre com bulk import) — ela confirmou explicitamente "fica pra depois" quando perguntada nesta sessão.
+- **Modelo "padrão por grupo + ajuste por pessoa"** que ela tinha descrito em 26/ago (grupo vence quando a pessoa não tem marcação própria) — não entrou nesta rodada. O catálogo publicado continua 100% por pessoa (mesma mecânica de sempre). Fica como ideia se ela sentir falta do "pessoa por pessoa toda vez" na prática.
+- **Regras hoje fixas por nome de cargo em `fpCamposEditaveis`** (ex: só Diretor edita o próprio Naipe) virarem configuráveis — ainda não decidido se cabe numa rodada futura.
