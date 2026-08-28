@@ -5740,7 +5740,7 @@
                 <div class="campo"><label>Tipo *</label><select id="ev-edit-tipo">
                     ${bibliotecaEventoTipos.map(t => `<option value="${t.id}" ${ee.evento_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}
                 </select></div>
-                <div class="campo"><label>Temporada <span style="font-weight:400;color:#999;font-size:12px;">— opcional, ex: 2026</span></label><input type="text" id="ev-edit-temporada" value="${esc(ee.temporada)}" placeholder="Ex: 2026"></div>
+                <div class="campo"><label>Temporada <span style="font-weight:400;color:#999;font-size:12px;">— opcional, ex: Carnaval 2026</span></label><input type="text" id="ev-edit-temporada" value="${esc(ee.temporada)}" placeholder="Ex: Carnaval 2026"></div>
                 <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
                     <input type="checkbox" id="ev-edit-inclui-diretoria" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.inclui_diretoria ? 'checked' : ''}>
                     <label for="ev-edit-inclui-diretoria" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Inclui Diretoria (Mestre/Diretor/Apoio entram na lista de presença deste evento)</label>
