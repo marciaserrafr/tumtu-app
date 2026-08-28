@@ -218,6 +218,7 @@
         if (!ok) { erro.style.display = 'block'; return; }
         document.getElementById('containerFaceId').style.display = 'none';
         document.getElementById('containerCarregando').style.display = 'flex';
+        document.querySelector('.rodape-suporte').classList.remove('visivel');
         const cache = JSON.parse(localStorage.getItem('ritmista') || 'null');
         const { data: { session } } = await sb.auth.getSession();
         if (!cache || !session) { mostrarFormularioLogin(); return; }
@@ -583,6 +584,7 @@
                 document.getElementById('containerLogin').style.display = 'none';
                 document.getElementById('containerEscolherBateria').style.display = 'none';
                 document.getElementById('containerCarregando').style.display = 'flex';
+                document.querySelector('.rodape-suporte').classList.remove('visivel');
                 const { data: { session } } = await sb.auth.getSession();
                 await prefetchConfigEscola(vinculo.bateria_id, session ? session.access_token : null);
             }
@@ -597,6 +599,7 @@
         document.getElementById('containerLogin').style.display = 'none';
         document.getElementById('containerEscolherBateria').style.display = 'none';
         document.getElementById('containerCarregando').style.display = 'flex';
+        document.querySelector('.rodape-suporte').classList.remove('visivel');
         const { data: { session } } = await sb.auth.getSession();
         await prefetchConfigEscola(vinculo.bateria_id, session ? session.access_token : null);
         window.location.href = 'carteirinha';
@@ -691,6 +694,12 @@
         e.preventDefault();
         document.getElementById('containerLogin').style.display = 'none';
         document.getElementById('containerCarregando').style.display = 'flex';
+        // "Fale com o suporte" mora fora dos containers que trocam de tela --
+        // sem isso, ficava "esquecido" visível por cima do spinner sempre que
+        // um erro anterior (senha errada, por exemplo) tinha deixado ele
+        // visível e a pessoa conseguia entrar na tentativa seguinte (achado
+        // dela, 29/ago/2026 -- "resquício de mensagem" intermitente).
+        document.querySelector('.rodape-suporte').classList.remove('visivel');
 
         const identificador = document.getElementById('identificador').value.trim();
         const senha = document.getElementById('senha').value;
