@@ -2545,7 +2545,7 @@
         document.getElementById('totalDesligados').textContent = desRit;
         document.getElementById('totalRejeitados').textContent = rejRit;
         document.getElementById('totalNaoDesfilaStatus').textContent = ndRit;
-        document.getElementById('totalOutrosRitmistas').textContent = susRit + desRit + rejRit + ndRit;
+        document.getElementById('totalOutrosRitmistas').textContent = '+' + (susRit + desRit + rejRit + ndRit);
     }
 
     // Card à parte na Visão Geral, com a mesma contagem de Mestres/
@@ -2586,7 +2586,7 @@
             document.getElementById('totalDiretoriaSuspensos').textContent = susDir;
             document.getElementById('totalDiretoriaDesligados').textContent = desDir;
             document.getElementById('totalDiretoriaRejeitados').textContent = rejDir;
-            document.getElementById('totalOutrosDiretoria').textContent = susDir + desDir + rejDir;
+            document.getElementById('totalOutrosDiretoria').textContent = '+' + (susDir + desDir + rejDir);
         }
     }
 
