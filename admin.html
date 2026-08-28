@@ -2614,6 +2614,14 @@
         fecharDropdown('statusDiretoriaSelectDropdown', 'statusDiretoriaSelectArrow');
     }
 
+    // "Não Desfila" (28/ago/2026): pra agrupamento/ordenação de seção, conta
+    // como grupo próprio, nunca junto de "Ativos" -- mesmo os dois sendo
+    // status='aprovado' por baixo (achado dela, print real: João das Couves
+    // aparecendo dentro da seção "ATIVOS" com selo "Não Desfila" ao lado).
+    function grupoStatusEfetivo(r) {
+        return (r.status === 'aprovado' && r.nao_desfila) ? 'nao_desfila' : (r.status || 'pendente');
+    }
+
     function aplicarFiltros() {
         // Estilo Excel, 20/ago/2026: cada checkbox controla exatamente o
         // que aparece -- 0 marcado num grupo = ninguém passa nesse grupo
@@ -2645,10 +2653,10 @@
             );
         }
 
-        const ordemStatus = { pendente: 0, aprovado: 1, suspenso: 2, rejeitado: 3, desligado: 4 };
+        const ordemStatus = { pendente: 0, aprovado: 1, nao_desfila: 2, suspenso: 3, rejeitado: 4, desligado: 5 };
         lista.sort((a, b) => {
-            const sa = ordemStatus[a.status] ?? 5;
-            const sb = ordemStatus[b.status] ?? 5;
+            const sa = ordemStatus[grupoStatusEfetivo(a)] ?? 6;
+            const sb = ordemStatus[grupoStatusEfetivo(b)] ?? 6;
             if (sa !== sb) return sa - sb;
             return (a.nome || '').localeCompare(b.nome || '', 'pt-BR');
         });
@@ -2735,16 +2743,17 @@
         // (Mestres/Diretores) -- pedido da Márcia, 18/ago/2026. `lista` já
         // chega ordenada por status (aplicarFiltros), então basta juntar os
         // consecutivos do mesmo grupo.
-        const tituloStatus = { pendente: 'Pendentes', aprovado: 'Ativos', suspenso: 'Suspensos', rejeitado: 'Rejeitados', desligado: 'Desligados' };
+        const tituloStatus = { pendente: 'Pendentes', aprovado: 'Ativos', nao_desfila: 'Não Desfila', suspenso: 'Suspensos', rejeitado: 'Rejeitados', desligado: 'Desligados' };
         // Contador ao lado do título de cada grupo -- sempre reflete a
         // lista já filtrada (com filtro ativo ou não), pedido dela,
-        // 27/ago/2026.
+        // 27/ago/2026. Grupo é o efetivo (grupoStatusEfetivo), não o status
+        // literal -- "Não Desfila" nunca conta como "Ativos" aqui.
         const contagemPorStatus = {};
-        lista.forEach(r => { const s = r.status || 'pendente'; contagemPorStatus[s] = (contagemPorStatus[s] || 0) + 1; });
+        lista.forEach(r => { const s = grupoStatusEfetivo(r); contagemPorStatus[s] = (contagemPorStatus[s] || 0) + 1; });
         let html = '';
         let statusAnterior = null;
         lista.forEach(r => {
-            const status = r.status || 'pendente';
+            const status = grupoStatusEfetivo(r);
             if (status !== statusAnterior) {
                 html += `<div class="secao-titulo" style="display:flex;justify-content:space-between;align-items:center;"><span>${tituloStatus[status] || status}</span><span style="color:#D4AF37;font-weight:800;font-size:14px;letter-spacing:normal;">${contagemPorStatus[status]}</span></div>`;
                 statusAnterior = status;
