@@ -5415,7 +5415,10 @@
     async function carregarMedidaTiposParaExtra() {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { extraMedidaTiposAtivos = []; return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas_publicas?bateria_id=eq.${bateriaId}&order=tipo_id,ordem`, { headers: authHeaders });
+        // Função em vez de view direta (28/ago/2026, correção de segurança
+        // real) -- a view aceitava consulta sem filtro, devolvendo medidas
+        // de todas as baterias do sistema numa chamada só.
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bateria_medidas_publicas_da_bateria?order=tipo_id,ordem`, { method: 'POST', headers: { ...authHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_bateria_id: bateriaId }) });
         const opcoes = res.ok ? await res.json() : [];
         const porTipo = {};
         opcoes.forEach(o => {

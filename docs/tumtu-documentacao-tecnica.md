@@ -2485,3 +2485,47 @@ Confirmado via `pg_trigger` que o gatilho `trg_matriz_edicao_baterias` continua 
 ### 68.5 Lição pra próxima vez (registrada também em memória)
 
 Ela apontou, com razão, que essa auditoria já devia ser automática — não algo que ela precisa pedir. A regra já existia (seção 55), mas foi seguida de forma incompleta nesta sessão: várias migrações foram aplicadas (seções 65, 67) sem a varredura de segurança rodar junto, só quando ela perguntou diretamente. Memória de feedback reforçada pra deixar claro: **toda** sessão com migração de banco encerra com essa checagem, sem exceção de "mudança pequena demais" — foi justamente uma mudança que parecia pequena (colunas de "ver próprio") que ficou com o buraco real desta vez.
+
+### 68.6 Segunda rodada (mesma sessão, pedido dela: "faça mais uma varredura depois desses ajustes") — 2 achados a mais, `get_advisors` rodado pela primeira vez
+
+A primeira rodada (68.1-68.4) foi feita só com consultas manuais direcionadas — eficaz, mas dependente de eu adivinhar onde olhar. Nesta segunda rodada, rodei `get_advisors` (tipo `security`, ferramenta MCP do Supabase) pela primeira vez na sessão — ela varre o banco inteiro de forma sistemática (toda tabela sem RLS, toda view/função `SECURITY DEFINER` chamável por `anon`/`authenticated`), sem depender de eu saber onde procurar.
+
+**Achou 2 níveis `ERROR`** (nível mais alto do linter) que a checagem manual da seção 68.1-68.4 não tinha pego: `bateria_instrumentos_publicos` e `bateria_medidas_publicas` — duas views públicas (usadas por `cadastro.html` sem login, pra montar os campos de Instrumento/Medida do formulário) com o mesmo defeito estrutural do achado 68.1: sem filtro obrigatório, uma consulta sem `bateria_id` devolve os dados de TODAS as baterias do sistema numa chamada só. Confirmado com chamada real:
+
+```bash
+curl "https://.../rest/v1/bateria_instrumentos_publicos?limit=3" -H "apikey: <anon>" ...
+# devolveu instrumentos de bateria_id=2 E bateria_id=8 juntos, sem pedir nenhuma delas
+```
+
+Menos sensível que o achado 68.1 (nenhum dado pessoal — só nome de instrumento/medida e a que bateria pertence), mas ainda um vazamento de escopo real, e a documentação da seção 31 tinha avaliado essas duas views como "não precisam de correção" com o mesmo critério incompleto (considerou só quais colunas aparecem, não o que volta sem filtro).
+
+**Correção**, mesmo padrão de sempre (view → função com parâmetro obrigatório):
+
+```sql
+create or replace function public.bateria_instrumentos_publicos_da_bateria(p_bateria_id bigint)
+returns table(id bigint, bateria_id bigint, nome_exibicao text, grupo text, ordem integer)
+language sql stable security definer set search_path = public
+as $$
+  select bi.id, bi.bateria_id, coalesce(n.nome, c.nome) as nome_exibicao, c.grupo, c.ordem
+  from bateria_instrumentos bi
+  join instrumento_categorias c on c.id = bi.categoria_id
+  left join instrumento_nomenclaturas n on n.id = bi.nomenclatura_id
+  where bi.ativo = true and c.ativo = true and bi.bateria_id = p_bateria_id;
+$$;
+-- mesmo padrão pra bateria_medidas_publicas_da_bateria (retorna publico jsonb, não text[] --
+-- 1ª tentativa da migração falhou por causa disso, corrigida na 2ª)
+
+grant execute on function ... to anon, authenticated;
+revoke select on public.bateria_instrumentos_publicos from anon, authenticated;
+-- idem pra bateria_medidas_publicas
+```
+
+Três lugares no código precisaram trocar de `GET view?bateria_id=eq.X` pra `POST rpc/funcao_da_bateria` com `{p_bateria_id: X}` no corpo (o `?order=...` continua funcionando depois do nome da função, PostgREST trata resultado de função-tabela igual resultado de view pra fins de ordenação): `cadastro.html` (2 chamadas, instrumento e medida do formulário público) e `admin.html` (1 chamada, medida ao cadastrar Convidado).
+
+Testado nos três cenários de novo antes de publicar: view direta sem login → `401` (era `200` com tudo antes); função com `bateria_id` real (Imperatriz demo, id 2) → devolve só os 12 instrumentos daquela bateria.
+
+**Achado interessante no caminho**: as 6 funções `aplicar_matriz_edicao_*` (gatilhos de proteção de coluna) aparecem no `get_advisors` como "chamável por `anon` via RPC" — mas testado direto (`POST /rest/v1/rpc/aplicar_matriz_edicao_pessoas`), o PostgREST devolve `404` ("função não encontrada"), porque funções com tipo de retorno `trigger` não são expostas como RPC de jeito nenhum, independente do `GRANT EXECUTE`. Ou seja: esse aviso específico do linter é sempre um falso-positivo pra função de gatilho — vale saber pra não perder tempo "corrigindo" isso de novo numa próxima auditoria.
+
+**Depois da correção, `get_advisors` rodado de novo: zero `ERROR`.** Sobraram só `INFO` (as 3 tabelas de backup, intencionalmente sem policy) e `WARN` (funções `SECURITY DEFINER` legítimas, já revisadas nas seções anteriores, mais o aviso antigo de "Leaked Password Protection", decisão dela de não contratar plano pago — seção do backlog "só se o TumTu crescer muito").
+
+**Lição de processo, reforçada na memória**: rodar `get_advisors` **primeiro**, antes de qualquer checagem manual direcionada — ele pega sistematicamente o que uma checagem "eu acho que devo olhar aqui" não cobre. A checagem manual continua necessária depois (o `get_advisors` não substitui ler a definição de cada função sensível e testar com chamada real), mas na ordem errada (manual primeiro) fica fácil declarar "varredura completa" sem ter sido, como aconteceu na rodada 68.1-68.4 desta mesma sessão.
