@@ -2624,7 +2624,13 @@
         // não tem checkbox pra ele, então não faria sentido sumir.
         let lista = todosRitmistas.filter(r => {
             const idade = calcularIdade(r.nascimento);
-            const statusOk = filtroStatusSelecionados.some(f => f === 'menor' ? (idade !== null && idade < 18) : f === 'repique_bossa' ? !!r.repique_bossa : f === 'nao_desfila' ? !!r.nao_desfila : r.status === f);
+            // "aprovado" (Ativos) e "nao_desfila" (Não Desfila) são
+            // mutuamente exclusivos na lista, mesmo os dois sendo
+            // status='aprovado' por baixo -- achado dela, 28/ago/2026:
+            // marcar só "Ativos" não pode trazer quem está marcado "Não
+            // Desfila" junto (e vice-versa, marcar só "Não Desfila" não
+            // deveria trazer quem desfila normal).
+            const statusOk = filtroStatusSelecionados.some(f => f === 'menor' ? (idade !== null && idade < 18) : f === 'repique_bossa' ? !!r.repique_bossa : f === 'nao_desfila' ? !!r.nao_desfila : f === 'aprovado' ? (r.status === 'aprovado' && !r.nao_desfila) : r.status === f);
             const instrumentoOk = !r.bateria_instrumento_id || filtroInstrumentosSelecionados.includes(r.bateria_instrumento_id);
             return statusOk && instrumentoOk;
         });
