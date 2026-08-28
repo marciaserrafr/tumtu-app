@@ -458,7 +458,7 @@
            pegava o "Faltam" (é o primeiro filho do span vizinho). Cor mais
            escura, não cinza claro -- "tudo já é cinza demais nesse sistema".*/
         .vg-instrumento-linha--grupo .vg-instrumento-linha-nome { font-style: italic; color: var(--cor-texto-principal); }
-        .vg-instrumento-linha-asterisco { font-style: normal; margin-left: 2px; color: var(--cor-texto-muted); }
+        .vg-instrumento-linha-asterisco { font-style: normal; margin-right: 2px; color: var(--cor-texto-muted); }
 
         /* CONTADOR */
         .contador { font-size: 15px; color: #666; margin-bottom: 20px; }
@@ -3857,7 +3857,7 @@
             const faltam = total - entregues;
             return `
             <div class="vg-instrumento-linha${ehGrupo ? ' vg-instrumento-linha--grupo' : ''}">
-                <span class="vg-instrumento-linha-nome">${esc(nome)}${ehGrupo ? '<sup class="vg-instrumento-linha-asterisco">*</sup>' : ''}</span>
+                <span class="vg-instrumento-linha-nome">${ehGrupo ? '<sup class="vg-instrumento-linha-asterisco">*</sup>' : ''}${esc(nome)}</span>
                 <span style="display:flex;align-items:center;gap:14px;">
                     ${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}
                     <span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}">${entregues} / ${total}</span>
