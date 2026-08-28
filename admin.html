@@ -776,6 +776,10 @@
            que não dá pra mexer (nunca clicável e falhando escondido). */
         .config-subtela--somente-leitura { opacity: 0.55; }
         .config-subtela--somente-leitura input, .config-subtela--somente-leitura select { cursor: not-allowed; }
+        /* Checkbox dependente travado (Reforma de Permissões, 28/ago/2026) --
+           ex: "Aprovar" sem "Ver lista" marcado. Ver aplicarDependenciasPermissoes(). */
+        #pe-editor input:disabled { cursor: not-allowed; }
+        #pe-editor input:disabled + label { opacity: 0.45; cursor: not-allowed; }
         /* Título das colunas acima da lista de Vagas -- pedido da Márcia,
            19/ago/2026: "parece que está meio solto" sem indicar o que
            cada lado da linha significa. Só nessa tela de Configurações
@@ -6367,54 +6371,62 @@
     // permissão configurada: ver seção 62 da documentação técnica.
     const GRUPOS_CAPACIDADES = [
         { grupo: 'Visão Geral', itens: [{ chave: 'ver_visao_geral', label: 'Ver' }] },
-        { grupo: 'Dados da Escola', itens: [{ chave: 'ver_dados_escola', label: 'Ver' }, { chave: 'editar_dados_escola', label: 'Editar' }] },
-        { grupo: 'Dados da Bateria', itens: [{ chave: 'ver_dados_bateria', label: 'Ver' }, { chave: 'editar_dados_bateria', label: 'Editar' }] },
+        { grupo: 'Dados da Escola', itens: [{ chave: 'ver_dados_escola', label: 'Ver' }, { chave: 'editar_dados_escola', label: 'Editar', dependeDe: 'ver_dados_escola' }] },
+        { grupo: 'Dados da Bateria', itens: [{ chave: 'ver_dados_bateria', label: 'Ver' }, { chave: 'editar_dados_bateria', label: 'Editar', dependeDe: 'ver_dados_bateria' }] },
         { grupo: 'Ritmistas', itens: [
             { chave: 'ver_ritmistas', label: 'Ver lista (nome, apelido, instrumento, status)' },
-            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Ver CPF, endereço, contato de emergência e dados do responsável' },
-            { chave: 'criar_cadastro_ritmistas', label: 'Criar/copiar link de cadastro' },
-            { chave: 'aprovar_ritmistas', label: 'Aprovar' },
-            { chave: 'rejeitar_ritmistas', label: 'Rejeitar' },
-            { chave: 'suspender_ritmistas', label: 'Suspender' },
-            { chave: 'desligar_ritmistas', label: 'Desligar' },
-            { chave: 'reativar_ritmistas', label: 'Reativar' },
-            { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento' },
-            { chave: 'editar_medidas_ritmista', label: 'Editar medidas' },
-            { chave: 'ver_naipe', label: 'Ver naipe que lidera' },
-            { chave: 'editar_naipe', label: 'Editar naipe que lidera' },
-            { chave: 'ver_repique_bossa', label: 'Ver Repique de Bossa' },
-            { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa' },
-            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)' },
-            { chave: 'exportar_ritmistas', label: 'Exportar pra Excel' },
+            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Ver CPF, endereço, contato de emergência e dados do responsável', dependeDe: 'ver_ritmistas' },
+            { chave: 'criar_cadastro_ritmistas', label: 'Criar/copiar link de cadastro', dependeDe: 'ver_ritmistas' },
+            { chave: 'aprovar_ritmistas', label: 'Aprovar', dependeDe: 'ver_ritmistas' },
+            { chave: 'rejeitar_ritmistas', label: 'Rejeitar', dependeDe: 'ver_ritmistas' },
+            { chave: 'suspender_ritmistas', label: 'Suspender', dependeDe: 'ver_ritmistas' },
+            { chave: 'desligar_ritmistas', label: 'Desligar', dependeDe: 'ver_ritmistas' },
+            { chave: 'reativar_ritmistas', label: 'Reativar', dependeDe: 'ver_ritmistas' },
+            { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas' },
+            { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas' },
+            { chave: 'ver_naipe', label: 'Ver naipe que lidera', dependeDe: 'ver_ritmistas' },
+            { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe' },
+            { chave: 'ver_repique_bossa', label: 'Ver Repique de Bossa', dependeDe: 'ver_ritmistas' },
+            { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa' },
+            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas' },
+            { chave: 'exportar_ritmistas', label: 'Exportar pra Excel', dependeDe: 'ver_ritmistas' },
         ] },
         { grupo: 'Diretoria', itens: [
             { chave: 'ver_acessos', label: 'Ver lista (nome, apelido, cargo)' },
-            { chave: 'ver_dados_sensiveis_acessos', label: 'Ver CPF, endereço e contato de emergência' },
-            { chave: 'criar_cadastro_diretoria', label: 'Criar/copiar link de cadastro' },
-            { chave: 'aprovar_acessos', label: 'Aprovar' },
-            { chave: 'rejeitar_acessos', label: 'Rejeitar' },
-            { chave: 'suspender_acessos', label: 'Suspender' },
-            { chave: 'desligar_acessos', label: 'Desligar' },
-            { chave: 'reativar_acessos', label: 'Reativar' },
-            { chave: 'exportar_diretoria', label: 'Exportar pra Excel' },
+            { chave: 'ver_dados_sensiveis_acessos', label: 'Ver CPF, endereço e contato de emergência', dependeDe: 'ver_acessos' },
+            { chave: 'criar_cadastro_diretoria', label: 'Criar/copiar link de cadastro', dependeDe: 'ver_acessos' },
+            { chave: 'aprovar_acessos', label: 'Aprovar', dependeDe: 'ver_acessos' },
+            { chave: 'rejeitar_acessos', label: 'Rejeitar', dependeDe: 'ver_acessos' },
+            { chave: 'suspender_acessos', label: 'Suspender', dependeDe: 'ver_acessos' },
+            { chave: 'desligar_acessos', label: 'Desligar', dependeDe: 'ver_acessos' },
+            { chave: 'reativar_acessos', label: 'Reativar', dependeDe: 'ver_acessos' },
+            { chave: 'exportar_diretoria', label: 'Exportar pra Excel', dependeDe: 'ver_acessos' },
         ] },
-        { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Ver entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos' }] },
-        { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Ver' }, { chave: 'editar_extras', label: 'Cadastrar e editar' }] },
+        { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Ver entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
+        { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Ver' }, { chave: 'editar_extras', label: 'Cadastrar e editar', dependeDe: 'ver_extras' }] },
         { grupo: 'Carteirinha', itens: [{ chave: 'ver_carteirinha_outros', label: 'Ver a carteirinha de outra pessoa' }] },
         { grupo: 'Configurações', itens: [
             { chave: 'ver_instrumentos', label: 'Ver Instrumentos da bateria' },
-            { chave: 'editar_instrumentos', label: 'Editar Instrumentos da bateria' },
+            { chave: 'editar_instrumentos', label: 'Editar Instrumentos da bateria', dependeDe: 'ver_instrumentos' },
             { chave: 'ver_medidas', label: 'Ver Medidas / Categorias de Figurino da bateria' },
-            { chave: 'editar_medidas', label: 'Editar Medidas / Categorias de Figurino da bateria' },
+            { chave: 'editar_medidas', label: 'Editar Medidas / Categorias de Figurino da bateria', dependeDe: 'ver_medidas' },
             { chave: 'ver_vagas', label: 'Ver Vagas por instrumento' },
-            { chave: 'editar_vagas', label: 'Editar Vagas por instrumento' },
+            { chave: 'editar_vagas', label: 'Editar Vagas por instrumento', dependeDe: 'ver_vagas' },
             { chave: 'ver_figurino_bateria', label: 'Ver Figurino ativado nesta bateria' },
-            { chave: 'editar_figurino_bateria', label: 'Ativar/editar peças de Figurino nesta bateria' },
+            { chave: 'editar_figurino_bateria', label: 'Ativar/editar peças de Figurino nesta bateria', dependeDe: 'ver_figurino_bateria' },
         ] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Ver' }] },
-        { grupo: 'Permissões', itens: [{ chave: 'ver_permissoes', label: 'Ver' }, { chave: 'editar_permissoes', label: 'Editar' }] },
+        { grupo: 'Permissões', itens: [{ chave: 'ver_permissoes', label: 'Ver' }, { chave: 'editar_permissoes', label: 'Editar', dependeDe: 'ver_permissoes' }] },
     ];
     const TODAS_CAPACIDADES = GRUPOS_CAPACIDADES.flatMap(g => g.itens.map(i => i.chave));
+    // Mapa chave -> chave "pai" da qual depende (Reforma de Permissões, 28/ago/
+    // 2026 -- pedido dela: "se ver ritmistas não estiver marcado, não é nem
+    // pra liberar" as ações que dependem disso). Usado só na TELA de Permissões
+    // pra desabilitar/desmarcar o dependente quando o pai está desmarcado --
+    // não é uma trava de banco nova (a trava real de cada ação já existe nos
+    // triggers/RLS, independente disso).
+    const DEPENDE_DE = {};
+    GRUPOS_CAPACIDADES.forEach(g => g.itens.forEach(i => { if (i.dependeDe) DEPENDE_DE[i.chave] = i.dependeDe; }));
 
     let permissoesPessoaCache = [];
     let permissoesPessoaEditando = null;
@@ -6582,7 +6594,7 @@
                     <div class="ficha-secao-titulo">${esc(g.grupo)}</div>
                     ${g.itens.map(c => `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                            <input type="checkbox" id="pp-cap-${c.chave}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
+                            <input type="checkbox" id="pp-cap-${c.chave}" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
                             <label for="pp-cap-${c.chave}" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
                         </div>`).join('')}
                 </div>`).join('')}
@@ -6591,6 +6603,25 @@
                 <button class="btn-ficha" onclick="fecharEditorPermissoesPessoa()">Cancelar</button>
             </div>
         </div>`;
+        aplicarDependenciasPermissoes();
+    }
+    // Desabilita (e desmarca) cada checkbox cujo "pai" (DEPENDE_DE) não está
+    // marcado -- roda ao abrir o editor e a cada clique em qualquer checkbox,
+    // em cascata (repete até estabilizar, cobre corrente de 2+ níveis, ex:
+    // editar_naipe depende de ver_naipe que depende de ver_ritmistas).
+    function aplicarDependenciasPermissoes() {
+        let mudou = true;
+        while (mudou) {
+            mudou = false;
+            Object.keys(DEPENDE_DE).forEach(chave => {
+                const el = document.getElementById('pp-cap-' + chave);
+                const pai = document.getElementById('pp-cap-' + DEPENDE_DE[chave]);
+                if (!el || !pai) return;
+                const travar = !pai.checked;
+                if (el.disabled !== travar) { el.disabled = travar; mudou = true; }
+                if (travar && el.checked) { el.checked = false; mudou = true; }
+            });
+        }
     }
     // Quem veio da ficha (item 4) volta pra ela sozinho ao salvar/cancelar --
     // achado da Márcia, 22/ago/2026: sem isso, depois de editar não tinha
