@@ -272,6 +272,37 @@
         .total-label {
             font-size: 12px; color: #888; font-weight: 500; margin-top: 4px;
         }
+        /* Grade dos "demais status" (Suspensos/Desligados/Rejeitados/Não
+           Desfila, e Convidados) -- pedido da Márcia, 28/ago/2026: "os
+           demais [status] merecem... peso menor", mas SEM esconder atrás
+           de clique (ela: "isso é importante"). Peso menor = sem destaque
+           de cor em bloco/fundo (regra do CLAUDE.md: seções auxiliares
+           ficam simples, sem chip/card aninhado) -- só o número usa a
+           mesma cor que já existe nos selos do sistema.
+           CSS Grid de verdade (não texto com "·" que quebra sozinho,
+           1ª tentativa rejeitada por ela: "não tem cabimento ficar
+           desalinhado... tem que ter uma grade") -- sempre 2 colunas,
+           linha fina entre células via gap+background. Item sozinho na
+           última linha (grupo com número ímpar de status, ex: Diretoria
+           só tem 3) ocupa a linha inteira com .grade-item--unico, em vez
+           de deixar uma célula vazia do lado. */
+        .grade-status {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+            background: var(--cor-borda); border-radius: 12px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 16px;
+        }
+        .grade-item {
+            background: white; padding: 10px 14px; cursor: pointer;
+            display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+            font-size: 12.5px; color: #888; transition: background 0.15s;
+        }
+        .grade-item:hover { background: #fbfaff; }
+        .grade-item b { font-weight: 800; font-size: 13.5px; }
+        .grade-item--unico { grid-column: 1 / -1; }
+        .grade-item .n-suspenso  { color: #e65100; }
+        .grade-item .n-desligado { color: #b3261e; }
+        .grade-item .n-rejeitado { color: #757575; }
+        .grade-item .n-naodesfila { color: var(--cor-texto-secundario); }
         /* CONTAINER */
         .container { padding: 24px; max-width: 1100px; margin: 0 auto; }
 
@@ -721,6 +752,7 @@
             .totalizadores { gap: 8px; }
             .total-card { padding: 12px 14px; }
             .total-numero { font-size: 24px; }
+            .grade-item { padding: 9px 12px; font-size: 12px; }
 
             /* Card de Ritmistas/Diretoria quebra em 2 linhas no celular --
                achado real da Márcia, 20/ago/2026, testando de verdade:
@@ -1998,6 +2030,19 @@
         </div>
     </div>
 
+    <!-- "Retrato completo" dos demais status de Ritmistas (28/ago/2026,
+         sessão seguinte) -- pendência antiga fechada: ela queria ver
+         Suspensos/Desligados/Rejeitados/Não Desfila também, com peso menor
+         que Ativos/Pendentes acima, mas sem esconder atrás de clique.
+         Grade de 2 colunas (ver comentário CSS de .grade-status) -- 4
+         itens aqui, cabe redondinho sem sobrar nenhum sozinho. -->
+    <div class="grade-status" id="gradeStatusRitmistas">
+        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Suspensos <b class="n-suspenso" id="totalSuspensos">—</b></div>
+        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Desligados <b class="n-desligado" id="totalDesligados">—</b></div>
+        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Rejeitados <b class="n-rejeitado" id="totalRejeitados">—</b></div>
+        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Não Desfila <b class="n-naodesfila" id="totalNaoDesfilaStatus">—</b></div>
+    </div>
+
     <!-- Card à parte, não somado aos números de Ritmistas acima (pedido da
          Márcia, 21/ago/2026) -- só aparece pra quem tem ver_acessos, mesma
          capacidade que libera a aba Diretoria. -->
@@ -2012,20 +2057,28 @@
         </div>
     </div>
 
+    <!-- Mesma grade de "outros status" acima, agora pra Diretoria -- não
+         existe Não Desfila aqui (é exclusivo de Ritmista), então só 3
+         itens: o último ocupa a linha inteira (.grade-item--unico) em vez
+         de sobrar uma célula vazia do lado. -->
+    <div class="grade-status" id="gradeStatusDiretoria" style="display:none;">
+        <div class="grade-item" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Suspensos <b class="n-suspenso" id="totalDiretoriaSuspensos">—</b></div>
+        <div class="grade-item" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Desligados <b class="n-desligado" id="totalDiretoriaDesligados">—</b></div>
+        <div class="grade-item grade-item--unico" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Rejeitados <b class="n-rejeitado" id="totalDiretoriaRejeitados">—</b></div>
+    </div>
+
     <!-- Convidados Ritmistas + Convidados Diretoria lado a lado (27/ago/2026,
          pedido dela) -- substitui o antigo box único "Convidados" (25/ago) e
          o box "Menores ativos" (26/ago, que virou o card completo de Menores
          mais abaixo). Os dois continuam só aparecendo pra quem tem
          ver_extras, escondidos juntos (mesma linha, mesma capacidade). -->
-    <div class="totalizadores" id="totalizadoresExtras" style="display:none;">
-        <div class="total-card total-card--clicavel" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">
-            <div class="total-numero ativo" id="totalExtrasRitmistas">—</div>
-            <div class="total-label">Convidados - Ritmistas</div>
-        </div>
-        <div class="total-card total-card--clicavel" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">
-            <div class="total-numero ativo" id="totalExtrasDiretoria">—</div>
-            <div class="total-label">Convidados - Diretoria</div>
-        </div>
+    <!-- Peso reduzido (28/ago/2026, sessão seguinte, pedido dela) -- virou
+         a mesma grade usada nos "outros status" acima, em vez dos 2 cards
+         grandes de antes (mesmo tamanho visual de Ativos/Pendentes, peso
+         que ela achou alto demais pra Convidados). -->
+    <div class="grade-status" id="totalizadoresExtras" style="display:none;">
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Convidados — Ritmistas <b id="totalExtrasRitmistas">—</b></div>
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Convidados — Diretoria <b id="totalExtrasDiretoria">—</b></div>
     </div>
 
     <!-- Empilhado, um card embaixo do outro (era grid de 2 colunas até
@@ -2430,6 +2483,15 @@
         const elPendentes = document.getElementById('totalPendentes');
         elPendentes.textContent = pendentes;
         elPendentes.classList.toggle('atencao', pendentes > 0);
+
+        // "Retrato completo" dos demais status (28/ago/2026, sessão
+        // seguinte) -- ela pediu que Suspensos/Desligados/Rejeitados/Não
+        // Desfila também apareçam, com peso menor mas sempre visíveis
+        // (não escondidos atrás de clique).
+        document.getElementById('totalSuspensos').textContent = todosRitmistas.filter(r => r.status === 'suspenso').length;
+        document.getElementById('totalDesligados').textContent = todosRitmistas.filter(r => r.status === 'desligado').length;
+        document.getElementById('totalRejeitados').textContent = todosRitmistas.filter(r => r.status === 'rejeitado').length;
+        document.getElementById('totalNaoDesfilaStatus').textContent = todosRitmistas.filter(r => r.status === 'aprovado' && r.nao_desfila).length;
     }
 
     // Card à parte na Visão Geral, com a mesma contagem de Mestres/
@@ -2438,8 +2500,9 @@
     // 21/ago/2026 ("mantém Ritmistas ativos como está, card novo separado").
     function atualizarTotalizadoresDiretoria() {
         const card = document.getElementById('totalizadoresDiretoria');
+        const gradeOutros = document.getElementById('gradeStatusDiretoria');
         if (!card) return;
-        if (!souSuperAdmin && !tenhoCapacidade('ver_acessos')) { card.style.display = 'none'; return; }
+        if (!souSuperAdmin && !tenhoCapacidade('ver_acessos')) { card.style.display = 'none'; if (gradeOutros) gradeOutros.style.display = 'none'; return; }
         const ativos = (listaDiretoriaAtual || []).filter(a => a.status === 'aprovado').length;
         const pendentes = (listaDiretoriaAtual || []).filter(a => a.status === 'pendente').length;
         document.getElementById('totalDiretoriaAtivos').textContent = ativos;
@@ -2447,6 +2510,15 @@
         elPendentesDiretoria.textContent = pendentes;
         elPendentesDiretoria.classList.toggle('atencao', pendentes > 0);
         card.style.display = 'flex';
+
+        // Mesmo "retrato completo" de Ritmistas, aqui pra Diretoria -- sem
+        // Não Desfila (exclusivo de Ritmista).
+        if (gradeOutros) {
+            document.getElementById('totalDiretoriaSuspensos').textContent = (listaDiretoriaAtual || []).filter(a => a.status === 'suspenso').length;
+            document.getElementById('totalDiretoriaDesligados').textContent = (listaDiretoriaAtual || []).filter(a => a.status === 'desligado').length;
+            document.getElementById('totalDiretoriaRejeitados').textContent = (listaDiretoriaAtual || []).filter(a => a.status === 'rejeitado').length;
+            gradeOutros.style.display = 'grid';
+        }
     }
 
     // Cards "Convidados Ritmistas"/"Convidados Diretoria" na Visão Geral --
@@ -2459,7 +2531,7 @@
         const lista = extrasCache || [];
         document.getElementById('totalExtrasRitmistas').textContent = lista.filter(e => e.grupo === 'ritmista').length;
         document.getElementById('totalExtrasDiretoria').textContent = lista.filter(e => e.grupo === 'diretor' || e.grupo === 'apoio').length;
-        card.style.display = 'flex';
+        card.style.display = 'grid';
     }
 
     function bateriaIdContexto() {
