@@ -2268,3 +2268,94 @@ Pedido dela, comparando os dois: "Visualizar a carteirinha de outra pessoa" fico
 No meio da sessão, ao tentar editar `GRUPOS_CAPACIDADES` pra aplicar a troca "Ver"→"Visualizar" acima, um comando de "reescrever o arquivo inteiro" foi disparado por engano em vez do de "editar só o trecho certo" — o conteúdo de `admin.html` foi substituído por um texto de um caractere só, na cópia de trabalho local. Percebido imediatamente (o próprio resultado do comando já mostrava o problema) e revertido com `git checkout -- admin.html` antes de qualquer `git add`/commit — o arquivo voltou exatamente ao estado do último commit válido, sem perda de nenhuma linha.
 
 Vale registrar como referência, já que ela perguntou diretamente "tem alguma segurança pra isso?": o incidente nunca chegou perto do site publicado. `git checkout -- <arquivo>` restaura um arquivo rastreado pro estado do último commit, descartando só mudanças não commitadas — funciona porque o Git guarda o conteúdo de cada commit de forma imutável, independente do que está no disco agora. E como o site em `tumtu.com.br` só é atualizado por um `git push` explícito pra `main` (nunca automaticamente a partir da pasta de trabalho local), um erro como esse — mesmo sem ser percebido na hora — nunca teria alcançado o site de verdade antes de um commit+push deliberado.
+
+## 66. Sessão de 28/ago/2026 (continuação seguinte): Visão Geral com retrato completo de status — 4 rodadas de design ao vivo
+
+Pendência registrada mais cedo na mesma sessão (fim da seção 64/entrada CLAUDE.md), retomada por ela com um pedido explícito de análise UX ("analise como uma UX experiente, e uma product designer de excelência") e restrição clara de escopo: Ativos/Pendentes continuam em destaque, os demais status entram com peso menor, Diretoria segue o mesmo padrão, Convidados também perde peso, e a tela não pode crescer (preocupação real: "na visão geral do celular, ela diminui").
+
+### 66.1 Processo: prévia antes de cada rodada de código
+
+Diferente da maioria das features desta sessão (que iam direto pra branch de preview), aqui cada mudança visual passou primeiro por uma prévia interativa (Artifact, HTML/CSS/JS publicado fora do repositório) usando as cores/fontes reais do app (`styles/tokens.css`, Plus Jakarta Sans) e uma moldura de celular — só depois de aprovação verbal ("Ficou ótimo, pode implementar") é que o código de `admin.html` foi tocado. Isso evitou pelo menos 2 rodadas de implementação errada (a 1ª ideia de layout, texto com "·", e o círculo "+" nunca chegaram a ir pro código).
+
+### 66.2 Rodada 1: linha de texto vs. acordeão — ela escolheu texto
+
+Primeira prévia comparou duas opções: (a) uma linha sempre visível com os números separados por "·", cor de cada número igual ao badge do sistema; (b) um acordeão fechado (mesmo padrão de "Ritmistas por Instrumento") com pílula de total. Recomendação minha foi a opção (a), pelo motivo que ela mesma tinha dado: "isso é importante" implica visível sem precisar de clique — um acordeão contradiria isso. Ela concordou.
+
+### 66.3 Rodada 2: texto quebrando sem critério → CSS Grid real
+
+Implementado o "antes" (texto com "·"), ela mandou print real mostrando os três blocos (Ritmistas, Diretoria, Convidados) com alturas/quebras diferentes — Ritmistas quebrava em 2 linhas, os outros cabiam numa só, sem nenhuma referência de alinhamento entre eles. Pedido dela: "tem que ter um mecanismo que eles fiquem alinhados, uma grade."
+
+Implementação real (`admin.html`):
+
+```css
+.grade-status {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--cor-borda); border-radius: 12px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 16px;
+}
+.grade-item {
+    background: white; padding: 10px 14px; cursor: pointer;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+    font-size: 12.5px; color: #888;
+}
+.grade-item--unico { grid-column: 1 / -1; }
+```
+
+`gap: 1px` com `background` na cor da borda por trás cria a linha fina entre células só com CSS (truque clássico de grid) — sem precisar de `border` em cada item (que duplicaria linhas nas bordas internas). Item sozinho na última linha (Diretoria só tem 3 status: Suspensos/Desligados/Rejeitados, sem Não Desfila que é exclusivo de Ritmista) recebe `.grade-item--unico` (`grid-column: 1 / -1`) pra ocupar a linha inteira, evitando uma célula vazia do lado.
+
+Cor de cada número reaproveita exatamente as cores já usadas nos badges de status (`.badge-suspenso` `#e65100`, `.badge-desligado` `#b3261e`, `.badge-rejeitado` `#757575`) — sem criar paleta nova, e respeitando a regra do CLAUDE.md de seções auxiliares ficarem simples (número colorido como texto, não chip/card).
+
+`atualizarTotalizadores()` e `atualizarTotalizadoresDiretoria()` ganharam os filtros de contagem por status (`todosRitmistas.filter(r => r.status === 'suspenso')`, etc.) — mesma fonte de dados que já alimentava Ativos/Pendentes, sem fetch novo.
+
+Convidados (`totalizadoresExtras`) virou a mesma `.grade-status` (era `.totalizadores`/`.total-card`, mesmo tamanho visual de Ativos/Pendentes) — `atualizarTotalizadorExtras()` teve `card.style.display` trocado de `'flex'` pra `'grid'` pra bater com o novo componente.
+
+### 66.4 Achado dela: faltaram os títulos de grupo
+
+Depois de publicado em preview, ela comparou com a prévia e notou que RITMISTAS/DIRETORIA/CONVIDADOS (títulos de grupo) sumiram — esquecimento real na hora de implementar, existiam na prévia mas não entraram no código. Corrigido com uma classe nova, reaproveitando o mesmo padrão já usado em `.config-medida-publico-label` (rótulo solto, maiúsculo, fora de card):
+
+```css
+.vg-grupo-titulo {
+    font-size: 11px; font-weight: 800; color: var(--cor-texto-muted);
+    text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 2px 8px;
+}
+```
+
+Título de Diretoria/Convidados precisou de `id` próprio (`vgTituloDiretoria`/`vgTituloConvidados`) pra ser escondido/mostrado junto com o resto do bloco, já que os dois são condicionados por capacidade (`ver_acessos`/`ver_extras`) — só Ritmistas é sempre visível, sem `id` de controle.
+
+### 66.5 Rodada 3: "muita informação em tela" → fechar por padrão
+
+Com tudo publicado (títulos + grade), ela reconsiderou o volume total: "eu acho que ficou muita informação em tela." Perguntou se dava pra fechar a grade temporariamente. Antes de implementar, perguntei diretamente (AskUserQuestion) se o padrão deveria nascer aberto ou fechado — ela confirmou fechado.
+
+1ª tentativa de controle: um círculo pequeno (20px) só com "+"/"−" central, sem nenhum texto (ela tinha rejeitado explicitamente um rótulo "Outros status": "não quero outros status, quero algo mais pequenino"). Implementado com `display:none` por padrão na grade, e uma função só de toggle:
+
+```js
+function toggleGradeOutros(idGrade, elControle) {
+    const grade = document.getElementById(idGrade);
+    if (!grade || !elControle) return;
+    const abrindo = grade.style.display === 'none';
+    grade.style.display = abrindo ? 'grid' : 'none';
+    // ...atualiza o indicador visual do controle...
+}
+```
+
+### 66.6 Rodada 4: círculo "+" reprovado → pílula com total + seta
+
+Ela mandou print apontando dois problemas reais no círculo: o caractere "+" ficava visivelmente desalinhado dentro do círculo (glifo de fonte não centraliza perfeitamente em caixas pequenas, mesmo com `display:flex;align-items:center;justify-content:center`) e o controle era discreto demais — "demorei a perceber que ele estava ali." Pediu sugestão de UX.
+
+Recomendação dada e implementada: pílula (mesma receita de badge já usada no app — fundo branco, borda, texto forte) mostrando o **total de itens escondidos** (soma de Suspensos+Desligados+Rejeitados+Não Desfila) + uma seta que gira 90° ao abrir (reaproveitando literalmente a classe `.vg-secao-seta`/`.aberta` já usada em Aniversariantes/Ritmistas por Instrumento, só que fora de um `.vg-card`):
+
+```css
+.grade-pilula-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 20px;
+    background: white; border: 1px solid var(--cor-borda);
+    color: var(--cor-texto-secundario); font-size: 12.5px; font-weight: 800;
+    cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.grade-pilula-toggle .grade-pilula-seta { transition: transform 0.15s; }
+.grade-pilula-toggle .grade-pilula-seta.aberta { transform: rotate(90deg); }
+```
+
+Resolve os dois problemas de uma vez: a pílula é um alvo maior e mais fácil de notar (o número desperta curiosidade — "quanto é isso?"), e a seta é um símbolo já reconhecível de abrir/fechar sem precisar de nenhuma palavra escrita (ela tinha vetado texto explicitamente na rodada anterior). `atualizarTotalizadores()`/`atualizarTotalizadoresDiretoria()` ganharam a soma total (`totalOutrosRitmistas`/`totalOutrosDiretoria`) além das contagens individuais já existentes.
+
+Aprovado na hora ("Ficou ótimo, pode publicar direto"), publicado sem passar por outra rodada de preview — merge direto de `preview/visao-geral-todos-status` pra `main`.
