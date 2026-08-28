@@ -524,6 +524,15 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         }
     }
 
+    // Autoedição (Meu Perfil): o próprio Ritmista NUNCA marca Desfile/
+    // Declaração (só a Diretoria decide isso), mas pode enxergar o valor
+    // se a bateria liberou "ver" -- pedido dela, 28/ago/2026: "quero que
+    // tenha os dois interruptores. Na hora o adm vai decidir se o ritmista
+    // vai poder ver ou não." Fire-and-forget, mesmo padrão de
+    // fpAplicarPermissaoRepiqueBossa -- os blocos já nasceram escondidos
+    // acima (podeVerDeclaracao/podeVerNaoDesfila exigem !autoedicao).
+    fpAplicarPermissaoAutoedicaoToggles(alvo);
+
     const campoCadastro = fpEl('fp-campo-cadastro');
     if (campoCadastro) {
         campoCadastro.style.display = alvo.created_at ? '' : 'none';
@@ -811,6 +820,39 @@ async function fpAplicarPermissaoRepiqueBossa(alvo) {
         fpEstado.editaveis.add('repique_bossa');
         if (fpEstado.autoedicao && fpEl('fp-btn-salvar').style.display !== 'inline-flex') {
             fpEl('fp-btn-editar').style.display = 'inline-flex';
+        }
+    }
+}
+
+// Desfile/Declaração no Meu Perfil (28/ago/2026, sessão seguinte): o
+// próprio Ritmista nunca marca (podeEditar sempre false aqui) -- só
+// aparece se a bateria ligou "Permitir que o ritmista veja o próprio X"
+// em Permissões → Ritmistas, mesmo padrão de dois interruptores por
+// bateria já usado em Repique de Bossa.
+async function fpAplicarPermissaoAutoedicaoToggles(alvo) {
+    if (!fpEstado.autoedicao || alvo.perfil !== 'ritmista' || !alvo.bateria_id) return;
+    const authHeaders = await fpAuthHeaders();
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${alvo.bateria_id}&select=ritmista_pode_ver_desfile,ritmista_pode_ver_declaracao_responsavel`, { headers: authHeaders });
+    const rows = res.ok ? await res.json() : [];
+    const bateria = rows[0] || {};
+    if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
+
+    if (fpEhMenorIdade(alvo.nascimento) && bateria.ritmista_pode_ver_declaracao_responsavel) {
+        const blocoDeclaracao = fpEl('fp-bloco-declaracao');
+        if (blocoDeclaracao) {
+            blocoDeclaracao.style.display = '';
+            fpEstado.declaracaoValor = !!alvo.declaracao_responsavel;
+            fpEstado.declaracaoPodeEditar = false;
+            fpRenderToggleDeclaracao();
+        }
+    }
+    if (bateria.ritmista_pode_ver_desfile) {
+        const blocoNaoDesfila = fpEl('fp-bloco-nao-desfila');
+        if (blocoNaoDesfila) {
+            blocoNaoDesfila.style.display = '';
+            fpEstado.naoDesfilaValor = !!alvo.nao_desfila;
+            fpEstado.naoDesfilaPodeEditar = false;
+            fpRenderToggleNaoDesfila();
         }
     }
 }

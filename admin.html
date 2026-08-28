@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=21">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=40"></script>
+    <script src="ficha-perfil.js?v=41"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -1658,6 +1658,21 @@
             <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista marque o próprio Repique de Bossa</label>
         </div>
         <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Campo sensível, tratado à parte de Instrumento/Medidas: os dois interruptores acima controlam só a própria ficha do ritmista (Meu Perfil), e são independentes. Pra Mestre/Diretor/Apoio verem ou marcarem o Repique de Bossa de um ritmista, a permissão é dada pessoa por pessoa, abaixo — ninguém tem acesso até ser liberado, mesmo quem já edita Ritmistas normalmente.</div>
+
+        <!-- Desfile / Declaração do Responsável (28/ago/2026): só "ver" --
+             o ritmista nunca marca nenhum dos dois, quem decide é sempre a
+             Diretoria (pessoa por pessoa, abaixo). Pedido dela: "quero que
+             tenha os dois interruptores. Na hora o adm vai decidir se o
+             ritmista vai poder ver ou não." -->
+        <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+            <input type="checkbox" id="pe-ritmista-ve-desfile" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('desfile', this.checked)">
+            <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja o próprio Desfile</label>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
+            <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja a própria Declaração do Responsável</label>
+        </div>
+        <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca marca nenhum dos dois, só enxerga o valor já definido pela Diretoria. Declaração só aparece de fato pra quem é menor de idade.</div>
     </div>
 
     <div id="pe-editor" style="display:none;"></div>
@@ -6487,6 +6502,18 @@
             chkRepiqueMarcar.disabled = !podeEditarPermissoes;
             chkRepiqueMarcar.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
         }
+        const chkVeDesfile = document.getElementById('pe-ritmista-ve-desfile');
+        if (chkVeDesfile) {
+            chkVeDesfile.checked = !!(bateriaAtualData && bateriaAtualData.ritmista_pode_ver_desfile);
+            chkVeDesfile.disabled = !podeEditarPermissoes;
+            chkVeDesfile.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
+        }
+        const chkVeDeclaracao = document.getElementById('pe-ritmista-ve-declaracao');
+        if (chkVeDeclaracao) {
+            chkVeDeclaracao.checked = !!(bateriaAtualData && bateriaAtualData.ritmista_pode_ver_declaracao_responsavel);
+            chkVeDeclaracao.disabled = !podeEditarPermissoes;
+            chkVeDeclaracao.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
+        }
         if (!bateriaId) { permissoesPessoaCache = []; container.innerHTML = '<div class="estado-vazio">Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
@@ -6519,6 +6546,22 @@
             mostrarToast(ligado
                 ? (acao === 'ver' ? 'Ritmistas podem ver o próprio Repique de Bossa.' : 'Ritmistas podem marcar o próprio Repique de Bossa.')
                 : (acao === 'ver' ? 'Ritmistas não veem mais o próprio Repique de Bossa.' : 'Ritmistas não marcam mais o próprio Repique de Bossa.'));
+        } else {
+            mostrarToast('Erro ao atualizar.', 'erro');
+        }
+    }
+    async function salvarRitmistaVeToggle(qual, ligado) {
+        const id = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!id) return;
+        const coluna = qual === 'desfile' ? 'ritmista_pode_ver_desfile' : 'ritmista_pode_ver_declaracao_responsavel';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ [coluna]: ligado }) });
+        if (res.ok) {
+            const dados = await res.json();
+            bateriaAtualData = dados[0];
+            const idx = bateriasCache.findIndex(x => x.id === id);
+            if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
+            const nome = qual === 'desfile' ? 'o próprio Desfile' : 'a própria Declaração do Responsável';
+            mostrarToast(ligado ? `Ritmistas podem ver ${nome}.` : `Ritmistas não veem mais ${nome}.`);
         } else {
             mostrarToast('Erro ao atualizar.', 'erro');
         }
