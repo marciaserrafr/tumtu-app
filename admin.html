@@ -312,21 +312,31 @@
             text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 2px 8px;
         }
         .vg-grupo-titulo:first-child { margin-top: 0; }
-        /* Botãozinho +/- pra abrir a grade de "outros status" quando quiser
+        /* Pílula pra abrir a grade de "outros status" quando quiser
            (28/ago/2026 -- ela achou muita informação em tela e pediu pra
-           nascer fechada de vez, sem nenhum rótulo de texto tipo "Outros
-           status", "algo mais pequenino"). Nasce sempre fechada a cada
-           carregamento da tela -- não guarda a escolha (mesmo
-           comportamento dos outros acordeões da Visão Geral). */
+           nascer fechada de vez). 1ª versão era um círculo só com "+" --
+           ela achou o "+" desalinhado dentro do círculo (glifo da fonte
+           não centraliza bem em círculo pequeno) e discreto demais, "demorei
+           a perceber que ele estava ali". Trocado por pílula com o total
+           escondido + seta giratória (mesma receita de badge/pílula já
+           usada no app, ex: "Ritmistas por Instrumento") -- maior, com um
+           número que chama atenção, e a seta é reconhecível como abrir/
+           fechar sem precisar de nenhuma palavra escrita. Nasce sempre
+           fechada a cada carregamento da tela -- não guarda a escolha
+           (mesmo comportamento dos outros acordeões da Visão Geral). */
         .grade-linha-toggle { display: flex; justify-content: flex-end; margin: -4px 2px 10px; }
-        .grade-mini-toggle {
-            width: 20px; height: 20px; border-radius: 50%;
+        .grade-pilula-toggle {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 20px;
             background: white; border: 1px solid var(--cor-borda);
-            color: var(--cor-texto-muted); font-size: 14px; font-weight: 700; line-height: 1;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            color: var(--cor-texto-secundario); font-size: 12.5px; font-weight: 800;
+            cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
         }
-        .grade-mini-toggle:hover { color: var(--cor-texto-principal); border-color: var(--cor-borda-forte); }
+        .grade-pilula-toggle:hover { border-color: var(--cor-borda-forte); }
+        .grade-pilula-toggle .grade-pilula-seta {
+            font-size: 14px; color: #8b88a0; display: inline-block; transition: transform 0.15s;
+        }
+        .grade-pilula-toggle .grade-pilula-seta.aberta { transform: rotate(90deg); }
         /* CONTAINER */
         .container { padding: 24px; max-width: 1100px; margin: 0 auto; }
 
@@ -2062,7 +2072,10 @@
          Grade de 2 colunas (ver comentário CSS de .grade-status) -- 4
          itens aqui, cabe redondinho sem sobrar nenhum sozinho. -->
     <div class="grade-linha-toggle">
-        <span class="grade-mini-toggle" id="btnGradeRitmistas" onclick="toggleGradeOutros('gradeStatusRitmistas', 'btnGradeRitmistas')">+</span>
+        <div class="grade-pilula-toggle" onclick="toggleGradeOutros('gradeStatusRitmistas', this)">
+            <span id="totalOutrosRitmistas">—</span>
+            <span class="grade-pilula-seta">›</span>
+        </div>
     </div>
     <div class="grade-status" id="gradeStatusRitmistas" style="display:none;">
         <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Suspensos <b class="n-suspenso" id="totalSuspensos">—</b></div>
@@ -2091,7 +2104,10 @@
          itens: o último ocupa a linha inteira (.grade-item--unico) em vez
          de sobrar uma célula vazia do lado. -->
     <div class="grade-linha-toggle" id="linhaToggleDiretoria" style="display:none;">
-        <span class="grade-mini-toggle" id="btnGradeDiretoria" onclick="toggleGradeOutros('gradeStatusDiretoria', 'btnGradeDiretoria')">+</span>
+        <div class="grade-pilula-toggle" onclick="toggleGradeOutros('gradeStatusDiretoria', this)">
+            <span id="totalOutrosDiretoria">—</span>
+            <span class="grade-pilula-seta">›</span>
+        </div>
     </div>
     <div class="grade-status" id="gradeStatusDiretoria" style="display:none;">
         <div class="grade-item" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Suspensos <b class="n-suspenso" id="totalDiretoriaSuspensos">—</b></div>
@@ -2521,10 +2537,15 @@
         // seguinte) -- ela pediu que Suspensos/Desligados/Rejeitados/Não
         // Desfila também apareçam, com peso menor mas sempre visíveis
         // (não escondidos atrás de clique).
-        document.getElementById('totalSuspensos').textContent = todosRitmistas.filter(r => r.status === 'suspenso').length;
-        document.getElementById('totalDesligados').textContent = todosRitmistas.filter(r => r.status === 'desligado').length;
-        document.getElementById('totalRejeitados').textContent = todosRitmistas.filter(r => r.status === 'rejeitado').length;
-        document.getElementById('totalNaoDesfilaStatus').textContent = todosRitmistas.filter(r => r.status === 'aprovado' && r.nao_desfila).length;
+        const susRit = todosRitmistas.filter(r => r.status === 'suspenso').length;
+        const desRit = todosRitmistas.filter(r => r.status === 'desligado').length;
+        const rejRit = todosRitmistas.filter(r => r.status === 'rejeitado').length;
+        const ndRit = todosRitmistas.filter(r => r.status === 'aprovado' && r.nao_desfila).length;
+        document.getElementById('totalSuspensos').textContent = susRit;
+        document.getElementById('totalDesligados').textContent = desRit;
+        document.getElementById('totalRejeitados').textContent = rejRit;
+        document.getElementById('totalNaoDesfilaStatus').textContent = ndRit;
+        document.getElementById('totalOutrosRitmistas').textContent = susRit + desRit + rejRit + ndRit;
     }
 
     // Card à parte na Visão Geral, com a mesma contagem de Mestres/
@@ -2559,22 +2580,25 @@
         // não mexe se a grade está aberta ou fechada (isso é controlado só
         // pelo botãozinho +/-, ver toggleGradeOutros()).
         if (gradeOutros) {
-            document.getElementById('totalDiretoriaSuspensos').textContent = (listaDiretoriaAtual || []).filter(a => a.status === 'suspenso').length;
-            document.getElementById('totalDiretoriaDesligados').textContent = (listaDiretoriaAtual || []).filter(a => a.status === 'desligado').length;
-            document.getElementById('totalDiretoriaRejeitados').textContent = (listaDiretoriaAtual || []).filter(a => a.status === 'rejeitado').length;
+            const susDir = (listaDiretoriaAtual || []).filter(a => a.status === 'suspenso').length;
+            const desDir = (listaDiretoriaAtual || []).filter(a => a.status === 'desligado').length;
+            const rejDir = (listaDiretoriaAtual || []).filter(a => a.status === 'rejeitado').length;
+            document.getElementById('totalDiretoriaSuspensos').textContent = susDir;
+            document.getElementById('totalDiretoriaDesligados').textContent = desDir;
+            document.getElementById('totalDiretoriaRejeitados').textContent = rejDir;
+            document.getElementById('totalOutrosDiretoria').textContent = susDir + desDir + rejDir;
         }
     }
 
-    // Botãozinho +/- de "outros status" (28/ago/2026, sessão seguinte) --
-    // nasce sempre fechado a cada carregamento da tela, não guarda a
-    // escolha (mesmo comportamento dos outros acordeões da Visão Geral).
-    function toggleGradeOutros(idGrade, idBotao) {
+    // Pílula de "outros status" (28/ago/2026, sessão seguinte) -- nasce
+    // sempre fechada a cada carregamento da tela, não guarda a escolha
+    // (mesmo comportamento dos outros acordeões da Visão Geral).
+    function toggleGradeOutros(idGrade, elPilula) {
         const grade = document.getElementById(idGrade);
-        const botao = document.getElementById(idBotao);
-        if (!grade || !botao) return;
+        if (!grade || !elPilula) return;
         const abrindo = grade.style.display === 'none';
         grade.style.display = abrindo ? 'grid' : 'none';
-        botao.textContent = abrindo ? '−' : '+';
+        elPilula.querySelector('.grade-pilula-seta').classList.toggle('aberta', abrindo);
     }
 
     // Cards "Convidados Ritmistas"/"Convidados Diretoria" na Visão Geral --
