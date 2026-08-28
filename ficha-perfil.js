@@ -160,7 +160,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=29');
+        const res = await fetch('ficha-perfil.partial.html?v=30');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -588,6 +588,15 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     fpEl('fp-secao-senha').style.display = 'none';
     fpEl('fp-senha-nova').value = '';
     fpEl('fp-senha-confirmar').value = '';
+
+    // Face ID/Digital (29/ago/2026) -- fora do fluxo Editar/Salvar (é
+    // clique instantâneo, mesmo padrão de Desfile/Declaração), e só pra
+    // quem está vendo o PRÓPRIO perfil, no PRÓPRIO aparelho -- não faz
+    // sentido ativar isso na ficha de outra pessoa. Começa sempre escondida
+    // até fpAplicarFaceId confirmar que o aparelho suporta de verdade.
+    const secaoFaceId = fpEl('fp-secao-faceid');
+    if (secaoFaceId) secaoFaceId.style.display = 'none';
+    fpAplicarFaceId(alvo);
 
     const mensagem = fpEl('fp-mensagem');
     mensagem.style.display = 'none';
@@ -1336,6 +1345,73 @@ async function fpSalvar() {
         mensagem.className = 'fp-mensagem erro';
         mensagem.textContent = 'Erro ao salvar. Tente novamente.';
         mensagem.style.display = 'block';
+    }
+}
+
+// Face ID / Digital (29/ago/2026) -- interruptor de clique instantâneo,
+// mesmo padrão de Desfile/Declaração (fora do fluxo Editar/Salvar). Só
+// aparece em autoedição (Meu Perfil) e só se o navegador/aparelho de quem
+// está olhando realmente suportar biometria de verdade -- ver faceid.js.
+// Não é capacidade nem coluna no banco: mora inteiro em localStorage deste
+// aparelho, por isso nunca aparece na ficha de outra pessoa (Admin/Super
+// Admin editando um Ritmista, por exemplo) -- não faria sentido ativar
+// Face ID no aparelho de quem está gerenciando, só no da própria pessoa.
+async function fpAplicarFaceId(alvo) {
+    const secao = fpEl('fp-secao-faceid');
+    if (!secao) return;
+    if (!fpEstado.autoedicao || typeof faceIdSuportado !== 'function' || !faceIdSuportado()) return;
+    const disponivel = await faceIdDisponivelNesteAparelho();
+    if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
+    if (!disponivel) return;
+    secao.style.display = '';
+    fpRenderToggleFaceId();
+}
+
+function fpRenderToggleFaceId() {
+    const area = fpEl('fp-faceid-area');
+    if (!area) return;
+    const ativo = faceIdAtivo(fpEstado.alvo.pessoa_id);
+    const trackBg = ativo ? '#2d7a4f' : '#c7d3e0';
+    const thumbPos = ativo ? '21px' : '3px';
+    const labelColor = ativo ? '#2d7a4f' : '#706c87';
+    const labelText = ativo ? 'Ativado' : 'Desativado';
+    area.innerHTML = `
+        <div onclick="fpAlternarFaceId()"
+             style="display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+            <div style="width:44px;height:24px;border-radius:12px;background:${trackBg};
+                        position:relative;transition:background 0.2s;flex-shrink:0;display:block;box-sizing:border-box;">
+                <div style="position:absolute;top:3px;left:${thumbPos};
+                            width:16px;height:16px;border-radius:50%;
+                            background:white;box-shadow:0 1px 3px rgba(0,0,0,0.3);
+                            transition:left 0.2s;"></div>
+            </div>
+            <span style="font-size:13px;font-weight:500;color:${labelColor};">${labelText}</span>
+        </div>`;
+}
+
+// Ativar aciona o prompt de Face ID/digital do próprio aparelho na hora
+// (ver faceIdAtivar) -- desativar não precisa de confirmação nenhuma, só
+// apaga a credencial local, mesma assimetria de outros interruptores do
+// projeto (ligar pede confirmação, desligar não).
+async function fpAlternarFaceId() {
+    const pessoaId = fpEstado.alvo.pessoa_id;
+    const nome = fpEstado.alvo.nome;
+    if (faceIdAtivo(pessoaId)) {
+        faceIdDesativar(pessoaId);
+        fpRenderToggleFaceId();
+        return;
+    }
+    try {
+        await faceIdAtivar(pessoaId, nome);
+        fpRenderToggleFaceId();
+    } catch (e) {
+        const mensagem = fpEl('fp-mensagem');
+        if (mensagem) {
+            mensagem.className = 'fp-mensagem erro';
+            mensagem.textContent = 'Não deu pra ativar o Face ID/digital agora. Tente de novo.';
+            mensagem.style.display = 'block';
+            mensagem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     }
 }
 
