@@ -2822,16 +2822,23 @@
         abrirCadastro(id);
     }
 
-    function renderToggleNaoDesfila(id, ativo) {
+    // Título da seção é "Desfile" (ver abrirCadastro) -- o interruptor
+    // representa a situação normal (vai desfilar = "Ok", ligado/verde),
+    // não a exceção. Desligado = "Não desfila" (mesmo texto do selo do
+    // card). Pedido dela, 28/ago/2026: pensar em como o Diretor lê a tela,
+    // não só no nome técnico do campo (nao_desfila continua o nome da
+    // coluna no banco -- só a leitura visual foi invertida).
+    function renderToggleNaoDesfila(id, naoDesfila) {
         const area = document.getElementById('fc-nao-desfila-area');
         if (!area) return;
         const podeEditar = tenhoCapacidade('editar_nao_desfila');
-        const trackBg = ativo ? '#3b556e' : '#c7d3e0';
-        const thumbPos = ativo ? '21px' : '3px';
-        const labelColor = ativo ? '#3b556e' : '#706c87';
-        const labelText = ativo ? 'Não Desfila' : 'Desfila normalmente';
+        const desfila = !naoDesfila;
+        const trackBg = desfila ? '#2d7a4f' : '#c7d3e0';
+        const thumbPos = desfila ? '21px' : '3px';
+        const labelColor = desfila ? '#2d7a4f' : '#706c87';
+        const labelText = desfila ? 'Ok' : 'Não desfila';
         area.innerHTML = `
-            <div ${podeEditar ? `onclick="alternarNaoDesfila(${id},${!ativo})"` : ''}
+            <div ${podeEditar ? `onclick="alternarNaoDesfila(${id},${desfila})"` : ''}
                  style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;${podeEditar ? 'cursor:pointer;' : ''}user-select:none;">
                 <div style="width:44px;height:24px;border-radius:12px;background:${trackBg};
                             position:relative;transition:background 0.2s;flex-shrink:0;display:block;box-sizing:border-box;">
@@ -3284,12 +3291,13 @@
                     <div class="ficha-secao-titulo">Declaração do responsável</div>
                     <div id="fc-declaracao-area"></div>
                 </div>` : ''}
+            ${tenhoCapacidade('ver_nao_desfila') ? `
             <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Não Desfila</div>
+                <div class="ficha-secao-titulo">Desfile</div>
                 <div id="fc-nao-desfila-area"></div>
-            </div>`;
+            </div>` : ''}`;
         if (menor) renderToggleDeclaracao(r.id, r.declaracao_responsavel);
-        renderToggleNaoDesfila(r.id, r.nao_desfila);
+        if (tenhoCapacidade('ver_nao_desfila')) renderToggleNaoDesfila(r.id, r.nao_desfila);
 
         // Botões de ação de status + Fechar. Injetados em #fp-acoes-extra
         // (hook dentro de #fp-container-ritmista, mesmo padrão já usado em
@@ -6452,7 +6460,8 @@
             { chave: 'ver_repique_bossa', label: 'Ver Repique de Bossa', dependeDe: 'ver_ritmistas' },
             { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa' },
             { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas' },
-            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_ritmistas' },
+            { chave: 'ver_nao_desfila', label: 'Ver Não Desfila', dependeDe: 'ver_ritmistas' },
+            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila' },
             { chave: 'exportar_ritmistas', label: 'Exportar pra Excel', dependeDe: 'ver_ritmistas' },
         ] },
         { grupo: 'Diretoria', itens: [
