@@ -1538,6 +1538,7 @@
             <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Categoria de Figurino</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('figurino')"><span>Figurino</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('eventos')"><span>Tipos de Evento</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="abrirConfigTelaSA('temporadas')"><span>Temporadas</span><span class="config-item-seta">›</span></div>
         </div>
 
         <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
@@ -1574,6 +1575,15 @@
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoEventoTipo()">+ Novo Tipo de Evento</button>
             <div id="sa-evento-tipo-editor" style="display:none;"></div>
             <div id="sa-evento-tipos-lista" class="lista-cards"></div>
+        </div>
+
+        <div id="sa-config-tela-temporadas" class="config-subtela" style="display:none;">
+            <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
+            <div class="painel-titulo">Temporadas</div>
+            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Ex: Carnaval 2026, Carnaval 2027. Usada como rótulo opcional em Eventos, pra manter tudo padronizado (evita gente digitando "Carnaval 2026" de jeitos diferentes).</p>
+            <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaTemporada()">+ Nova Temporada</button>
+            <div id="sa-temporada-editor" style="display:none;"></div>
+            <div id="sa-temporadas-lista" class="lista-cards"></div>
         </div>
     </div>
 
@@ -1965,6 +1975,10 @@
             <span>Figurino</span>
             <span class="config-item-seta">›</span>
         </div>
+        <div id="config-item-eventos" class="config-item" onclick="abrirConfigTela('eventos')">
+            <span>Eventos</span>
+            <span class="config-item-seta">›</span>
+        </div>
     </div>
 
     <!-- Sub-tela: Instrumentos -->
@@ -2002,6 +2016,16 @@
         <div class="painel-titulo">Figurino</div>
         <p class="config-sub-desc">Ative as peças (ex: Camisa da Final) que sua bateria vai controlar entrega nesta temporada. Nasce tudo desligado — ligue só o que for usar.</p>
         <div id="config-figurino-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+    </div>
+
+    <!-- Sub-tela: Eventos (módulo de Presença via QR, 29/ago/2026) -->
+    <div id="config-tela-eventos" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
+        <div class="painel-titulo">Eventos</div>
+        <p class="config-sub-desc">Cadastre os eventos da sua bateria (ensaios, apresentações...) pra depois marcar presença por QR Code.</p>
+        <button id="eventos-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoEvento()">+ Novo Evento</button>
+        <div id="eventos-editor" style="display:none;"></div>
+        <div id="eventos-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
 </div>
@@ -4564,6 +4588,7 @@
         vagas: { ver: 'ver_vagas', editar: 'editar_vagas' },
         medidas: { ver: 'ver_medidas', editar: 'editar_medidas' },
         figurino: { ver: 'ver_figurino_bateria', editar: 'editar_figurino_bateria' },
+        eventos: { ver: 'ver_eventos', editar: 'editar_eventos' },
     };
     function podeVerConfigSubtela(nome) {
         const c = CAPACIDADE_CONFIG_SUBTELA[nome];
@@ -4605,6 +4630,7 @@
         if (nome === 'vagas') renderizarConfigVagas();
         if (nome === 'medidas') renderizarConfigMedidas();
         if (nome === 'figurino') renderizarConfigFigurino();
+        if (nome === 'eventos') { fecharEditorEvento(); renderizarEventosLista(); }
         aplicarSomenteLeituraConfigTela(nome, !souSuperAdmin && !podeEditarConfigSubtela(nome));
     }
 
@@ -4624,6 +4650,9 @@
         await carregarBateriaMedidaTipos();
         if (bibliotecaFigurino.length === 0) await carregarBibliotecaFigurino();
         await carregarBateriaFigurino();
+        if (bibliotecaEventoTipos.length === 0) await carregarBibliotecaEventoTipos();
+        if (bibliotecaTemporadas.length === 0) await carregarBibliotecaTemporadas();
+        await carregarEventosBateria();
     }
 
     // "Nome usado" mora na MESMA linha do título de cada grupo (Tradicionais/
@@ -5647,6 +5676,158 @@
         renderizarEditorExtra();
         renderizarExtrasLista();
         atualizarTotalizadorExtras();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // CONFIGURAÇÕES → EVENTOS (29/ago/2026) -- cada bateria cria os próprios
+    // eventos (ensaio, apresentação...), escolhendo um Tipo da biblioteca
+    // mestre (Super Admin → Configurações → Tipos de Evento). Base do
+    // módulo de Presença via QR -- essa tela só cadastra o evento, ainda
+    // sem leitor de QR nem lista de presença.
+    // ══════════════════════════════════════════════════════════════════
+    let bibliotecaEventoTipos = []; // evento_tipos ativos, biblioteca mestre
+    let bibliotecaTemporadas = []; // temporadas ativas, biblioteca mestre
+    let eventosBateriaCache = [];
+    let eventoEditando = null;
+    let salvandoEvento = false;
+
+    async function carregarBibliotecaEventoTipos() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders });
+        bibliotecaEventoTipos = res.ok ? await res.json() : [];
+    }
+    async function carregarBibliotecaTemporadas() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?ativo=eq.true&order=ordem`, { headers: authHeaders });
+        bibliotecaTemporadas = res.ok ? await res.json() : [];
+    }
+    async function carregarEventosBateria() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { eventosBateriaCache = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&order=data.desc`, { headers: authHeaders });
+        eventosBateriaCache = res.ok ? await res.json() : [];
+    }
+    function nomeTipoEvento(id) {
+        const t = bibliotecaEventoTipos.find(x => x.id === id);
+        return t ? t.nome : '—';
+    }
+    function nomeTemporada(id) {
+        const t = bibliotecaTemporadas.find(x => x.id === id);
+        return t ? t.nome : null;
+    }
+    function formatarDataBR(dataIso) {
+        if (!dataIso) return '—';
+        const [ano, mes, dia] = dataIso.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+    // Mesmo rótulo já usado em Figurino (LABEL_PERFIL_FIGURINO) pro mesmo
+    // tipo de escolha granular por perfil de Diretoria -- pedido dela,
+    // 29/ago/2026: nunca lotar Mestre/Diretor/Apoio numa coisa só, cada
+    // evento pode incluir uma combinação diferente.
+    const LABEL_PERFIL_DIRETORIA_EVENTO = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
+    function renderizarEventosLista() {
+        const container = document.getElementById('eventos-lista');
+        if (!container) return;
+        const podeEditar = souSuperAdmin || tenhoCapacidade('editar_eventos');
+        const btnNovo = document.getElementById('eventos-btn-novo');
+        if (btnNovo) btnNovo.style.display = podeEditar ? '' : 'none';
+        if (bibliotecaEventoTipos.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum Tipo de Evento cadastrado ainda pelo Super Admin — fale com ela antes de criar um Evento.</div>'; return; }
+        if (eventosBateriaCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum evento cadastrado ainda.</div>'; return; }
+        container.innerHTML = eventosBateriaCache.map(ev => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(ev.nome)}</div>
+                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
+                </div>
+                ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEvento(${ev.id})">Editar</button></div>` : ''}
+            </div>`).join('');
+    }
+    function abrirNovoEvento() {
+        if (bibliotecaEventoTipos.length === 0) { mostrarToast('Nenhum Tipo de Evento cadastrado ainda — fale com o Super Admin.', 'erro'); return; }
+        if (bibliotecaTemporadas.length === 0) { mostrarToast('Nenhuma Temporada cadastrada ainda — fale com o Super Admin.', 'erro'); return; }
+        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, perfis_diretoria_inclusos: [], temporada_id: bibliotecaTemporadas[0].id };
+        renderizarEditorEvento();
+    }
+    function abrirEditarEvento(id) {
+        const ev = eventosBateriaCache.find(x => x.id === id);
+        if (!ev) return;
+        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, perfis_diretoria_inclusos: [...(ev.perfis_diretoria_inclusos || [])], temporada_id: ev.temporada_id || null };
+        renderizarEditorEvento();
+    }
+    function renderizarEditorEvento() {
+        const ee = eventoEditando;
+        const editor = document.getElementById('eventos-editor');
+        if (!editor) return;
+        if (!ee) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${ee.id ? 'Editar Evento' : 'Novo Evento'}</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="ev-edit-nome" value="${esc(ee.nome)}" placeholder="Ex: Ensaio Técnico 2026"></div>
+                <div class="campo"><label>Data *</label><input type="date" id="ev-edit-data" value="${esc(ee.data || '')}"></div>
+                <div class="campo"><label>Tipo *</label><select id="ev-edit-tipo">
+                    ${bibliotecaEventoTipos.map(t => `<option value="${t.id}" ${ee.evento_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}
+                </select></div>
+                <div class="campo"><label>Temporada *</label><select id="ev-edit-temporada">
+                    ${bibliotecaTemporadas.map(t => `<option value="${t.id}" ${ee.temporada_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}
+                </select></div>
+                <div class="campo campo-full">
+                    <label>Além dos Ritmistas (sempre incluídos), quem mais entra na lista de presença deste evento?</label>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
+                        ${['mestre', 'diretor', 'apoio'].map(p => `
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" class="ev-edit-perfil-diretoria" value="${p}" id="ev-edit-perfil-${p}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.perfis_diretoria_inclusos.includes(p) ? 'checked' : ''}>
+                            <label for="ev-edit-perfil-${p}" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">${LABEL_PERFIL_DIRETORIA_EVENTO[p]}</label>
+                        </div>`).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarEvento()">Salvar</button>
+                    ${ee.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirEvento(${ee.id})">Excluir</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorEvento()">Cancelar</button>
+            </div>
+        </div>`;
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function fecharEditorEvento() { eventoEditando = null; renderizarEditorEvento(); }
+    async function salvarEvento() {
+        if (salvandoEvento) return;
+        const nome = document.getElementById('ev-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do evento.', 'erro'); return; }
+        const data = document.getElementById('ev-edit-data').value;
+        if (!data) { mostrarToast('Informe a data do evento.', 'erro'); return; }
+        const evento_tipo_id = Number(document.getElementById('ev-edit-tipo').value);
+        const temporadaVal = document.getElementById('ev-edit-temporada').value;
+        if (!temporadaVal) { mostrarToast('Selecione a temporada.', 'erro'); return; }
+        const temporada_id = Number(temporadaVal);
+        const perfis_diretoria_inclusos = [...document.querySelectorAll('.ev-edit-perfil-diretoria:checked')].map(el => el.value);
+        const bateriaId = bateriaIdContexto();
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        salvandoEvento = true;
+        try {
+            if (eventoEditando.id) {
+                await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos }) });
+            } else {
+                await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, criado_por: u ? u.pessoa_id : null }) });
+            }
+            mostrarToast(eventoEditando.id ? 'Evento atualizado!' : 'Evento criado!');
+            eventoEditando = null;
+            await carregarEventosBateria();
+            renderizarEditorEvento();
+            renderizarEventosLista();
+        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
+        finally { salvandoEvento = false; }
+    }
+    async function excluirEvento(id) {
+        if (!confirm('Excluir este evento? Isso apaga também todas as presenças já registradas nele.')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
+        mostrarToast('Evento excluído.');
+        eventoEditando = null;
+        await carregarEventosBateria();
+        renderizarEditorEvento();
+        renderizarEventosLista();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -6723,6 +6904,8 @@
             { chave: 'editar_vagas', label: 'Editar Vagas por instrumento', dependeDe: 'ver_vagas' },
             { chave: 'ver_figurino_bateria', label: 'Visualizar Figurino ativado nesta bateria' },
             { chave: 'editar_figurino_bateria', label: 'Ativar/editar peças de Figurino nesta bateria', dependeDe: 'ver_figurino_bateria' },
+            { chave: 'ver_eventos', label: 'Visualizar Eventos' },
+            { chave: 'editar_eventos', label: 'Criar/editar Eventos', dependeDe: 'ver_eventos' },
         ] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Visualizar' }] },
         { grupo: 'Permissões', itens: [{ chave: 'ver_permissoes', label: 'Visualizar' }, { chave: 'editar_permissoes', label: 'Editar', dependeDe: 'ver_permissoes' }] },
@@ -6741,14 +6924,22 @@
     let permissoesPessoaEditando = null;
     // Grupo (nível 2) atualmente aberto na tela de Permissões -- null quando
     // está na lista (nível 1). "diretor-naipe"/"diretor" são o MESMO perfil
-    // no banco (diretor), só divididos aqui por restrito_ao_naipe -- pedido
-    // dela, 29/ago/2026, depois do incidente do naipe quebrado (ver seção
-    // técnica): "vou precisar dessa diferenciação senão eu vou pirar".
+    // no banco (diretor), divididos aqui por TER naipe declarado ou não --
+    // corrigido em 29/ago/2026 (achado dela: "o diretor de naipe é declarado
+    // quando responde a pergunta Naipe que lidera... se ele lidera um
+    // naipe, ele tem que ficar na lista de diretores de naipe"). Antes o
+    // filtro usava `restrito_ao_naipe` (o interruptor de RESTRIÇÃO DE
+    // ACESSO, separado) -- um Diretor podia ter naipe cadastrado e mesmo
+    // assim não aparecer aqui, se a restrição estivesse desligada (caso
+    // real: Jhones Silva, naipe Repique+Repique de Bossa, restrito_ao_naipe
+    // false). `restrito_ao_naipe` continua existindo como interruptor à
+    // parte dentro do editor de cada Diretor de Naipe -- ter naipe não liga
+    // a restrição sozinho, são coisas diferentes.
     let permissoesGrupoAtual = null;
     const PERMISSOES_GRUPOS = {
         mestre: { label: 'Mestre', filtro: p => p.perfil === 'mestre' },
-        'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && p.restrito_ao_naipe },
-        diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !p.restrito_ao_naipe },
+        'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && Array.isArray(p.naipe) && p.naipe.length > 0 },
+        diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !(Array.isArray(p.naipe) && p.naipe.length > 0) },
         apoio: { label: 'Diretor (Apoio)', filtro: p => p.perfil === 'apoio' },
     };
 
@@ -6821,7 +7012,7 @@
             if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
             return;
         }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe`, { headers: authHeaders });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe,naipe`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
     }
@@ -6925,7 +7116,7 @@
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
         // O editor toma conta da tela inteira, por cima da sub-tela do
         // grupo (ou da lista, se veio da ficha) -- nunca os dois visíveis
         // ao mesmo tempo.
@@ -6971,11 +7162,13 @@
                             <input type="checkbox" id="pp-cap-${c.chave}" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
                             <label for="pp-cap-${c.chave}" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
                         </div>`).join('')}
-                    ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' ? `
+                    ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' && pe.temNaipe ? `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;">
                             <input type="checkbox" id="pp-restrito-naipe" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.restritoAoNaipe ? 'checked' : ''}>
                             <label for="pp-restrito-naipe" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Restrito ao próprio naipe — só vê/aprova/edita Ritmistas do naipe que lidera</label>
                         </div>` : ''}
+                    ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' && !pe.temNaipe ? `
+                        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;font-size:13px;color:var(--cor-texto-muted);">Essa pessoa ainda não declarou um Naipe (Ficha → Naipe que lidera) — sem isso, não tem como restringir o acesso a um naipe específico.</div>` : ''}
                 </div>`).join('')}
             <div class="form-rodape">
                 <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button></div>
@@ -7065,6 +7258,7 @@
                 .then(carregarFigurinoMestreSA).then(renderizarFigurinoMestreListaSA);
         }
         if (nome === 'eventos') { fecharEditorEventoTipo(); carregarEventoTiposSA().then(renderizarEventoTiposListaSA); }
+        if (nome === 'temporadas') { fecharEditorTemporada(); carregarTemporadasSA().then(renderizarTemporadasListaSA); }
     }
     function voltarConfigListaSA() {
         document.querySelectorAll('#sa-painel-configuracoes-globais .config-subtela').forEach(el => el.style.display = 'none');
@@ -7579,6 +7773,94 @@
         const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
         mostrarToast('Tipo de evento excluído.'); eventoTipoEditando = null; await carregarEventoTiposSA(); renderizarEditorEventoTipo(); renderizarEventoTiposListaSA();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // TEMPORADAS -- LISTA MESTRE (Super Admin, 29/ago/2026) -- rótulo
+    // padronizado (ex: "Carnaval 2026") usado em Eventos. Pedido dela:
+    // texto livre ia gerar grafia inconsistente ("já vi no apelido, que é
+    // livre"). Mesma estrutura simples de Tipos de Evento (nome/ordem/ativo).
+    // ══════════════════════════════════════════════════════════════════
+    let temporadasCacheSA = [];
+    let temporadaEditando = null;
+    let salvandoTemporada = false;
+    async function carregarTemporadasSA() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?order=ordem`, { headers: authHeaders });
+        temporadasCacheSA = res.ok ? await res.json() : [];
+    }
+    function cardTemporadaSA(t) {
+        return `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(t.nome)} ${t.ativo === false ? '<span class="badge-inativo">Inativa</span>' : ''}</div>
+                </div>
+                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarTemporada(${t.id})">Editar</button></div>
+            </div>`;
+    }
+    function renderizarTemporadasListaSA() {
+        const container = document.getElementById('sa-temporadas-lista');
+        if (!container) return;
+        if (temporadasCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhuma temporada cadastrada ainda.</div>'; return; }
+        container.innerHTML = [...temporadasCacheSA].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(cardTemporadaSA).join('');
+    }
+    function abrirNovaTemporada() { temporadaEditando = { id: null, nome: '', ativo: true }; renderizarEditorTemporada(); }
+    function abrirEditarTemporada(id) {
+        const t = temporadasCacheSA.find(x => x.id === id);
+        if (!t) return;
+        temporadaEditando = { id: t.id, nome: t.nome, ativo: t.ativo !== false };
+        renderizarEditorTemporada();
+    }
+    function renderizarEditorTemporada() {
+        const te = temporadaEditando;
+        const editor = document.getElementById('sa-temporada-editor');
+        if (!editor) return;
+        if (!te) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${te.id ? 'Editar Temporada' : 'Nova Temporada'}</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="tp-edit-nome" value="${esc(te.nome)}" placeholder="Ex: Carnaval 2026"></div>
+                <div class="campo"><label>Status</label><select id="tp-edit-ativo">
+                    <option value="true" ${te.ativo ? 'selected' : ''}>Ativa</option>
+                    <option value="false" ${!te.ativo ? 'selected' : ''}>Inativa</option>
+                </select></div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button id="tp-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarTemporadaSA()">Salvar</button>
+                    ${te.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirTemporadaSA(${te.id})">Excluir temporada</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorTemporada()">Cancelar</button>
+            </div>
+        </div>`;
+    }
+    function fecharEditorTemporada() { temporadaEditando = null; renderizarEditorTemporada(); }
+    async function salvarTemporadaSA() {
+        if (salvandoTemporada) return;
+        const nome = document.getElementById('tp-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome da temporada.', 'erro'); return; }
+        const ativo = document.getElementById('tp-edit-ativo').value === 'true';
+        salvandoTemporada = true;
+        try {
+            if (temporadaEditando.id) {
+                await fetch(`${SUPABASE_URL}/rest/v1/temporadas?id=eq.${temporadaEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo }) });
+            } else {
+                const ordem = Math.max(0, ...temporadasCacheSA.map(t => t.ordem || 0)) + 1;
+                await fetch(`${SUPABASE_URL}/rest/v1/temporadas`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem }) });
+            }
+            mostrarToast(temporadaEditando.id ? 'Temporada atualizada!' : 'Temporada criada!');
+            temporadaEditando = null;
+            await carregarTemporadasSA();
+            renderizarEditorTemporada();
+            renderizarTemporadasListaSA();
+        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
+        finally { salvandoTemporada = false; }
+    }
+    async function excluirTemporadaSA(id) {
+        if (!confirm('Excluir esta temporada? Se algum evento já usa ela, prefira marcar como "Inativa".')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
+        mostrarToast('Temporada excluída.'); temporadaEditando = null; await carregarTemporadasSA(); renderizarEditorTemporada(); renderizarTemporadasListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════
