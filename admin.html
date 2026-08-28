@@ -5718,6 +5718,11 @@
         const [ano, mes, dia] = dataIso.split('-');
         return `${dia}/${mes}/${ano}`;
     }
+    // Mesmo rótulo já usado em Figurino (LABEL_PERFIL_FIGURINO) pro mesmo
+    // tipo de escolha granular por perfil de Diretoria -- pedido dela,
+    // 29/ago/2026: nunca lotar Mestre/Diretor/Apoio numa coisa só, cada
+    // evento pode incluir uma combinação diferente.
+    const LABEL_PERFIL_DIRETORIA_EVENTO = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
     function renderizarEventosLista() {
         const container = document.getElementById('eventos-lista');
         if (!container) return;
@@ -5730,20 +5735,21 @@
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${ev.inclui_diretoria ? ' · Inclui Diretoria' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
+                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
                 </div>
                 ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEvento(${ev.id})">Editar</button></div>` : ''}
             </div>`).join('');
     }
     function abrirNovoEvento() {
         if (bibliotecaEventoTipos.length === 0) { mostrarToast('Nenhum Tipo de Evento cadastrado ainda — fale com o Super Admin.', 'erro'); return; }
-        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, inclui_diretoria: false, temporada_id: null };
+        if (bibliotecaTemporadas.length === 0) { mostrarToast('Nenhuma Temporada cadastrada ainda — fale com o Super Admin.', 'erro'); return; }
+        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, perfis_diretoria_inclusos: [], temporada_id: bibliotecaTemporadas[0].id };
         renderizarEditorEvento();
     }
     function abrirEditarEvento(id) {
         const ev = eventosBateriaCache.find(x => x.id === id);
         if (!ev) return;
-        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, inclui_diretoria: !!ev.inclui_diretoria, temporada_id: ev.temporada_id || null };
+        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, perfis_diretoria_inclusos: [...(ev.perfis_diretoria_inclusos || [])], temporada_id: ev.temporada_id || null };
         renderizarEditorEvento();
     }
     function renderizarEditorEvento() {
@@ -5760,13 +5766,18 @@
                 <div class="campo"><label>Tipo *</label><select id="ev-edit-tipo">
                     ${bibliotecaEventoTipos.map(t => `<option value="${t.id}" ${ee.evento_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}
                 </select></div>
-                <div class="campo"><label>Temporada <span style="font-weight:400;color:#999;font-size:12px;">— opcional</span></label><select id="ev-edit-temporada">
-                    <option value="">Sem temporada</option>
+                <div class="campo"><label>Temporada *</label><select id="ev-edit-temporada">
                     ${bibliotecaTemporadas.map(t => `<option value="${t.id}" ${ee.temporada_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}
                 </select></div>
-                <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
-                    <input type="checkbox" id="ev-edit-inclui-diretoria" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.inclui_diretoria ? 'checked' : ''}>
-                    <label for="ev-edit-inclui-diretoria" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Inclui Diretoria (Mestre/Diretor/Apoio entram na lista de presença deste evento)</label>
+                <div class="campo campo-full">
+                    <label>Além dos Ritmistas (sempre incluídos), quem mais entra na lista de presença deste evento?</label>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
+                        ${['mestre', 'diretor', 'apoio'].map(p => `
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" class="ev-edit-perfil-diretoria" value="${p}" id="ev-edit-perfil-${p}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.perfis_diretoria_inclusos.includes(p) ? 'checked' : ''}>
+                            <label for="ev-edit-perfil-${p}" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">${LABEL_PERFIL_DIRETORIA_EVENTO[p]}</label>
+                        </div>`).join('')}
+                    </div>
                 </div>
             </div>
             <div class="form-rodape">
@@ -5788,16 +5799,17 @@
         if (!data) { mostrarToast('Informe a data do evento.', 'erro'); return; }
         const evento_tipo_id = Number(document.getElementById('ev-edit-tipo').value);
         const temporadaVal = document.getElementById('ev-edit-temporada').value;
-        const temporada_id = temporadaVal ? Number(temporadaVal) : null;
-        const inclui_diretoria = document.getElementById('ev-edit-inclui-diretoria').checked;
+        if (!temporadaVal) { mostrarToast('Selecione a temporada.', 'erro'); return; }
+        const temporada_id = Number(temporadaVal);
+        const perfis_diretoria_inclusos = [...document.querySelectorAll('.ev-edit-perfil-diretoria:checked')].map(el => el.value);
         const bateriaId = bateriaIdContexto();
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         salvandoEvento = true;
         try {
             if (eventoEditando.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, inclui_diretoria }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos }) });
             } else {
-                await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, inclui_diretoria, criado_por: u ? u.pessoa_id : null }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, criado_por: u ? u.pessoa_id : null }) });
             }
             mostrarToast(eventoEditando.id ? 'Evento atualizado!' : 'Evento criado!');
             eventoEditando = null;
