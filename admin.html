@@ -2492,7 +2492,7 @@
     // atualização de fundo fica sem foto até a próxima vez que a tela abrir
     // de verdade. Conserto definitivo (fotos pequenas de verdade) fica pra
     // depois, com mais calma -- isso aqui é só a mitigação imediata.
-    const COLUNAS_RITMISTAS_SEM_FOTO = 'id,vinculo_id,pessoa_id,created_at,nome,cpf,nascimento,endereco,numero,complemento,bairro,cidade,estado,celular,apelido,email,status,tamanho_camisa,tamanho_fantasia,tamanho_sapato,declaracao_responsavel,motivo_status,motivo_instrumento,membro_desde,perfil,emergencia_nome,emergencia_parentesco,emergencia_celular,bateria_id,tipo_sanguineo,pais,nacionalidade,tamanho_calca,estrangeiro,tipo_documento,numero_documento,cadastro_completo,nivel_acesso,aprovado_por,auth_user_id,consentimento_confirmado,bateria_instrumento_id,instrumento_nome,instrumento_grupo,genero,genero_personalizado,nivel_acesso_id,foto_pos_x,foto_pos_y,capacidades,modo_carteirinha_individual,naipe,repique_bossa,restrito_ao_naipe,nao_desfila,qr_token,responsavel_nome,responsavel_cpf,responsavel_celular';
+    const COLUNAS_RITMISTAS_SEM_FOTO = 'id,vinculo_id,pessoa_id,created_at,nome,cpf,nascimento,endereco,numero,complemento,bairro,cidade,estado,celular,apelido,email,status,tamanho_camisa,tamanho_fantasia,tamanho_sapato,declaracao_responsavel,motivo_status,motivo_instrumento,membro_desde,perfil,emergencia_nome,emergencia_parentesco,emergencia_celular,bateria_id,tipo_sanguineo,pais,nacionalidade,tamanho_calca,estrangeiro,tipo_documento,numero_documento,cadastro_completo,nivel_acesso,aprovado_por,auth_user_id,consentimento_confirmado,bateria_instrumento_id,instrumento_nome,instrumento_grupo,genero,genero_personalizado,nivel_acesso_id,foto_pos_x,foto_pos_y,capacidades,modo_carteirinha_individual,naipe,repique_bossa,restrito_ao_naipe,nao_desfila,observacoes,qr_token,responsavel_nome,responsavel_cpf,responsavel_celular';
 
     function reaproveitarFotosCache(listaNova, listaAntiga) {
         const fotosPorId = {};
@@ -2850,6 +2850,33 @@
                 <span style="font-size:13px;font-weight:500;color:${labelColor};">${labelText}</span>
                 <span style="font-size:12px;color:#8b88a0;">(continua Ativo no sistema - Login, Carteirinha, Figurino)</span>
             </div>`;
+    }
+
+    // Observações (28/ago/2026) -- campo livre no fim da ficha do Ritmista,
+    // exclusivo da Diretoria (mesma garantia estrutural de Desfile/
+    // Declaração: mora em #fp-extra-conteudo, que carteirinha.html/Meu
+    // Perfil nunca preenche). Limite curto de propósito, não é um campo de
+    // anotação longa.
+    const LIMITE_OBSERVACOES = 500;
+    async function salvarObservacoes(id) {
+        const textarea = document.getElementById('fc-observacoes-input');
+        if (!textarea) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ observacoes: textarea.value.trim() || null })
+        });
+        mostrarToast(res.ok ? 'Observações salvas.' : 'Erro ao salvar.', res.ok ? undefined : 'erro');
+    }
+
+    function renderObservacoes(id, texto) {
+        const area = document.getElementById('fc-observacoes-area');
+        if (!area) return;
+        const podeEditar = tenhoCapacidade('editar_observacoes');
+        area.innerHTML = `
+            <textarea id="fc-observacoes-input" maxlength="${LIMITE_OBSERVACOES}" ${podeEditar ? '' : 'readonly'}
+                      style="width:100%;min-height:70px;padding:10px;border-radius:8px;border:1px solid #ddd;font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box;${podeEditar ? '' : 'background:#f5f5f5;color:#888;'}">${texto ? esc(texto) : ''}</textarea>
+            ${podeEditar ? `<button type="button" class="btn-ficha" style="margin-top:8px;" onclick="salvarObservacoes(${id})">Salvar</button>` : ''}`;
     }
 
     // EXPORTAR EXCEL
@@ -3286,7 +3313,7 @@
         // "Não Desfila" (28/ago/2026): junto da Declaração quando os dois se
         // aplicam (não são exclusivos -- um menor também pode não desfilar).
         extraConteudo.innerHTML = `
-            ${menor ? `
+            ${(menor && tenhoCapacidade('ver_declaracao_responsavel')) ? `
                 <div class="ficha-secao">
                     <div class="ficha-secao-titulo">Declaração do responsável</div>
                     <div id="fc-declaracao-area"></div>
@@ -3295,9 +3322,15 @@
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Desfile</div>
                 <div id="fc-nao-desfila-area"></div>
+            </div>` : ''}
+            ${tenhoCapacidade('ver_observacoes') ? `
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Observações</div>
+                <div id="fc-observacoes-area"></div>
             </div>` : ''}`;
-        if (menor) renderToggleDeclaracao(r.id, r.declaracao_responsavel);
+        if (menor && tenhoCapacidade('ver_declaracao_responsavel')) renderToggleDeclaracao(r.id, r.declaracao_responsavel);
         if (tenhoCapacidade('ver_nao_desfila')) renderToggleNaoDesfila(r.id, r.nao_desfila);
+        if (tenhoCapacidade('ver_observacoes')) renderObservacoes(r.id, r.observacoes);
 
         // Botões de ação de status + Fechar. Injetados em #fp-acoes-extra
         // (hook dentro de #fp-container-ritmista, mesmo padrão já usado em
@@ -6459,9 +6492,12 @@
             { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe' },
             { chave: 'ver_repique_bossa', label: 'Ver Repique de Bossa', dependeDe: 'ver_ritmistas' },
             { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa' },
-            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas' },
+            { chave: 'ver_declaracao_responsavel', label: 'Ver Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas' },
+            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_declaracao_responsavel' },
             { chave: 'ver_nao_desfila', label: 'Ver Não Desfila', dependeDe: 'ver_ritmistas' },
             { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila' },
+            { chave: 'ver_observacoes', label: 'Ver Observações', dependeDe: 'ver_ritmistas' },
+            { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes' },
             { chave: 'exportar_ritmistas', label: 'Exportar pra Excel', dependeDe: 'ver_ritmistas' },
         ] },
         { grupo: 'Diretoria', itens: [
