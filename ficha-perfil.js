@@ -84,7 +84,6 @@ let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: nu
 const FP_CAMPO_TABELA = {
     membro_desde: 'vinculos', bateria_instrumento_id: 'vinculos',
     naipe: 'vinculos', repique_bossa: 'vinculos', observacoes: 'vinculos',
-    declaracao_responsavel: 'vinculos', nao_desfila: 'vinculos',
 };
 
 // Naipe (Diretor) guarda os instrumentos marcados como array de nomes --
@@ -149,12 +148,10 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
         if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_instrumento_ritmista')) campos.add('bateria_instrumento_id');
         if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_medidas_ritmista')) campos.add('medidas');
         if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_observacoes')) campos.add('observacoes');
-        // Declaração/Desfile (28/ago/2026) -- viraram campos padrão do fluxo
-        // Editar/Salvar/Cancelar (eram botão de clique instantâneo antes,
-        // achado dela: clicar neles no meio de uma edição resetava a ficha
-        // inteira pro modo de visualização, "sumindo" com o Salvar).
-        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_declaracao_responsavel')) campos.add('declaracao_responsavel');
-        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_nao_desfila')) campos.add('nao_desfila');
+        // Declaração/Desfile ficam FORA do fluxo Editar/Salvar de propósito
+        // (28/ago/2026, pedido dela) -- continuam clique-instantâneo, só que
+        // agora nunca reabrem a ficha inteira (ver fpRenderToggleDeclaracao/
+        // fpRenderToggleNaoDesfila) -- não entram em `editaveis`.
         return campos;
     }
 
@@ -163,7 +160,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=28');
+        const res = await fetch('ficha-perfil.partial.html?v=29');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -274,6 +271,103 @@ function fpEhMenorIdade(nascimentoISO) {
         || (hoje.getMonth() === nascimento.getMonth() && hoje.getDate() >= nascimento.getDate());
     if (!aniversarioJaPassou) idade--;
     return idade < FP_IDADE_MAIOR;
+}
+
+// Declaração do Responsável / Desfile (28/ago/2026) -- clique instantâneo
+// de propósito (pedido dela: "adorava" o interruptor, e ele não precisa do
+// fluxo Editar/Salvar já que é uma marcação isolada). Diferente da versão
+// antiga (admin.html, removida), clicar aqui NUNCA reabre a ficha inteira
+// -- só atualiza a si mesmo + o selo do cabeçalho + a lista por trás
+// (carregarRitmistas, se existir nessa página), preservando qualquer
+// edição de outros campos em andamento (era isso que causava o Salvar
+// sumir: abrirCadastro() de novo resetava a ficha pro modo de visualização).
+async function fpAlternarDeclaracao() {
+    if (!fpEstado.declaracaoPodeEditar || !fpEstado.vinculoIdToggles) return;
+    const novoValor = !fpEstado.declaracaoValor;
+    fpEstado.declaracaoValor = novoValor;
+    fpRenderToggleDeclaracao();
+    const headers = await fpAuthHeaders();
+    await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${fpEstado.vinculoIdToggles}`, {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ declaracao_responsavel: novoValor }),
+    });
+    fpEstado.alvo.declaracao_responsavel = novoValor;
+    if (typeof carregarRitmistas === 'function') carregarRitmistas(true);
+}
+
+function fpRenderToggleDeclaracao() {
+    const area = fpEl('fp-declaracao-area');
+    if (!area) return;
+    const valor = fpEstado.declaracaoValor;
+    const podeEditar = fpEstado.declaracaoPodeEditar;
+    const trackBg = valor ? '#1f4d1f' : '#c62828';
+    const thumbPos = valor ? '21px' : '3px';
+    const labelColor = valor ? '#1f4d1f' : '#c62828';
+    const labelText = valor ? 'Entregue' : 'Não entregue';
+    area.innerHTML = `
+        <div ${podeEditar ? `onclick="fpAlternarDeclaracao()"` : ''}
+             style="display:inline-flex;align-items:center;gap:10px;${podeEditar ? 'cursor:pointer;' : ''}user-select:none;">
+            <div style="width:44px;height:24px;border-radius:12px;background:${trackBg};
+                        position:relative;transition:background 0.2s;flex-shrink:0;display:block;box-sizing:border-box;">
+                <div style="position:absolute;top:3px;left:${thumbPos};
+                            width:16px;height:16px;border-radius:50%;
+                            background:white;box-shadow:0 1px 3px rgba(0,0,0,0.3);
+                            transition:left 0.2s;"></div>
+            </div>
+            <span style="font-size:13px;font-weight:500;color:${labelColor};">${labelText}</span>
+        </div>`;
+}
+
+// Desfile: o interruptor representa a situação normal (vai desfilar = "Ok",
+// verde), não a exceção -- desligado = "Não desfila" (mesmo texto do selo
+// do card em admin.html). nao_desfila continua o nome da coluna no banco,
+// só a leitura visual foi invertida (pedido dela, 28/ago/2026).
+async function fpAlternarNaoDesfila() {
+    if (!fpEstado.naoDesfilaPodeEditar || !fpEstado.vinculoIdToggles) return;
+    const novoValor = !fpEstado.naoDesfilaValor;
+    fpEstado.naoDesfilaValor = novoValor;
+    fpRenderToggleNaoDesfila();
+    const headers = await fpAuthHeaders();
+    await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${fpEstado.vinculoIdToggles}`, {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nao_desfila: novoValor }),
+    });
+    fpEstado.alvo.nao_desfila = novoValor;
+    // Selo do cabeçalho da ficha (fc-status-badge, montado por admin.html
+    // fora do container da ficha compartilhada) -- atualiza direto, sem
+    // reabrir nada, pra não ficar mostrando "Ativo" desatualizado.
+    const badge = document.getElementById('fc-status-badge');
+    if (badge && fpEstado.alvo.status === 'aprovado') {
+        badge.innerHTML = novoValor
+            ? '<span class="badge badge-nao-desfila">Não Desfila</span>'
+            : '<span class="badge badge-aprovado">Ativo</span>';
+    }
+    if (typeof carregarRitmistas === 'function') carregarRitmistas(true);
+}
+
+function fpRenderToggleNaoDesfila() {
+    const area = fpEl('fp-nao-desfila-area');
+    if (!area) return;
+    const desfila = !fpEstado.naoDesfilaValor;
+    const podeEditar = fpEstado.naoDesfilaPodeEditar;
+    const trackBg = desfila ? '#2d7a4f' : '#c7d3e0';
+    const thumbPos = desfila ? '21px' : '3px';
+    const labelColor = desfila ? '#2d7a4f' : '#706c87';
+    const labelText = desfila ? 'Ok' : 'Não desfila';
+    area.innerHTML = `
+        <div ${podeEditar ? `onclick="fpAlternarNaoDesfila()"` : ''}
+             style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;${podeEditar ? 'cursor:pointer;' : ''}user-select:none;">
+            <div style="width:44px;height:24px;border-radius:12px;background:${trackBg};
+                        position:relative;transition:background 0.2s;flex-shrink:0;display:block;box-sizing:border-box;">
+                <div style="position:absolute;top:3px;left:${thumbPos};
+                            width:16px;height:16px;border-radius:50%;
+                            background:white;box-shadow:0 1px 3px rgba(0,0,0,0.3);
+                            transition:left 0.2s;"></div>
+            </div>
+            <span style="font-size:13px;font-weight:500;color:${labelColor};">${labelText}</span>
+        </div>`;
 }
 
 // Ícone (i) de explicação — mesmo padrão usado em cadastro.html (duplicado
@@ -396,35 +490,34 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         if (blocoObs) blocoObs.style.display = 'none';
     }
 
-    // Declaração do Responsável / Desfile (28/ago/2026): mesma regra de
-    // Observações -- exclusivo da Diretoria, a própria pessoa nunca vê.
-    // Declaração some quem não tem ver_declaracao_responsavel; Desfile some
-    // quem não tem ver_nao_desfila. Além de visibilidade, guardam o valor
-    // "de vista" (fpEstado.declaracaoValor/naoDesfilaValor) que
-    // fpAtivarEdicao/fpSalvar usam -- nunca mais clique = salva na hora.
+    // Declaração do Responsável / Desfile (28/ago/2026): exclusivo da
+    // Diretoria (a própria pessoa nunca vê), FORA do fluxo Editar/Salvar de
+    // propósito -- pedido dela: "adorava" o interruptor de clique
+    // instantâneo, só que agora ele nunca reabre a ficha inteira (isso é
+    // que causava o Salvar sumir no meio de outra edição) -- clicar só
+    // atualiza a si mesmo. Ver fpRenderToggleDeclaracao/fpRenderToggleNaoDesfila.
+    fpEstado.vinculoIdToggles = alvo.vinculo_id;
     const podeVerDeclaracao = alvo.perfil === 'ritmista' && !autoedicao && fpEhMenorIdade(alvo.nascimento) && typeof tenhoCapacidade === 'function' && tenhoCapacidade('ver_declaracao_responsavel');
     const blocoDeclaracao = fpEl('fp-bloco-declaracao');
     if (blocoDeclaracao) {
         blocoDeclaracao.style.display = podeVerDeclaracao ? '' : 'none';
         if (podeVerDeclaracao) {
-            const strongDecl = fpEl('fp-declaracao-responsavel');
-            strongDecl.textContent = alvo.declaracao_responsavel ? 'Entregue' : 'Não entregue';
-            strongDecl.style.color = alvo.declaracao_responsavel ? '#1f4d1f' : '#c62828';
+            fpEstado.declaracaoValor = !!alvo.declaracao_responsavel;
+            fpEstado.declaracaoPodeEditar = typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_declaracao_responsavel');
+            fpRenderToggleDeclaracao();
         }
     }
-    fpEstado.declaracaoValor = !!alvo.declaracao_responsavel;
 
     const podeVerNaoDesfila = alvo.perfil === 'ritmista' && !autoedicao && typeof tenhoCapacidade === 'function' && tenhoCapacidade('ver_nao_desfila');
     const blocoNaoDesfila = fpEl('fp-bloco-nao-desfila');
     if (blocoNaoDesfila) {
         blocoNaoDesfila.style.display = podeVerNaoDesfila ? '' : 'none';
         if (podeVerNaoDesfila) {
-            const strongNd = fpEl('fp-nao-desfila');
-            strongNd.textContent = alvo.nao_desfila ? 'Não desfila' : 'Ok';
-            strongNd.style.color = alvo.nao_desfila ? '#706c87' : '#2d7a4f';
+            fpEstado.naoDesfilaValor = !!alvo.nao_desfila;
+            fpEstado.naoDesfilaPodeEditar = typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_nao_desfila');
+            fpRenderToggleNaoDesfila();
         }
     }
-    fpEstado.naoDesfilaValor = !!alvo.nao_desfila;
 
     const campoCadastro = fpEl('fp-campo-cadastro');
     if (campoCadastro) {
@@ -748,18 +841,6 @@ async function fpAtivarEdicao() {
         fpEl('fp-repique-bossa-edit').closest('label').style.display = 'flex';
     }
 
-    if (fpEstado.editaveis.has('declaracao_responsavel')) {
-        fpEl('fp-declaracao-responsavel-edit').checked = fpEstado.declaracaoValor;
-        fpEl('fp-declaracao-responsavel').style.display = 'none';
-        fpEl('fp-declaracao-responsavel-edit').closest('label').style.display = 'flex';
-    }
-
-    if (fpEstado.editaveis.has('nao_desfila')) {
-        fpEl('fp-nao-desfila-edit').checked = !fpEstado.naoDesfilaValor;
-        fpEl('fp-nao-desfila').style.display = 'none';
-        fpEl('fp-nao-desfila-edit').closest('label').style.display = 'flex';
-    }
-
     if (fpEstado.editaveis.has('naipe')) {
         const container = fpEl('fp-naipe-edit');
         const opcoesInstrumento = await fpCarregarOpcoesInstrumento(fpEstado.alvo.bateria_id);
@@ -846,14 +927,6 @@ function fpCancelarEdicao() {
     if (fpEstado.editaveis.has('repique_bossa')) {
         fpEl('fp-repique-bossa').style.display = '';
         fpEl('fp-repique-bossa-edit').closest('label').style.display = 'none';
-    }
-    if (fpEstado.editaveis.has('declaracao_responsavel')) {
-        fpEl('fp-declaracao-responsavel').style.display = '';
-        fpEl('fp-declaracao-responsavel-edit').closest('label').style.display = 'none';
-    }
-    if (fpEstado.editaveis.has('nao_desfila')) {
-        fpEl('fp-nao-desfila').style.display = '';
-        fpEl('fp-nao-desfila-edit').closest('label').style.display = 'none';
     }
     if (fpEstado.editaveis.has('naipe')) {
         fpEl('fp-naipe').style.display = '';
@@ -1075,14 +1148,6 @@ async function fpSalvar() {
     }
     if (fpEstado.editaveis.has('repique_bossa')) {
         payloadVinculo.repique_bossa = fpEl('fp-repique-bossa-edit').checked;
-    }
-    if (fpEstado.editaveis.has('declaracao_responsavel')) {
-        payloadVinculo.declaracao_responsavel = fpEl('fp-declaracao-responsavel-edit').checked;
-    }
-    if (fpEstado.editaveis.has('nao_desfila')) {
-        // Checkbox representa "desfila normalmente" (checked = vai desfilar)
-        // -- valor salvo é o inverso (ver fpAtivarEdicao/fpIniciar).
-        payloadVinculo.nao_desfila = !fpEl('fp-nao-desfila-edit').checked;
     }
     if (fpEstado.editaveis.has('naipe')) {
         payloadVinculo.naipe = Array.from(fpEstado.container.querySelectorAll('.fp-naipe-check:checked')).map(el => el.value);
