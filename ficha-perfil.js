@@ -293,7 +293,10 @@ async function fpAlternarDeclaracao() {
         body: JSON.stringify({ declaracao_responsavel: novoValor }),
     });
     fpEstado.alvo.declaracao_responsavel = novoValor;
-    if (typeof carregarRitmistas === 'function') carregarRitmistas(true);
+    // Não chama carregarRitmistas() aqui de propósito -- achado dela: o
+    // re-render da lista inteira por trás do modal causava um piscar
+    // visível a cada clique. A lista sincroniza sozinha quando a ficha
+    // fecha (abrirCadastro/fecharModal) ou na próxima atualização automática.
 }
 
 function fpRenderToggleDeclaracao() {
@@ -344,7 +347,8 @@ async function fpAlternarNaoDesfila() {
             ? '<span class="badge badge-nao-desfila">Não Desfila</span>'
             : '<span class="badge badge-aprovado">Ativo</span>';
     }
-    if (typeof carregarRitmistas === 'function') carregarRitmistas(true);
+    // Não chama carregarRitmistas() aqui de propósito -- mesmo motivo do
+    // Declaração acima: piscava a lista por trás a cada clique.
 }
 
 function fpRenderToggleNaoDesfila() {
