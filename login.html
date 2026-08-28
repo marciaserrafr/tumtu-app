@@ -18,6 +18,7 @@
     <script src="config-escola.js?v=4" defer></script>
     <script src="config-suporte.js?v=1" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="faceid.js?v=1" defer></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { overflow-x: hidden; max-width: 100vw; }
@@ -114,6 +115,23 @@
     </div>
 </div>
 
+<!-- Face ID/Digital (29/ago/2026) -- só aparece pra quem ativou isso NESTE
+     aparelho (Meu Perfil). Nunca substitui a senha de verdade: se falhar
+     ou a pessoa preferir, "Entrar com senha" desloga de vez e mostra o
+     formulário normal (ver usarSenhaEmVezDeFaceId). -->
+<div class="auth-container" id="containerFaceId" style="display:none;">
+    <div class="logo">
+        <div class="simbolo-marca"><div class="big"></div><div class="small"></div></div>
+        <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
+    </div>
+    <p style="text-align:center;color:#a39fc0;font-size:14px;margin:8px 0 24px;">Toque abaixo pra desbloquear com Face ID ou digital.</p>
+    <button type="button" id="btnDesbloquearFaceId" class="btn-entrar btn-primario" onclick="tentarDesbloquearFaceId()">Desbloquear</button>
+    <div id="faceidErro" class="mensagem erro" style="display:none;margin-top:16px;">Não deu pra confirmar. Tente de novo, ou entre com sua senha.</div>
+    <div class="link-cadastro">
+        <a href="#" class="link-secundario" onclick="usarSenhaEmVezDeFaceId(); return false;">Entrar com senha</a>
+    </div>
+</div>
+
 <div class="auth-container" id="containerEscolherBateria" style="display:none;">
     <div class="logo">
         <div class="simbolo-marca"><div class="big"></div><div class="small"></div></div>
@@ -169,6 +187,9 @@
     // — por isso a criação de verdade do cliente (sb = ...) e a checagem
     // de sessão ficam dentro do listener de DOMContentLoaded lá embaixo.
     let sb;
+    // pessoa_id de quem está na tela de Face ID agora -- só existe entre
+    // mostrar essa tela e ela ser resolvida (sucesso ou "usar senha").
+    let faceIdPessoaIdAtual = null;
 
     // Enquanto essa checagem roda, o spinner (#containerCarregando) já está
     // visível por padrão no HTML — só troca pro formulário de login se
@@ -176,7 +197,42 @@
     function mostrarFormularioLogin() {
         document.getElementById('containerCarregando').style.display = 'none';
         document.getElementById('containerEscolherBateria').style.display = 'none';
+        document.getElementById('containerFaceId').style.display = 'none';
         document.getElementById('containerLogin').style.display = 'block';
+    }
+
+    // Pede a confirmação de Face ID/digital pro aparelho -- só continua pro
+    // resto do app se o próprio sistema operacional confirmar a biometria
+    // contra a credencial já guardada (ver faceIdVerificar em faceid.js).
+    // Qualquer recusa/cancelamento fica na mesma tela, com a opção de tentar
+    // de novo ou cair pro login com senha de verdade.
+    async function tentarDesbloquearFaceId() {
+        const btn = document.getElementById('btnDesbloquearFaceId');
+        const erro = document.getElementById('faceidErro');
+        erro.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Confirmando...';
+        const ok = await faceIdVerificar(faceIdPessoaIdAtual);
+        btn.disabled = false;
+        btn.textContent = 'Desbloquear';
+        if (!ok) { erro.style.display = 'block'; return; }
+        document.getElementById('containerFaceId').style.display = 'none';
+        document.getElementById('containerCarregando').style.display = 'flex';
+        const cache = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        const { data: { session } } = await sb.auth.getSession();
+        if (!cache || !session) { mostrarFormularioLogin(); return; }
+        await continuarSessaoExistente(cache, session, false);
+    }
+
+    // Cai pro login normal de propósito, com senha de verdade -- o Face ID
+    // nunca é a única trava real (a sessão continua a mesma de sempre), mas
+    // "usar senha" precisa exigir a senha de novo mesmo, senão vira um jeito
+    // fácil de contornar a trava sem confirmar nada.
+    async function usarSenhaEmVezDeFaceId() {
+        await sb.auth.signOut();
+        localStorage.removeItem('ritmista');
+        faceIdPessoaIdAtual = null;
+        mostrarFormularioLogin();
     }
 
     // Guarda cor/nome/logo da escola em localStorage — mesma chave que
@@ -340,6 +396,29 @@
         const { data: { session } } = await sb.auth.getSession();
         if (!session) { localStorage.removeItem('ritmista'); mostrarFormularioLogin(); return; }
 
+        // Face ID/Digital (29/ago/2026) -- trava local, só pra quem ativou
+        // isso NESTE aparelho (Meu Perfil). "trocar" de bateria pula a trava
+        // -- já é uma ação deliberada de dentro do app (a pessoa já passou
+        // pelo Face ID pra chegar até ali), não uma abertura fria do app.
+        if (!forcarTroca && typeof faceIdAtivo === 'function' && faceIdAtivo(cache.pessoa_id)) {
+            faceIdPessoaIdAtual = cache.pessoa_id;
+            document.getElementById('containerCarregando').style.display = 'none';
+            document.getElementById('containerFaceId').style.display = 'block';
+            // Tenta escanear sozinho, sem esperar o toque no botão -- pedido
+            // dela, 29/ago/2026, depois de achar o botão "Desbloquear" pouco
+            // intuitivo ("eu achei que ele iria ler meu rosto e abrir"). Se o
+            // navegador recusar (alguns exigem um toque antes de aceitar
+            // biometria), o botão continua ali, do jeito manual de sempre.
+            tentarDesbloquearFaceId();
+            return;
+        }
+
+        await continuarSessaoExistente(cache, session, forcarTroca);
+    }
+
+    // Retomado tanto direto (sem Face ID ativo) quanto depois de um
+    // desbloqueio com sucesso (ver tentarDesbloquearFaceId).
+    async function continuarSessaoExistente(cache, session, forcarTroca) {
         if (cache.super_admin) {
             window.location.href = 'admin';
             return;
