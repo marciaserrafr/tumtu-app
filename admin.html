@@ -450,6 +450,11 @@
            (essa sim colorida/com peso). Pedido da Márcia, 21/ago/2026. */
         .vg-instrumento-faltam { font-size: 11.5px; font-weight: 400; color: #b3261e; font-style: italic; white-space: nowrap; }
         .vg-instrumento-qtd.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
+        /* Diretoria/Convidados sempre por último na lista de uma peça de
+           Figurino (nunca entram na ordenação alfabética dos instrumentos) --
+           diferencial sutil pra distinguir de um naipe de verdade, pedido
+           dela, 28/ago/2026. */
+        .vg-instrumento-linha--grupo span:first-child { font-style: italic; color: var(--cor-texto-secundario); }
 
         /* CONTADOR */
         .contador { font-size: 15px; color: #666; margin-bottom: 20px; }
@@ -3788,10 +3793,10 @@
             if (!extrasEntreguesPorItem[e.figurino_item_id]) extrasEntreguesPorItem[e.figurino_item_id] = new Set();
             extrasEntreguesPorItem[e.figurino_item_id].add(e.extra_id);
         });
-        const linhaHtml = (nome, entregues, total) => {
+        const linhaHtml = (nome, entregues, total, ehGrupo) => {
             const faltam = total - entregues;
             return `
-            <div class="vg-instrumento-linha">
+            <div class="vg-instrumento-linha${ehGrupo ? ' vg-instrumento-linha--grupo' : ''}">
                 <span>${esc(nome)}</span>
                 <span style="display:flex;align-items:center;gap:14px;">
                     ${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}
@@ -3820,7 +3825,7 @@
                     if (entreguesSet.has(p.id)) porInstrumento[chave].entregues++;
                 });
                 const linhas = Object.entries(porInstrumento).map(([nome, v]) => ({ nome, ...v, faltam: v.total - v.entregues }))
-                    .sort((a, b) => b.faltam - a.faltam || a.nome.localeCompare(b.nome, 'pt-BR'));
+                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
                 corpoHtml += linhas.map(l => linhaHtml(l.nome, l.entregues, l.total)).join('');
                 linhas.forEach(l => { totalGeral += l.total; entreguesGeral += l.entregues; });
             }
@@ -3830,7 +3835,7 @@
                 // 27/ago/2026, pra bater com a separação Ritmistas/Diretoria
                 // usada no resto da Visão Geral (Convidados).
                 const entregues = pessoasDiretoria.filter(p => entreguesSet.has(p.id)).length;
-                corpoHtml += linhaHtml('Diretoria', entregues, pessoasDiretoria.length);
+                corpoHtml += linhaHtml('Diretoria', entregues, pessoasDiretoria.length, true);
                 totalGeral += pessoasDiretoria.length; entreguesGeral += entregues;
             }
             if (item.inclui_extras) {
@@ -3844,12 +3849,12 @@
                 // novos da Visão Geral (27/ago/2026).
                 if (extrasRitmista.length > 0) {
                     const entreguesExtras = extrasRitmista.filter(e => extrasEntreguesSet.has(e.id)).length;
-                    corpoHtml += linhaHtml('Convidados - Ritmistas', entreguesExtras, extrasRitmista.length);
+                    corpoHtml += linhaHtml('Convidados - Ritmistas', entreguesExtras, extrasRitmista.length, true);
                     totalGeral += extrasRitmista.length; entreguesGeral += entreguesExtras;
                 }
                 if (extrasDiretoria.length > 0) {
                     const entreguesExtras = extrasDiretoria.filter(e => extrasEntreguesSet.has(e.id)).length;
-                    corpoHtml += linhaHtml('Convidados - Diretoria', entreguesExtras, extrasDiretoria.length);
+                    corpoHtml += linhaHtml('Convidados - Diretoria', entreguesExtras, extrasDiretoria.length, true);
                     totalGeral += extrasDiretoria.length; entreguesGeral += entreguesExtras;
                 }
             }
