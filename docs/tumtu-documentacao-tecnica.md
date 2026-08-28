@@ -2663,3 +2663,46 @@ with check (
 Sete rodadas, mesmo dia, mesma sessão — resumo do que foi encontrado e corrigido, do mais pro menos grave: (1) QR de emergência sem filtro obrigatório, (2) tabelas de backup públicas, (3) dados do responsável de menor + qr_token sem trava de edição, (4) escalação de privilégio via "Restrito ao naipe", (5) permissão antiga esquecida bloqueando Medidas de Ritmista, (6) Edge Function sem checagem de chamador, (7) **escalação de privilégio completa via cadastro público** — o mais grave de todos, porque não exigia nenhum acesso prévio ao sistema, só saber fazer uma chamada HTTP fora do formulário normal.
 
 Ela perguntou, no meio do caminho, se isso "não vai acabar nunca" — resposta dada e válida daqui pra frente: nenhuma varredura é matematicamente completa, mas essas sete rodadas cobriram as frentes de maior peso (RLS de toda tabela, duas vezes, de ângulos diferentes; toda função/view com privilégio elevado; todas as Edge Functions; e agora a janela INSERT-sem-trigger). A partir daqui, o modelo combinado (memória `feedback-auditar-seguranca-apos-grandes-mudancas-banco`) é: essa varredura roda de novo, por conta própria, sempre que houver mudança de banco relevante — não em loop no mesmo dia sem fim.
+
+## 71. Sessão de 28/ago/2026 (continuação seguinte): "Novo Cadastro" ganha 3 permissões independentes (Visualizar/Criar/Copiar Link)
+
+Pedido dela, puxando o fio do item que eu mesma tinha sinalizado como não-urgente antes das sete rodadas de segurança ("`admin-create-user` deixa qualquer Mestre/Diretor cadastrar Ritmista, sem checar permissão específica — pode ser proposital ou pode ser um buraco pequeno"). Ela achou que devia virar permissão de verdade, e no meio da conversa mudou o desenho de "2 níveis" pra **3 independentes**: "Eu acho que são coisas diferentes ainda. Tem que ter um para Visualizar Novo Cadastro. E tem que ter o Criar Novo Cadastro e outro para Copiar Link de Cadastro. Pode ser que eu não queira que a pessoa copie nada, mas pode cadastrar alguém."
+
+### 71.1 Desenho final: `ver_novo_cadastro_X` (base) + dois dependentes independentes entre si
+
+```
+Ritmistas → ver_novo_cadastro_ritmistas   "Visualizar Novo Cadastro"   dependeDe: ver_ritmistas
+          → criar_cadastro_ritmistas      "Criar Novo Cadastro"        dependeDe: ver_novo_cadastro_ritmistas
+          → copiar_link_cadastro_ritmistas "Copiar Link de Cadastro"   dependeDe: ver_novo_cadastro_ritmistas
+
+Diretoria → ver_novo_cadastro_diretoria   "Visualizar Novo Cadastro"   dependeDe: ver_acessos
+          → criar_cadastro_diretoria      "Criar Novo Cadastro"        dependeDe: ver_novo_cadastro_diretoria
+          → copiar_link_cadastro_diretoria "Copiar Link de Cadastro"   dependeDe: ver_novo_cadastro_diretoria
+```
+
+`criar_cadastro_X`/`copiar_link_cadastro_X` não dependem um do outro — dá pra ter só um dos dois, nas duas combinações (caso real dela: alguém cadastra pessoalmente mas não deve espalhar o link sozinho). Chave `criar_cadastro_X` reaproveitada (já existia, só o `label` e o `dependeDe` mudaram) — `copiar_link_cadastro_X` é nova.
+
+### 71.2 Achado técnico real: o link já era texto visível, não escondido atrás do "Copiar"
+
+Antes de desenhar, conferido o código de verdade: a caixinha de link (`caixaLinkCadastro()`) sempre colocou o endereço num `<input readonly value="...">` — o endereço já estava ali, plenamente visível/selecionável, o botão "Copiar" era só uma conveniência (clipboard automático) por cima de um valor que já estava na tela. Isso significa que só desabilitar o botão "Copiar" não travaria nada de verdade — quem só tivesse "Ver" ainda conseguiria pegar o link selecionando o texto na mão, ou olhando o código-fonte da página.
+
+Corrigido: `caixaLinkCadastro()` ganhou um parâmetro `podeCopiar` — quando falso, o endereço de verdade **nunca entra no HTML** (não é escondido com CSS depois, é uma ramificação diferente no template literal), mostrando só um aviso ("Link disponível — peça a alguém com mais acesso pra te enviar.") no lugar.
+
+### 71.3 O botão "+ Cadastrar": único caso fora da regra "botão some, não trava"
+
+Diferente da regra geral desta reforma inteira ("o botão aparece ou desaparece, nunca fica visível e travado" — seção 62), aqui — como em Configurações — faz sentido "ver que a função existe, sem poder usar": o cabeçalho "Novo cadastro" inteiro some sem `ver_novo_cadastro_X`; com ele, o botão "+ Cadastrar Ritmista"/"+ Cadastrar Mestre/Diretor/Apoio" fica visível só com opacidade reduzida e `cursor:not-allowed`, sem sumir — travado de verdade via atributo `disabled` (que já impede o `onclick` de disparar sozinho, sem precisar de checagem extra em `irParaCadastroManualRitmista()`).
+
+### 71.4 Achado real no caminho: a caixinha do link renderizava ANTES das capacidades carregarem
+
+No fluxo normal de login (Mestre/Diretor/Apoio comum, não Super Admin), `renderizarLinkCadastroRitmista()`/`renderizarLinksCadastroDiretoria()` estavam sendo chamadas **antes** de `await carregarMinhasCapacidades(...)` resolver — nesse momento, `tenhoCapacidade('copiar_link_cadastro_ritmistas')` sempre voltava falso (capacidades ainda não carregadas), então a caixinha nascia sempre mascarada pra QUALQUER Mestre/Diretor comum, mesmo quem tinha a permissão de verdade. Corrigido movendo as duas chamadas pra depois de `carregarMinhasCapacidades()`/`aplicarGatingNovoCadastro()`. Os outros dois pontos que chamam essas mesmas funções (entrada de Super Admin numa escola, e depois de salvar Dados da Bateria) já rodavam depois das capacidades estarem prontas — só o fluxo de login comum tinha o problema.
+
+### 71.5 A pergunta dela sobre o achado anterior: `admin-create-user` corrigida de verdade
+
+A Edge Function `admin-create-user` (cadastro manual) nunca checava a capacidade granular — só "é Mestre/Diretor aprovado dessa bateria?", sem olhar `capacidades` nenhuma. Corrigida pra checar `criar_cadastro_ritmistas` de verdade (lida direto da coluna, não via `tenho_capacidade()` RPC — mesmo motivo de sempre sob `service_role`), e **ampliada pra incluir perfil `apoio`** na checagem (antes só `mestre`/`diretor`) — já que desde a Reforma é a capacidade, não o perfil, que decide isso.
+
+**Testado ao vivo, os dois lados (banco de permissão + Edge Function), com a conta de teste real** (`rodrigo.barbosa@teste.tutti`):
+1. `POST /functions/v1/admin-create-user` sem `criar_cadastro_ritmistas` → `403`.
+2. Capacidade concedida temporariamente (`DISABLE/ENABLE TRIGGER`) → mesma chamada → `200`, pessoa e vínculo criados de verdade (`status: "aprovado"`).
+3. Pessoa, vínculo e a conta de login criados no teste apagados depois; capacidade da conta de teste restaurada a `{}`.
+
+Publicado direto, sem rodada de preview separada — ela pediu "Teste e pode publicar direto" desde o início do pedido.

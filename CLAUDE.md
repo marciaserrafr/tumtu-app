@@ -326,6 +326,10 @@ Processo: cada rodada foi desenhada numa prévia interativa (artifact) antes de 
 
 **Fechamento da varredura de hoje**: sete rodadas, sete tipos diferentes de problema achado e corrigido, do mais grave (esse último) ao mais simples. Nenhuma varredura é "100% garantida" — mas essas sete cobriram os pontos de maior risco de forma sistemática. Daqui pra frente, essa checagem volta a ser automática (já reforçado na memória), sem precisar rodar em sequência no mesmo dia como hoje. Detalhe técnico completo: `tumtu-documentacao-tecnica.md` seção 70.
 
+✅ **"Novo Cadastro" ganha 3 permissões independentes — Visualizar/Criar/Copiar Link (28/ago/2026, sessão seguinte)** — puxando o fio de um item que eu mesma tinha sinalizado como "baixo risco, não urgente" antes da varredura de segurança (a função que cadastra manualmente não checava permissão específica). Ela achou que devia virar permissão de verdade, pra Ritmistas e Diretoria, e no meio da conversa refinou de "2 níveis" pra 3: "Pode ser que eu não queira que a pessoa copie nada, mas pode cadastrar alguém." Ficou: **Visualizar Novo Cadastro** (a seção só existe com ela) + **Criar Novo Cadastro** (só o botão de cadastro manual) + **Copiar Link de Cadastro** (só a caixinha do link) — as duas últimas independentes uma da outra, dá pra ter só uma das duas.
+
+Achado técnico no caminho: o link já aparecia como texto visível numa caixinha, não escondido atrás do botão "Copiar" — corrigido pra o endereço de verdade nunca entrar no código da página quando a pessoa não tem "Copiar Link", em vez de só desabilitar o botão (que não impediria nada, dava pra selecionar o texto na mão). Também corrigida a Edge Function `admin-create-user` (a mesma que eu tinha sinalizado antes) pra checar essa permissão de verdade — testado com login real: bloqueado sem a permissão, funcionando com ela, nos dois lados (banco e função). Achado extra: a caixinha do link estava sendo desenhada antes das permissões carregarem pra Mestre/Diretor comum — corrigido. Publicado direto, como ela pediu. Detalhe técnico completo: `tumtu-documentacao-tecnica.md` seção 71.
+
 ---
 
 ## Contas de teste
