@@ -2211,3 +2211,60 @@ Achado dela: com as 3 seções novas sendo injetadas logo antes de `#fp-secao-su
 ### 64.10 Pendência real, não resolvida nesta sessão
 
 A "pulada" de Medidas/Entrega de Figurino ao ABRIR a ficha (não ao clicar nos interruptores, que já foi corrigido) continua sem investigação — causa provável já suspeitada: os dois usam `display:none` até o fetch assíncrono terminar (`fpRenderizarMedidas`/`fpRenderizarEntregaFigurino`, fire-and-forget), então a seção "pula" de altura zero pra altura cheia quando os dados chegam, empurrando o resto da ficha. Fica pendente pra confirmar e corrigir (provável solução: reservar o espaço com um spinner leve em vez de esconder a seção inteira).
+
+## 65. Sessão de 28/ago/2026 (continuação seguinte): transferência real dos Lucios, correção da pulada, "ver" próprio de Desfile/Declaração, "Visualizar" em Permissões, e um incidente local sem consequência
+
+### 65.1 Transferência real: Lucios da demo pra Imperatriz real
+
+Fechamento da pendência deixada em aberto na seção 64 (motivação real, primeiro parágrafo). Ela confirmou o "pode transferir" só depois de eu responder cinco perguntas de segurança dela (pode quebrar algo / dado se perder / carteirinha continua normal / precisa desligar da escola anterior / é transferência ou cópia). Migração aplicada:
+
+```sql
+ALTER TABLE vinculos DISABLE TRIGGER trg_matriz_edicao_vinculos;
+
+UPDATE vinculos
+SET bateria_id = 13, bateria_instrumento_id = 129
+WHERE id IN (380, 377) AND bateria_id = 2;
+
+ALTER TABLE vinculos ENABLE TRIGGER trg_matriz_edicao_vinculos;
+```
+
+`bateria_instrumento_id` precisou ser remapeado manualmente (1 na demo → 129 na real) porque esse id é específico de cada bateria, mesmo quando o instrumento por trás é o mesmo (Repique, `categoria_id=5`/`nomenclatura_id=9` nas duas). `vinculos_medidas` não precisou de nenhum ajuste — as linhas de medida já ficam ligadas por `vinculo_id` (que não mudou, só a bateria dona dele) e `tipo_id` (biblioteca mestre global, igual nas duas baterias). Como foi um `UPDATE` na mesma linha (não um "criar novo + apagar antigo"), não sobrou nenhum vínculo residual associado à bateria demo — confirmado com uma consulta depois da migração, antes de avisar ela.
+
+### 65.2 Correção da pulada — Medidas e Entrega de Figurino
+
+A causa suspeitada em 64.10 estava certa. `fpRenderizarMedidas`/`fpRenderizarEntregaFigurino` (`ficha-perfil.js`) mantinham a seção com `display:none` (herdado do HTML estático em `ficha-perfil.partial.html`) até o fetch assíncrono terminar, e só então trocavam pra `display:''` e preenchiam o grid — a seção "estourava" de altura zero pra altura cheia bem depois do resto da ficha já estar visível, empurrando tudo pra baixo. Figurino é mais perceptível que Medidas porque faz 3 fetches em paralelo (`bateria_figurino_itens`, `figurino_itens_mestre`, `figurino_entregas`) contra 2 de Medidas, demorando mais.
+
+Correção: as duas funções agora tornam a seção visível E preenchem um placeholder ("Carregando...") **antes** de esperar a resposta do banco, não depois:
+
+```js
+secao.style.display = '';
+grid.innerHTML = '<span style="color:#9993ab;font-size:13px;">Carregando...</span>';
+// ... await dos fetches ...
+```
+
+A seção só volta a ficar `display:none` se, depois de carregar, ficar confirmado que não há nada pra mostrar (bateria sem Medidas/Figurino configurado, ou `vinculo_id` ausente) — nesse caso ainda existe um pequeno colapso (visível→escondido), mas raro na prática e bem menos perceptível que o antigo "estouro" (escondido→visível engolindo o resto da tela). Nenhuma mudança visual no resultado final quando há conteúdo — só a transição ficou sem salto.
+
+### 65.3 Ritmista vê (nunca marca) o próprio Desfile/Declaração
+
+Achado dela: os blocos de Declaração/Desfile em `fpIniciar` (`ficha-perfil.js`) sempre excluíam autoedição de propósito (`!autoedicao` na condição de `podeVerDeclaracao`/`podeVerNaoDesfila`) — decisão original da seção 64, nunca pensada pra ter exceção. Ela pediu a exceção: a própria pessoa poder VER (nunca marcar), controlado pela Diretoria via interruptor por bateria.
+
+Banco: duas colunas novas em `baterias`, mesmo padrão já usado pra `ritmista_pode_ver_repique_bossa`/`ritmista_pode_marcar_repique_bossa` (seção 57), mas aqui só existe a metade "ver":
+
+```sql
+ALTER TABLE baterias ADD COLUMN ritmista_pode_ver_desfile boolean NOT NULL DEFAULT false;
+ALTER TABLE baterias ADD COLUMN ritmista_pode_ver_declaracao_responsavel boolean NOT NULL DEFAULT false;
+```
+
+`ficha-perfil.js`: função nova `fpAplicarPermissaoAutoedicaoToggles(alvo)`, fire-and-forget (mesmo padrão de `fpAplicarPermissaoRepiqueBossa`), chamada só quando `fpEstado.autoedicao` é verdadeiro. Busca as duas colunas da bateria numa fetch só, e se ligada, revela o bloco correspondente com `PodeEditar` sempre `false` — reaproveita a checagem de `podeEditar` que `fpRenderToggleDeclaracao`/`fpRenderToggleNaoDesfila` já faziam pra decidir se anexam `onclick` e cursor `pointer`, então o comportamento de "só ver" pro Ritmista sai de graça, idêntico ao que já existia pra Diretoria com "Ver" sem "Editar" de outra pessoa: sem `onclick` nenhum anexado ao elemento, clicar não faz literalmente nada (nem erro, nem log — o navegador não tem handler pra disparar).
+
+`admin.html`: dois checkboxes novos na seção "Ritmistas" de Permissões (mesmo bloco visual do Repique de Bossa), função `salvarRitmistaVeToggle(qual, ligado)` fazendo o PATCH em `baterias` — um parâmetro `qual` (`'desfile'`/`'declaracao'`) em vez de duas funções quase-idênticas, já que aqui não existe a metade "marcar" pra distinguir (diferente de `salvarRitmistaRepiqueBossa`, que precisa do parâmetro `acao` pra escolher entre duas colunas de verdade distintas com comportamento diferente).
+
+### 65.4 "Ver" → "Visualizar" em Permissões
+
+Pedido dela, comparando os dois: "Visualizar a carteirinha de outra pessoa" ficou mais claro que "Ver a carteirinha de outra pessoa". Troca feita só nos `label` de `GRUPOS_CAPACIDADES` (`admin.html`) — os `label` mais longos ("Ver lista (nome, apelido...)", "Ver CPF, endereço...") também trocaram o "Ver" inicial por "Visualizar", mantendo o resto da frase igual. As frases completas dos 5 interruptores por bateria (Medidas, Repique de Bossa ver/marcar, Desfile/Declaração ver — seção 65.3 acima), que usam o verbo conjugado ("Permitir que o ritmista **veja**..."), não foram tocadas — ela não pediu mudar essas, só os rótulos curtos de capacidade.
+
+### 65.5 Incidente local sem consequência: uso errado da ferramenta de escrever arquivo
+
+No meio da sessão, ao tentar editar `GRUPOS_CAPACIDADES` pra aplicar a troca "Ver"→"Visualizar" acima, um comando de "reescrever o arquivo inteiro" foi disparado por engano em vez do de "editar só o trecho certo" — o conteúdo de `admin.html` foi substituído por um texto de um caractere só, na cópia de trabalho local. Percebido imediatamente (o próprio resultado do comando já mostrava o problema) e revertido com `git checkout -- admin.html` antes de qualquer `git add`/commit — o arquivo voltou exatamente ao estado do último commit válido, sem perda de nenhuma linha.
+
+Vale registrar como referência, já que ela perguntou diretamente "tem alguma segurança pra isso?": o incidente nunca chegou perto do site publicado. `git checkout -- <arquivo>` restaura um arquivo rastreado pro estado do último commit, descartando só mudanças não commitadas — funciona porque o Git guarda o conteúdo de cada commit de forma imutável, independente do que está no disco agora. E como o site em `tumtu.com.br` só é atualizado por um `git push` explícito pra `main` (nunca automaticamente a partir da pasta de trabalho local), um erro como esse — mesmo sem ser percebido na hora — nunca teria alcançado o site de verdade antes de um commit+push deliberado.
