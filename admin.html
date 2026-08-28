@@ -453,8 +453,11 @@
         /* Diretoria/Convidados sempre por último na lista de uma peça de
            Figurino (nunca entram na ordenação alfabética dos instrumentos) --
            diferencial sutil pra distinguir de um naipe de verdade, pedido
-           dela, 28/ago/2026. */
-        .vg-instrumento-linha--grupo span:first-child { font-style: italic; color: var(--cor-texto-secundario); }
+           dela, 28/ago/2026. Só o nome muda (nunca "Faltam"/a pílula ao
+           lado) -- 1ª versão usava span:first-child, que sem querer também
+           pegava o "Faltam" (é o primeiro filho do span vizinho). Cor mais
+           escura, não cinza claro -- "tudo já é cinza demais nesse sistema".*/
+        .vg-instrumento-linha--grupo .vg-instrumento-linha-nome { font-style: italic; color: var(--cor-texto-principal); }
 
         /* CONTADOR */
         .contador { font-size: 15px; color: #666; margin-bottom: 20px; }
@@ -3797,7 +3800,7 @@
             const faltam = total - entregues;
             return `
             <div class="vg-instrumento-linha${ehGrupo ? ' vg-instrumento-linha--grupo' : ''}">
-                <span>${esc(nome)}</span>
+                <span class="vg-instrumento-linha-nome">${esc(nome)}</span>
                 <span style="display:flex;align-items:center;gap:14px;">
                     ${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}
                     <span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}">${entregues} / ${total}</span>
