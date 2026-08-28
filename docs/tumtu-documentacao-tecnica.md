@@ -2546,3 +2546,24 @@ Corrigido: as 4 colunas (`responsavel_nome`, `responsavel_cpf`, `responsavel_cel
 3. Editar um campo realmente permitido (`celular`) na mesma conta → funcionou normal, confirmando que a correção não travou edição legítima. Valor restaurado ao original depois do teste, sem deixar rastro na conta.
 
 `get_advisors` rodado de novo ao final: zero regressão, mesmo estado limpo da rodada anterior (68.6).
+
+### 68.8 Quarta rodada (mesma sessão, pedido dela: "pode fazer") — checagem coluna-por-coluna estendida pra `vinculos`, achando uma escalação de privilégio real
+
+Mesmo método da 68.7 (ler `information_schema.columns` da tabela inteira e comparar contra o corpo do trigger, não só confiar que "o trigger existe"), agora em `aplicar_matriz_edicao_vinculos()` — a tabela mais mexida de todas nas últimas sessões, então a mais provável de ter ganhado coluna nova sem o trigger acompanhar.
+
+**Achado mais interessante das quatro rodadas — não é vazamento de dado, é escalação de privilégio**: `vinculos.naipe` é intencionalmente autoeditável (Diretor declara qual naipe lidera, seção 42, "hoje só autoeditável... não existe ainda uma capacidade 'editar outro Mestre/Diretor/Apoio'"). Isso é correto e não mudou. O problema é que `restrito_ao_naipe` (seção 63, criado DEPOIS de `naipe` já ser autoeditável) nunca reavaliou essa permissão — um Diretor marcado como restrito (a própria feature que ele pediu pra si mesmo) continuava livre pra mudar o próprio `naipe` pra qualquer coisa, inclusive todos os instrumentos de uma vez, esvaziando a restrição por dentro. `tenho_acesso_ritmista_por_naipe()` compara `v_eu.naipe ? n.nome` — é literalmente o campo que o próprio restrito controlava.
+
+**Correção**: `naipe` continua livre pra autoeditar enquanto `restrito_ao_naipe` for `false` (comportamento original preservado) — só passa a travar (`new.naipe := old.naipe`) quando `old.restrito_ao_naipe = true`, momento em que mudar o naipe deixa de ser "declarar o que eu lidero" e vira "escolher meu próprio alcance de acesso".
+
+**Achado 2 (integridade de prova legal)**: `vinculos.politica_privacidade_aceita_em` (data/hora em que a pessoa aceitou a Política de Privacidade, seção 20 — prova de consentimento LGPD) nunca entrou no trigger, em nenhuma ramificação — mesma família de `consentimento_confirmado` (que já era protegido desde sempre). Sem trava, qualquer um com UPDATE na própria linha conseguiria forjar ou apagar essa prova via API direta. Corrigido: trava incondicional, igual `consentimento_confirmado`.
+
+**Achado 3 (controle de acesso)**: `vinculos.modo_carteirinha_individual` (interruptor "só vê a própria carteirinha", seções 42/62) — a tela só grava isso junto de `capacidades`/`restrito_ao_naipe`, dentro do bloco que exige `editar_permissoes`, mas o trigger só protegia essas duas, esquecendo a terceira. Sem a trava, qualquer admin da bateria (mesmo sem `editar_permissoes`) conseguiria travar outro Mestre/Diretor/Apoio fora do painel de gestão (ou destravar alguém que devia ficar restrito) via API direta. Corrigido, entrou no mesmo bloco condicionado a `editar_permissoes`.
+
+**Testado ao vivo, com login de verdade, incluindo o cenário mais difícil de montar das quatro rodadas**:
+1. Conta de teste (`rodrigo.barbosa@teste.tutti`, vínculo id 56) tentou ligar `modo_carteirinha_individual` e forjar `politica_privacidade_aceita_em` no próprio vínculo — `PATCH` retornou `204` (sucesso aparente), mas conferido depois: os dois continuaram com o valor original.
+2. Mesma chamada tentou mudar `naipe` — funcionou normalmente (correto: a pessoa não estava restrita ainda, comportamento intencional preservado).
+3. Pra testar o cenário restrito, precisei simular a própria restrição primeiro — e uma tentativa inicial de fazer isso com `UPDATE` direto (achando que bypassa RLS/trigger) **também foi revertida pela correção que acabava de aplicar** (a ferramenta de SQL não roda como `service_role`/dono, então cai na mesma regra de qualquer usuário sem sessão). Usado o método já documentado (`ALTER TABLE ... DISABLE/ENABLE TRIGGER`) só pra montar o cenário de teste.
+4. Com `restrito_ao_naipe=true` de propósito, a mesma conta tentou ampliar o próprio `naipe` pra 12 instrumentos + Especiais + Repique de Bossa (tentando enxergar a bateria inteira) — bloqueado, `naipe` continuou só com o valor que tinha antes (`["Caixa"]`).
+5. Conta de teste restaurada ao estado original (`restrito_ao_naipe=false`, `naipe=[]`) ao final, sem deixar rastro.
+
+`get_advisors` rodado de novo: mesmo estado limpo (esse tipo de achado — coluna sem trava dentro de um trigger que já existe — não é algo que a ferramenta automática consegue detectar sozinha; só a leitura manual coluna-por-coluna pega isso).
