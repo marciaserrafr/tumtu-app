@@ -1537,6 +1537,7 @@
             <div class="config-item" onclick="abrirConfigTelaSA('instrumentos')"><span>Instrumentos</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Categoria de Figurino</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('figurino')"><span>Figurino</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="abrirConfigTelaSA('eventos')"><span>Tipos de Evento</span><span class="config-item-seta">›</span></div>
         </div>
 
         <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
@@ -1564,6 +1565,15 @@
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoFigurinoMestre()">+ Novo Figurino</button>
             <div id="sa-figurino-editor" style="display:none;"></div>
             <div id="sa-figurino-lista" class="lista-cards"></div>
+        </div>
+
+        <div id="sa-config-tela-eventos" class="config-subtela" style="display:none;">
+            <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
+            <div class="painel-titulo">Tipos de Evento</div>
+            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Ex: Ensaio, Ensaio Técnico, Apresentação, Reunião. Cada bateria escolhe o tipo ao criar um Evento próprio, em "Configurações → Eventos" no painel dela. Faz parte do módulo de Presença via QR.</p>
+            <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoEventoTipo()">+ Novo Tipo de Evento</button>
+            <div id="sa-evento-tipo-editor" style="display:none;"></div>
+            <div id="sa-evento-tipos-lista" class="lista-cards"></div>
         </div>
     </div>
 
@@ -7054,6 +7064,7 @@
             (medidaTiposCacheSA.length === 0 ? carregarMedidaTiposSA() : Promise.resolve())
                 .then(carregarFigurinoMestreSA).then(renderizarFigurinoMestreListaSA);
         }
+        if (nome === 'eventos') { fecharEditorEventoTipo(); carregarEventoTiposSA().then(renderizarEventoTiposListaSA); }
     }
     function voltarConfigListaSA() {
         document.querySelectorAll('#sa-painel-configuracoes-globais .config-subtela').forEach(el => el.style.display = 'none');
@@ -7479,6 +7490,95 @@
         await carregarFigurinoMestreSA();
         renderizarEditorFigurinoMestre();
         renderizarFigurinoMestreListaSA();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // TIPOS DE EVENTO -- LISTA MESTRE (Super Admin, 29/ago/2026) -- biblioteca
+    // de tipos (Ensaio, Ensaio Técnico, Apresentação...) pro módulo de
+    // Presença via QR. Cada bateria escolhe o tipo ao criar um Evento
+    // próprio -- mesmo padrão de Instrumentos/Categoria de Figurino/
+    // Figurino, mas mais simples (só nome/ordem/ativo, sem sub-lista).
+    // ══════════════════════════════════════════════════════════════════
+    let eventoTiposCacheSA = [];
+    let eventoTipoEditando = null;
+    let salvandoEventoTipo = false;
+    async function carregarEventoTiposSA() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?order=ordem`, { headers: authHeaders });
+        eventoTiposCacheSA = res.ok ? await res.json() : [];
+    }
+    function cardEventoTipoSA(t) {
+        return `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(t.nome)} ${t.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
+                </div>
+                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEventoTipo(${t.id})">Editar</button></div>
+            </div>`;
+    }
+    function renderizarEventoTiposListaSA() {
+        const container = document.getElementById('sa-evento-tipos-lista');
+        if (!container) return;
+        if (eventoTiposCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum tipo de evento cadastrado ainda.</div>'; return; }
+        container.innerHTML = [...eventoTiposCacheSA].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(cardEventoTipoSA).join('');
+    }
+    function abrirNovoEventoTipo() { eventoTipoEditando = { id: null, nome: '', ativo: true }; renderizarEditorEventoTipo(); }
+    function abrirEditarEventoTipo(id) {
+        const t = eventoTiposCacheSA.find(x => x.id === id);
+        if (!t) return;
+        eventoTipoEditando = { id: t.id, nome: t.nome, ativo: t.ativo !== false };
+        renderizarEditorEventoTipo();
+    }
+    function renderizarEditorEventoTipo() {
+        const te = eventoTipoEditando;
+        const editor = document.getElementById('sa-evento-tipo-editor');
+        if (!editor) return;
+        if (!te) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${te.id ? 'Editar Tipo de Evento' : 'Novo Tipo de Evento'}</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="et-edit-nome" value="${esc(te.nome)}" placeholder="Ex: Ensaio Técnico"></div>
+                <div class="campo"><label>Status</label><select id="et-edit-ativo">
+                    <option value="true" ${te.ativo ? 'selected' : ''}>Ativo</option>
+                    <option value="false" ${!te.ativo ? 'selected' : ''}>Inativo</option>
+                </select></div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button id="et-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarEventoTipoSA()">Salvar</button>
+                    ${te.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirEventoTipoSA(${te.id})">Excluir tipo</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorEventoTipo()">Cancelar</button>
+            </div>
+        </div>`;
+    }
+    function fecharEditorEventoTipo() { eventoTipoEditando = null; renderizarEditorEventoTipo(); }
+    async function salvarEventoTipoSA() {
+        if (salvandoEventoTipo) return;
+        const nome = document.getElementById('et-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do tipo de evento.', 'erro'); return; }
+        const ativo = document.getElementById('et-edit-ativo').value === 'true';
+        salvandoEventoTipo = true;
+        try {
+            if (eventoTipoEditando.id) {
+                await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?id=eq.${eventoTipoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo }) });
+            } else {
+                const ordem = Math.max(0, ...eventoTiposCacheSA.map(t => t.ordem || 0)) + 1;
+                await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem }) });
+            }
+            mostrarToast(eventoTipoEditando.id ? 'Tipo de evento atualizado!' : 'Tipo de evento criado!');
+            eventoTipoEditando = null;
+            await carregarEventoTiposSA();
+            renderizarEditorEventoTipo();
+            renderizarEventoTiposListaSA();
+        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
+        finally { salvandoEventoTipo = false; }
+    }
+    async function excluirEventoTipoSA(id) {
+        if (!confirm('Excluir este tipo de evento? Se alguma bateria já tem Eventos criados com ele, prefira marcar como "Inativo".')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
+        mostrarToast('Tipo de evento excluído.'); eventoTipoEditando = null; await carregarEventoTiposSA(); renderizarEditorEventoTipo(); renderizarEventoTiposListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════
