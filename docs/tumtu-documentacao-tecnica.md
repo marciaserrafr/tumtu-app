@@ -2359,3 +2359,36 @@ Recomendação dada e implementada: pílula (mesma receita de badge já usada no
 Resolve os dois problemas de uma vez: a pílula é um alvo maior e mais fácil de notar (o número desperta curiosidade — "quanto é isso?"), e a seta é um símbolo já reconhecível de abrir/fechar sem precisar de nenhuma palavra escrita (ela tinha vetado texto explicitamente na rodada anterior). `atualizarTotalizadores()`/`atualizarTotalizadoresDiretoria()` ganharam a soma total (`totalOutrosRitmistas`/`totalOutrosDiretoria`) além das contagens individuais já existentes.
 
 Aprovado na hora ("Ficou ótimo, pode publicar direto"), publicado sem passar por outra rodada de preview — merge direto de `preview/visao-geral-todos-status` pra `main`.
+
+### 66.7 Ajustes finos pós-publicação: "+N" e respiro reduzido
+
+Dois retoques rápidos, ainda no mesmo dia, depois de ela testar em produção:
+
+1. **"+N" em vez de só "N"**: `document.getElementById('totalOutrosRitmistas').textContent = '+' + (susRit + desRit + rejRit + ndRit)` (mesmo pra Diretoria) — deixa mais claro que é "tem mais N coisas aqui", não uma contagem qualquer.
+2. **Respiro**: ela mandou print apontando um vão grande entre a pílula e o próximo título de grupo. Achado no histórico (seção 48, 23/ago/2026) que o app já tem uma régua fixa de respiro — 6/12/24px — usada em outros títulos de seção; os valores que eu tinha colocado nessa área nova (`margin: 20px...`/`-4px...10px`) eram soltos, fora dessa régua. Ajustado pra `.vg-grupo-titulo { margin: 12px 2px 6px; }` e `.grade-linha-toggle { margin: -8px 2px 6px; }`, batendo com o padrão do resto do app.
+
+Nota operacional real: no meio dessa rodada, um comando de reduzir respiro acabou commitado direto na branch `main` por engano (esqueci de voltar pro branch de preview depois do merge anterior) — percebido antes de qualquer `git push`, então nada chegou a subir fora de ordem. Corrigido com `git cherry-pick` do commit pro branch de preview certo + `git reset --hard` pra tirar da `main` local, sem perda de nada.
+
+## 67. Sessão de 28/ago/2026 (continuação seguinte): ordem alfabética de verdade em "Ritmistas por Instrumento" + Ritmista pode ver as próprias Observações
+
+### 67.1 Bug real: segundo sort sobrescrevendo o alfabético
+
+Ela reportou, com print, que "Ritmistas por Instrumento" continuava fora de ordem alfabética — apesar da correção já registrada na seção 21 (27/ago/2026). Causa: `renderizarContagemInstrumentos()` (`admin.html`) tinha DOIS `.sort()` na função — um alfabético logo depois de montar `linhas` (o que a correção de 27/ago introduziu), e um segundo, esquecido, bem antes do `div.innerHTML = linhas.map(...)`:
+
+```js
+linhas.sort((a, b) => b.qtd - a.qtd || a.nome.localeCompare(b.nome, 'pt-BR'));
+```
+
+Esse segundo sort reordenava tudo por quantidade de gente (maior pra menor) bem no fim da função, silenciosamente desfazendo o alfabético já aplicado antes. Removido — só sobra o `.sort()` alfabético original.
+
+### 67.2 Ritmista vê (nunca edita) as próprias Observações
+
+Terceiro campo a ganhar o padrão "ver próprio, sem marcar" (mesmo de Desfile/Declaração, seção 65.3) — ela pediu: "coloque em permissões o campo observações para o ritmista visualizar ou não... o diretor tem que ter a opção de visualizar e editar." A segunda parte (Diretoria) já existia desde a criação do campo Observações (seção 64.8, `ver_observacoes`/`editar_observacoes`) — só a primeira parte (autoedição) era nova.
+
+Banco: `ALTER TABLE baterias ADD COLUMN ritmista_pode_ver_observacoes boolean NOT NULL DEFAULT false;`
+
+`admin.html`: novo checkbox "Permitir que o ritmista veja as próprias Observações" no mesmo bloco de Permissões → Ritmistas dos outros dois. `salvarRitmistaVeToggle(qual, ligado)` (função única já usada pra Desfile/Declaração, seção 65.3) ganhou um terceiro valor de `qual` — trocado de `if/else` fixo pra um mapa `{ desfile, declaracao, observacoes }`, evitando uma terceira função quase-idêntica.
+
+`ficha-perfil.js`: `fpAplicarPermissaoAutoedicaoToggles(alvo)` (mesma função fire-and-forget de Desfile/Declaração) passou a buscar também `ritmista_pode_ver_observacoes` na mesma query de `baterias`, e revela o `.ficha-campo` de Observações (`fp-observacoes`) quando ligado. Continua garantido que o Ritmista nunca EDITA o próprio campo: `fpCamposEditaveis()` só adiciona `'observacoes'` ao conjunto de campos editáveis dentro do branch de Diretoria editando outra pessoa (`editar_observacoes`), nunca dentro do branch de autoedição — revelar a exibição do campo não muda isso, são checagens independentes.
+
+Testado e publicado direto na mesma leva ("e pode publicar direto" / "só teste para ver se está funcionando e depois publique") — verificação feita antes de publicar: coluna nova confirmada no banco (`information_schema.columns`), grep confiro que todo id/função bate, e confirmação de que `editar_observacoes` da Diretoria não foi tocado.
