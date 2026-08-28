@@ -303,6 +303,15 @@
         .grade-item .n-desligado { color: #b3261e; }
         .grade-item .n-rejeitado { color: #757575; }
         .grade-item .n-naodesfila { color: var(--cor-texto-secundario); }
+        /* Título de grupo acima de cada bloco (Ritmistas/Diretoria/
+           Convidados) -- esquecido na 1ª versão publicada (28/ago/2026,
+           achado dela comparando com a prévia), mesmo padrão já usado em
+           .config-medida-publico-label (rótulo solto, fora de card). */
+        .vg-grupo-titulo {
+            font-size: 11px; font-weight: 800; color: var(--cor-texto-muted);
+            text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 2px 8px;
+        }
+        .vg-grupo-titulo:first-child { margin-top: 0; }
         /* CONTAINER */
         .container { padding: 24px; max-width: 1100px; margin: 0 auto; }
 
@@ -2019,6 +2028,7 @@
          padrão Ativos+Pendentes (agrupado por status). Pendentes ganharam
          isso primeiro (24/ago/2026); ativos pedido logo depois, mesma
          lógica ("quero ver quem já tá ativo" merece o mesmo atalho). -->
+    <div class="vg-grupo-titulo">Ritmistas</div>
     <div class="totalizadores">
         <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
             <div class="total-numero ativo" id="totalAtivos">—</div>
@@ -2046,6 +2056,7 @@
     <!-- Card à parte, não somado aos números de Ritmistas acima (pedido da
          Márcia, 21/ago/2026) -- só aparece pra quem tem ver_acessos, mesma
          capacidade que libera a aba Diretoria. -->
+    <div class="vg-grupo-titulo" id="vgTituloDiretoria" style="display:none;">Diretoria</div>
     <div class="totalizadores" id="totalizadoresDiretoria" style="display:none;">
         <div class="total-card total-card--clicavel" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">
             <div class="total-numero ativo" id="totalDiretoriaAtivos">—</div>
@@ -2076,9 +2087,10 @@
          a mesma grade usada nos "outros status" acima, em vez dos 2 cards
          grandes de antes (mesmo tamanho visual de Ativos/Pendentes, peso
          que ela achou alto demais pra Convidados). -->
+    <div class="vg-grupo-titulo" id="vgTituloConvidados" style="display:none;">Convidados</div>
     <div class="grade-status" id="totalizadoresExtras" style="display:none;">
-        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Convidados — Ritmistas <b id="totalExtrasRitmistas">—</b></div>
-        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Convidados — Diretoria <b id="totalExtrasDiretoria">—</b></div>
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Ritmistas <b id="totalExtrasRitmistas">—</b></div>
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Diretoria <b id="totalExtrasDiretoria">—</b></div>
     </div>
 
     <!-- Empilhado, um card embaixo do outro (era grid de 2 colunas até
@@ -2501,8 +2513,9 @@
     function atualizarTotalizadoresDiretoria() {
         const card = document.getElementById('totalizadoresDiretoria');
         const gradeOutros = document.getElementById('gradeStatusDiretoria');
+        const titulo = document.getElementById('vgTituloDiretoria');
         if (!card) return;
-        if (!souSuperAdmin && !tenhoCapacidade('ver_acessos')) { card.style.display = 'none'; if (gradeOutros) gradeOutros.style.display = 'none'; return; }
+        if (!souSuperAdmin && !tenhoCapacidade('ver_acessos')) { card.style.display = 'none'; if (gradeOutros) gradeOutros.style.display = 'none'; if (titulo) titulo.style.display = 'none'; return; }
         const ativos = (listaDiretoriaAtual || []).filter(a => a.status === 'aprovado').length;
         const pendentes = (listaDiretoriaAtual || []).filter(a => a.status === 'pendente').length;
         document.getElementById('totalDiretoriaAtivos').textContent = ativos;
@@ -2510,6 +2523,7 @@
         elPendentesDiretoria.textContent = pendentes;
         elPendentesDiretoria.classList.toggle('atencao', pendentes > 0);
         card.style.display = 'flex';
+        if (titulo) titulo.style.display = 'block';
 
         // Mesmo "retrato completo" de Ritmistas, aqui pra Diretoria -- sem
         // Não Desfila (exclusivo de Ritmista).
@@ -2526,12 +2540,14 @@
     // tudo; separado por grupo a pedido dela, 27/ago/2026.
     function atualizarTotalizadorExtras() {
         const card = document.getElementById('totalizadoresExtras');
+        const titulo = document.getElementById('vgTituloConvidados');
         if (!card) return;
-        if (!souSuperAdmin && !tenhoCapacidade('ver_extras')) { card.style.display = 'none'; return; }
+        if (!souSuperAdmin && !tenhoCapacidade('ver_extras')) { card.style.display = 'none'; if (titulo) titulo.style.display = 'none'; return; }
         const lista = extrasCache || [];
         document.getElementById('totalExtrasRitmistas').textContent = lista.filter(e => e.grupo === 'ritmista').length;
         document.getElementById('totalExtrasDiretoria').textContent = lista.filter(e => e.grupo === 'diretor' || e.grupo === 'apoio').length;
         card.style.display = 'grid';
+        if (titulo) titulo.style.display = 'block';
     }
 
     function bateriaIdContexto() {
