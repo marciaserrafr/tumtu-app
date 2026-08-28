@@ -2712,3 +2712,77 @@ Publicado direto, sem rodada de preview separada — ela pediu "Teste e pode pub
 Ela perguntou "mais algum item de segurança pra ver?" logo depois — puxando o fio da própria correção 71.5, achei que ela só resolveu metade do problema: a checagem nova só autorizava `cargo === 'ritmista'`, então mesmo com `criar_cadastro_diretoria` concedida de verdade, cadastrar um Mestre/Diretor/Apoio continuava batendo em `403` pra qualquer um que não fosse Super Admin — a permissão nova pra Diretoria ficava bonita na tela, sem nenhum efeito real (exatamente o "botão aparece habilitado e não funciona").
 
 Corrigido, simétrico ao Ritmista: `autorizado = !!vinculoAdmin && (cargo === 'ritmista' ? criar_cadastro_ritmistas : criar_cadastro_diretoria)`. Testado ao vivo com a mesma conta de teste: sem a capacidade → `403`; com ela concedida (token precisou ser renovado no meio do teste, expirou por passar 1h) → `200`, Mestre cadastrado de verdade. Pessoa/vínculo/conta de teste apagados depois, capacidade da conta de teste restaurada a `{}`.
+
+## 72. Sessão de 29/ago/2026: bug real do Diretor de Naipe (Tamborim/Cuíca), Entrega de Figurino com ordem alfabética, Permissões reorganizada em grupos, e Face ID/Digital
+
+Quatro frentes, na sequência em que aconteceram.
+
+### 72.1 Bug real: Diretor de Naipe sem acesso a Ritmistas de Tamborim/Cuíca
+
+Ela reportou: "porque o Nômade, diretor, não está conseguindo ver os ritmistas de tamborim? eu dei permissão para ele". Investigado direto no banco — achado na função de RLS `tenho_acesso_ritmista_por_naipe(p_vinculo_ritmista_id, p_bateria_id)` (criada na sessão de 28/ago, seção 63): a comparação usava só `n.nome` (nome da *nomenclatura* de um instrumento, tabela `instrumento_nomenclaturas`), nunca o nome da *categoria* (`instrumento_categorias.nome`) como reserva.
+
+O problema: só instrumentos com mais de um nome possível (Caixa, Repique, os 3 Surdos) têm uma linha própria em `instrumento_nomenclaturas` — o resto (Tamborim, Cuíca, Chocalho, Alfaia, Atabaque, Xequerê) nunca teve, porque sempre teve um nome só. Pra esses, `n.nome` é sempre `NULL`, e `naipe ? NULL` nunca é verdadeiro — o Diretor de Naipe desses instrumentos ficava zerado, vendo zero Ritmistas, mesmo com tudo certo do lado dele. Esse é exatamente o mesmo padrão `COALESCE(n.nome, c.nome)` já usado em todo lugar do sistema pra resolver o "nome de exibição" de um instrumento (ver a view `ritmistas_com_instrumento`) — só essa função de RLS nunca tinha usado esse fallback.
+
+```sql
+-- Trecho corrigido (dentro do EXISTS que só roda quando o chamador está restrito ao naipe):
+and (
+  v_eu.naipe ? COALESCE(n.nome, cat.nome)
+  or (v_eu.naipe ? 'Repique de Bossa' and v_alvo.repique_bossa)
+  or (v_eu.naipe ? 'Especiais' and cat.grupo = 'especial')
+)
+```
+
+**Retestado pra TODOS os Diretores restritos ao naipe do sistema hoje** (ela pediu: "eu estou muito chateada... só aconteceu com o Nômade? ou isso estava para todos?"), comparando quantos Ritmistas cada um veria com a lógica antiga (só `n.nome`) x a nova (`COALESCE`):
+
+| Diretor | Bateria | Naipe | Antes | Depois |
+|---|---|---|---|---|
+| Gustavo Silva Perez ("Nômade") | 13 | Tamborim | **0** | 29 |
+| Mauro Borges Lobo | 13 | Cuíca | **0** | 19 |
+| Augusto de Santana Rodrigues Junior | 13 | Caixa | 73 | 73 (sem mudança) |
+| Jean Rodrigues da Silva | 13 | Surdo 1ª+2ª | 20 | 20 (sem mudança) |
+| Renan Gohan | 13 | Surdo Terceira | 10 | 10 (sem mudança) |
+| Diretor Teste Marcia (conta de teste) | 2 | Repique/Repique Mor/Repique de Bossa | 1 | 1 (Repique Mor inativo nessa bateria, sem ninguém — sem impacto real) |
+
+Confirmado: **2 pessoas reais afetadas** (Gustavo e Mauro), os outros 4 nunca tiveram problema (seus naipes já tinham nomenclatura própria). Testado também que a correção não abriu acesso a mais do que devia (ex: Gustavo continua sem ver Ritmistas de Repique).
+
+### 72.2 Entrega de Figurino (Visão Geral): ordem alfabética + Diretoria/Convidados sempre por último, com diferencial visual
+
+Pedido dela: "Coloque em ordem alfabética, porém Diretoria deixe para o Final, e se tiver Convidados tb. [...] coloque um diferencial para diretoria e convidados, algo sutil, mas que diferencie dos instrumentos." Em `renderizarResumoEntregaFigurino()` (admin.html): o `.sort()` dos naipes de instrumento trocou de "por quantidade faltando" pra `localeCompare` alfabético; as linhas "Diretoria"/"Convidados - Ritmistas"/"Convidados - Diretoria" já ficavam estruturalmente depois dos naipes no código (não precisou mudar isso), só ganharam um parâmetro `ehGrupo=true` em `linhaHtml()`.
+
+Duas rodadas de ajuste fino depois do primeiro link de teste:
+1. 1ª versão usava `span:first-child` pra estilizar só o nome como itálico + cinza claro — bug real: esse seletor também pegava sem querer o "Faltam N" (é o primeiro filho do `<span>` vizinho que agrupa Faltam+pílula). Corrigido com uma classe dedicada (`.vg-instrumento-linha-nome`) só no `<span>` do nome. Cor trocada de `--cor-texto-secundario` (mais claro) pra `--cor-texto-principal` (mesmo tom escuro do resto) — "tudo já é cinza demais nesse sistema".
+2. Pedido de adicionar um asterisco (`*`) sobrescrito antes do nome, além do itálico — implementado com `<sup class="vg-instrumento-linha-asterisco">*</sup>` prefixado ao nome dentro do mesmo `<span>`.
+
+### 72.3 Permissões reorganizada: navegação em 2 níveis por grupo, com "Diretor de Bateria - Naipe" separado
+
+Puxando o fio do achado 72.1, ela pediu: "quero que a tela seja organizada de uma forma diferente: igual em Configurações e Entrega de Figurino [...] Vou precisar dessa diferenciação de diretor de naipe senão eu vou pirar." Confirmado que Configurações e Entrega de Figurino usam o mesmo padrão de navegação: uma lista nível 1 (`.config-item`, "Instrumentos ›", "Vagas ›"...) que leva a uma sub-tela cheia (`.config-subtela`, com botão "← Voltar") — não um acordeão inline.
+
+**Reorganização de `#painel-permissoes` (admin.html)**: a lista única corrida (agrupada só visualmente por `secao-titulo`) virou uma lista nível 1 de 5 itens — Ritmistas, Mestre, **Diretor de Bateria - Naipe**, **Diretor de Bateria**, Diretor (Apoio) — cada um levando a uma sub-tela própria. "Diretor de Bateria - Naipe" e "Diretor de Bateria" continuam sendo o **mesmo perfil no banco** (`diretor`) — a divisão é só de tela, por `restrito_ao_naipe`:
+
+```js
+const PERMISSOES_GRUPOS = {
+    mestre: { label: 'Mestre', filtro: p => p.perfil === 'mestre' },
+    'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && p.restrito_ao_naipe },
+    diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !p.restrito_ao_naipe },
+    apoio: { label: 'Diretor (Apoio)', filtro: p => p.perfil === 'apoio' },
+};
+```
+
+`abrirPermissoesGrupo(grupoId)`/`voltarPermissoesLista()` seguem o mesmo padrão de `abrirConfigTela`/`voltarConfigLista`. O editor por pessoa (já existente, inalterado por dentro) passou a tomar a tela inteira ao abrir (esconde a sub-tela do grupo por trás) e, ao salvar/cancelar, volta pro **grupo de origem** (`permissoesGrupoAtual`, guardado em `pe.grupoOrigem` no momento de abrir) em vez de sempre voltar pra lista de nível 1 — se a pessoa mudou de grupo no meio da edição (ex: ligou "Restrito ao naipe"), o `grupoOrigem` antigo simplesmente não vai mais listar ela, o que é o comportamento certo.
+
+### 72.4 Face ID / Digital — trava local de reabertura do app
+
+Puxando o fio de uma pergunta dela sobre o que restava na lista de pendências, ela perguntou sobre reativar a ideia de Face ID (já cogitada e adiada em 19/ago, ver seção "Estado atual" do CLAUDE.md). Antes de programar, uma decisão de UX foi confirmada com ela: onde colocar o botão de ativar — optou por dentro de "Meu Perfil" (não criar uma "Área do Ritmista" nova só pra isso; essa ideia maior ficou registrada como memória de projeto separada, pra retomar só quando ela quiser desenhá-la de verdade).
+
+**Desenho**: não é uma segunda forma de login nem passkey de verdade contra o Supabase Auth — é um **cadeado local**, por aparelho, em cima de uma sessão que já existe (o app sempre manteve sessão salva; Face ID só passa a exigir confirmação biométrica antes de continuar usando essa sessão). Decisão deliberada de não fazer verificação client-server: o objetivo nunca foi autenticação federada, só "confirmar que é a mesma pessoa seguindo no mesmo aparelho" — por isso não precisou de nenhuma tabela nova no banco, nem de Edge Function.
+
+**`faceid.js` (novo arquivo, compartilhado por `login.html`/`admin.html`/`carteirinha.html`)** — usa a API padrão do navegador (WebAuthn, `navigator.credentials.create()`/`.get()`), com `authenticatorAttachment: 'platform'` (força usar o Face ID/Touch ID/digital do próprio aparelho, nunca uma chave de segurança externa) e `userVerification: 'required'`:
+- `faceIdAtivar(pessoaId, nome)`: cria a credencial (aciona o prompt na hora), guarda só o `rawId` em base64 em `localStorage['tumtu_faceid_' + pessoaId]` — nunca nenhum dado biométrico de verdade, isso nunca sai do sistema operacional do aparelho.
+- `faceIdVerificar(pessoaId)`: pede `navigator.credentials.get()` com esse `rawId` como `allowCredentials`; a simplificação deliberada é **não verificar a assinatura criptográfica manualmente** (não importa a chave pública, não confere via `SubtleCrypto`) — o gate confia em o próprio navegador/SO só resolver a Promise com sucesso quando a biometria bate contra a credencial certa. Escolha consciente: como isso nunca fala com um servidor, verificar a assinatura não adicionaria proteção real nenhuma (o "atacante" já teria o aparelho desbloqueado em mãos de qualquer jeito), e evita todo o código de import de chave pública (`getPublicKey()`), que tem mais variação de suporte entre versões de iOS.
+- Chave por **pessoa** (`tumtu_faceid_<pessoa_id>`), não só por aparelho — ela mesma tem duas contas TumTu (Super Admin + Diretora de uma bateria real) no mesmo celular, então cada conta precisa ser ativada separadamente, e cada uma só gera o gate quando ELA está logada.
+
+**`login.html`**: `tentarSessaoExistente()` ganhou um desvio logo depois de confirmar que existe sessão válida — se `faceIdAtivo(cache.pessoa_id)` (e não é `?trocar=1`, que pula o gate por já ser uma ação de dentro do app), mostra `#containerFaceId` (nova tela, mesmo estilo visual das outras telas de auth) em vez de seguir direto. O resto da função virou `continuarSessaoExistente(cache, session, forcarTroca)`, retomada tanto no caminho normal quanto depois de um `tentarDesbloquearFaceId()` com sucesso. **"Entrar com senha" faz `sb.auth.signOut()` de verdade** — ponto de segurança deliberado: se esse link só escondesse a tela sem deslogar, viraria um jeito trivial de contornar o Face ID sem confirmar nada, já que a sessão de fundo continuaria válida.
+
+**`ficha-perfil.js`/`ficha-perfil.partial.html`**: novo interruptor em Meu Perfil, mesmo padrão de clique instantâneo já usado em Desfile/Declaração (fora do fluxo Editar/Salvar) — só aparece em autoedição (nunca na ficha de outra pessoa, Admin/Super Admin editando um Ritmista) e só depois de `faceIdDisponivelNesteAparelho()` (`PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()`) confirmar que o navegador/aparelho de quem está olhando realmente tem biometria disponível — nunca mostra o interruptor achando que funciona e depois falha.
+
+**Testado por ela, ao vivo, nos dois iPhones reais** (XR e 13) — funcionou nos dois: ativar em Meu Perfil aciona o Face ID na hora, reabrir o app mostra a tela de desbloqueio, "Entrar com senha" volta pro login normal exigindo senha de novo. Publicado direto na `main` depois da confirmação.
