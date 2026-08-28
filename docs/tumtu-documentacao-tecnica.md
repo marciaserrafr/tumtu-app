@@ -2706,3 +2706,9 @@ A Edge Function `admin-create-user` (cadastro manual) nunca checava a capacidade
 3. Pessoa, vínculo e a conta de login criados no teste apagados depois; capacidade da conta de teste restaurada a `{}`.
 
 Publicado direto, sem rodada de preview separada — ela pediu "Teste e pode publicar direto" desde o início do pedido.
+
+### 71.6 Achado seguinte, mesma sessão: `criar_cadastro_diretoria` também nunca tinha efeito real
+
+Ela perguntou "mais algum item de segurança pra ver?" logo depois — puxando o fio da própria correção 71.5, achei que ela só resolveu metade do problema: a checagem nova só autorizava `cargo === 'ritmista'`, então mesmo com `criar_cadastro_diretoria` concedida de verdade, cadastrar um Mestre/Diretor/Apoio continuava batendo em `403` pra qualquer um que não fosse Super Admin — a permissão nova pra Diretoria ficava bonita na tela, sem nenhum efeito real (exatamente o "botão aparece habilitado e não funciona").
+
+Corrigido, simétrico ao Ritmista: `autorizado = !!vinculoAdmin && (cargo === 'ritmista' ? criar_cadastro_ritmistas : criar_cadastro_diretoria)`. Testado ao vivo com a mesma conta de teste: sem a capacidade → `403`; com ela concedida (token precisou ser renovado no meio do teste, expirou por passar 1h) → `200`, Mestre cadastrado de verdade. Pessoa/vínculo/conta de teste apagados depois, capacidade da conta de teste restaurada a `{}`.
