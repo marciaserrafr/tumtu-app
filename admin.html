@@ -6924,14 +6924,22 @@
     let permissoesPessoaEditando = null;
     // Grupo (nível 2) atualmente aberto na tela de Permissões -- null quando
     // está na lista (nível 1). "diretor-naipe"/"diretor" são o MESMO perfil
-    // no banco (diretor), só divididos aqui por restrito_ao_naipe -- pedido
-    // dela, 29/ago/2026, depois do incidente do naipe quebrado (ver seção
-    // técnica): "vou precisar dessa diferenciação senão eu vou pirar".
+    // no banco (diretor), divididos aqui por TER naipe declarado ou não --
+    // corrigido em 29/ago/2026 (achado dela: "o diretor de naipe é declarado
+    // quando responde a pergunta Naipe que lidera... se ele lidera um
+    // naipe, ele tem que ficar na lista de diretores de naipe"). Antes o
+    // filtro usava `restrito_ao_naipe` (o interruptor de RESTRIÇÃO DE
+    // ACESSO, separado) -- um Diretor podia ter naipe cadastrado e mesmo
+    // assim não aparecer aqui, se a restrição estivesse desligada (caso
+    // real: Jhones Silva, naipe Repique+Repique de Bossa, restrito_ao_naipe
+    // false). `restrito_ao_naipe` continua existindo como interruptor à
+    // parte dentro do editor de cada Diretor de Naipe -- ter naipe não liga
+    // a restrição sozinho, são coisas diferentes.
     let permissoesGrupoAtual = null;
     const PERMISSOES_GRUPOS = {
         mestre: { label: 'Mestre', filtro: p => p.perfil === 'mestre' },
-        'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && p.restrito_ao_naipe },
-        diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !p.restrito_ao_naipe },
+        'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && Array.isArray(p.naipe) && p.naipe.length > 0 },
+        diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !(Array.isArray(p.naipe) && p.naipe.length > 0) },
         apoio: { label: 'Diretor (Apoio)', filtro: p => p.perfil === 'apoio' },
     };
 
@@ -7004,7 +7012,7 @@
             if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
             return;
         }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe`, { headers: authHeaders });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe,naipe`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
     }
@@ -7108,7 +7116,7 @@
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
         // O editor toma conta da tela inteira, por cima da sub-tela do
         // grupo (ou da lista, se veio da ficha) -- nunca os dois visíveis
         // ao mesmo tempo.
@@ -7154,11 +7162,13 @@
                             <input type="checkbox" id="pp-cap-${c.chave}" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
                             <label for="pp-cap-${c.chave}" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
                         </div>`).join('')}
-                    ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' ? `
+                    ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' && pe.temNaipe ? `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;">
                             <input type="checkbox" id="pp-restrito-naipe" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.restritoAoNaipe ? 'checked' : ''}>
                             <label for="pp-restrito-naipe" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Restrito ao próprio naipe — só vê/aprova/edita Ritmistas do naipe que lidera</label>
                         </div>` : ''}
+                    ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' && !pe.temNaipe ? `
+                        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;font-size:13px;color:var(--cor-texto-muted);">Essa pessoa ainda não declarou um Naipe (Ficha → Naipe que lidera) — sem isso, não tem como restringir o acesso a um naipe específico.</div>` : ''}
                 </div>`).join('')}
             <div class="form-rodape">
                 <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button></div>
