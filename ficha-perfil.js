@@ -688,13 +688,19 @@ async function fpRenderizarMedidas(alvo) {
     if (!grid || !secao) return;
     if (!alvo.vinculo_id) { secao.style.display = 'none'; return; }
 
+    // Mostra a seção já ocupando o espaço dela, com um "Carregando...",
+    // em vez de ficar escondida até os dados chegarem -- evita a seção
+    // "estourar" de repente e empurrar o resto da ficha pra baixo (a
+    // pulada notada por ela, 28/ago/2026).
+    secao.style.display = '';
+    grid.innerHTML = '<span style="color:#9993ab;font-size:13px;">Carregando...</span>';
+
     const [tipos, valores] = await Promise.all([
         fpCarregarTiposMedidaAtivos(alvo.bateria_id, alvo.perfil),
         fpCarregarValoresMedidaPessoa(alvo.vinculo_id),
     ]);
 
     if (tipos.length === 0) { secao.style.display = 'none'; return; }
-    secao.style.display = '';
 
     grid.innerHTML = tipos.map(t => `
         <div class="ficha-campo">
@@ -712,6 +718,12 @@ async function fpRenderizarEntregaFigurino(alvo) {
     const secao = fpEl('fp-secao-entrega-figurino');
     if (!grid || !secao) return;
     if (!alvo.vinculo_id) { secao.style.display = 'none'; return; }
+
+    // Mesma correção da pulada aplicada em fpRenderizarMedidas acima --
+    // reserva o espaço da seção desde já, com "Carregando...".
+    secao.style.display = '';
+    grid.innerHTML = '<span style="color:#9993ab;font-size:13px;">Carregando...</span>';
+
     // Peça pode cobrir mais de um público ao mesmo tempo (27/ago/2026) --
     // publico virou lista; "cs" (contains) traz toda peça cujo público
     // inclua o perfil desta pessoa.
@@ -728,7 +740,6 @@ async function fpRenderizarEntregaFigurino(alvo) {
     const ativosIds = new Set(ativos.map(a => a.figurino_item_mestre_id));
     const itens = mestre.filter(m => ativosIds.has(m.id));
     if (itens.length === 0) { secao.style.display = 'none'; return; }
-    secao.style.display = '';
     const entregaPorItem = {};
     entregas.forEach(e => { entregaPorItem[e.figurino_item_id] = !!e.entregue_em; });
     grid.innerHTML = itens.map(it => `
