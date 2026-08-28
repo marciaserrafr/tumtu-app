@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=21">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=34"></script>
+    <script src="ficha-perfil.js?v=35"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -2789,87 +2789,13 @@
             .catch(err => console.error('notificar-aprovacao falhou:', err));
     }
 
-    async function alternarDeclaracao(id, entregue) {
-        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', ...authHeaders },
-            body: JSON.stringify({ declaracao_responsavel: entregue })
-        });
-        await carregarRitmistas(true);
-        abrirCadastro(id);
-    }
-
-    function renderToggleDeclaracao(id, entregue) {
-        const area = document.getElementById('fc-declaracao-area');
-        if (!area) return;
-        // Reforma de Permissões (27-28/ago/2026): quem não tem
-        // editar_declaracao_responsavel vê o mesmo selo, mas sem clique --
-        // nunca aparece clicável e falha em silêncio.
-        const podeEditar = tenhoCapacidade('editar_declaracao_responsavel');
-        const trackBg = entregue ? '#1f4d1f' : '#c62828';
-        const trackBorder = 'none';
-        const thumbPos = entregue ? '21px' : '3px';
-        const labelColor = entregue ? '#1f4d1f' : '#c62828';
-        const labelText = entregue ? 'Entregue' : 'Não entregue';
-        area.innerHTML = `
-            <div ${podeEditar ? `onclick="alternarDeclaracao(${id},${!entregue})"` : ''}
-                 style="display:inline-flex;align-items:center;gap:10px;${podeEditar ? 'cursor:pointer;' : ''}user-select:none;">
-                <div style="width:44px;height:24px;border-radius:12px;background:${trackBg};border:${trackBorder};
-                            position:relative;transition:background 0.2s;flex-shrink:0;display:block;box-sizing:border-box;">
-                    <div style="position:absolute;top:3px;left:${thumbPos};
-                                width:16px;height:16px;border-radius:50%;
-                                background:white;box-shadow:0 1px 3px rgba(0,0,0,0.3);
-                                transition:left 0.2s;"></div>
-                </div>
-                <span style="font-size:13px;font-weight:500;color:${labelColor};">${labelText}</span>
-            </div>`;
-    }
-
-    // "Não Desfila" (28/ago/2026) -- mesmo padrão visual/permissão de
-    // renderToggleDeclaracao, cores neutras (não é bom/ruim, é uma situação).
-    async function alternarNaoDesfila(id, ativo) {
-        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', ...authHeaders },
-            body: JSON.stringify({ nao_desfila: ativo })
-        });
-        await carregarRitmistas(true);
-        abrirCadastro(id);
-    }
-
-    // Título da seção é "Desfile" (ver abrirCadastro) -- o interruptor
-    // representa a situação normal (vai desfilar = "Ok", ligado/verde),
-    // não a exceção. Desligado = "Não desfila" (mesmo texto do selo do
-    // card). Pedido dela, 28/ago/2026: pensar em como o Diretor lê a tela,
-    // não só no nome técnico do campo (nao_desfila continua o nome da
-    // coluna no banco -- só a leitura visual foi invertida).
-    function renderToggleNaoDesfila(id, naoDesfila) {
-        const area = document.getElementById('fc-nao-desfila-area');
-        if (!area) return;
-        const podeEditar = tenhoCapacidade('editar_nao_desfila');
-        const desfila = !naoDesfila;
-        const trackBg = desfila ? '#2d7a4f' : '#c7d3e0';
-        const thumbPos = desfila ? '21px' : '3px';
-        const labelColor = desfila ? '#2d7a4f' : '#706c87';
-        const labelText = desfila ? 'Ok' : 'Não desfila';
-        area.innerHTML = `
-            <div ${podeEditar ? `onclick="alternarNaoDesfila(${id},${desfila})"` : ''}
-                 style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;${podeEditar ? 'cursor:pointer;' : ''}user-select:none;">
-                <div style="width:44px;height:24px;border-radius:12px;background:${trackBg};
-                            position:relative;transition:background 0.2s;flex-shrink:0;display:block;box-sizing:border-box;">
-                    <div style="position:absolute;top:3px;left:${thumbPos};
-                                width:16px;height:16px;border-radius:50%;
-                                background:white;box-shadow:0 1px 3px rgba(0,0,0,0.3);
-                                transition:left 0.2s;"></div>
-                </div>
-                <span style="font-size:13px;font-weight:500;color:${labelColor};">${labelText}</span>
-            </div>`;
-    }
-
-    // Observações (28/ago/2026) -- virou campo padrão da ficha (Editar →
-    // Salvar/Cancelar junto com o resto), não mais um botão próprio. Ver
-    // ficha-perfil.js (FP_CAMPOS/FP_CAMPO_TABELA/fpCamposEditaveis) e
-    // ficha-perfil.partial.html. Visibilidade (ver_observacoes) e
+    // Declaração do Responsável / Desfile / Observações (28/ago/2026) --
+    // todas viraram campo padrão da ficha (Editar → Salvar/Cancelar junto
+    // com o resto), não mais botão de clique instantâneo. Clicar num desses
+    // no meio de uma edição resetava a ficha inteira pro modo de
+    // visualização, "sumindo" com o Salvar -- achado real dela. Ver
+    // ficha-perfil.js (FP_CAMPO_TABELA/fpCamposEditaveis/fpAtivarEdicao/
+    // fpSalvar) e ficha-perfil.partial.html. Visibilidade (ver_X) e
     // exclusividade da Diretoria (Ritmista nunca vê, mesmo autoedição)
     // também ficam lá, dentro de fpIniciar.
 
@@ -3298,27 +3224,12 @@
         await fpMontar(document.getElementById('fp-container-ritmista'));
         fpIniciar(r, meu ? meu.perfil : null, meu ? meu.pessoa_id : null, { aoSalvar: () => carregarRitmistas() });
 
-        // Menor — declaração. Injetada em #fp-extra-conteudo (hook dentro de
-        // #fp-container-ritmista, ANTES do bloco de ações) -- fica no mesmo
-        // fluxo de rolagem da ficha, então nunca "atrasa" o bloco de ações
-        // conseguir flutuar (ver comentário grande logo abaixo).
-        const menor = idade !== null && idade < 18;
+        // Declaração do Responsável / Desfile (28/ago/2026): viraram parte
+        // estática da ficha compartilhada (ficha-perfil.partial.html),
+        // visibilidade e valor inicial resolvidos dentro de fpIniciar (ver
+        // ficha-perfil.js) -- #fp-extra-conteudo não é mais usado aqui.
         const extraConteudo = document.getElementById('fp-extra-conteudo');
-        // "Não Desfila" (28/ago/2026): junto da Declaração quando os dois se
-        // aplicam (não são exclusivos -- um menor também pode não desfilar).
-        extraConteudo.innerHTML = `
-            ${(menor && tenhoCapacidade('ver_declaracao_responsavel')) ? `
-                <div class="ficha-secao">
-                    <div class="ficha-secao-titulo">Declaração do responsável</div>
-                    <div id="fc-declaracao-area"></div>
-                </div>` : ''}
-            ${tenhoCapacidade('ver_nao_desfila') ? `
-            <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Desfile</div>
-                <div id="fc-nao-desfila-area"></div>
-            </div>` : ''}`;
-        if (menor && tenhoCapacidade('ver_declaracao_responsavel')) renderToggleDeclaracao(r.id, r.declaracao_responsavel);
-        if (tenhoCapacidade('ver_nao_desfila')) renderToggleNaoDesfila(r.id, r.nao_desfila);
+        if (extraConteudo) extraConteudo.innerHTML = '';
 
         // Botões de ação de status + Fechar. Injetados em #fp-acoes-extra
         // (hook dentro de #fp-container-ritmista, mesmo padrão já usado em

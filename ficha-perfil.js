@@ -84,6 +84,7 @@ let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: nu
 const FP_CAMPO_TABELA = {
     membro_desde: 'vinculos', bateria_instrumento_id: 'vinculos',
     naipe: 'vinculos', repique_bossa: 'vinculos', observacoes: 'vinculos',
+    declaracao_responsavel: 'vinculos', nao_desfila: 'vinculos',
 };
 
 // Naipe (Diretor) guarda os instrumentos marcados como array de nomes --
@@ -148,6 +149,12 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
         if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_instrumento_ritmista')) campos.add('bateria_instrumento_id');
         if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_medidas_ritmista')) campos.add('medidas');
         if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_observacoes')) campos.add('observacoes');
+        // Declaração/Desfile (28/ago/2026) -- viraram campos padrão do fluxo
+        // Editar/Salvar/Cancelar (eram botão de clique instantâneo antes,
+        // achado dela: clicar neles no meio de uma edição resetava a ficha
+        // inteira pro modo de visualização, "sumindo" com o Salvar).
+        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_declaracao_responsavel')) campos.add('declaracao_responsavel');
+        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_nao_desfila')) campos.add('nao_desfila');
         return campos;
     }
 
@@ -156,7 +163,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=27');
+        const res = await fetch('ficha-perfil.partial.html?v=28');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -388,6 +395,36 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         const blocoObs = elObs && (elObs.classList.contains('ficha-campo') ? elObs : elObs.closest('.ficha-campo'));
         if (blocoObs) blocoObs.style.display = 'none';
     }
+
+    // Declaração do Responsável / Desfile (28/ago/2026): mesma regra de
+    // Observações -- exclusivo da Diretoria, a própria pessoa nunca vê.
+    // Declaração some quem não tem ver_declaracao_responsavel; Desfile some
+    // quem não tem ver_nao_desfila. Além de visibilidade, guardam o valor
+    // "de vista" (fpEstado.declaracaoValor/naoDesfilaValor) que
+    // fpAtivarEdicao/fpSalvar usam -- nunca mais clique = salva na hora.
+    const podeVerDeclaracao = alvo.perfil === 'ritmista' && !autoedicao && fpEhMenorIdade(alvo.nascimento) && typeof tenhoCapacidade === 'function' && tenhoCapacidade('ver_declaracao_responsavel');
+    const blocoDeclaracao = fpEl('fp-bloco-declaracao');
+    if (blocoDeclaracao) {
+        blocoDeclaracao.style.display = podeVerDeclaracao ? '' : 'none';
+        if (podeVerDeclaracao) {
+            const strongDecl = fpEl('fp-declaracao-responsavel');
+            strongDecl.textContent = alvo.declaracao_responsavel ? 'Entregue' : 'Não entregue';
+            strongDecl.style.color = alvo.declaracao_responsavel ? '#1f4d1f' : '#c62828';
+        }
+    }
+    fpEstado.declaracaoValor = !!alvo.declaracao_responsavel;
+
+    const podeVerNaoDesfila = alvo.perfil === 'ritmista' && !autoedicao && typeof tenhoCapacidade === 'function' && tenhoCapacidade('ver_nao_desfila');
+    const blocoNaoDesfila = fpEl('fp-bloco-nao-desfila');
+    if (blocoNaoDesfila) {
+        blocoNaoDesfila.style.display = podeVerNaoDesfila ? '' : 'none';
+        if (podeVerNaoDesfila) {
+            const strongNd = fpEl('fp-nao-desfila');
+            strongNd.textContent = alvo.nao_desfila ? 'Não desfila' : 'Ok';
+            strongNd.style.color = alvo.nao_desfila ? '#706c87' : '#2d7a4f';
+        }
+    }
+    fpEstado.naoDesfilaValor = !!alvo.nao_desfila;
 
     const campoCadastro = fpEl('fp-campo-cadastro');
     if (campoCadastro) {
@@ -711,6 +748,18 @@ async function fpAtivarEdicao() {
         fpEl('fp-repique-bossa-edit').closest('label').style.display = 'flex';
     }
 
+    if (fpEstado.editaveis.has('declaracao_responsavel')) {
+        fpEl('fp-declaracao-responsavel-edit').checked = fpEstado.declaracaoValor;
+        fpEl('fp-declaracao-responsavel').style.display = 'none';
+        fpEl('fp-declaracao-responsavel-edit').closest('label').style.display = 'flex';
+    }
+
+    if (fpEstado.editaveis.has('nao_desfila')) {
+        fpEl('fp-nao-desfila-edit').checked = !fpEstado.naoDesfilaValor;
+        fpEl('fp-nao-desfila').style.display = 'none';
+        fpEl('fp-nao-desfila-edit').closest('label').style.display = 'flex';
+    }
+
     if (fpEstado.editaveis.has('naipe')) {
         const container = fpEl('fp-naipe-edit');
         const opcoesInstrumento = await fpCarregarOpcoesInstrumento(fpEstado.alvo.bateria_id);
@@ -797,6 +846,14 @@ function fpCancelarEdicao() {
     if (fpEstado.editaveis.has('repique_bossa')) {
         fpEl('fp-repique-bossa').style.display = '';
         fpEl('fp-repique-bossa-edit').closest('label').style.display = 'none';
+    }
+    if (fpEstado.editaveis.has('declaracao_responsavel')) {
+        fpEl('fp-declaracao-responsavel').style.display = '';
+        fpEl('fp-declaracao-responsavel-edit').closest('label').style.display = 'none';
+    }
+    if (fpEstado.editaveis.has('nao_desfila')) {
+        fpEl('fp-nao-desfila').style.display = '';
+        fpEl('fp-nao-desfila-edit').closest('label').style.display = 'none';
     }
     if (fpEstado.editaveis.has('naipe')) {
         fpEl('fp-naipe').style.display = '';
@@ -1018,6 +1075,14 @@ async function fpSalvar() {
     }
     if (fpEstado.editaveis.has('repique_bossa')) {
         payloadVinculo.repique_bossa = fpEl('fp-repique-bossa-edit').checked;
+    }
+    if (fpEstado.editaveis.has('declaracao_responsavel')) {
+        payloadVinculo.declaracao_responsavel = fpEl('fp-declaracao-responsavel-edit').checked;
+    }
+    if (fpEstado.editaveis.has('nao_desfila')) {
+        // Checkbox representa "desfila normalmente" (checked = vai desfilar)
+        // -- valor salvo é o inverso (ver fpAtivarEdicao/fpIniciar).
+        payloadVinculo.nao_desfila = !fpEl('fp-nao-desfila-edit').checked;
     }
     if (fpEstado.editaveis.has('naipe')) {
         payloadVinculo.naipe = Array.from(fpEstado.container.querySelectorAll('.fp-naipe-check:checked')).map(el => el.value);
