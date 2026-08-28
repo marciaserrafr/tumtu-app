@@ -1538,6 +1538,7 @@
             <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Categoria de Figurino</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('figurino')"><span>Figurino</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('eventos')"><span>Tipos de Evento</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="abrirConfigTelaSA('temporadas')"><span>Temporadas</span><span class="config-item-seta">›</span></div>
         </div>
 
         <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
@@ -1574,6 +1575,15 @@
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoEventoTipo()">+ Novo Tipo de Evento</button>
             <div id="sa-evento-tipo-editor" style="display:none;"></div>
             <div id="sa-evento-tipos-lista" class="lista-cards"></div>
+        </div>
+
+        <div id="sa-config-tela-temporadas" class="config-subtela" style="display:none;">
+            <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
+            <div class="painel-titulo">Temporadas</div>
+            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Ex: Carnaval 2026, Carnaval 2027. Usada como rótulo opcional em Eventos, pra manter tudo padronizado (evita gente digitando "Carnaval 2026" de jeitos diferentes).</p>
+            <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaTemporada()">+ Nova Temporada</button>
+            <div id="sa-temporada-editor" style="display:none;"></div>
+            <div id="sa-temporadas-lista" class="lista-cards"></div>
         </div>
     </div>
 
@@ -4641,6 +4651,7 @@
         if (bibliotecaFigurino.length === 0) await carregarBibliotecaFigurino();
         await carregarBateriaFigurino();
         if (bibliotecaEventoTipos.length === 0) await carregarBibliotecaEventoTipos();
+        if (bibliotecaTemporadas.length === 0) await carregarBibliotecaTemporadas();
         await carregarEventosBateria();
     }
 
@@ -5675,6 +5686,7 @@
     // sem leitor de QR nem lista de presença.
     // ══════════════════════════════════════════════════════════════════
     let bibliotecaEventoTipos = []; // evento_tipos ativos, biblioteca mestre
+    let bibliotecaTemporadas = []; // temporadas ativas, biblioteca mestre
     let eventosBateriaCache = [];
     let eventoEditando = null;
     let salvandoEvento = false;
@@ -5682,6 +5694,10 @@
     async function carregarBibliotecaEventoTipos() {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders });
         bibliotecaEventoTipos = res.ok ? await res.json() : [];
+    }
+    async function carregarBibliotecaTemporadas() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?ativo=eq.true&order=ordem`, { headers: authHeaders });
+        bibliotecaTemporadas = res.ok ? await res.json() : [];
     }
     async function carregarEventosBateria() {
         const bateriaId = bateriaIdContexto();
@@ -5692,6 +5708,10 @@
     function nomeTipoEvento(id) {
         const t = bibliotecaEventoTipos.find(x => x.id === id);
         return t ? t.nome : '—';
+    }
+    function nomeTemporada(id) {
+        const t = bibliotecaTemporadas.find(x => x.id === id);
+        return t ? t.nome : null;
     }
     function formatarDataBR(dataIso) {
         if (!dataIso) return '—';
@@ -5710,20 +5730,20 @@
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${ev.inclui_diretoria ? ' · Inclui Diretoria' : ''}${ev.temporada ? ' · ' + esc(ev.temporada) : ''}</div>
+                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${ev.inclui_diretoria ? ' · Inclui Diretoria' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
                 </div>
                 ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEvento(${ev.id})">Editar</button></div>` : ''}
             </div>`).join('');
     }
     function abrirNovoEvento() {
         if (bibliotecaEventoTipos.length === 0) { mostrarToast('Nenhum Tipo de Evento cadastrado ainda — fale com o Super Admin.', 'erro'); return; }
-        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, inclui_diretoria: false, temporada: '' };
+        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, inclui_diretoria: false, temporada_id: null };
         renderizarEditorEvento();
     }
     function abrirEditarEvento(id) {
         const ev = eventosBateriaCache.find(x => x.id === id);
         if (!ev) return;
-        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, inclui_diretoria: !!ev.inclui_diretoria, temporada: ev.temporada || '' };
+        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, inclui_diretoria: !!ev.inclui_diretoria, temporada_id: ev.temporada_id || null };
         renderizarEditorEvento();
     }
     function renderizarEditorEvento() {
@@ -5740,7 +5760,10 @@
                 <div class="campo"><label>Tipo *</label><select id="ev-edit-tipo">
                     ${bibliotecaEventoTipos.map(t => `<option value="${t.id}" ${ee.evento_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}
                 </select></div>
-                <div class="campo"><label>Temporada <span style="font-weight:400;color:#999;font-size:12px;">— opcional, ex: Carnaval 2026</span></label><input type="text" id="ev-edit-temporada" value="${esc(ee.temporada)}" placeholder="Ex: Carnaval 2026"></div>
+                <div class="campo"><label>Temporada <span style="font-weight:400;color:#999;font-size:12px;">— opcional</span></label><select id="ev-edit-temporada">
+                    <option value="">Sem temporada</option>
+                    ${bibliotecaTemporadas.map(t => `<option value="${t.id}" ${ee.temporada_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}
+                </select></div>
                 <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
                     <input type="checkbox" id="ev-edit-inclui-diretoria" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.inclui_diretoria ? 'checked' : ''}>
                     <label for="ev-edit-inclui-diretoria" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Inclui Diretoria (Mestre/Diretor/Apoio entram na lista de presença deste evento)</label>
@@ -5764,16 +5787,17 @@
         const data = document.getElementById('ev-edit-data').value;
         if (!data) { mostrarToast('Informe a data do evento.', 'erro'); return; }
         const evento_tipo_id = Number(document.getElementById('ev-edit-tipo').value);
-        const temporada = document.getElementById('ev-edit-temporada').value.trim() || null;
+        const temporadaVal = document.getElementById('ev-edit-temporada').value;
+        const temporada_id = temporadaVal ? Number(temporadaVal) : null;
         const inclui_diretoria = document.getElementById('ev-edit-inclui-diretoria').checked;
         const bateriaId = bateriaIdContexto();
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         salvandoEvento = true;
         try {
             if (eventoEditando.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada, inclui_diretoria }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, inclui_diretoria }) });
             } else {
-                await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada, inclui_diretoria, criado_por: u ? u.pessoa_id : null }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, inclui_diretoria, criado_por: u ? u.pessoa_id : null }) });
             }
             mostrarToast(eventoEditando.id ? 'Evento atualizado!' : 'Evento criado!');
             eventoEditando = null;
@@ -7212,6 +7236,7 @@
                 .then(carregarFigurinoMestreSA).then(renderizarFigurinoMestreListaSA);
         }
         if (nome === 'eventos') { fecharEditorEventoTipo(); carregarEventoTiposSA().then(renderizarEventoTiposListaSA); }
+        if (nome === 'temporadas') { fecharEditorTemporada(); carregarTemporadasSA().then(renderizarTemporadasListaSA); }
     }
     function voltarConfigListaSA() {
         document.querySelectorAll('#sa-painel-configuracoes-globais .config-subtela').forEach(el => el.style.display = 'none');
@@ -7726,6 +7751,94 @@
         const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
         mostrarToast('Tipo de evento excluído.'); eventoTipoEditando = null; await carregarEventoTiposSA(); renderizarEditorEventoTipo(); renderizarEventoTiposListaSA();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // TEMPORADAS -- LISTA MESTRE (Super Admin, 29/ago/2026) -- rótulo
+    // padronizado (ex: "Carnaval 2026") usado em Eventos. Pedido dela:
+    // texto livre ia gerar grafia inconsistente ("já vi no apelido, que é
+    // livre"). Mesma estrutura simples de Tipos de Evento (nome/ordem/ativo).
+    // ══════════════════════════════════════════════════════════════════
+    let temporadasCacheSA = [];
+    let temporadaEditando = null;
+    let salvandoTemporada = false;
+    async function carregarTemporadasSA() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?order=ordem`, { headers: authHeaders });
+        temporadasCacheSA = res.ok ? await res.json() : [];
+    }
+    function cardTemporadaSA(t) {
+        return `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(t.nome)} ${t.ativo === false ? '<span class="badge-inativo">Inativa</span>' : ''}</div>
+                </div>
+                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarTemporada(${t.id})">Editar</button></div>
+            </div>`;
+    }
+    function renderizarTemporadasListaSA() {
+        const container = document.getElementById('sa-temporadas-lista');
+        if (!container) return;
+        if (temporadasCacheSA.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhuma temporada cadastrada ainda.</div>'; return; }
+        container.innerHTML = [...temporadasCacheSA].sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(cardTemporadaSA).join('');
+    }
+    function abrirNovaTemporada() { temporadaEditando = { id: null, nome: '', ativo: true }; renderizarEditorTemporada(); }
+    function abrirEditarTemporada(id) {
+        const t = temporadasCacheSA.find(x => x.id === id);
+        if (!t) return;
+        temporadaEditando = { id: t.id, nome: t.nome, ativo: t.ativo !== false };
+        renderizarEditorTemporada();
+    }
+    function renderizarEditorTemporada() {
+        const te = temporadaEditando;
+        const editor = document.getElementById('sa-temporada-editor');
+        if (!editor) return;
+        if (!te) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${te.id ? 'Editar Temporada' : 'Nova Temporada'}</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="tp-edit-nome" value="${esc(te.nome)}" placeholder="Ex: Carnaval 2026"></div>
+                <div class="campo"><label>Status</label><select id="tp-edit-ativo">
+                    <option value="true" ${te.ativo ? 'selected' : ''}>Ativa</option>
+                    <option value="false" ${!te.ativo ? 'selected' : ''}>Inativa</option>
+                </select></div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button id="tp-btn-salvar" class="btn-ficha btn-ficha-salvar" onclick="salvarTemporadaSA()">Salvar</button>
+                    ${te.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirTemporadaSA(${te.id})">Excluir temporada</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorTemporada()">Cancelar</button>
+            </div>
+        </div>`;
+    }
+    function fecharEditorTemporada() { temporadaEditando = null; renderizarEditorTemporada(); }
+    async function salvarTemporadaSA() {
+        if (salvandoTemporada) return;
+        const nome = document.getElementById('tp-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome da temporada.', 'erro'); return; }
+        const ativo = document.getElementById('tp-edit-ativo').value === 'true';
+        salvandoTemporada = true;
+        try {
+            if (temporadaEditando.id) {
+                await fetch(`${SUPABASE_URL}/rest/v1/temporadas?id=eq.${temporadaEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo }) });
+            } else {
+                const ordem = Math.max(0, ...temporadasCacheSA.map(t => t.ordem || 0)) + 1;
+                await fetch(`${SUPABASE_URL}/rest/v1/temporadas`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem }) });
+            }
+            mostrarToast(temporadaEditando.id ? 'Temporada atualizada!' : 'Temporada criada!');
+            temporadaEditando = null;
+            await carregarTemporadasSA();
+            renderizarEditorTemporada();
+            renderizarTemporadasListaSA();
+        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
+        finally { salvandoTemporada = false; }
+    }
+    async function excluirTemporadaSA(id) {
+        if (!confirm('Excluir esta temporada? Se algum evento já usa ela, prefira marcar como "Inativa".')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
+        mostrarToast('Temporada excluída.'); temporadaEditando = null; await carregarTemporadasSA(); renderizarEditorTemporada(); renderizarTemporadasListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════
