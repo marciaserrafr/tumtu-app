@@ -2600,3 +2600,66 @@ Corrigida: depois de achar o `vinculo` alvo, a função agora exige `callerPesso
 1. Conta de teste sem nenhuma capacidade (`{}`) tentou notificar aprovação de outra pessoa → `403 "Voce nao tem permissao pra notificar essa aprovacao."` (antes da correção, teria enviado o e-mail).
 2. Mesma conta, com `aprovar_ritmistas` concedido temporariamente (via `DISABLE/ENABLE TRIGGER`, já que `capacidades` é protegida) → `200 {"ok":true}`, notificando um vínculo de e-mail fake (`@teste.com`, domínio não real, sem risco de incomodar ninguém de verdade).
 3. Conta restaurada ao estado original (`capacidades={}`) depois do teste.
+
+## 70. Sessão de 28/ago/2026 (continuação seguinte): sétima rodada — o achado mais grave do dia, escalação de privilégio no cadastro público
+
+Última rodada da varredura ("Pode fazer, por favor" depois dela perguntar "isso não vai acabar nunca?" — combinado fechar em duas frentes específicas e parar por hoje). As duas frentes: (1) o fluxo de cadastro público, nunca revisado nesta sessão; (2) a tabela legada `ritmistas`, congelada desde 13/jul/2026.
+
+### 70.1 `ritmistas` (legado): confirmado que já falha do lado seguro
+
+`meu_perfil()`/`meu_status()`/`meu_bateria_id()` (as três funções antigas, proibidas de usar desde a seção 27) leem da tabela `ritmistas` por `auth_user_id = auth.uid()`. Só 2 linhas reais existem nessa tabela (ambas contas da Márcia, já migradas — seção "próximo grande marco" do CLAUDE.md), e ela é Super Admin (bypassa tudo de qualquer forma). Pra qualquer outra pessoa do sistema, essas três funções retornam `NULL` — condições como `meu_perfil() = ANY(['mestre','diretor'])` avaliam pra falso, RLS nega. Confirmado: o "esquecimento" já é seguro por natureza (nega acesso, nunca libera) — nenhuma correção necessária, matching a decisão dela de 27/ago de manter a tabela sem apagar.
+
+### 70.2 CRÍTICO — o achado mais grave de todas as sete rodadas: escalação de privilégio via cadastro público
+
+Pergunta que motivou a checagem: os gatilhos que protegem coluna por coluna (`aplicar_matriz_edicao_pessoas`/`aplicar_matriz_edicao_vinculos`, corrigidos nas rodadas 3 e 4) — **quando exatamente eles disparam?** Confirmado via `pg_trigger.tgtype` (bitmask que codifica em quais eventos um gatilho roda): **os dois só disparam em `UPDATE`, nunca em `INSERT`.**
+
+O cadastro público (autocadastro, `cadastro.html`, sem login prévio) é exatamente um `INSERT` — em `pessoas` (criando a ficha) e em `vinculos` (criando o vínculo com a bateria). Nesse momento, a ÚNICA trava é a cláusula `WITH CHECK` das policies `proprio_insert` — que, antes desta correção, só conferia "essa linha é sua mesmo?" (`auth_user_id = auth.uid()` / `pessoa_id = meu_pessoa_id()`), sem restringir NENHUM outro campo.
+
+Isso significava, em teoria: um pedido de cadastro fabricado à mão (não pelo formulário real, direto na API) podia:
+- Se autodeclarar `pessoas.super_admin = true` — controle total do sistema inteiro.
+- Se autoconceder `vinculos.capacidades = {"editar_permissoes": true, ...}` numa bateria à escolha — controle administrativo completo daquela bateria.
+
+O vínculo nasce sempre `status = 'pendente'` (isso sim já era protegido), então o atacante não teria acesso imediato — mas o valor forjado ficaria dormente na linha, esperando **qualquer aprovação normal** (um Diretor real clicando "Aprovar" achando que é só mais um Ritmista novo). A aprovação só mexe em `status`/`aprovado_por`/`motivo_status` — nunca reavalia `capacidades`/`super_admin`, porque o gatilho de `UPDATE` só reseta o que está SENDO alterado naquela chamada específica; se `capacidades` não faz parte do `PATCH` de aprovação, o valor forjado no `INSERT` original passa incólume. Resultado: virar administrador completo (ou Super Admin) só esperando um clique de aprovação de rotina, sem ninguém perceber nada de diferente na tela.
+
+**Correção** — as duas policies `proprio_insert` ganharam `WITH CHECK` mais rígido, listando explicitamente o que uma pessoa pode/não pode declarar sobre si mesma no próprio cadastro:
+
+```sql
+-- pessoas: só falta bloquear super_admin -- todo o resto (CPF, endereço,
+-- foto etc.) é dado da PRÓPRIA pessoa se cadastrando, sem risco a terceiros.
+alter policy "proprio_insert" on public.pessoas
+with check (auth_user_id = auth.uid() and coalesce(super_admin, false) = false);
+
+-- vinculos: bloqueia os campos que cadastro.html NUNCA envia (confirmado
+-- lendo o código real) -- capacidades, restrito_ao_naipe, nao_desfila,
+-- declaracao_responsavel, aprovado_por, observacoes, naipe. Os campos que
+-- o formulário legítimo PRECISA enviar (nivel_acesso_id, bateria_
+-- instrumento_id, politica_privacidade_aceita_em, modo_carteirinha_
+-- individual -- este último true pro cargo "apoio", seção 61) continuam
+-- livres, senão o cadastro real quebraria.
+alter policy "proprio_insert" on public.vinculos
+with check (
+  pessoa_id = meu_pessoa_id() and status = 'pendente'
+  and coalesce(capacidades, '{}'::jsonb) = '{}'::jsonb
+  and coalesce(restrito_ao_naipe, false) = false
+  and coalesce(nao_desfila, false) = false
+  and coalesce(declaracao_responsavel, false) = false
+  and aprovado_por is null
+  and coalesce(observacoes, '') = ''
+  and (naipe is null or naipe = '[]'::jsonb)
+);
+```
+
+**Testado ao vivo com uma conta nova de verdade** (criada via `/auth/v1/signup`, descartável, `teste.varredura.seguranca.28ago@teste.com`) — o teste mais completo das sete rodadas, correção aplicada ANTES de qualquer tentativa de ataque (dado o tamanho do risco):
+1. `POST /rest/v1/pessoas` com `super_admin: true` → `403`, "new row violates row-level security policy" (antes da correção, teria criado a ficha com Super Admin já ativo).
+2. `POST /rest/v1/pessoas` legítimo (sem `super_admin`) → `201`, `super_admin: false` — cadastro normal intacto.
+3. `POST /rest/v1/vinculos` com `capacidades: {"editar_permissoes": true, "aprovar_ritmistas": true}` → `403`.
+4. `POST /rest/v1/vinculos` legítimo (exatamente os campos que `cadastro.html` envia de verdade) → `201`, `capacidades: {}`, `status: "pendente"` — cadastro normal intacto.
+5. Conta de teste inteira apagada depois (`pessoas`, `vinculos`, e a conta de login em `auth.users`) — confirmado com consulta que não sobrou nada.
+
+`get_advisors` rodado uma última vez: mesmo estado limpo das rodadas anteriores (esse tipo de achado — janela de tempo entre `INSERT` e a primeira `UPDATE`, sem trigger cobrindo o primeiro — não é algo que a ferramenta automática detecta; só a leitura direta de `pg_trigger.tgtype` revela isso).
+
+### 70.3 Fechamento da varredura de 28/ago/2026
+
+Sete rodadas, mesmo dia, mesma sessão — resumo do que foi encontrado e corrigido, do mais pro menos grave: (1) QR de emergência sem filtro obrigatório, (2) tabelas de backup públicas, (3) dados do responsável de menor + qr_token sem trava de edição, (4) escalação de privilégio via "Restrito ao naipe", (5) permissão antiga esquecida bloqueando Medidas de Ritmista, (6) Edge Function sem checagem de chamador, (7) **escalação de privilégio completa via cadastro público** — o mais grave de todos, porque não exigia nenhum acesso prévio ao sistema, só saber fazer uma chamada HTTP fora do formulário normal.
+
+Ela perguntou, no meio do caminho, se isso "não vai acabar nunca" — resposta dada e válida daqui pra frente: nenhuma varredura é matematicamente completa, mas essas sete rodadas cobriram as frentes de maior peso (RLS de toda tabela, duas vezes, de ângulos diferentes; toda função/view com privilégio elevado; todas as Edge Functions; e agora a janela INSERT-sem-trigger). A partir daqui, o modelo combinado (memória `feedback-auditar-seguranca-apos-grandes-mudancas-banco`) é: essa varredura roda de novo, por conta própria, sempre que houver mudança de banco relevante — não em loop no mesmo dia sem fim.
