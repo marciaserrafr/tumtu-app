@@ -2152,6 +2152,42 @@
     </div>
 </div>
 
+<!-- PAINEL PRESENÇA (módulo de Presença via QR, 29/ago/2026) -- lista de
+     eventos (nível 1) -> marcar presença de um evento (nível 2), mesmo
+     padrão visual de Entrega de Figurino (selos, confirmação, totalizador),
+     mas sem tamanho/lado/Convidados -- aqui é só quem esteve presente.
+     Elegível = Ritmistas ativos + Diretoria dos perfis marcados no evento
+     (eventos.perfis_diretoria_inclusos). Leitor de câmera fica pra uma
+     próxima etapa -- por enquanto, marcação manual na lista. -->
+<div class="painel" id="painel-presenca">
+    <div id="presenca-lista">
+        <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
+        <div class="painel-titulo">Presença</div>
+        <p class="config-sub-desc">Marque presença por evento. Pra cadastrar um evento novo, use Configurações → Eventos.</p>
+        <div id="presenca-eventos-lista" class="lista-cards"></div>
+    </div>
+
+    <div id="presenca-tela-marcar" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Presença</button>
+        <div class="painel-titulo" id="presenca-evento-titulo">Presença</div>
+        <div id="presenca-totalizador" class="total-duplo-card"></div>
+        <input type="text" id="presenca-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarPresencaLista()"
+            style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;margin-bottom:10px;">
+        <div class="figurino-filtros-rotulo">Filtros</div>
+        <div class="figurino-filtros-linha">
+            <select id="presenca-filtro-tipo" class="figurino-pill-select" onchange="renderizarPresencaLista()">
+                <option value="">Todos</option>
+            </select>
+            <select id="presenca-filtro-status" class="figurino-pill-select" onchange="renderizarPresencaLista()">
+                <option value="todos">Todos os status</option>
+                <option value="presentes">Presentes</option>
+                <option value="ausentes">Não registrados</option>
+            </select>
+        </div>
+        <div id="presenca-pessoas-lista"></div>
+    </div>
+</div>
+
 <!-- PAINEL VISÃO GERAL -->
 <div class="painel ativo" id="painel-visao">
 
@@ -5831,6 +5867,194 @@
     }
 
     // ══════════════════════════════════════════════════════════════════
+    // PRESENÇA (29/ago/2026) -- marcar presença por evento, mesmo padrão
+    // visual de Entrega de Figurino (selos, confirmação, totalizador), mas
+    // sem tamanho/lado/Convidados -- aqui é só quem esteve presente. Cada
+    // linha é um vínculo elegível pro evento (Ritmistas ativos sempre +
+    // Diretoria dos perfis marcados em eventos.perfis_diretoria_inclusos).
+    // Uma linha em evento_presencas = presente; sem linha = não registrado.
+    // Leitor de câmera fica pra uma próxima etapa -- por enquanto,
+    // marcação manual, um clique + confirmação por pessoa.
+    // ══════════════════════════════════════════════════════════════════
+    let presencaEventosCache = [];
+    let presencaEventoAtual = null;
+    let presencaPessoasCache = [];
+    let presencaConfirmando = {};
+
+    function voltarPresencaLista() {
+        document.querySelectorAll('#painel-presenca .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('presenca-lista').style.display = 'block';
+    }
+
+    async function iniciarPresencaTab() {
+        voltarPresencaLista();
+        if (bibliotecaEventoTipos.length === 0) await carregarBibliotecaEventoTipos();
+        await carregarEventosBateria();
+        presencaEventosCache = eventosBateriaCache;
+        renderizarPresencaEventosLista();
+    }
+
+    function renderizarPresencaEventosLista() {
+        const container = document.getElementById('presenca-eventos-lista');
+        if (!container) return;
+        if (presencaEventosCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum evento cadastrado ainda. Crie um em Configurações → Eventos.</div>'; return; }
+        container.innerHTML = presencaEventosCache.map(ev => `
+            <div class="item-card" onclick="abrirPresencaEvento(${ev.id})" style="cursor:pointer;">
+                <div class="item-info">
+                    <div class="item-nome">${esc(ev.nome)}</div>
+                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
+                </div>
+                <span class="config-item-seta">›</span>
+            </div>`).join('');
+    }
+
+    async function abrirPresencaEvento(eventoId) {
+        const evento = presencaEventosCache.find(e => e.id === eventoId);
+        if (!evento) return;
+        presencaEventoAtual = evento;
+        document.getElementById('presenca-lista').style.display = 'none';
+        document.querySelectorAll('#painel-presenca .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('presenca-tela-marcar').style.display = 'block';
+        document.getElementById('presenca-evento-titulo').textContent = evento.nome;
+        document.getElementById('presenca-busca').value = '';
+        await carregarPresencaPessoas();
+    }
+
+    // Mesmo rótulo já usado em Figurino/Eventos pro mesmo tipo de perfil de
+    // Diretoria (LABEL_PERFIL_FIGURINO/LABEL_PERFIL_DIRETORIA_EVENTO).
+    const LABEL_PERFIL_DIRETORIA_PRESENCA = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
+
+    async function carregarPresencaPessoas() {
+        const evento = presencaEventoAtual;
+        if (!evento) return;
+        const bateriaId = bateriaIdContexto();
+        const container = document.getElementById('presenca-pessoas-lista');
+        container.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        const perfis = ['ritmista', ...(evento.perfis_diretoria_inclusos || [])];
+        const [resPessoas, resPresencas] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=in.(${perfis.join(',')})&order=nome&select=id,pessoa_id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${evento.id}`, { headers: authHeaders }),
+        ]);
+        const pessoas = resPessoas.ok ? await resPessoas.json() : [];
+        const presencas = resPresencas.ok ? await resPresencas.json() : [];
+        const presentesSet = new Set(presencas.map(p => p.vinculo_id));
+        presencaPessoasCache = pessoas.map(p => ({ ...p, presente: presentesSet.has(p.id) }));
+        presencaConfirmando = {};
+        popularFiltroTipoPresenca();
+        renderizarPresencaLista();
+        atualizarTotalizadorPresenca();
+    }
+
+    function popularFiltroTipoPresenca() {
+        const select = document.getElementById('presenca-filtro-tipo');
+        if (!select) return;
+        const valorAtual = select.value;
+        const instrumentos = Array.from(new Set(presencaPessoasCache.filter(p => p.perfil === 'ritmista').map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        const cargos = ['mestre', 'diretor', 'apoio'].filter(p => presencaPessoasCache.some(x => x.perfil === p));
+        select.innerHTML = '<option value="">Todos</option>'
+            + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('')
+            + cargos.map(p => `<option value="${p}">${LABEL_PERFIL_DIRETORIA_PRESENCA[p]}</option>`).join('');
+        select.value = valorAtual;
+    }
+
+    function atualizarTotalizadorPresenca() {
+        const el = document.getElementById('presenca-totalizador');
+        if (!el) return;
+        const total = presencaPessoasCache.length;
+        const presentes = presencaPessoasCache.filter(p => p.presente).length;
+        el.innerHTML = totalDuploHtml(total, total - presentes, false);
+    }
+
+    function renderizarPresencaLista() {
+        const container = document.getElementById('presenca-pessoas-lista');
+        if (!container) return;
+        const busca = (document.getElementById('presenca-busca').value || '').trim().toLowerCase();
+        const tipoFiltro = document.getElementById('presenca-filtro-tipo').value;
+        const statusFiltro = document.getElementById('presenca-filtro-status').value;
+        const filtrada = presencaPessoasCache.filter(p => {
+            if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
+            if (tipoFiltro) {
+                if (p.perfil === 'ritmista') { if (p.instrumento_nome !== tipoFiltro) return false; }
+                else if (p.perfil !== tipoFiltro) return false;
+            }
+            if (statusFiltro === 'presentes' && !p.presente) return false;
+            if (statusFiltro === 'ausentes' && p.presente) return false;
+            return true;
+        });
+        const podeMarcar = souSuperAdmin || tenhoCapacidade('marcar_presenca');
+        const linhaHtml = p => {
+            const detalhe = esc(p.instrumento_nome || LABEL_PERFIL_DIRETORIA_PRESENCA[p.perfil] || '');
+            let acaoHtml;
+            if (p.presente) {
+                acaoHtml = podeMarcar
+                    ? `<button type="button" class="figurino-selo figurino-selo-entregue" onclick="desfazerPresenca(${p.id})">✓ Presente</button>`
+                    : `<span class="figurino-selo figurino-selo-entregue">✓ Presente</span>`;
+            } else if (presencaConfirmando[p.id]) {
+                acaoHtml = `<div class="figurino-confirmacao">
+                    <span class="pergunta">Confirma?</span>
+                    <div class="botoes">
+                        <button type="button" class="figurino-btn-nao" onclick="cancelarConfirmacaoPresenca(${p.id})">Cancelar</button>
+                        <button type="button" class="figurino-btn-sim" onclick="marcarPresenca(${p.id})">Sim</button>
+                    </div>
+                </div>`;
+            } else {
+                acaoHtml = podeMarcar
+                    ? `<button type="button" class="figurino-selo figurino-selo-pendente" onclick="pedirConfirmacaoPresenca(${p.id})">Não registrado</button>`
+                    : `<span class="figurino-selo figurino-selo-pendente">Não registrado</span>`;
+            }
+            return `
+            <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
+                <div style="min-width:0;flex:1;">
+                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
+                    <div style="font-size:12px;color:var(--cor-texto-muted);">${detalhe}</div>
+                </div>
+                <div class="figurino-coluna-acao">${acaoHtml}</div>
+            </div>`;
+        };
+        if (filtrada.length === 0) { container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>'; return; }
+        const ritmistas = filtrada.filter(p => p.perfil === 'ritmista');
+        const diretoria = filtrada.filter(p => p.perfil !== 'ritmista');
+        let html = '';
+        if (ritmistas.length > 0) {
+            if (diretoria.length > 0) html += `<div class="secao-titulo">Ritmistas</div>`;
+            html += ritmistas.map(linhaHtml).join('');
+        }
+        if (diretoria.length > 0) {
+            if (ritmistas.length > 0) html += `<div class="secao-titulo">Diretoria</div>`;
+            html += diretoria.map(linhaHtml).join('');
+        }
+        container.innerHTML = html;
+    }
+
+    function pedirConfirmacaoPresenca(vinculoId) { presencaConfirmando[vinculoId] = true; renderizarPresencaLista(); }
+    function cancelarConfirmacaoPresenca(vinculoId) { delete presencaConfirmando[vinculoId]; renderizarPresencaLista(); }
+
+    async function marcarPresenca(vinculoId) {
+        const p = presencaPessoasCache.find(x => x.id === vinculoId);
+        if (!p || !presencaEventoAtual) return;
+        delete presencaConfirmando[vinculoId];
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        const bateriaId = bateriaIdContexto();
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?on_conflict=evento_id,vinculo_id`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates', ...authHeaders },
+            body: JSON.stringify({ evento_id: presencaEventoAtual.id, vinculo_id: vinculoId, pessoa_id: p.pessoa_id, bateria_id: bateriaId, confirmado_por: u ? u.pessoa_id : null })
+        });
+        if (!res.ok) { mostrarToast('Não foi possível marcar presença.', 'erro'); renderizarPresencaLista(); return; }
+        p.presente = true;
+        renderizarPresencaLista();
+        atualizarTotalizadorPresenca();
+    }
+    async function desfazerPresenca(vinculoId) {
+        const p = presencaPessoasCache.find(x => x.id === vinculoId);
+        if (!p || !presencaEventoAtual) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${presencaEventoAtual.id}&vinculo_id=eq.${vinculoId}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível desfazer.', 'erro'); return; }
+        p.presente = false;
+        renderizarPresencaLista();
+        atualizarTotalizadorPresenca();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
     // SUPER ADMIN — portado de super-admin.html (Etapa 2 da unificação,
     // 18/ago/2026). Tudo abaixo só é acionado quando souSuperAdmin===true.
     // Super Admin sempre vê tudo, sem checagem de capacidade nenhuma.
@@ -5875,6 +6099,7 @@
         'historico': 'ver_historico',
         'figurino': 'ver_figurino',
         'extras': 'ver_extras',
+        'presenca': 'ver_eventos',
     };
 
     // A aba "Configurações" aparece se a pessoa tiver QUALQUER capacidade de
@@ -5895,7 +6120,7 @@
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
     // das capacidades dos itens que ela agrupa.
-    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'extras', 'permissoes', 'historico'];
+    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'permissoes', 'historico'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -5980,6 +6205,7 @@
         { aba: 'configuracoes', label: 'Configurações' },
         { aba: 'figurino', label: 'Entrega de Figurino' },
         { aba: 'extras', label: 'Convidados' },
+        { aba: 'presenca', label: 'Presença' },
         { aba: 'comercial', label: 'Comercial' },
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
@@ -6893,6 +7119,7 @@
             { chave: 'exportar_diretoria', label: 'Exportar pra Excel', dependeDe: 'ver_acessos' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
+        { grupo: 'Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos', dependeDe: 'ver_eventos' }] },
         { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Visualizar' }, { chave: 'editar_extras', label: 'Cadastrar e editar', dependeDe: 'ver_extras' }] },
         { grupo: 'Carteirinha', itens: [{ chave: 'ver_carteirinha_outros', label: 'Visualizar a carteirinha de outra pessoa' }] },
         { grupo: 'Configurações', itens: [
@@ -8433,6 +8660,7 @@
         if (aba === 'comercial') renderizarComercialTab();
         if (aba === 'figurino') iniciarFigurinoTab();
         if (aba === 'extras') iniciarExtrasTab();
+        if (aba === 'presenca') iniciarPresencaTab();
         if (aba === 'permissoes') { permissoesPessoaEditando = null; voltarPermissoesLista(); renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'historico') carregarHistoricoEscolaSA();
         if (aba === 'administrativo') renderizarAdministrativoLista();
