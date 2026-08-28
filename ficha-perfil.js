@@ -484,10 +484,14 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         });
     }
 
-    // Observações (28/ago/2026): campo livre exclusivo da Diretoria -- ao
-    // contrário do bloco de dados sensíveis acima (a própria pessoa sempre
-    // vê os próprios dados), aqui é o oposto de propósito: a própria
-    // pessoa NUNCA vê, mesmo pedido explícito dela.
+    // Observações (28/ago/2026): campo livre exclusivo da Diretoria pra
+    // EDITAR (isso nunca muda -- Ritmista nunca escreve a própria
+    // Observação) -- ao contrário do bloco de dados sensíveis acima (a
+    // própria pessoa sempre vê os próprios dados), aqui a própria pessoa só
+    // vê se a bateria liberar "ver" (ritmista_pode_ver_observacoes, sessão
+    // seguinte, mesmo padrão de Desfile/Declaração) -- checado de forma
+    // assíncrona em fpAplicarPermissaoAutoedicaoToggles, já que depende de
+    // buscar a configuração da bateria.
     const podeVerObservacoes = alvo.perfil === 'ritmista' && !autoedicao && typeof tenhoCapacidade === 'function' && tenhoCapacidade('ver_observacoes');
     if (!podeVerObservacoes) {
         const elObs = fpEl('fp-observacoes');
@@ -832,10 +836,19 @@ async function fpAplicarPermissaoRepiqueBossa(alvo) {
 async function fpAplicarPermissaoAutoedicaoToggles(alvo) {
     if (!fpEstado.autoedicao || alvo.perfil !== 'ritmista' || !alvo.bateria_id) return;
     const authHeaders = await fpAuthHeaders();
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${alvo.bateria_id}&select=ritmista_pode_ver_desfile,ritmista_pode_ver_declaracao_responsavel`, { headers: authHeaders });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${alvo.bateria_id}&select=ritmista_pode_ver_desfile,ritmista_pode_ver_declaracao_responsavel,ritmista_pode_ver_observacoes`, { headers: authHeaders });
     const rows = res.ok ? await res.json() : [];
     const bateria = rows[0] || {};
     if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
+
+    // Observações (sessão seguinte, 28/ago/2026) -- continua fora de
+    // `editaveis` mesmo revelada (Ritmista só VÊ, nunca ganha o "Editar"
+    // desse campo em autoedição, ver fpCamposEditaveis).
+    if (bateria.ritmista_pode_ver_observacoes) {
+        const elObs = fpEl('fp-observacoes');
+        const blocoObs = elObs && (elObs.classList.contains('ficha-campo') ? elObs : elObs.closest('.ficha-campo'));
+        if (blocoObs) blocoObs.style.display = '';
+    }
 
     if (fpEhMenorIdade(alvo.nascimento) && bateria.ritmista_pode_ver_declaracao_responsavel) {
         const blocoDeclaracao = fpEl('fp-bloco-declaracao');

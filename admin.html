@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=21">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=41"></script>
+    <script src="ficha-perfil.js?v=42"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -1739,6 +1739,15 @@
             <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja a própria Declaração do Responsável</label>
         </div>
         <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca marca nenhum dos dois, só enxerga o valor já definido pela Diretoria. Declaração só aparece de fato pra quem é menor de idade.</div>
+
+        <!-- Observações (28/ago/2026, sessão seguinte): mesmo padrão dos
+             dois acima -- o ritmista continua NUNCA editando (Observações é
+             sempre escrita pela Diretoria), só a bateria pode liberar "ver". -->
+        <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+            <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
+            <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja as próprias Observações</label>
+        </div>
+        <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca edita, só a Diretoria escreve. Nasce desligado.</div>
     </div>
 
     <div id="pe-editor" style="display:none;"></div>
@@ -6667,6 +6676,12 @@
             chkVeDeclaracao.disabled = !podeEditarPermissoes;
             chkVeDeclaracao.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
         }
+        const chkVeObservacoes = document.getElementById('pe-ritmista-ve-observacoes');
+        if (chkVeObservacoes) {
+            chkVeObservacoes.checked = !!(bateriaAtualData && bateriaAtualData.ritmista_pode_ver_observacoes);
+            chkVeObservacoes.disabled = !podeEditarPermissoes;
+            chkVeObservacoes.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
+        }
         if (!bateriaId) { permissoesPessoaCache = []; container.innerHTML = '<div class="estado-vazio">Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
@@ -6706,14 +6721,16 @@
     async function salvarRitmistaVeToggle(qual, ligado) {
         const id = bateriaAtualData ? bateriaAtualData.id : null;
         if (!id) return;
-        const coluna = qual === 'desfile' ? 'ritmista_pode_ver_desfile' : 'ritmista_pode_ver_declaracao_responsavel';
+        const colunas = { desfile: 'ritmista_pode_ver_desfile', declaracao: 'ritmista_pode_ver_declaracao_responsavel', observacoes: 'ritmista_pode_ver_observacoes' };
+        const nomes = { desfile: 'o próprio Desfile', declaracao: 'a própria Declaração do Responsável', observacoes: 'as próprias Observações' };
+        const coluna = colunas[qual];
         const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ [coluna]: ligado }) });
         if (res.ok) {
             const dados = await res.json();
             bateriaAtualData = dados[0];
             const idx = bateriasCache.findIndex(x => x.id === id);
             if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
-            const nome = qual === 'desfile' ? 'o próprio Desfile' : 'a própria Declaração do Responsável';
+            const nome = nomes[qual];
             mostrarToast(ligado ? `Ritmistas podem ver ${nome}.` : `Ritmistas não veem mais ${nome}.`);
         } else {
             mostrarToast('Erro ao atualizar.', 'erro');
