@@ -1965,6 +1965,10 @@
             <span>Figurino</span>
             <span class="config-item-seta">›</span>
         </div>
+        <div id="config-item-eventos" class="config-item" onclick="abrirConfigTela('eventos')">
+            <span>Eventos</span>
+            <span class="config-item-seta">›</span>
+        </div>
     </div>
 
     <!-- Sub-tela: Instrumentos -->
@@ -2002,6 +2006,16 @@
         <div class="painel-titulo">Figurino</div>
         <p class="config-sub-desc">Ative as peças (ex: Camisa da Final) que sua bateria vai controlar entrega nesta temporada. Nasce tudo desligado — ligue só o que for usar.</p>
         <div id="config-figurino-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+    </div>
+
+    <!-- Sub-tela: Eventos (módulo de Presença via QR, 29/ago/2026) -->
+    <div id="config-tela-eventos" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
+        <div class="painel-titulo">Eventos</div>
+        <p class="config-sub-desc">Cadastre os eventos da sua bateria (ensaios, apresentações...) pra depois marcar presença por QR Code.</p>
+        <button id="eventos-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoEvento()">+ Novo Evento</button>
+        <div id="eventos-editor" style="display:none;"></div>
+        <div id="eventos-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
 </div>
@@ -4564,6 +4578,7 @@
         vagas: { ver: 'ver_vagas', editar: 'editar_vagas' },
         medidas: { ver: 'ver_medidas', editar: 'editar_medidas' },
         figurino: { ver: 'ver_figurino_bateria', editar: 'editar_figurino_bateria' },
+        eventos: { ver: 'ver_eventos', editar: 'editar_eventos' },
     };
     function podeVerConfigSubtela(nome) {
         const c = CAPACIDADE_CONFIG_SUBTELA[nome];
@@ -4605,6 +4620,7 @@
         if (nome === 'vagas') renderizarConfigVagas();
         if (nome === 'medidas') renderizarConfigMedidas();
         if (nome === 'figurino') renderizarConfigFigurino();
+        if (nome === 'eventos') { fecharEditorEvento(); renderizarEventosLista(); }
         aplicarSomenteLeituraConfigTela(nome, !souSuperAdmin && !podeEditarConfigSubtela(nome));
     }
 
@@ -4624,6 +4640,8 @@
         await carregarBateriaMedidaTipos();
         if (bibliotecaFigurino.length === 0) await carregarBibliotecaFigurino();
         await carregarBateriaFigurino();
+        if (bibliotecaEventoTipos.length === 0) await carregarBibliotecaEventoTipos();
+        await carregarEventosBateria();
     }
 
     // "Nome usado" mora na MESMA linha do título de cada grupo (Tradicionais/
@@ -5647,6 +5665,133 @@
         renderizarEditorExtra();
         renderizarExtrasLista();
         atualizarTotalizadorExtras();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // CONFIGURAÇÕES → EVENTOS (29/ago/2026) -- cada bateria cria os próprios
+    // eventos (ensaio, apresentação...), escolhendo um Tipo da biblioteca
+    // mestre (Super Admin → Configurações → Tipos de Evento). Base do
+    // módulo de Presença via QR -- essa tela só cadastra o evento, ainda
+    // sem leitor de QR nem lista de presença.
+    // ══════════════════════════════════════════════════════════════════
+    let bibliotecaEventoTipos = []; // evento_tipos ativos, biblioteca mestre
+    let eventosBateriaCache = [];
+    let eventoEditando = null;
+    let salvandoEvento = false;
+
+    async function carregarBibliotecaEventoTipos() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders });
+        bibliotecaEventoTipos = res.ok ? await res.json() : [];
+    }
+    async function carregarEventosBateria() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { eventosBateriaCache = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&order=data.desc`, { headers: authHeaders });
+        eventosBateriaCache = res.ok ? await res.json() : [];
+    }
+    function nomeTipoEvento(id) {
+        const t = bibliotecaEventoTipos.find(x => x.id === id);
+        return t ? t.nome : '—';
+    }
+    function formatarDataBR(dataIso) {
+        if (!dataIso) return '—';
+        const [ano, mes, dia] = dataIso.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+    function renderizarEventosLista() {
+        const container = document.getElementById('eventos-lista');
+        if (!container) return;
+        const podeEditar = souSuperAdmin || tenhoCapacidade('editar_eventos');
+        const btnNovo = document.getElementById('eventos-btn-novo');
+        if (btnNovo) btnNovo.style.display = podeEditar ? '' : 'none';
+        if (bibliotecaEventoTipos.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum Tipo de Evento cadastrado ainda pelo Super Admin — fale com ela antes de criar um Evento.</div>'; return; }
+        if (eventosBateriaCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum evento cadastrado ainda.</div>'; return; }
+        container.innerHTML = eventosBateriaCache.map(ev => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(ev.nome)}</div>
+                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${ev.inclui_diretoria ? ' · Inclui Diretoria' : ''}${ev.temporada ? ' · ' + esc(ev.temporada) : ''}</div>
+                </div>
+                ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEvento(${ev.id})">Editar</button></div>` : ''}
+            </div>`).join('');
+    }
+    function abrirNovoEvento() {
+        if (bibliotecaEventoTipos.length === 0) { mostrarToast('Nenhum Tipo de Evento cadastrado ainda — fale com o Super Admin.', 'erro'); return; }
+        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, inclui_diretoria: false, temporada: '' };
+        renderizarEditorEvento();
+    }
+    function abrirEditarEvento(id) {
+        const ev = eventosBateriaCache.find(x => x.id === id);
+        if (!ev) return;
+        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, inclui_diretoria: !!ev.inclui_diretoria, temporada: ev.temporada || '' };
+        renderizarEditorEvento();
+    }
+    function renderizarEditorEvento() {
+        const ee = eventoEditando;
+        const editor = document.getElementById('eventos-editor');
+        if (!editor) return;
+        if (!ee) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">${ee.id ? 'Editar Evento' : 'Novo Evento'}</div>
+            <div class="form-grid">
+                <div class="campo campo-full"><label>Nome *</label><input type="text" id="ev-edit-nome" value="${esc(ee.nome)}" placeholder="Ex: Ensaio Técnico 2026"></div>
+                <div class="campo"><label>Data *</label><input type="date" id="ev-edit-data" value="${esc(ee.data || '')}"></div>
+                <div class="campo"><label>Tipo *</label><select id="ev-edit-tipo">
+                    ${bibliotecaEventoTipos.map(t => `<option value="${t.id}" ${ee.evento_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}
+                </select></div>
+                <div class="campo"><label>Temporada <span style="font-weight:400;color:#999;font-size:12px;">— opcional, ex: 2026</span></label><input type="text" id="ev-edit-temporada" value="${esc(ee.temporada)}" placeholder="Ex: 2026"></div>
+                <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="ev-edit-inclui-diretoria" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.inclui_diretoria ? 'checked' : ''}>
+                    <label for="ev-edit-inclui-diretoria" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Inclui Diretoria (Mestre/Diretor/Apoio entram na lista de presença deste evento)</label>
+                </div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarEvento()">Salvar</button>
+                    ${ee.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirEvento(${ee.id})">Excluir</button>` : ''}
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorEvento()">Cancelar</button>
+            </div>
+        </div>`;
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function fecharEditorEvento() { eventoEditando = null; renderizarEditorEvento(); }
+    async function salvarEvento() {
+        if (salvandoEvento) return;
+        const nome = document.getElementById('ev-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome do evento.', 'erro'); return; }
+        const data = document.getElementById('ev-edit-data').value;
+        if (!data) { mostrarToast('Informe a data do evento.', 'erro'); return; }
+        const evento_tipo_id = Number(document.getElementById('ev-edit-tipo').value);
+        const temporada = document.getElementById('ev-edit-temporada').value.trim() || null;
+        const inclui_diretoria = document.getElementById('ev-edit-inclui-diretoria').checked;
+        const bateriaId = bateriaIdContexto();
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        salvandoEvento = true;
+        try {
+            if (eventoEditando.id) {
+                await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada, inclui_diretoria }) });
+            } else {
+                await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada, inclui_diretoria, criado_por: u ? u.pessoa_id : null }) });
+            }
+            mostrarToast(eventoEditando.id ? 'Evento atualizado!' : 'Evento criado!');
+            eventoEditando = null;
+            await carregarEventosBateria();
+            renderizarEditorEvento();
+            renderizarEventosLista();
+        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
+        finally { salvandoEvento = false; }
+    }
+    async function excluirEvento(id) {
+        if (!confirm('Excluir este evento? Isso apaga também todas as presenças já registradas nele.')) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
+        mostrarToast('Evento excluído.');
+        eventoEditando = null;
+        await carregarEventosBateria();
+        renderizarEditorEvento();
+        renderizarEventosLista();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -6723,6 +6868,8 @@
             { chave: 'editar_vagas', label: 'Editar Vagas por instrumento', dependeDe: 'ver_vagas' },
             { chave: 'ver_figurino_bateria', label: 'Visualizar Figurino ativado nesta bateria' },
             { chave: 'editar_figurino_bateria', label: 'Ativar/editar peças de Figurino nesta bateria', dependeDe: 'ver_figurino_bateria' },
+            { chave: 'ver_eventos', label: 'Visualizar Eventos' },
+            { chave: 'editar_eventos', label: 'Criar/editar Eventos', dependeDe: 'ver_eventos' },
         ] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Visualizar' }] },
         { grupo: 'Permissões', itens: [{ chave: 'ver_permissoes', label: 'Visualizar' }, { chave: 'editar_permissoes', label: 'Editar', dependeDe: 'ver_permissoes' }] },
