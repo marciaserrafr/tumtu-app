@@ -371,6 +371,7 @@ function fpRenderToggleNaoDesfila() {
                             transition:left 0.2s;"></div>
             </div>
             <span style="font-size:13px;font-weight:500;color:${labelColor};">${labelText}</span>
+            ${desfila ? '' : '<span style="font-size:13px;color:#706c87;">(sem fantasia)</span>'}
         </div>`;
 }
 
