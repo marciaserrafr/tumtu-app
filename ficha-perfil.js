@@ -46,6 +46,7 @@ const FP_CAMPOS = [
     { id: 'fp-emergencia-nome',      col: 'emergencia_nome' },
     { id: 'fp-emergencia-parentesco',col: 'emergencia_parentesco' },
     { id: 'fp-emergencia-celular',   col: 'emergencia_celular' },
+    { id: 'fp-observacoes',          col: 'observacoes' },
 ];
 
 // Mesmos campos obrigatórios de cadastro.html (input[required]) --
@@ -82,7 +83,7 @@ let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: nu
 // pra saber em qual tabela gravar cada campo.
 const FP_CAMPO_TABELA = {
     membro_desde: 'vinculos', bateria_instrumento_id: 'vinculos',
-    naipe: 'vinculos', repique_bossa: 'vinculos',
+    naipe: 'vinculos', repique_bossa: 'vinculos', observacoes: 'vinculos',
 };
 
 // Naipe (Diretor) guarda os instrumentos marcados como array de nomes --
@@ -146,6 +147,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
         const campos = new Set();
         if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_instrumento_ritmista')) campos.add('bateria_instrumento_id');
         if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_medidas_ritmista')) campos.add('medidas');
+        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_observacoes')) campos.add('observacoes');
         return campos;
     }
 
@@ -154,7 +156,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=26');
+        const res = await fetch('ficha-perfil.partial.html?v=27');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -374,6 +376,17 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
             const bloco = el.classList.contains('ficha-campo') ? el : el.closest('.ficha-campo');
             if (bloco) bloco.style.display = 'none';
         });
+    }
+
+    // Observações (28/ago/2026): campo livre exclusivo da Diretoria -- ao
+    // contrário do bloco de dados sensíveis acima (a própria pessoa sempre
+    // vê os próprios dados), aqui é o oposto de propósito: a própria
+    // pessoa NUNCA vê, mesmo pedido explícito dela.
+    const podeVerObservacoes = alvo.perfil === 'ritmista' && !autoedicao && typeof tenhoCapacidade === 'function' && tenhoCapacidade('ver_observacoes');
+    if (!podeVerObservacoes) {
+        const elObs = fpEl('fp-observacoes');
+        const blocoObs = elObs && (elObs.classList.contains('ficha-campo') ? elObs : elObs.closest('.ficha-campo'));
+        if (blocoObs) blocoObs.style.display = 'none';
     }
 
     const campoCadastro = fpEl('fp-campo-cadastro');

@@ -207,6 +207,14 @@
     </div>
 </div>
 
+<div class="ficha-secao">
+    <div class="ficha-secao-titulo">Observações</div>
+    <div class="ficha-campo full">
+        <strong id="fp-observacoes" style="white-space:pre-wrap;"></strong>
+        <textarea id="fp-observacoes-edit" class="fc-input" maxlength="500" style="display:none;min-height:70px;resize:vertical;"></textarea>
+    </div>
+</div>
+
 <div class="ficha-secao" id="fp-secao-senha" style="display:none;">
     <div class="ficha-secao-titulo">Alterar senha</div>
     <div class="ficha-grid">
@@ -228,14 +236,14 @@
     <button class="btn-ficha btn-ficha-editar" style="margin-top:8px;" onclick="fpAlterarSenha()">Alterar senha</button>
 </div>
 
+<div id="fp-extra-conteudo"></div>
+
 <div class="ficha-secao" id="fp-secao-suporte">
     <div class="ficha-secao-titulo">Suporte</div>
     <p class="fp-texto-suporte">
         Precisa de ajuda ou quer pedir a exclusão dos seus dados? <a href="#" onclick="return fpAbrirSuporte()" style="color:#D4AF37; font-weight:700; text-decoration:underline;">Fale com o suporte</a>.
     </p>
 </div>
-
-<div id="fp-extra-conteudo"></div>
 
 <div class="ficha-modal-acoes">
     <button id="fp-btn-editar" class="btn-ficha btn-ficha-editar" style="display:none" onclick="fpAtivarEdicao()">Editar</button>

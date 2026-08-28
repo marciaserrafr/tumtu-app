@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=21">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ficha-perfil.js?v=33"></script>
+    <script src="ficha-perfil.js?v=34"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -2857,32 +2857,12 @@
             </div>`;
     }
 
-    // Observações (28/ago/2026) -- campo livre no fim da ficha do Ritmista,
-    // exclusivo da Diretoria (mesma garantia estrutural de Desfile/
-    // Declaração: mora em #fp-extra-conteudo, que carteirinha.html/Meu
-    // Perfil nunca preenche). Limite curto de propósito, não é um campo de
-    // anotação longa.
-    const LIMITE_OBSERVACOES = 500;
-    async function salvarObservacoes(id) {
-        const textarea = document.getElementById('fc-observacoes-input');
-        if (!textarea) return;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', ...authHeaders },
-            body: JSON.stringify({ observacoes: textarea.value.trim() || null })
-        });
-        mostrarToast(res.ok ? 'Observações salvas.' : 'Erro ao salvar.', res.ok ? undefined : 'erro');
-    }
-
-    function renderObservacoes(id, texto) {
-        const area = document.getElementById('fc-observacoes-area');
-        if (!area) return;
-        const podeEditar = tenhoCapacidade('editar_observacoes');
-        area.innerHTML = `
-            <textarea id="fc-observacoes-input" maxlength="${LIMITE_OBSERVACOES}" ${podeEditar ? '' : 'readonly'}
-                      style="width:100%;min-height:70px;padding:10px;border-radius:8px;border:1px solid #ddd;font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box;${podeEditar ? '' : 'background:#f5f5f5;color:#888;'}">${texto ? esc(texto) : ''}</textarea>
-            ${podeEditar ? `<button type="button" class="btn-ficha" style="margin-top:8px;" onclick="salvarObservacoes(${id})">Salvar</button>` : ''}`;
-    }
+    // Observações (28/ago/2026) -- virou campo padrão da ficha (Editar →
+    // Salvar/Cancelar junto com o resto), não mais um botão próprio. Ver
+    // ficha-perfil.js (FP_CAMPOS/FP_CAMPO_TABELA/fpCamposEditaveis) e
+    // ficha-perfil.partial.html. Visibilidade (ver_observacoes) e
+    // exclusividade da Diretoria (Ritmista nunca vê, mesmo autoedição)
+    // também ficam lá, dentro de fpIniciar.
 
     // EXPORTAR EXCEL
     // Medidas viraram abertas (23/ago/2026) -- os campos exportáveis de
@@ -3327,15 +3307,9 @@
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Desfile</div>
                 <div id="fc-nao-desfila-area"></div>
-            </div>` : ''}
-            ${tenhoCapacidade('ver_observacoes') ? `
-            <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Observações</div>
-                <div id="fc-observacoes-area"></div>
             </div>` : ''}`;
         if (menor && tenhoCapacidade('ver_declaracao_responsavel')) renderToggleDeclaracao(r.id, r.declaracao_responsavel);
         if (tenhoCapacidade('ver_nao_desfila')) renderToggleNaoDesfila(r.id, r.nao_desfila);
-        if (tenhoCapacidade('ver_observacoes')) renderObservacoes(r.id, r.observacoes);
 
         // Botões de ação de status + Fechar. Injetados em #fp-acoes-extra
         // (hook dentro de #fp-container-ritmista, mesmo padrão já usado em
