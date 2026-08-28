@@ -260,6 +260,26 @@ Ideia pausada por ela, não descartada: tornar configurável o fato de Ritmista 
 
 Nada disso foi implementado — é desenho puro, registrado pra retomar quando ela quiser (e enquanto isso, a ferramenta do banco também precisa estar de volta).
 
+✅ **"Desfile" (era "Não Desfila", nome provisório) — publicado em produção (28/ago/2026)**, pra Ritmista que continua na bateria mas não vai desfilar essa temporada. Caso real, 2 Ritmistas da Imperatriz (Antonio Sergio Lucio, Raphael Gomes Lucio): tocam em mais de uma escola, as escolas "colaram" no desfile esse ano e eles tiveram que optar por desfilar pela outra — mas não querem sair da bateria dela, continuam em tudo (ensaios, desfile técnico, festa da final, ganham Figurino) exceto a fantasia de desfile.
+
+- **Não é um status novo no banco** — `vinculos.status` continua `'aprovado'` por baixo (login/carteirinha/RLS intactos); coluna própria `vinculos.nao_desfila` (boolean).
+- **Interruptor de clique instantâneo** (fora do fluxo Editar/Salvar, de propósito — ela "adorava" o visual de trilho/bolinha e pediu pra manter), com nome pensado pro Diretor, não pro nome técnico do campo: seção "Desfile" na ficha, ligado (verde) = **"Ok"**, desligado (cinza) = **"Não desfila"**. O selo que aparece no lugar de "Ativo" no card/cabeçalho da ficha (só Diretoria vê) continua "Não Desfila" — única exceção deliberada à regra de "selos somam, não substituem" registrada nesta memória.
+- **Some de duas contagens**: "Ritmistas ativos" (totalizador) e "Vagas por Instrumento" (a vaga libera pra outra pessoa).
+- **Figurino: aparece normal em TUDO, menos fantasia** — a única exceção é o relatório/pedido de produção de fantasia (Exportar Excel), onde a coluna fica vazia especificamente pra essa pessoa; todo o resto (camisa da final, desfile técnico etc.) continua normal.
+- **Filtro de Status da aba Ritmistas** ganhou a opção "Não Desfila" (mutuamente exclusiva de "Ativos", mesmo os dois sendo `status=aprovado` por baixo) — achado real dela, testando: sem isso, "Ativos" trazia quem estava "Não Desfila" junto, e a seção da lista ("ATIVOS", com contador) também misturava os dois. Corrigido com uma função `grupoStatusEfetivo()` usada tanto pro filtro quanto pro agrupamento/contador da lista.
+- **Permissão "Ver"/"Editar" própria** (`ver_nao_desfila`/`editar_nao_desfila`), mesmo padrão de Repique de Bossa — quem só tem "Ver" enxerga o interruptor sem clique.
+- **Bug real achado e corrigido no caminho**: a primeira versão publicada tinha o interruptor integrado ao fluxo Editar/Salvar (clique só "ficava guardado" até Salvar) — ela testou e não gostou de perder o clique instantâneo, então voltou a ser clique-na-hora, mas dessa vez sem o defeito que o clique-na-hora tinha ORIGINALMENTE: a versão antiga reabria a ficha inteira a cada clique (`abrirCadastro()`), o que resetava qualquer edição de Nome/CPF/etc em andamento e fazia o botão "Salvar" sumir (achado dela com print real, ela já tinha mencionado essa "pulada" antes numa situação diferente — abrir o card — e eu não tinha investigado a fundo até agora). Corrigido pra sempre: o clique agora só atualiza a si mesmo, o selo do cabeçalho e a lista por trás, nunca mais reabre a ficha. Um efeito colateral desse conserto (a lista por trás piscando a cada clique) também foi achado e corrigido na mesma sessão.
+
+✅ **Declaração do Responsável ganhou "Ver" separado de "Editar" (28/ago/2026)** — mesma trava de Não Desfila/Repique de Bossa: antes só existia "Editar", qualquer um com "Ver Ritmistas" já via a seção completa. Continua clique instantâneo, mesmo padrão isolado (nunca reabre a ficha).
+
+✅ **Campo "Observações" novo, no fim da ficha do Ritmista (28/ago/2026)** — texto livre, limite de 500 caracteres, exclusivo da Diretoria (Ritmista nunca vê, mesmo autoedição). Diferente de Declaração/Desfile, esse SIM entra no fluxo padrão Editar → digita → Salvar/Cancelar (ela pediu explicitamente essa consistência, depois de eu ter feito a primeira versão com botão "Salvar" próprio e ela achar estranho: "para mim todos os campos da ficha precisavam do editar pra fazer alguma ação"). Permissões `ver_observacoes`/`editar_observacoes`.
+
+✅ **"Fale com o suporte" reordenado pro final de tudo (28/ago/2026)** — achado dela: com as seções novas (Observações, Declaração, Desfile) sendo injetadas depois de Suporte, ele tinha ficado "no meio" da ficha. Corrigido em `ficha-perfil.partial.html` (Suporte sempre por último, antes só dos botões Editar/Salvar/Cancelar) — vale em toda tela que usa a ficha compartilhada (Meu Perfil incluso).
+
+Detalhe técnico completo de tudo (trigger, view, migração, cada função nova): `tumtu-documentacao-tecnica.md` seção 63/64.
+
+🚧 **Pendência de desenho criada em 28/ago/2026 — Visão Geral mostrar TODOS os tipos de status, não só Ativos/Pendentes em destaque.** Hoje a Visão Geral só destaca Ativos (verde) e Pendentes (terracota); ela quer um retrato completo — Ativos, Pendentes, Suspensos, Desligados, Rejeitados e Não Desfila (que já existe agora). Confirmado por ela ("Sim, isso mesmo"), sem desenho visual ainda (não discutido layout/cores/onde entra na tela). Nada implementado.
+
 ---
 
 ## Contas de teste

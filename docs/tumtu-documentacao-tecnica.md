@@ -2129,3 +2129,85 @@ Interruptor "Restrito ao próprio naipe" injetado dentro do grupo "Ritmistas" do
 ### 63.4 Workflow de publicação
 
 Branch `preview/diretor-naipe-restrito`, 1 commit, link de preview testado por ela com sugestão de roteiro real (ligar a restrição num Diretor de teste com naipe já atribuído, logar com a conta dele, conferir a lista filtrada). Aprovação: "aprovadíssimo, amei." Merge fast-forward pra `main` (sem conflito), publicado direto em produção.
+
+## 64. Sessão de 28/ago/2026 (continuação): "Desfile" (Não Desfila), Observações, e um bug real de verdade achado com ela ao vivo
+
+Motivação real: ela queria dar carteirinha pra 2 Ritmistas reais (tocam em mais de uma escola, "colaram" no desfile, optaram por desfilar pela outra mas continuam na Imperatriz) — usou o link de cadastro da bateria DEMO como solução de contorno pra eles terem carteirinha, e pediu ajuda pra transferir os dois pra bateria real. A transferência real foi pausada por ela mesma ("calma, para transferí-los eu vou precisar fazer a criação do status Não Desfila, lembra") até esse recurso existir — a transferência em si (`vinculos.bateria_id`/`bateria_instrumento_id`/`vinculos_medidas` da demo pra real) não chegou a ser executada nesta sessão, fica pendente pra quando ela pedir.
+
+### 64.1 Por que não é um status novo
+
+Ela insistiu inicialmente que a pessoa "não é ativa" e não devia ter status "Ativo" — mas confirmado com ela que o motivo real é só a CONTAGEM/EXIBIÇÃO, não o acesso: "só o selo/contagem muda... ela continua com acesso total." Criar um 6º status de verdade (diferente de `aprovado`) quebraria a premissa usada em praticamente todo o sistema (RLS, login, `is_membro`, capacidades) de que `status='aprovado'` = tem acesso — exigiria auditar e reescrever essa checagem em dezenas de lugares. Em vez disso: `vinculos.nao_desfila boolean not null default false`, coluna própria fora do jsonb `capacidades` (mesmo padrão de `modo_carteirinha_individual`/`restrito_ao_naipe`), sem nenhuma mudança em RLS/login.
+
+### 64.2 Nome e leitura visual — 3 rodadas até fechar
+
+1. Rascunho inicial meu: selo adicional "Não Desfila" ao lado de "Ativo" (padrão "selos somam"). Ela corrigiu: "não acho que é só um selo no card, para mim é o status dele mesmo. Ao invés de Ativo vai ter que aparecer Não Desfila, mas por baixo dos panos ele é ativo." — vira SUBSTITUIÇÃO da palavra "Ativo", não adição. Exceção deliberada e única, registrada em CLAUDE.md, à regra de "selos somam, não substituem".
+2. Nome do campo/interruptor: ela pediu ajuda ("me ajude a achar um status pra esse caso?") — cogitado "OFF" (sem confirmação de que é jargão real de bateria) e "Reserva" (descartado por ela mesma, "é interessante para futebol"). Fechado em "Não Desfila" pelo motivo de não carregar bagagem de outro contexto.
+3. Leitura do interruptor em si: ela pediu inverter a psicologia — em vez do interruptor representar a EXCEÇÃO (ligado = não desfila), ele representa a NORMALIDADE (ligado = "Ok", vai desfilar; desligado = "Não desfila"). Reforçado depois: "quando não vai desfilar tem que ser Não desfila" (não "Não vai desfilar", que eu tinha sugerido primeiro) — mesmo texto do selo do card, sem variação.
+
+### 64.3 Banco: coluna, trigger, view
+
+- `ALTER TABLE vinculos ADD COLUMN nao_desfila boolean NOT NULL DEFAULT false;`
+- Trigger `aplicar_matriz_edicao_vinculos`: branch de autoedição ganhou `new.nao_desfila := old.nao_desfila;` (nunca autoeditável, mesma trava de `capacidades`/`restrito_ao_naipe`); branch de edição por terceiro (Diretoria editando um Ritmista) ganhou `if not (tenho_capacidade('editar_nao_desfila', ...) and tenho_acesso_ritmista_por_naipe(...)) then new.nao_desfila := old.nao_desfila; end if;` — mesma checagem dupla (capacidade + naipe, quando o editor está restrito) já usada pras outras ações de Ritmista.
+- View `ritmistas_com_instrumento` recriada com a coluna nova no fim do `SELECT` — `security_invoker=true` reafirmado, `anon` sem SELECT e `authenticated` com SELECT reconferidos via `has_table_privilege`, mesma disciplina desde a seção 41.
+
+### 64.4 Contagens e filtro — função `grupoStatusEfetivo()`
+
+Achado real dela, com print: a lista de Ritmistas agrupa por status em seções com título+contador ("ATIVOS 7"), e o Diretor de status = `r.status` literal fazia quem está "Não Desfila" (status='aprovado' por baixo) cair dentro da seção "Ativos", inflando a contagem e aparecendo misturado. Função nova:
+
+```js
+function grupoStatusEfetivo(r) {
+  return (r.status === 'aprovado' && r.nao_desfila) ? 'nao_desfila' : (r.status || 'pendente');
+}
+```
+
+Usada em 3 lugares que antes usavam `r.status` cru: `aplicarFiltros()` (ordenação da lista via `ordemStatus`), `renderizar()` (agrupamento em seções + contador por seção), e o filtro de Status em si (`filtroStatusSelecionados.some(f => ... f === 'aprovado' ? (r.status === 'aprovado' && !r.nao_desfila) : ...)`, pra "Ativos" e "Não Desfila" ficarem mutuamente exclusivos na checkbox, mesmo padrão de "menor"/"repique_bossa" já existente ali). Mesma exclusão aplicada em `atualizarTotalizadores()` (Ritmistas ativos), `renderizarContagemInstrumentos()` (Ritmistas/Vagas por Instrumento na Visão Geral) e `renderizarConfigVagas()` (Vagas de Ritmistas em Configurações).
+
+### 64.5 Fantasia: exclusão só da coluna, não da linha
+
+Ela foi explícita: "a única coisa que me preocupa é a questão das roupas... pq ele teria que aparecer sempre, entendeu? menos para fantasia pq ele não desfila" — ou seja, a pessoa continua aparecendo em QUALQUER relatório/exportação, só o valor da coluna "Fantasia" especificamente é que some. Como o Exportar Excel é por linha (uma pessoa, várias colunas marcadas), a exclusão foi feita dentro de `linhasExportacao()`, checando o **label** do campo (`campo.label.toLowerCase().includes('fantasia')`) em vez de excluir a pessoa inteira do relatório:
+
+```js
+if (chave.startsWith('medida_')) {
+  if (r.nao_desfila && campo.label.toLowerCase().includes('fantasia')) {
+    valor = '';
+  } else {
+    // ...valor normal da medida
+  }
+}
+```
+
+### 64.6 Bug real, achado com print ao vivo: interruptor fazendo o botão "Salvar" sumir
+
+Depois de publicado o primeiro interruptor, ela reportou: "Eu adorava eles, são facilmente identificáveis na ficha" (voltando de uma versão em checkbox simples que eu tinha feito por engano — ver 64.7) e, separadamente, um bug real: "clicar em editar, mexer nos botões do declaração e desfile e depois salvar o resultado. o botão salvar não aparece ao mexer nesses botões."
+
+**Causa raiz, confirmada com print do DevTools**: a primeira implementação do interruptor (clique instantâneo) chamava `carregarRitmistas(true)` seguido de `abrirCadastro(id)` a cada clique — isso **reabria a ficha inteira do zero**, o que resetava o modo de edição (Salvar/Cancelar visíveis) de volta pro modo de visualização (só "Editar" visível), descartando qualquer edição de Nome/CPF/outros campos que estivesse em andamento. Ela já tinha mencionado essa "pulada" antes (ao abrir o card, causada por Medidas/Entrega de Figurino serem `fire-and-forget` e aparecerem com atraso — **ainda não investigada/corrigida**, fica registrada como pendência real pra próxima sessão), mas dessa vez o sintoma era mais grave: perda de dado funcional, não só visual.
+
+**Correção**, em duas rodadas:
+1. Primeira tentativa: integrar Declaração/Desfile ao fluxo Editar/Salvar/Cancelar como campos padrão (checkbox simples, mesmo padrão de `repique_bossa`) — funcionalmente correto, mas ela preferiu não perder o clique instantâneo nem o visual do interruptor de trilho/bolinha.
+2. Versão final: voltaram a ser clique-instantâneo (fora do fluxo Editar/Salvar), mas **sem nunca mais chamar `abrirCadastro()`**. Funções novas em `ficha-perfil.js` (`fpAlternarDeclaracao`/`fpRenderToggleDeclaracao`, `fpAlternarNaoDesfila`/`fpRenderToggleNaoDesfila`): o clique faz o PATCH, atualiza só o container do próprio interruptor (`#fp-declaracao-area`/`#fp-nao-desfila-area`) e o selo do cabeçalho da ficha (`fc-status-badge`, via `document.getElementById` direto, já que esse elemento fica fora do container da ficha compartilhada) — nunca mais toca em `fpAtivarEdicao`/`fpCancelarEdicao`/no resto do DOM da ficha. Qualquer edição de outros campos em andamento continua 100% intacta.
+
+**Efeito colateral achado e corrigido na mesma sessão**: a versão final ainda chamava `carregarRitmistas(true)` (só isso, sem `abrirCadastro`) pra manter a lista por trás sincronizada — ela reportou "continua a tela piscando", isolado especificamente ao clique nos interruptores. Removida a chamada; a lista por trás sincroniza sozinha ao fechar a ficha ou na atualização automática periódica, sem re-renderizar tudo a cada clique.
+
+### 64.7 Observações: por que não seguiu o mesmo padrão de clique instantâneo
+
+Diferente de Declaração/Desfile, ela pediu explicitamente que Observações siga o fluxo PADRÃO (Editar → digita → Salvar/Cancelar): "para mim todos os campos da ficha precisavam do editar para fazer alguma ação e acho que isso tinha que ser padrão." A diferença de tratamento entre os três campos (dois clique-instantâneo, um staged) não foi acidental nem inconsistente — foi uma decisão dela, calibrada por campo: interruptor (ação binária, ligar/desligar) fica fora do fluxo por escolha explícita ("adorava" o clique direto); texto livre (Observações) entra no fluxo porque, na cabeça dela, é um CAMPO da ficha como Nome/CPF, não uma ação isolada.
+
+Implementação: `observacoes` (text, `vinculos`) entrou em `FP_CAMPOS`/`FP_CAMPO_TABELA` como qualquer outro campo de texto — sem código especial em `fpAtivarEdicao`/`fpCancelarEdicao`/`fpSalvar` (o laço genérico já cobre). Textarea com `maxlength="500"` (limite curto, pedido dela: "pense em um mínimo de caracteres, não precisa ser muita coisa"). Visibilidade (`ver_observacoes`) resolvida dentro de `fpIniciar`, escondendo o `.ficha-campo` inteiro pra quem não tem a capacidade — mesmo padrão do bloco de "dados sensíveis" já existente, só que ao contrário: aqui a própria pessoa NUNCA vê (autoedição sempre falsa), enquanto o bloco de dados sensíveis sempre libera a própria pessoa.
+
+### 64.8 Permissões: catálogo final desta rodada
+
+```
+Ritmistas → ver_declaracao_responsavel, editar_declaracao_responsavel (dependeDe: ver_declaracao_responsavel)
+          → ver_nao_desfila, editar_nao_desfila (dependeDe: ver_nao_desfila)
+          → ver_observacoes, editar_observacoes (dependeDe: ver_observacoes)
+```
+
+Mesmo padrão Ver/Editar já estabelecido (Repique de Bossa, Naipe) -- todos com `dependeDe` no mapa `DEPENDE_DE` (seção 62.12), travando/desmarcando sozinho na tela de Permissões se o "Ver" correspondente não estiver marcado.
+
+### 64.9 "Fale com o suporte" — reordenado
+
+Achado dela: com as 3 seções novas sendo injetadas logo antes de `#fp-secao-suporte` (posição original de Suporte no `ficha-perfil.partial.html`), Suporte ficou "no meio" da ficha em vez de por último. Corrigido movendo `<div id="fp-extra-conteudo"></div>` pra ANTES da seção de Suporte (era depois) -- Suporte volta a ser sempre a última coisa antes dos botões de ação, em qualquer tela que usa a ficha compartilhada (Meu Perfil incluso, mesmo sem conteúdo nenhum em `fp-extra-conteudo` lá).
+
+### 64.10 Pendência real, não resolvida nesta sessão
+
+A "pulada" de Medidas/Entrega de Figurino ao ABRIR a ficha (não ao clicar nos interruptores, que já foi corrigido) continua sem investigação — causa provável já suspeitada: os dois usam `display:none` até o fetch assíncrono terminar (`fpRenderizarMedidas`/`fpRenderizarEntregaFigurino`, fire-and-forget), então a seção "pula" de altura zero pra altura cheia quando os dados chegam, empurrando o resto da ficha. Fica pendente pra confirmar e corrigir (provável solução: reservar o espaço com um spinner leve em vez de esconder a seção inteira).
