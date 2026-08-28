@@ -2392,3 +2392,96 @@ Banco: `ALTER TABLE baterias ADD COLUMN ritmista_pode_ver_observacoes boolean NO
 `ficha-perfil.js`: `fpAplicarPermissaoAutoedicaoToggles(alvo)` (mesma função fire-and-forget de Desfile/Declaração) passou a buscar também `ritmista_pode_ver_observacoes` na mesma query de `baterias`, e revela o `.ficha-campo` de Observações (`fp-observacoes`) quando ligado. Continua garantido que o Ritmista nunca EDITA o próprio campo: `fpCamposEditaveis()` só adiciona `'observacoes'` ao conjunto de campos editáveis dentro do branch de Diretoria editando outra pessoa (`editar_observacoes`), nunca dentro do branch de autoedição — revelar a exibição do campo não muda isso, são checagens independentes.
 
 Testado e publicado direto na mesma leva ("e pode publicar direto" / "só teste para ver se está funcionando e depois publique") — verificação feita antes de publicar: coluna nova confirmada no banco (`information_schema.columns`), grep confiro que todo id/função bate, e confirmação de que `editar_observacoes` da Diretoria não foi tocado.
+
+## 68. Sessão de 28/ago/2026 (continuação seguinte): varredura de segurança — 3 problemas reais achados e corrigidos, incluindo um crítico ativo em produção
+
+Pedido dela: "Você poderia fazer uma varredura sobre a segurança? Eu acho importante fazermos isso sempre depois de uma grande mexida." Auditoria feita direto no banco (não só nas telas), mesma disciplina das seções 31/41/55 — enumerar RLS/grants reais, ler toda função/view `SECURITY DEFINER`, testar com chamada HTTP de verdade usando só a chave `anon`.
+
+### 68.1 CRÍTICO, confirmado explorável: `ritmistas_emergencia` sem trava contra "pedir tudo de uma vez"
+
+A correção de 24/ago (seção 55) trocou o identificador de `pessoas.id` sequencial pra `qr_token` (uuid aleatório) — resolvendo o problema de alguém ADIVINHAR o código de uma pessoa específica. Mas a `ritmistas_emergencia` continuou sendo uma VIEW comum, e nada no Postgres/PostgREST obriga um filtro numa consulta a uma view — pedir a view inteira, sem nenhum parâmetro, devolve todo mundo.
+
+Confirmado com uma chamada real, sem login, só com a chave pública:
+
+```bash
+curl "https://pkvzsgrkylrkyzligeim.supabase.co/rest/v1/ritmistas_emergencia?limit=5" \
+  -H "apikey: <chave anon>" -H "Authorization: Bearer <chave anon>"
+```
+
+Retornou nome + telefone de emergência de 5 pessoas reais, sem nenhum código, sem login — a mesma chamada sem `limit` devolveria a bateria inteira.
+
+**Correção**: mesmo padrão já usado em `baterias_publicas`/`mestres_publicos` (seção 55) — view vira FUNÇÃO com parâmetro obrigatório, porque uma função sem parâmetro simplesmente não pode ser chamada (o PostgREST recusa antes de chegar no banco), diferente de uma view onde "sem filtro" é uma consulta válida.
+
+```sql
+create or replace function public.buscar_emergencia_por_qr(p_qr_token uuid)
+returns table(nome text, tipo_sanguineo text, emergencia_nome text, emergencia_parentesco text, emergencia_celular text)
+language sql stable security definer set search_path = public
+as $$
+  select p.nome, p.tipo_sanguineo, p.emergencia_nome, p.emergencia_parentesco, p.emergencia_celular
+  from pessoas p where p.qr_token = p_qr_token;
+$$;
+
+grant execute on function public.buscar_emergencia_por_qr(uuid) to anon, authenticated;
+revoke select on public.ritmistas_emergencia from anon, authenticated;
+```
+
+`qr.html` trocado de `GET /rest/v1/ritmistas_emergencia?qr_token=eq.X` pra `POST /rest/v1/rpc/buscar_emergencia_por_qr` com `{ p_qr_token: token }` no corpo.
+
+Testado nos três cenários antes de considerar resolvido:
+1. `GET ritmistas_emergencia` direto → `401` (revogado).
+2. Função chamada com token inexistente (`00000000-...`) → `[]` (nenhum dado, nenhum erro revelador).
+3. Função chamada com um `qr_token` real → devolve só aquela pessoa, igual antes — QR de emergência continua funcionando pra quem escaneia de verdade.
+
+**Nota pra próxima auditoria**: a seção 55 tinha registrado `ritmistas_emergencia` como "checada e não precisa de correção" — avaliação incompleta na época, considerou só "quais colunas aparecem" (nenhuma tão sensível quanto CPF) e não considerou o cenário de pedir a view inteira sem filtro. Fica registrado como lição: pra view pública, sempre perguntar "o que volta se eu não mandar filtro nenhum?", não só "quais colunas essa view expõe?".
+
+### 68.2 CRÍTICO: duas tabelas de backup sem RLS, liberadas pro público
+
+`get_advisors`/consulta direta a `pg_class.relrowsecurity` achou duas tabelas com RLS **desligado**: `pessoas_foto_backup_20260827` (criada na sessão de compressão de fotos, seção 61 — só `id`+`foto_url`) e `vinculos_capacidades_backup_20260827` (criada na migração da Reforma de Permissões, seção 62 — só `id`+`capacidades`). `has_table_privilege('anon', ..., 'SELECT')` confirmou `true` nas duas — grant público, sem nenhuma policy pra restringir.
+
+Nenhuma delas é referenciada em nenhum lugar do código do app (confirmado por grep no repositório inteiro) — existem só como cópia de segurança manual, pra consulta direta no banco se precisar. Corrigido revogando `SELECT` de `anon`/`authenticated` e ligando RLS (sem nenhuma policy = ninguém além do dono/`service_role` vê nada):
+
+```sql
+alter table public.pessoas_foto_backup_20260827 enable row level security;
+revoke all on public.pessoas_foto_backup_20260827 from anon, authenticated;
+alter table public.vinculos_capacidades_backup_20260827 enable row level security;
+revoke all on public.vinculos_capacidades_backup_20260827 from anon, authenticated;
+```
+
+Testado: `GET pessoas_foto_backup_20260827` com a chave anon → `401` depois da correção (era `200` com dados antes).
+
+**Causa**: tabelas de backup criadas por mim em sessões anteriores, seguindo a prática correta de "guardar cópia antes de mexer em dado real" — mas sem aplicar nelas a mesma trava de acesso que as tabelas principais já têm. Ficaram esquecidas depois que o trabalho que as motivou terminou.
+
+### 68.3 MÉDIO: colunas `ritmista_pode_ver/editar/marcar_*` em `baterias` nunca entraram no trigger de proteção
+
+A trava real de coluna em `baterias` é o trigger `aplicar_matriz_edicao_baterias()` (protege `nome`/`logo_url`/etc. atrás de `editar_dados_bateria`, e `modo_piloto`/`ativa` atrás de `editar_comercial`) — a RLS de `UPDATE` em si (`admin_update_bateria_com_capacidade`) só checa se a pessoa é Mestre/Diretor/Apoio **aprovado** daquela bateria, sem checar capacidade nenhuma (o nome da policy é enganoso). Isso significa: qualquer coluna que não estiver explicitamente listada no trigger pode ser alterada por **qualquer** Diretoria aprovada da bateria, mesmo sem a permissão específica.
+
+Os 6 interruptores "ritmista_pode_..." (editar medidas, ver/marcar Repique de Bossa — seção 57 —, ver Desfile/Declaração/Observações — seções 65.3 e 67.2) nunca entraram nesse trigger, ao longo de 3 sessões diferentes que os criaram. A tela (`admin.html`) sempre desabilitou o checkbox corretamente pra quem não tem `editar_permissoes` — mas isso é só cosmético sem a trava no banco, exatamente o tipo de gap que a Reforma de Permissões (seção 62) tinha como princípio eliminar ("o que não pode acontecer é o botão aparecer habilitado e não funcionar" — aqui era o oposto: botão desabilitado, banco aceitando mesmo assim).
+
+**Correção**: `aplicar_matriz_edicao_baterias()` ganhou um terceiro bloco, exigindo `editar_permissoes`:
+
+```sql
+if not tenho_capacidade('editar_permissoes', old.id) then
+    new.ritmista_pode_editar_medidas := old.ritmista_pode_editar_medidas;
+    new.ritmista_pode_ver_repique_bossa := old.ritmista_pode_ver_repique_bossa;
+    new.ritmista_pode_marcar_repique_bossa := old.ritmista_pode_marcar_repique_bossa;
+    new.ritmista_pode_ver_desfile := old.ritmista_pode_ver_desfile;
+    new.ritmista_pode_ver_declaracao_responsavel := old.ritmista_pode_ver_declaracao_responsavel;
+    new.ritmista_pode_ver_observacoes := old.ritmista_pode_ver_observacoes;
+end if;
+```
+
+Aproveitado o mesmo `CREATE OR REPLACE` pra travar `escola_id` incondicionalmente pra quem não é Super Admin — mover uma bateria pra outra escola é decisão estrutural, nunca teve proteção nenhuma até agora (achado no caminho, nunca é editado pela tela, confirmado por grep).
+
+Confirmado via `pg_trigger` que o gatilho `trg_matriz_edicao_baterias` continua ligado e apontando pra essa função (um `CREATE OR REPLACE FUNCTION` não exige recriar o trigger, só troca o corpo que ele executa).
+
+### 68.4 Reconfirmado sem problema (checklist de sempre)
+
+- `ritmistas_com_instrumento`: `security_invoker=true` intacto, `anon` sem `SELECT`, `authenticated` com `SELECT` — igual desde a seção 41, não foi tocada nesta sessão.
+- `baterias_publicas`/`mestres_publicos`: continuam sem `SELECT` nenhum pra `anon`/`authenticated` (viraram funções em 24/ago, seção 55) — só as funções `resolver_bateria_publica`/`mestres_publicos_da_bateria` são chamáveis.
+- `excluir_pessoa_lgpd`/`excluir_escola_lgpd`: `anon` sem `EXECUTE`, e as duas funções continuam checando `is_super_admin()` no corpo — a correção crítica da seção 55 não regrediu.
+- `buscar_pessoa_por_cpf` (o "oráculo" revogado na seção 55): `EXECUTE` continua bloqueado pra `anon` e `authenticated`.
+- RLS ligado em todas as tabelas "de verdade" do sistema — as únicas duas exceções eram os backups da seção 68.2, já corrigidas.
+
+### 68.5 Lição pra próxima vez (registrada também em memória)
+
+Ela apontou, com razão, que essa auditoria já devia ser automática — não algo que ela precisa pedir. A regra já existia (seção 55), mas foi seguida de forma incompleta nesta sessão: várias migrações foram aplicadas (seções 65, 67) sem a varredura de segurança rodar junto, só quando ela perguntou diretamente. Memória de feedback reforçada pra deixar claro: **toda** sessão com migração de banco encerra com essa checagem, sem exceção de "mudança pequena demais" — foi justamente uma mudança que parecia pequena (colunas de "ver próprio") que ficou com o buraco real desta vez.
