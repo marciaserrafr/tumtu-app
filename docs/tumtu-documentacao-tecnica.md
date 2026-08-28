@@ -2577,3 +2577,26 @@ Até aqui, todas as checagens de RLS nas quatro rodadas olharam a cláusula `USI
 Corrigidas as três policies (`ALTER POLICY ... WITH CHECK`/`USING`) pra checar `editar_medidas_ritmista` + `tenho_acesso_ritmista_por_naipe()`. Buscado no banco inteiro (policies E funções) por qualquer outro resquício das chaves já removidas do catálogo (`editar_ritmistas`, `editar_mestre`, `editar_diretor`, `editar_apoio`, `ver_comercial`, `editar_configuracoes`) — zero ocorrência restante depois da correção.
 
 **Testado ao vivo**: dado a uma conta de teste (`rodrigo.barbosa@teste.tutti`) só a capacidade nova (`editar_medidas_ritmista`, sem a antiga) via `ALTER TABLE ... DISABLE/ENABLE TRIGGER` (necessário pra montar o cenário, já que `capacidades` é protegida por `editar_permissoes`) — `POST /rest/v1/vinculos_medidas` de uma medida nova pra um Ritmista da mesma bateria funcionou (`201`, linha criada). Conta de teste e o registro de teste limpos depois, sem deixar rastro.
+
+## 69. Sessão de 28/ago/2026 (continuação seguinte): sexta rodada da varredura — Edge Functions, achado real em `notificar-aprovacao`
+
+Pedido dela: "Pode fazer a sexta." As cinco rodadas anteriores (seção 68) cobriram só o banco (RLS, grants, triggers, funções `SECURITY DEFINER`) — nunca as Edge Functions (código Deno que roda fora do Postgres, com a chave `service_role`, que ignora RLS por natureza). Frente nova, nunca auditada nesta sessão.
+
+### 69.1 Inventário: 7 funções, 2 já desativadas de propósito
+
+`list_edge_functions` listou 7: `admin-create-user`, `admin-excluir-pessoa`, `admin-excluir-escola`, `resgate-temporario-senha`, `criar-conta-teste-qa`, `notificar-aprovacao`, `comprimir-fotos`. As duas primeiras da lista de nomes "estranhos" (`resgate-temporario-senha`, `criar-conta-teste-qa`) já tinham sido neutralizadas em sessões antigas — o código foi trocado por um stub que sempre devolve `410 Gone`, com comentário explicando o motivo (usadas uma única vez, sem ferramenta de exclusão de Edge Function disponível via API). Confirmado lendo o código de ambas: sem risco, código morto de propósito.
+
+### 69.2 Quatro funções ativas, revisadas linha a linha
+
+`admin-create-user`, `admin-excluir-pessoa`, `admin-excluir-escola` e `comprimir-fotos` seguem todas o mesmo padrão sólido: usam o token do próprio chamador (`callerClient.auth.getUser()`, nunca confiam em nada que o corpo da requisição diga sobre quem está chamando) pra achar a pessoa real por trás da sessão, e cada uma confere explicitamente se essa pessoa tem autorização (Super Admin, ou Mestre/Diretor daquela bateria específica, dependendo da função) **antes** de fazer qualquer coisa com a chave `service_role`. Nenhuma tentativa de checar isso chamando `tenho_capacidade()`/`is_super_admin()` via `admin.rpc()` (o que quebraria — mesmo problema já documentado em memória: chamada via `service_role` não carrega `auth.uid()` do usuário real) — todas leem a linha de `pessoas`/`vinculos` diretamente e comparam em JavaScript, contornando essa armadilha corretamente.
+
+### 69.3 Achado real: `notificar-aprovacao` nunca checava QUEM podia chamar
+
+Diferente das outras quatro, essa função só conferia que existia uma sessão válida (`authHeader` presente + `getUser()` bem-sucedido) — **nenhuma checagem de quem é essa pessoa**. Resultado: qualquer conta aprovada no sistema, mesmo um Ritmista comum sem nenhuma capacidade, conseguia chamar `POST /functions/v1/notificar-aprovacao` com qualquer `vinculo_id` e disparar o e-mail de "cadastro aprovado" pra QUALQUER pessoa do sistema, repetidamente — abuso da cota de envio (Resend) e spam de e-mail indesejado pra gente que não pediu.
+
+Corrigida: depois de achar o `vinculo` alvo, a função agora exige `callerPessoa.super_admin === true` OU que o chamador tenha um vínculo aprovado na MESMA bateria do alvo com a capacidade certa (`aprovar_ritmistas` se o alvo é Ritmista, `aprovar_acessos` se é Diretoria) — lida direto da coluna `capacidades`, mesmo padrão das outras quatro funções (nunca via `tenho_capacidade()` RPC, pelo motivo do `service_role` explicado acima).
+
+**Testado ao vivo, function deployada de verdade** (`deploy_edge_function`, versão 13 → 14):
+1. Conta de teste sem nenhuma capacidade (`{}`) tentou notificar aprovação de outra pessoa → `403 "Voce nao tem permissao pra notificar essa aprovacao."` (antes da correção, teria enviado o e-mail).
+2. Mesma conta, com `aprovar_ritmistas` concedido temporariamente (via `DISABLE/ENABLE TRIGGER`, já que `capacidades` é protegida) → `200 {"ok":true}`, notificando um vínculo de e-mail fake (`@teste.com`, domínio não real, sem risco de incomodar ninguém de verdade).
+3. Conta restaurada ao estado original (`capacidades={}`) depois do teste.
