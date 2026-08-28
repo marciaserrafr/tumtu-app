@@ -3699,7 +3699,6 @@
             div.innerHTML = '<div style="color:#bbb;font-size:13px;padding:8px 0;">Nenhum instrumento ativo cadastrado.</div>';
             return;
         }
-        linhas.sort((a, b) => b.qtd - a.qtd || a.nome.localeCompare(b.nome, 'pt-BR'));
         div.innerHTML = linhas.map(l => `
             <div class="vg-instrumento-linha">
                 <span>${esc(l.nome)}</span>
