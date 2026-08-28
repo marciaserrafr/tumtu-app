@@ -1703,71 +1703,127 @@
     </div>
 </div>
 
-<!-- PAINEL PERMISSÕES (dentro de Administrativo) -->
+<!-- PAINEL PERMISSÕES (dentro de Administrativo) -- reorganizado em
+     29/ago/2026 pra navegação em 2 níveis, mesmo padrão de Configurações/
+     Entrega de Figurino (lista de cards → sub-tela cheia por grupo, com
+     "← Permissões" pra voltar). Pedido dela depois do incidente do naipe
+     quebrado: "Diretor de Bateria - Naipe" virou grupo PRÓPRIO, separado
+     de "Diretor de Bateria" comum (restrito_ao_naipe divide os dois) --
+     "vou precisar dessa diferenciação senão eu vou pirar". -->
 <div class="painel" id="painel-permissoes">
-    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-    <div class="painel-titulo">Permissões</div>
-    <div class="config-sub-desc" style="margin-bottom:16px;">Escolha uma pessoa da Diretoria e marque direto o que ela pode ver e editar. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
 
-    <!-- Interruptor da bateria inteira (não é capacidade por pessoa, por
-         isso mora fora do editor por pessoa abaixo) -- pedido dela,
-         23/ago/2026, resolvendo a pendência antiga de ritmista nunca poder
-         preencher a própria medida. -->
-    <div class="ficha-secao" id="pe-secao-ritmistas">
-        <div class="ficha-secao-titulo">Ritmistas</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-            <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
-            <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista edite as medidas</label>
-        </div>
-        <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o ritmista consegue preencher — nunca editar depois de salvo — qualquer campo de Medida que estiver em branco na própria ficha. Útil quando surge uma Categoria de Figurino nova no meio da temporada (ex: um vestido) e as pessoas precisam preencher esse campo sozinhas. Vale pra bateria inteira.</div>
-
-        <!-- Repique de Bossa (26/ago/2026): campo delicado, dois
-             interruptores separados (ver / marcar), independentes um do
-             outro -- pedido explícito dela, nascem os dois desligados. -->
-        <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
-            <input type="checkbox" id="pe-ritmista-ve-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('ver', this.checked)">
-            <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja o próprio Repique de Bossa</label>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-            <input type="checkbox" id="pe-ritmista-marca-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('marcar', this.checked)">
-            <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista marque o próprio Repique de Bossa</label>
-        </div>
-        <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Campo sensível, tratado à parte de Instrumento/Medidas: os dois interruptores acima controlam só a própria ficha do ritmista (Meu Perfil), e são independentes. Pra Mestre/Diretor/Apoio verem ou marcarem o Repique de Bossa de um ritmista, a permissão é dada pessoa por pessoa, abaixo — ninguém tem acesso até ser liberado, mesmo quem já edita Ritmistas normalmente.</div>
-
-        <!-- Desfile / Declaração do Responsável (28/ago/2026): só "ver" --
-             o ritmista nunca marca nenhum dos dois, quem decide é sempre a
-             Diretoria (pessoa por pessoa, abaixo). Pedido dela: "quero que
-             tenha os dois interruptores. Na hora o adm vai decidir se o
-             ritmista vai poder ver ou não." -->
-        <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
-            <input type="checkbox" id="pe-ritmista-ve-desfile" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('desfile', this.checked)">
-            <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja o próprio Desfile</label>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-            <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
-            <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja a própria Declaração do Responsável</label>
-        </div>
-        <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca marca nenhum dos dois, só enxerga o valor já definido pela Diretoria. Declaração só aparece de fato pra quem é menor de idade.</div>
-
-        <!-- Observações (28/ago/2026, sessão seguinte): mesmo padrão dos
-             dois acima -- o ritmista continua NUNCA editando (Observações é
-             sempre escrita pela Diretoria), só a bateria pode liberar "ver". -->
-        <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
-            <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
-            <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja as próprias Observações</label>
-        </div>
-        <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca edita, só a Diretoria escreve. Nasce desligado.</div>
+    <!-- Lista (nível 1, estilo Configurações) -->
+    <div id="pe-lista">
+        <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
+        <div class="painel-titulo">Permissões</div>
+        <div class="config-sub-desc" style="margin-bottom:16px;">Escolha um grupo pra ver ou editar o que cada pessoa pode fazer. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
+        <div class="config-item" onclick="abrirPermissoesGrupo('ritmistas')"><span>Ritmistas</span><span class="config-item-seta">›</span></div>
+        <div class="config-item" onclick="abrirPermissoesGrupo('mestre')"><span>Mestre</span><span class="config-item-seta">›</span></div>
+        <div class="config-item" onclick="abrirPermissoesGrupo('diretor-naipe')"><span>Diretor de Bateria - Naipe</span><span class="config-item-seta">›</span></div>
+        <div class="config-item" onclick="abrirPermissoesGrupo('diretor')"><span>Diretor de Bateria</span><span class="config-item-seta">›</span></div>
+        <div class="config-item" onclick="abrirPermissoesGrupo('apoio')"><span>Diretor (Apoio)</span><span class="config-item-seta">›</span></div>
     </div>
 
+    <!-- Sub-tela: Ritmistas -- interruptor da bateria inteira, não é
+         capacidade por pessoa (por isso não tem lista de gente aqui). -->
+    <div id="pe-tela-ritmistas" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
+        <div class="painel-titulo">Ritmistas</div>
+        <div class="ficha-secao" id="pe-secao-ritmistas">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
+                <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista edite as medidas</label>
+            </div>
+            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o ritmista consegue preencher — nunca editar depois de salvo — qualquer campo de Medida que estiver em branco na própria ficha. Útil quando surge uma Categoria de Figurino nova no meio da temporada (ex: um vestido) e as pessoas precisam preencher esse campo sozinhas. Vale pra bateria inteira.</div>
+
+            <!-- Repique de Bossa (26/ago/2026): campo delicado, dois
+                 interruptores separados (ver / marcar), independentes um do
+                 outro -- pedido explícito dela, nascem os dois desligados. -->
+            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+                <input type="checkbox" id="pe-ritmista-ve-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('ver', this.checked)">
+                <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja o próprio Repique de Bossa</label>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                <input type="checkbox" id="pe-ritmista-marca-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('marcar', this.checked)">
+                <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista marque o próprio Repique de Bossa</label>
+            </div>
+            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Campo sensível, tratado à parte de Instrumento/Medidas: os dois interruptores acima controlam só a própria ficha do ritmista (Meu Perfil), e são independentes. Pra Mestre/Diretor/Apoio verem ou marcarem o Repique de Bossa de um ritmista, a permissão é dada pessoa por pessoa, no grupo de cada cargo — ninguém tem acesso até ser liberado, mesmo quem já edita Ritmistas normalmente.</div>
+
+            <!-- Desfile / Declaração do Responsável (28/ago/2026): só "ver" --
+                 o ritmista nunca marca nenhum dos dois, quem decide é sempre a
+                 Diretoria (pessoa por pessoa, em cada grupo). Pedido dela:
+                 "quero que tenha os dois interruptores. Na hora o adm vai
+                 decidir se o ritmista vai poder ver ou não." -->
+            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+                <input type="checkbox" id="pe-ritmista-ve-desfile" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('desfile', this.checked)">
+                <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja o próprio Desfile</label>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
+                <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja a própria Declaração do Responsável</label>
+            </div>
+            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca marca nenhum dos dois, só enxerga o valor já definido pela Diretoria. Declaração só aparece de fato pra quem é menor de idade.</div>
+
+            <!-- Observações (28/ago/2026, sessão seguinte): mesmo padrão dos
+                 dois acima -- o ritmista continua NUNCA editando (Observações é
+                 sempre escrita pela Diretoria), só a bateria pode liberar "ver". -->
+            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+                <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
+                <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja as próprias Observações</label>
+            </div>
+            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca edita, só a Diretoria escreve. Nasce desligado.</div>
+        </div>
+    </div>
+
+    <!-- Sub-telas por cargo -- lista de pessoas + busca, mesmo padrão de
+         Ritmistas/Diretoria (busca + lista.cards). "Diretor de Bateria -
+         Naipe" e "Diretor de Bateria" são o MESMO perfil no banco (diretor),
+         só divididos aqui por restrito_ao_naipe, pra nunca confundir um com
+         o outro. -->
+    <div id="pe-tela-mestre" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
+        <div class="painel-titulo">Mestre</div>
+        <div style="margin-bottom:20px;">
+            <input type="text" id="pe-busca-mestre" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesGrupo('mestre')"
+                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        </div>
+        <div id="pe-perfis-lista-mestre" class="lista-cards"></div>
+    </div>
+
+    <div id="pe-tela-diretor-naipe" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
+        <div class="painel-titulo">Diretor de Bateria - Naipe</div>
+        <div style="margin-bottom:20px;">
+            <input type="text" id="pe-busca-diretor-naipe" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesGrupo('diretor-naipe')"
+                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        </div>
+        <div id="pe-perfis-lista-diretor-naipe" class="lista-cards"></div>
+    </div>
+
+    <div id="pe-tela-diretor" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
+        <div class="painel-titulo">Diretor de Bateria</div>
+        <div style="margin-bottom:20px;">
+            <input type="text" id="pe-busca-diretor" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesGrupo('diretor')"
+                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        </div>
+        <div id="pe-perfis-lista-diretor" class="lista-cards"></div>
+    </div>
+
+    <div id="pe-tela-apoio" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
+        <div class="painel-titulo">Diretor (Apoio)</div>
+        <div style="margin-bottom:20px;">
+            <input type="text" id="pe-busca-apoio" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesGrupo('apoio')"
+                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        </div>
+        <div id="pe-perfis-lista-apoio" class="lista-cards"></div>
+    </div>
+
+    <!-- Editor por pessoa -- toma conta da tela inteira, por cima de
+         qualquer sub-tela de grupo (esconde a sub-tela por trás enquanto
+         está aberto). -->
     <div id="pe-editor" style="display:none;"></div>
-    <!-- Busca + seções por cargo -- mesmo padrão já usado em Ritmistas/
-         Diretoria, pedido da Márcia, 22/ago/2026: essa lista estava "solta"
-         (sem divisão nem busca), diferente do resto do app. -->
-    <div style="margin-bottom:20px;">
-        <input type="text" id="pe-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesPessoas()"
-            style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
-    </div>
-    <div id="pe-perfis-lista" class="lista-cards"></div>
 </div>
 
 <!-- PAINEL HISTÓRICO (dentro de Administrativo) -->
@@ -6672,6 +6728,18 @@
 
     let permissoesPessoaCache = [];
     let permissoesPessoaEditando = null;
+    // Grupo (nível 2) atualmente aberto na tela de Permissões -- null quando
+    // está na lista (nível 1). "diretor-naipe"/"diretor" são o MESMO perfil
+    // no banco (diretor), só divididos aqui por restrito_ao_naipe -- pedido
+    // dela, 29/ago/2026, depois do incidente do naipe quebrado (ver seção
+    // técnica): "vou precisar dessa diferenciação senão eu vou pirar".
+    let permissoesGrupoAtual = null;
+    const PERMISSOES_GRUPOS = {
+        mestre: { label: 'Mestre', filtro: p => p.perfil === 'mestre' },
+        'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && p.restrito_ao_naipe },
+        diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !p.restrito_ao_naipe },
+        apoio: { label: 'Diretor (Apoio)', filtro: p => p.perfil === 'apoio' },
+    };
 
     // Usado na lista de Permissões (linha por pessoa, precisa ser curto --
     // só a contagem, não cabe o detalhe todo numa lista de várias pessoas).
@@ -6699,8 +6767,6 @@
     }
 
     async function carregarPermissoesEscola() {
-        const container = document.getElementById('pe-perfis-lista');
-        if (!container) return;
         const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
         const chkRitmista = document.getElementById('pe-ritmista-edita-medidas');
         const podeEditarPermissoes = tenhoCapacidade('editar_permissoes');
@@ -6739,10 +6805,28 @@
             chkVeObservacoes.disabled = !podeEditarPermissoes;
             chkVeObservacoes.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
         }
-        if (!bateriaId) { permissoesPessoaCache = []; container.innerHTML = '<div class="estado-vazio">Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
+        if (!bateriaId) {
+            permissoesPessoaCache = [];
+            if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
+            return;
+        }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
-        renderizarListaPermissoesPessoas();
+        if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
+    }
+    // Navegação nível 1 ↔ nível 2 (mesmo padrão de Configurações/Entrega de
+    // Figurino: abrirConfigTela/voltarConfigLista).
+    function abrirPermissoesGrupo(grupoId) {
+        document.getElementById('pe-lista').style.display = 'none';
+        document.querySelectorAll('#painel-permissoes .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('pe-tela-' + grupoId).style.display = 'block';
+        permissoesGrupoAtual = grupoId;
+        if (PERMISSOES_GRUPOS[grupoId]) renderizarListaPermissoesGrupo(grupoId);
+    }
+    function voltarPermissoesLista() {
+        document.querySelectorAll('#painel-permissoes .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('pe-lista').style.display = 'block';
+        permissoesGrupoAtual = null;
     }
     async function salvarRitmistaEditaMedidas(ligado) {
         const id = bateriaAtualData ? bateriaAtualData.id : null;
@@ -6793,54 +6877,51 @@
             mostrarToast('Erro ao atualizar.', 'erro');
         }
     }
-    // Agrupado por cargo (Mestres/Diretores/Apoio) + busca por nome/apelido
-    // -- pedido da Márcia, 22/ago/2026: essa lista estava corrida, sem
-    // divisão nem busca, diferente do padrão do resto do app (mesma
-    // organização de Diretoria).
-    function renderizarListaPermissoesPessoas() {
-        const container = document.getElementById('pe-perfis-lista');
-        if (!container) return;
-        if (permissoesPessoaCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Nenhum Mestre, Diretor de Bateria ou Diretor nesta bateria ainda.</div>'; return; }
+    function cardHTMLPermissoes(p) {
+        const detalhe = permissoesResumoTexto(p);
+        return `<div class="item-card">
+            <div class="item-info">
+                <div class="item-nome">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
+                <div class="item-detalhe">${detalhe}</div>
+            </div>
+            <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditorPermissoesPessoa(${p.id})">Editar</button></div>
+        </div>`;
+    }
+    // Uma sub-tela por cargo (29/ago/2026, reorganização pedida por ela) --
+    // "diretor-naipe" e "diretor" filtram o MESMO perfil de banco (diretor),
+    // só divididos por restrito_ao_naipe.
+    function renderizarListaPermissoesGrupo(grupoId) {
+        const meta = PERMISSOES_GRUPOS[grupoId];
+        const container = document.getElementById('pe-perfis-lista-' + grupoId);
+        if (!meta || !container) return;
+        const doGrupo = permissoesPessoaCache.filter(meta.filtro);
+        if (doGrupo.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Ninguém nesse grupo, nesta bateria, ainda.</div>'; return; }
 
-        const buscaEl = document.getElementById('pe-busca');
+        const buscaEl = document.getElementById('pe-busca-' + grupoId);
         const busca = (buscaEl ? buscaEl.value : '').trim().toLowerCase();
         const filtrada = busca
-            ? permissoesPessoaCache.filter(p => (p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))
-            : permissoesPessoaCache;
+            ? doGrupo.filter(p => (p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))
+            : doGrupo;
 
         if (filtrada.length === 0) { container.innerHTML = '<div class="estado-vazio">Nenhuma pessoa encontrada com essa busca.</div>'; return; }
-
-        const cardHTML = p => {
-            const detalhe = permissoesResumoTexto(p);
-            return `<div class="item-card">
-                <div class="item-info">
-                    <div class="item-nome">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
-                    <div class="item-detalhe">${detalhe}</div>
-                </div>
-                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditorPermissoesPessoa(${p.id})">Editar</button></div>
-            </div>`;
-        };
-
-        const grupos = [['mestre', 'Mestres'], ['diretor', 'Diretores de Bateria'], ['apoio', 'Diretores (Apoio)']];
-        container.innerHTML = grupos.map(([perfil, label]) => {
-            const itens = filtrada.filter(p => p.perfil === perfil);
-            if (itens.length === 0) return '';
-            return `<div class="secao-titulo">${label}</div>${itens.map(cardHTML).join('')}`;
-        }).join('');
+        container.innerHTML = filtrada.map(cardHTMLPermissoes).join('');
     }
     // veioDaFicha marca quem chegou aqui pelo atalho da ficha (item 4) --
     // controla o "Voltar para a ficha" (link + volta automática ao salvar/
-    // cancelar). Quem abre direto da lista de Permissões não tem pra onde
-    // voltar, então fica sem esse botão -- comportamento de sempre.
+    // cancelar). Quem abre da sub-tela de um grupo (o normal) volta pra
+    // esse grupo (grupoOrigem) em vez da lista de nível 1 -- reorganização
+    // de 29/ago/2026.
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, veioDaFicha };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
+        // O editor toma conta da tela inteira, por cima da sub-tela do
+        // grupo (ou da lista, se veio da ficha) -- nunca os dois visíveis
+        // ao mesmo tempo.
+        const lista = document.getElementById('pe-lista');
+        if (lista) lista.style.display = 'none';
+        document.querySelectorAll('#painel-permissoes .config-subtela').forEach(el => el.style.display = 'none');
         renderizarEditorPermissoesPessoa();
-        // O editor mora acima da lista/busca -- numa lista longa, clicar
-        // "Editar" numa pessoa mais pra baixo preenchia o formulário fora da
-        // tela visível, parecendo que não tinha acontecido nada (achado
-        // dela, 25/ago/2026). Rola até o editor pra deixar claro que abriu.
         const editor = document.getElementById('pe-editor');
         if (editor) editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -6860,7 +6941,9 @@
         if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
         editor.innerHTML = `<div class="card-form">
-            ${pe.veioDaFicha ? `<div style="margin-bottom:8px;"><span onclick="abrirFichaAdmin(${pe.id})" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Voltar para a ficha</span></div>` : ''}
+            ${pe.veioDaFicha
+                ? `<div style="margin-bottom:8px;"><span onclick="abrirFichaAdmin(${pe.id})" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Voltar para a ficha</span></div>`
+                : (pe.grupoOrigem && PERMISSOES_GRUPOS[pe.grupoOrigem] ? `<div style="margin-bottom:8px;"><span onclick="fecharEditorPermissoesPessoa()" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← ${esc(PERMISSOES_GRUPOS[pe.grupoOrigem].label)}</span></div>` : '')}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Acesso ao painel</div>
@@ -6923,10 +7006,13 @@
     // como voltar pra conferir se o resumo da ficha atualizou.
     function fecharEditorPermissoesPessoa() {
         const veioDaFicha = permissoesPessoaEditando && permissoesPessoaEditando.veioDaFicha;
+        const grupoOrigem = permissoesPessoaEditando && permissoesPessoaEditando.grupoOrigem;
         const id = permissoesPessoaEditando && permissoesPessoaEditando.id;
         permissoesPessoaEditando = null;
         renderizarEditorPermissoesPessoa();
         if (veioDaFicha) abrirFichaAdmin(id);
+        else if (grupoOrigem) abrirPermissoesGrupo(grupoOrigem);
+        else voltarPermissoesLista();
     }
     async function salvarPermissoesPessoa() {
         const pe = permissoesPessoaEditando;
@@ -6942,10 +7028,13 @@
         const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual, restrito_ao_naipe }) });
         if (res.ok) {
             mostrarToast('Permissões atualizadas!');
+            const grupoOrigem = pe.grupoOrigem;
             permissoesPessoaEditando = null;
             await carregarPermissoesEscola();
             renderizarEditorPermissoesPessoa();
             if (pe.veioDaFicha) abrirFichaAdmin(pe.id);
+            else if (grupoOrigem) abrirPermissoesGrupo(grupoOrigem);
+            else voltarPermissoesLista();
         }
         else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
     }
@@ -7961,7 +8050,7 @@
         if (aba === 'comercial') renderizarComercialTab();
         if (aba === 'figurino') iniciarFigurinoTab();
         if (aba === 'extras') iniciarExtrasTab();
-        if (aba === 'permissoes') { permissoesPessoaEditando = null; renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
+        if (aba === 'permissoes') { permissoesPessoaEditando = null; voltarPermissoesLista(); renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'historico') carregarHistoricoEscolaSA();
         if (aba === 'administrativo') renderizarAdministrativoLista();
     }
