@@ -2484,7 +2484,7 @@
     // atualização de fundo fica sem foto até a próxima vez que a tela abrir
     // de verdade. Conserto definitivo (fotos pequenas de verdade) fica pra
     // depois, com mais calma -- isso aqui é só a mitigação imediata.
-    const COLUNAS_RITMISTAS_SEM_FOTO = 'id,vinculo_id,pessoa_id,created_at,nome,cpf,nascimento,endereco,numero,complemento,bairro,cidade,estado,celular,apelido,email,status,tamanho_camisa,tamanho_fantasia,tamanho_sapato,declaracao_responsavel,motivo_status,motivo_instrumento,membro_desde,perfil,emergencia_nome,emergencia_parentesco,emergencia_celular,bateria_id,tipo_sanguineo,pais,nacionalidade,tamanho_calca,estrangeiro,tipo_documento,numero_documento,cadastro_completo,nivel_acesso,aprovado_por,auth_user_id,consentimento_confirmado,bateria_instrumento_id,instrumento_nome,instrumento_grupo,genero,genero_personalizado,nivel_acesso_id,foto_pos_x,foto_pos_y,capacidades,modo_carteirinha_individual,naipe,repique_bossa,qr_token,responsavel_nome,responsavel_cpf,responsavel_celular';
+    const COLUNAS_RITMISTAS_SEM_FOTO = 'id,vinculo_id,pessoa_id,created_at,nome,cpf,nascimento,endereco,numero,complemento,bairro,cidade,estado,celular,apelido,email,status,tamanho_camisa,tamanho_fantasia,tamanho_sapato,declaracao_responsavel,motivo_status,motivo_instrumento,membro_desde,perfil,emergencia_nome,emergencia_parentesco,emergencia_celular,bateria_id,tipo_sanguineo,pais,nacionalidade,tamanho_calca,estrangeiro,tipo_documento,numero_documento,cadastro_completo,nivel_acesso,aprovado_por,auth_user_id,consentimento_confirmado,bateria_instrumento_id,instrumento_nome,instrumento_grupo,genero,genero_personalizado,nivel_acesso_id,foto_pos_x,foto_pos_y,capacidades,modo_carteirinha_individual,naipe,repique_bossa,restrito_ao_naipe,qr_token,responsavel_nome,responsavel_cpf,responsavel_celular';
 
     function reaproveitarFotosCache(listaNova, listaAntiga) {
         const fotosPorId = {};
@@ -6436,9 +6436,10 @@
     function permissoesResumoTexto(p) {
         const caps = p.capacidades || {};
         const ligadas = TODAS_CAPACIDADES.filter(c => caps[c]);
-        return p.modo_carteirinha_individual
+        const base = p.modo_carteirinha_individual
             ? 'Modo Carteirinha individual — não entra na gestão'
             : (ligadas.length === 0 ? 'nenhuma capacidade ligada' : ligadas.length + ' capacidade' + (ligadas.length === 1 ? '' : 's') + ' ligada' + (ligadas.length === 1 ? '' : 's'));
+        return base + (p.restrito_ao_naipe ? ' · restrito ao naipe' : '');
     }
 
     // Usado dentro da ficha de uma pessoa só (23/ago/2026, achado dela: "4
@@ -6450,8 +6451,9 @@
         const grupos = GRUPOS_CAPACIDADES
             .map(g => ({ grupo: g.grupo, labels: g.itens.filter(i => caps[i.chave]).map(i => i.label) }))
             .filter(g => g.labels.length > 0);
-        if (grupos.length === 0) return 'Nenhuma capacidade ligada';
-        return grupos.map(g => `<strong>${esc(g.grupo)}:</strong> ${esc(g.labels.join(', '))}`).join('<br>');
+        const restrito = p.restrito_ao_naipe ? '<br><strong>Restrito ao naipe:</strong> só Ritmistas do naipe que lidera' : '';
+        if (grupos.length === 0) return 'Nenhuma capacidade ligada' + restrito;
+        return grupos.map(g => `<strong>${esc(g.grupo)}:</strong> ${esc(g.labels.join(', '))}`).join('<br>') + restrito;
     }
 
     async function carregarPermissoesEscola() {
@@ -6478,7 +6480,7 @@
             chkRepiqueMarcar.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
         }
         if (!bateriaId) { permissoesPessoaCache = []; container.innerHTML = '<div class="estado-vazio">Cadastre a bateria primeiro, em "Dados da Bateria".</div>'; return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual`, { headers: authHeaders });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         renderizarListaPermissoesPessoas();
     }
@@ -6555,7 +6557,7 @@
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, veioDaFicha };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, veioDaFicha };
         renderizarEditorPermissoesPessoa();
         // O editor mora acima da lista/busca -- numa lista longa, clicar
         // "Editar" numa pessoa mais pra baixo preenchia o formulário fora da
@@ -6597,6 +6599,11 @@
                             <input type="checkbox" id="pp-cap-${c.chave}" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
                             <label for="pp-cap-${c.chave}" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
                         </div>`).join('')}
+                    ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' ? `
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;">
+                            <input type="checkbox" id="pp-restrito-naipe" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.restritoAoNaipe ? 'checked' : ''}>
+                            <label for="pp-restrito-naipe" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Restrito ao próprio naipe — só vê/aprova/edita Ritmistas do naipe que lidera</label>
+                        </div>` : ''}
                 </div>`).join('')}
             <div class="form-rodape">
                 <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button></div>
@@ -6622,6 +6629,16 @@
                 if (travar && el.checked) { el.checked = false; mudou = true; }
             });
         }
+        // "Restrito ao naipe" só existe pra Diretor de Bateria e depende de
+        // "Ver lista" (Ritmistas) -- mesma regra: sem ver_ritmistas, ligar a
+        // restrição não teria nada pra restringir.
+        const restritoNaipe = document.getElementById('pp-restrito-naipe');
+        const verRitmistas = document.getElementById('pp-cap-ver_ritmistas');
+        if (restritoNaipe && verRitmistas) {
+            const travar = !verRitmistas.checked;
+            restritoNaipe.disabled = travar;
+            if (travar && restritoNaipe.checked) restritoNaipe.checked = false;
+        }
     }
     // Quem veio da ficha (item 4) volta pra ela sozinho ao salvar/cancelar --
     // achado da Márcia, 22/ago/2026: sem isso, depois de editar não tinha
@@ -6639,7 +6656,12 @@
         const capacidades = {};
         TODAS_CAPACIDADES.forEach(c => { capacidades[c] = document.getElementById('pp-cap-' + c).checked; });
         const modo_carteirinha_individual = document.getElementById('pp-modo-carteirinha').checked;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual }) });
+        // "Restrito ao naipe" só existe na tela pra Diretor de Bateria (ver
+        // renderizarEditorPermissoesPessoa) -- pra qualquer outro perfil,
+        // salva false (nunca ficou disponível pra marcar mesmo).
+        const restritoNaipeEl = document.getElementById('pp-restrito-naipe');
+        const restrito_ao_naipe = restritoNaipeEl ? restritoNaipeEl.checked : false;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual, restrito_ao_naipe }) });
         if (res.ok) {
             mostrarToast('Permissões atualizadas!');
             permissoesPessoaEditando = null;
