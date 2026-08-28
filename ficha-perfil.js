@@ -359,7 +359,7 @@ function fpRenderToggleNaoDesfila() {
     const trackBg = desfila ? '#2d7a4f' : '#c7d3e0';
     const thumbPos = desfila ? '21px' : '3px';
     const labelColor = desfila ? '#2d7a4f' : '#706c87';
-    const labelText = desfila ? 'Ok' : 'Não desfila';
+    const labelText = desfila ? 'Desfila' : 'Não desfila';
     area.innerHTML = `
         <div ${podeEditar ? `onclick="fpAlternarNaoDesfila()"` : ''}
              style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;${podeEditar ? 'cursor:pointer;' : ''}user-select:none;">
