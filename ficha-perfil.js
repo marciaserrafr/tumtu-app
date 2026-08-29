@@ -160,7 +160,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=30');
+        const res = await fetch('ficha-perfil.partial.html?v=31');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -491,13 +491,16 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     // vê se a bateria liberar "ver" (ritmista_pode_ver_observacoes, sessão
     // seguinte, mesmo padrão de Desfile/Declaração) -- checado de forma
     // assíncrona em fpAplicarPermissaoAutoedicaoToggles, já que depende de
-    // buscar a configuração da bateria.
+    // buscar a configuração da bateria. Bloco inteiro (#fp-bloco-observacoes,
+    // mesmo padrão de #fp-bloco-declaracao/#fp-bloco-nao-desfila) nasce
+    // escondido no HTML -- corrigido em 29/ago/2026 (bug real achado por
+    // ela: só o campo interno era escondido, não a seção com o título
+    // "Observações", que ficava visível pra QUALQUER Ritmista mesmo com a
+    // permissão desligada -- não vazava o texto da nota, mas vazava o
+    // título/seção vazia).
     const podeVerObservacoes = alvo.perfil === 'ritmista' && !autoedicao && typeof tenhoCapacidade === 'function' && tenhoCapacidade('ver_observacoes');
-    if (!podeVerObservacoes) {
-        const elObs = fpEl('fp-observacoes');
-        const blocoObs = elObs && (elObs.classList.contains('ficha-campo') ? elObs : elObs.closest('.ficha-campo'));
-        if (blocoObs) blocoObs.style.display = 'none';
-    }
+    const blocoObservacoes = fpEl('fp-bloco-observacoes');
+    if (blocoObservacoes) blocoObservacoes.style.display = podeVerObservacoes ? '' : 'none';
 
     // Declaração do Responsável / Desfile (28/ago/2026): exclusivo da
     // Diretoria (a própria pessoa nunca vê), FORA do fluxo Editar/Salvar de
@@ -852,10 +855,11 @@ async function fpAplicarPermissaoAutoedicaoToggles(alvo) {
 
     // Observações (sessão seguinte, 28/ago/2026) -- continua fora de
     // `editaveis` mesmo revelada (Ritmista só VÊ, nunca ganha o "Editar"
-    // desse campo em autoedição, ver fpCamposEditaveis).
+    // desse campo em autoedição, ver fpCamposEditaveis). Bloco inteiro
+    // (#fp-bloco-observacoes) -- ver comentário 29/ago/2026 acima, mesmo
+    // bug corrigido nos dois lugares.
     if (bateria.ritmista_pode_ver_observacoes) {
-        const elObs = fpEl('fp-observacoes');
-        const blocoObs = elObs && (elObs.classList.contains('ficha-campo') ? elObs : elObs.closest('.ficha-campo'));
+        const blocoObs = fpEl('fp-bloco-observacoes');
         if (blocoObs) blocoObs.style.display = '';
     }
 
