@@ -6022,12 +6022,36 @@
         select.value = valorAtual;
     }
 
+    // Mesmo padrão de Entrega de Figurino (27/ago/2026): separa Ritmistas x
+    // Diretoria em 2 blocos quando o evento inclui os dois -- Convidados
+    // entram somados dentro do bloco do grupo deles (ritmista ou
+    // diretoria), nunca um terceiro bloco à parte (conferido no código de
+    // Figurino antes de replicar aqui -- ele também não separa Convidados
+    // no totalizador). Evento só de Ritmistas continua com um total
+    // simples, sem quebrar em blocos à toa.
     function atualizarTotalizadorPresenca() {
         const el = document.getElementById('presenca-totalizador');
         if (!el) return;
-        const total = presencaPessoasCache.length;
-        const presentes = presencaPessoasCache.filter(p => p.presente).length;
-        el.innerHTML = totalDuploHtml(total, total - presentes, false);
+        const doLadoTotal = lado => presencaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === lado);
+        const ritmista = doLadoTotal('ritmista');
+        const diretoria = doLadoTotal('diretoria');
+        if (presencaPessoasCache.length === 0) {
+            el.innerHTML = '';
+        } else if (ritmista.length > 0 && diretoria.length > 0) {
+            const totalR = ritmista.length, presentesR = ritmista.filter(p => p.presente).length;
+            const totalD = diretoria.length, presentesD = diretoria.filter(p => p.presente).length;
+            el.innerHTML = `<div class="figurino-total-grid">
+                ${totalDuploHtml(totalR + totalD, (totalR - presentesR) + (totalD - presentesD))}
+                <div class="secao-titulo">Ritmistas</div>
+                <div class="secao-titulo">Diretoria</div>
+                <div>${totalDuploHtml(totalR, totalR - presentesR, true)}</div>
+                <div>${totalDuploHtml(totalD, totalD - presentesD, true)}</div>
+            </div>`;
+        } else {
+            const total = presencaPessoasCache.length;
+            const presentes = presencaPessoasCache.filter(p => p.presente).length;
+            el.innerHTML = totalDuploHtml(total, total - presentes);
+        }
     }
 
     function renderizarPresencaLista() {
