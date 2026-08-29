@@ -2171,6 +2171,7 @@
         <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Presença</button>
         <div class="painel-titulo" id="presenca-evento-titulo">Presença</div>
         <div id="presenca-totalizador" class="total-duplo-card"></div>
+        <div class="figurino-tabs-lado" id="presenca-filtro-lado" style="display:none;"></div>
         <input type="text" id="presenca-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarPresencaLista()"
             style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;margin-bottom:10px;">
         <div class="figurino-filtros-rotulo">Filtros</div>
@@ -5771,7 +5772,7 @@
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
+                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${ev.inclui_extras ? ' · Convidados' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
                 </div>
                 ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEvento(${ev.id})">Editar</button></div>` : ''}
             </div>`).join('');
@@ -5779,13 +5780,13 @@
     function abrirNovoEvento() {
         if (bibliotecaEventoTipos.length === 0) { mostrarToast('Nenhum Tipo de Evento cadastrado ainda — fale com o Super Admin.', 'erro'); return; }
         if (bibliotecaTemporadas.length === 0) { mostrarToast('Nenhuma Temporada cadastrada ainda — fale com o Super Admin.', 'erro'); return; }
-        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, perfis_diretoria_inclusos: [], temporada_id: bibliotecaTemporadas[0].id };
+        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, perfis_diretoria_inclusos: [], temporada_id: bibliotecaTemporadas[0].id, inclui_extras: false };
         renderizarEditorEvento();
     }
     function abrirEditarEvento(id) {
         const ev = eventosBateriaCache.find(x => x.id === id);
         if (!ev) return;
-        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, perfis_diretoria_inclusos: [...(ev.perfis_diretoria_inclusos || [])], temporada_id: ev.temporada_id || null };
+        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, perfis_diretoria_inclusos: [...(ev.perfis_diretoria_inclusos || [])], temporada_id: ev.temporada_id || null, inclui_extras: !!ev.inclui_extras };
         renderizarEditorEvento();
     }
     function renderizarEditorEvento() {
@@ -5815,6 +5816,10 @@
                         </div>`).join('')}
                     </div>
                 </div>
+                <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="ev-edit-inclui-extras" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.inclui_extras ? 'checked' : ''}>
+                    <label for="ev-edit-inclui-extras" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Inclui Convidados (entram na lista de presença dos grupos marcados acima)</label>
+                </div>
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -5838,14 +5843,15 @@
         if (!temporadaVal) { mostrarToast('Selecione a temporada.', 'erro'); return; }
         const temporada_id = Number(temporadaVal);
         const perfis_diretoria_inclusos = [...document.querySelectorAll('.ev-edit-perfil-diretoria:checked')].map(el => el.value);
+        const inclui_extras = document.getElementById('ev-edit-inclui-extras').checked;
         const bateriaId = bateriaIdContexto();
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         salvandoEvento = true;
         try {
             if (eventoEditando.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras }) });
             } else {
-                await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, criado_por: u ? u.pessoa_id : null }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, criado_por: u ? u.pessoa_id : null }) });
             }
             mostrarToast(eventoEditando.id ? 'Evento atualizado!' : 'Evento criado!');
             eventoEditando = null;
@@ -5880,6 +5886,12 @@
     let presencaEventoAtual = null;
     let presencaPessoasCache = [];
     let presencaConfirmando = {};
+    // Qual "lado" a lista mostra agora -- mesmo padrão de Entrega de
+    // Figurino (figurinoEntregaLadoAtual), pedido dela 29/ago/2026 depois
+    // de comparar as duas telas: "mais parecida com a entrega de
+    // fantasias... aqui eu não consigo filtrar por tipo de pessoa". Nasce
+    // sempre em 'ritmista' (Ritmistas são sempre incluídos no evento).
+    let presencaLadoAtual = 'ritmista';
 
     function voltarPresencaLista() {
         document.querySelectorAll('#painel-presenca .config-subtela').forEach(el => el.style.display = 'none');
@@ -5912,6 +5924,7 @@
         const evento = presencaEventosCache.find(e => e.id === eventoId);
         if (!evento) return;
         presencaEventoAtual = evento;
+        presencaLadoAtual = 'ritmista';
         document.getElementById('presenca-lista').style.display = 'none';
         document.querySelectorAll('#painel-presenca .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('presenca-tela-marcar').style.display = 'block';
@@ -5931,29 +5944,81 @@
         const container = document.getElementById('presenca-pessoas-lista');
         container.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         const perfis = ['ritmista', ...(evento.perfis_diretoria_inclusos || [])];
-        const [resPessoas, resPresencas] = await Promise.all([
+        const buscas = [
             fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=in.(${perfis.join(',')})&order=nome&select=id,pessoa_id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
-            fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${evento.id}`, { headers: authHeaders }),
-        ]);
+            fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${evento.id}&vinculo_id=not.is.null`, { headers: authHeaders }),
+        ];
+        // Convidados (Extras) -- pedido dela, 29/ago/2026: "na configuração
+        // do evento, tem que ter os convidados". Mesmo grupo de Figurino
+        // (gruposExtraDoPublico, exclui mestre -- não existe "Convidado do
+        // Mestre").
+        const gruposExtras = evento.inclui_extras ? gruposExtraDoPublico(perfis) : [];
+        if (gruposExtras.length > 0) {
+            buscas.push(
+                fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&grupo=in.(${gruposExtras.join(',')})&order=nome`, { headers: authHeaders }),
+                fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${evento.id}&extra_id=not.is.null`, { headers: authHeaders }),
+            );
+        }
+        const [resPessoas, resPresencas, resExtras, resExtrasPresencas] = await Promise.all(buscas);
         const pessoas = resPessoas.ok ? await resPessoas.json() : [];
         const presencas = resPresencas.ok ? await resPresencas.json() : [];
         const presentesSet = new Set(presencas.map(p => p.vinculo_id));
-        presencaPessoasCache = pessoas.map(p => ({ ...p, presente: presentesSet.has(p.id) }));
+        const linhasPessoas = pessoas.map(p => ({ tipo: 'vinculo', id: p.id, pessoa_id: p.pessoa_id, nome: p.nome, apelido: p.apelido, perfil: p.perfil, instrumento_nome: p.instrumento_nome || null, presente: presentesSet.has(p.id) }));
+        let linhasExtras = [];
+        if (gruposExtras.length > 0) {
+            const extras = resExtras.ok ? await resExtras.json() : [];
+            const presencasExtras = resExtrasPresencas.ok ? await resExtrasPresencas.json() : [];
+            const presentesExtrasSet = new Set(presencasExtras.map(p => p.extra_id));
+            linhasExtras = extras.map(e => ({ tipo: 'extra', id: e.id, pessoa_id: null, nome: e.nome, apelido: null, perfil: e.grupo, instrumento_nome: null, presente: presentesExtrasSet.has(e.id) }));
+        }
+        presencaPessoasCache = linhasPessoas.concat(linhasExtras);
         presencaConfirmando = {};
+        renderizarFiltroLadoPresenca();
         popularFiltroTipoPresenca();
         renderizarPresencaLista();
         atualizarTotalizadorPresenca();
     }
 
+    // Só aparece quando o evento inclui Diretoria além de Ritmistas --
+    // mesma regra de renderizarFiltroLadoFigurino.
+    function renderizarFiltroLadoPresenca() {
+        const el = document.getElementById('presenca-filtro-lado');
+        if (!el) return;
+        const cobreDiretoria = (presencaEventoAtual.perfis_diretoria_inclusos || []).length > 0;
+        if (!cobreDiretoria) { el.style.display = 'none'; el.innerHTML = ''; return; }
+        el.style.display = '';
+        el.innerHTML = ['ritmista', 'diretoria'].map(lado =>
+            `<button type="button" class="${presencaLadoAtual === lado ? 'ativo' : ''}" onclick="mudarLadoPresenca('${lado}')">${lado === 'ritmista' ? 'Ritmista' : 'Diretoria'}</button>`
+        ).join('');
+    }
+    function mudarLadoPresenca(lado) {
+        presencaLadoAtual = lado;
+        renderizarFiltroLadoPresenca();
+        popularFiltroTipoPresenca();
+        renderizarPresencaLista();
+    }
+
+    // Mesma pílula serve pros dois lados (mesmo padrão de Figurino): filtra
+    // por Instrumento no lado Ritmista, por Tipo de pessoa (Mestre/Diretor
+    // de Bateria/Diretoria (Apoio)) no lado Diretoria. Convidados é uma
+    // opção à parte nos dois, quando o evento inclui.
     function popularFiltroTipoPresenca() {
         const select = document.getElementById('presenca-filtro-tipo');
         if (!select) return;
         const valorAtual = select.value;
-        const instrumentos = Array.from(new Set(presencaPessoasCache.filter(p => p.perfil === 'ritmista').map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-        const cargos = ['mestre', 'diretor', 'apoio'].filter(p => presencaPessoasCache.some(x => x.perfil === p));
-        select.innerHTML = '<option value="">Todos</option>'
-            + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('')
-            + cargos.map(p => `<option value="${p}">${LABEL_PERFIL_DIRETORIA_PRESENCA[p]}</option>`).join('');
+        const doLado = presencaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === presencaLadoAtual);
+        const temExtras = doLado.some(p => p.tipo === 'extra');
+        if (presencaLadoAtual === 'ritmista') {
+            const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+            select.innerHTML = '<option value="">Todos</option>'
+                + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('')
+                + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
+        } else {
+            const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.tipo === 'vinculo' && x.perfil === p));
+            select.innerHTML = '<option value="">Todos</option>'
+                + tipos.map(p => `<option value="${p}">${LABEL_PERFIL_DIRETORIA_PRESENCA[p]}</option>`).join('')
+                + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
+        }
         select.value = valorAtual;
     }
 
@@ -5968,13 +6033,20 @@
     function renderizarPresencaLista() {
         const container = document.getElementById('presenca-pessoas-lista');
         if (!container) return;
+        const doLado = presencaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === presencaLadoAtual);
+        const filtroTipoEl = document.getElementById('presenca-filtro-tipo');
+        const mostrarFiltroTipo = presencaLadoAtual === 'ritmista'
+            ? (doLado.some(p => p.instrumento_nome) || doLado.some(p => p.tipo === 'extra'))
+            : doLado.length > 0;
+        filtroTipoEl.style.display = mostrarFiltroTipo ? '' : 'none';
         const busca = (document.getElementById('presenca-busca').value || '').trim().toLowerCase();
-        const tipoFiltro = document.getElementById('presenca-filtro-tipo').value;
+        const tipoFiltro = filtroTipoEl.value;
         const statusFiltro = document.getElementById('presenca-filtro-status').value;
-        const filtrada = presencaPessoasCache.filter(p => {
+        const filtrada = doLado.filter(p => {
             if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
-            if (tipoFiltro) {
-                if (p.perfil === 'ritmista') { if (p.instrumento_nome !== tipoFiltro) return false; }
+            if (tipoFiltro === '__extras__' && p.tipo !== 'extra') return false;
+            if (tipoFiltro && tipoFiltro !== '__extras__') {
+                if (presencaLadoAtual === 'ritmista') { if (p.instrumento_nome !== tipoFiltro) return false; }
                 else if (p.perfil !== tipoFiltro) return false;
             }
             if (statusFiltro === 'presentes' && !p.presente) return false;
@@ -5983,23 +6055,23 @@
         });
         const podeMarcar = souSuperAdmin || tenhoCapacidade('marcar_presenca');
         const linhaHtml = p => {
-            const detalhe = esc(p.instrumento_nome || LABEL_PERFIL_DIRETORIA_PRESENCA[p.perfil] || '');
+            const detalhe = esc(p.instrumento_nome || (p.tipo === 'vinculo' ? LABEL_PERFIL_DIRETORIA_PRESENCA[p.perfil] : null) || (p.tipo === 'extra' ? 'Convidado' : ''));
             let acaoHtml;
             if (p.presente) {
                 acaoHtml = podeMarcar
-                    ? `<button type="button" class="figurino-selo figurino-selo-entregue" onclick="desfazerPresenca(${p.id})">✓ Presente</button>`
+                    ? `<button type="button" class="figurino-selo figurino-selo-entregue" onclick="desfazerPresenca('${p.tipo}', ${p.id})">✓ Presente</button>`
                     : `<span class="figurino-selo figurino-selo-entregue">✓ Presente</span>`;
-            } else if (presencaConfirmando[p.id]) {
+            } else if (presencaConfirmando[`${p.tipo}-${p.id}`]) {
                 acaoHtml = `<div class="figurino-confirmacao">
                     <span class="pergunta">Confirma?</span>
                     <div class="botoes">
-                        <button type="button" class="figurino-btn-nao" onclick="cancelarConfirmacaoPresenca(${p.id})">Cancelar</button>
-                        <button type="button" class="figurino-btn-sim" onclick="marcarPresenca(${p.id})">Sim</button>
+                        <button type="button" class="figurino-btn-nao" onclick="cancelarConfirmacaoPresenca('${p.tipo}', ${p.id})">Cancelar</button>
+                        <button type="button" class="figurino-btn-sim" onclick="marcarPresenca('${p.tipo}', ${p.id})">Sim</button>
                     </div>
                 </div>`;
             } else {
                 acaoHtml = podeMarcar
-                    ? `<button type="button" class="figurino-selo figurino-selo-pendente" onclick="pedirConfirmacaoPresenca(${p.id})">Não registrado</button>`
+                    ? `<button type="button" class="figurino-selo figurino-selo-pendente" onclick="pedirConfirmacaoPresenca('${p.tipo}', ${p.id})">Não registrado</button>`
                     : `<span class="figurino-selo figurino-selo-pendente">Não registrado</span>`;
             }
             return `
@@ -6011,43 +6083,69 @@
                 <div class="figurino-coluna-acao">${acaoHtml}</div>
             </div>`;
         };
-        if (filtrada.length === 0) { container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>'; return; }
-        const ritmistas = filtrada.filter(p => p.perfil === 'ritmista');
-        const diretoria = filtrada.filter(p => p.perfil !== 'ritmista');
-        let html = '';
-        if (ritmistas.length > 0) {
-            if (diretoria.length > 0) html += `<div class="secao-titulo">Ritmistas</div>`;
-            html += ritmistas.map(linhaHtml).join('');
+        if (filtrada.length === 0) {
+            container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>';
+        } else if (presencaLadoAtual === 'ritmista') {
+            const principais = filtrada.filter(p => p.tipo === 'vinculo');
+            const extrasList = filtrada.filter(p => p.tipo === 'extra');
+            const mostrarSecoes = principais.length > 0 && extrasList.length > 0;
+            let html = '';
+            if (principais.length > 0) {
+                if (mostrarSecoes) html += `<div class="secao-titulo">Ritmistas</div>`;
+                html += principais.map(linhaHtml).join('');
+            }
+            if (extrasList.length > 0) {
+                if (mostrarSecoes) html += `<div class="secao-titulo">Convidados</div>`;
+                html += extrasList.map(linhaHtml).join('');
+            }
+            container.innerHTML = html;
+        } else {
+            // Lado Diretoria sub-divide por cargo específico (mesma divisão
+            // já usada em Figurino) -- Convidado de cada cargo entra dentro
+            // da mesma seção do cargo, não misturado com os outros.
+            let html = '';
+            ['mestre', 'diretor', 'apoio'].forEach(perfil => {
+                const vinculos = filtrada.filter(p => p.tipo === 'vinculo' && p.perfil === perfil);
+                const convidados = filtrada.filter(p => p.tipo === 'extra' && p.perfil === perfil);
+                if (vinculos.length === 0 && convidados.length === 0) return;
+                html += `<div class="secao-titulo">${LABEL_PERFIL_DIRETORIA_PRESENCA[perfil]}</div>`;
+                html += vinculos.map(linhaHtml).join('');
+                if (convidados.length > 0) {
+                    html += `<div style="font-size:12px;font-weight:700;color:var(--cor-texto-muted);margin:8px 0 4px;">Convidados</div>`;
+                    html += convidados.map(linhaHtml).join('');
+                }
+            });
+            container.innerHTML = html;
         }
-        if (diretoria.length > 0) {
-            if (ritmistas.length > 0) html += `<div class="secao-titulo">Diretoria</div>`;
-            html += diretoria.map(linhaHtml).join('');
-        }
-        container.innerHTML = html;
     }
 
-    function pedirConfirmacaoPresenca(vinculoId) { presencaConfirmando[vinculoId] = true; renderizarPresencaLista(); }
-    function cancelarConfirmacaoPresenca(vinculoId) { delete presencaConfirmando[vinculoId]; renderizarPresencaLista(); }
+    function pedirConfirmacaoPresenca(tipo, id) { presencaConfirmando[`${tipo}-${id}`] = true; renderizarPresencaLista(); }
+    function cancelarConfirmacaoPresenca(tipo, id) { delete presencaConfirmando[`${tipo}-${id}`]; renderizarPresencaLista(); }
 
-    async function marcarPresenca(vinculoId) {
-        const p = presencaPessoasCache.find(x => x.id === vinculoId);
+    async function marcarPresenca(tipo, id) {
+        const p = presencaPessoasCache.find(x => x.tipo === tipo && x.id === id);
         if (!p || !presencaEventoAtual) return;
-        delete presencaConfirmando[vinculoId];
+        delete presencaConfirmando[`${tipo}-${id}`];
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         const bateriaId = bateriaIdContexto();
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?on_conflict=evento_id,vinculo_id`, {
+        const conflictCol = tipo === 'vinculo' ? 'vinculo_id' : 'extra_id';
+        const payload = tipo === 'vinculo'
+            ? { evento_id: presencaEventoAtual.id, vinculo_id: id, pessoa_id: p.pessoa_id, bateria_id: bateriaId, confirmado_por: u ? u.pessoa_id : null }
+            : { evento_id: presencaEventoAtual.id, extra_id: id, bateria_id: bateriaId, confirmado_por: u ? u.pessoa_id : null };
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?on_conflict=evento_id,${conflictCol}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates', ...authHeaders },
-            body: JSON.stringify({ evento_id: presencaEventoAtual.id, vinculo_id: vinculoId, pessoa_id: p.pessoa_id, bateria_id: bateriaId, confirmado_por: u ? u.pessoa_id : null })
+            body: JSON.stringify(payload)
         });
         if (!res.ok) { mostrarToast('Não foi possível marcar presença.', 'erro'); renderizarPresencaLista(); return; }
         p.presente = true;
         renderizarPresencaLista();
         atualizarTotalizadorPresenca();
     }
-    async function desfazerPresenca(vinculoId) {
-        const p = presencaPessoasCache.find(x => x.id === vinculoId);
+    async function desfazerPresenca(tipo, id) {
+        const p = presencaPessoasCache.find(x => x.tipo === tipo && x.id === id);
         if (!p || !presencaEventoAtual) return;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${presencaEventoAtual.id}&vinculo_id=eq.${vinculoId}`, { method: 'DELETE', headers: authHeaders });
+        const col = tipo === 'vinculo' ? 'vinculo_id' : 'extra_id';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${presencaEventoAtual.id}&${col}=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível desfazer.', 'erro'); return; }
         p.presente = false;
         renderizarPresencaLista();
