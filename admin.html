@@ -1065,16 +1065,28 @@
         .figurino-filtros-rotulo { font-size: 10.5px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
         .figurino-filtros-linha { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
         .figurino-pill-select { appearance: none; -webkit-appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 6L9 0z' fill='%23888'/%3E%3C/svg%3E") no-repeat right 12px center; border: 1.5px solid #e0e0e0; border-radius: 20px; padding: 7px 30px 7px 14px; font-family: inherit; font-size: 12.5px; font-weight: 600; color: #12101a; cursor: pointer; }
-        /* Grid de verdade pro totalizador quando a peça cobre Ritmista(s) E
-           Diretoria (27/ago/2026, pedido dela: "Faltam" de cima tem que
-           começar onde "Diretoria" começa embaixo -- só gap não garante
-           isso entre 2 linhas com conteúdo diferente). O total-duplo de
-           cima vira "display:contents" -- seus 2 itens (Total/Faltam) caem
-           direto nas 2 colunas da grade, junto com os títulos e os
-           mini-totais de baixo. */
-        .figurino-total-grid { display: grid; grid-template-columns: max-content max-content; column-gap: 40px; row-gap: 4px; }
-        .figurino-total-grid > .total-duplo { display: contents; }
-        .figurino-total-grid > .secao-titulo { margin: 12px 0 0; padding: 12px 0 6px; border-top: 1px solid #eee; }
+        /* Grid de verdade pro totalizador com detalhamento por grupo (29/ago/
+           2026, refeito pra caber Convidados também -- antes só existia
+           Ritmistas/Diretoria lado a lado, agora empilhado, um grupo por
+           linha, e "Convidados" entra como grupo próprio, nunca mais somado
+           escondido dentro de Ritmistas/Diretoria). Usado por Entrega de
+           Figurino e Presença (função compartilhada totalGradeHtml).
+           Coluna 1 = rótulo do grupo (ou o bloco "Total" do topo), coluna 2
+           = sempre o par Total/Faltam -- um grid CSS de verdade garante que
+           a coluna 2 comece sempre no mesmo X, pedido dela: "Faltam do
+           totalzão tem que começar onde os pares de baixo começam", pra
+           qualquer tamanho de rótulo (Ritmistas/Diretoria/Convidados).
+           ".divisor" é um item PRÓPRIO da grade (grid-column:1/-1) --
+           atravessa as 2 colunas de uma vez, vira uma linha só e contínua
+           (achado dela testando a prévia: border-top por célula quebrava a
+           linha em 2 pedaços, com buraco no meio). */
+        .totalizador-grade { display: grid; grid-template-columns: max-content max-content; column-gap: 32px; align-items: center; }
+        .celula-hero { display: flex; flex-direction: column; align-items: flex-start; padding-bottom: 14px; }
+        .divisor { grid-column: 1 / -1; border-top: 1px solid #eee; margin: 3px 0; }
+        .rotulo-linha { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding: 8px 0; }
+        .par-mini { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
+        .par-mini .total-duplo-numero { font-size: 18px; }
+        .par-mini .total-duplo-rotulo { font-size: 10px; margin-top: 1px; }
         /* Totalizador + interruptores lado a lado em tela larga, empilhado
            em tela estreita -- sem media query, só o wrap natural do flex
            (27/ago/2026, ideia dela). */
@@ -2090,11 +2102,6 @@
                         <span class="item-nome">Entrega Finalizada</span>
                     </label>
                 </div>
-                <!-- Movido pra dentro da coluna dos interruptores (27/ago/2026,
-                     achado dela): ficando fora, a frase caía lá embaixo do
-                     card do totalizador (que é mais alto), longe do que ela
-                     explica. Aqui do lado, cola certinho embaixo dos dois. -->
-                <p class="config-sub-desc" style="margin:0;">Os dois nascem desligados. Ligue "Entrega Iniciada" pra acompanhar essa peça na Visão Geral; ligue "Entrega Finalizada" quando não sobrar mais ninguém pra entregar, pra ela sumir de novo.</p>
             </div>
         </div>
         <!-- Filtro de lado (27/ago/2026) -- aba, não pílula: é navegação
@@ -3696,6 +3703,37 @@
         return `<div class="total-duplo${mini ? ' total-duplo--mini' : ''}">
             <div class="total-duplo-item"><div class="total-duplo-numero total">${total}</div><div class="total-duplo-rotulo">Total</div></div>
             <div class="total-duplo-item"><div class="total-duplo-numero faltam">${faltam}</div><div class="total-duplo-rotulo">${faltam === 1 ? 'Falta' : 'Faltam'}</div></div>
+        </div>`;
+    }
+
+    // Totalizador com detalhamento por grupo (29/ago/2026) -- usado por
+    // Entrega de Figurino e Presença. `grupos` é uma lista já filtrada SEM
+    // grupos vazios: [{ label, total, feito }], nessa ordem (Ritmistas,
+    // Diretoria, Convidados -- Convidados só entra quando existe pelo menos
+    // 1, pedido dela: "se não tiver convidados, eles não apareceriam").
+    // Com 0 ou 1 grupo, mostra só o total simples (sem detalhamento à toa
+    // -- mesma regra de antes pra peça/evento de um lado só). Com 2+
+    // grupos, mostra o total geral + 1 linha por grupo, numa grade real
+    // (ver comentário CSS de .totalizador-grade).
+    function totalGradeHtml(grupos) {
+        const totalGeral = grupos.reduce((s, g) => s + g.total, 0);
+        const feitoGeral = grupos.reduce((s, g) => s + g.feito, 0);
+        if (grupos.length <= 1) return totalDuploHtml(totalGeral, totalGeral - feitoGeral);
+        const faltamGeral = totalGeral - feitoGeral;
+        const linhas = grupos.map(g => {
+            const faltamG = g.total - g.feito;
+            return `
+                <div class="divisor"></div>
+                <div class="rotulo-linha">${esc(g.label)}</div>
+                <div class="par-mini">
+                    <div class="total-duplo-item"><div class="total-duplo-numero total">${g.total}</div><div class="total-duplo-rotulo">Total</div></div>
+                    <div class="total-duplo-item"><div class="total-duplo-numero faltam">${faltamG}</div><div class="total-duplo-rotulo">${faltamG === 1 ? 'Falta' : 'Faltam'}</div></div>
+                </div>`;
+        }).join('');
+        return `<div class="totalizador-grade">
+            <div class="celula-hero"><div class="total-duplo-numero total">${totalGeral}</div><div class="total-duplo-rotulo">Total</div></div>
+            <div class="celula-hero"><div class="total-duplo-numero faltam">${faltamGeral}</div><div class="total-duplo-rotulo">${faltamGeral === 1 ? 'Falta' : 'Faltam'}</div></div>
+            ${linhas}
         </div>`;
     }
 
@@ -5383,39 +5421,28 @@
             });
             container.innerHTML = html;
         }
-        // Totalizador (27/ago/2026) -- passou a separar Diretoria x Ritmista
-        // (2 blocos), não mais Vínculo x Convidado -- mais simples, e sempre
-        // soma a peça inteira (nunca só o que está filtrado na busca/
-        // instrumento/status/lado, pedido dela 25/ago/2026). Peça de um lado
-        // só continua com um total simples, sem quebrar em blocos à toa.
+        // Totalizador (27/ago/2026, refeito 29/ago/2026 pra caber Convidados
+        // como grupo próprio) -- sempre soma a peça inteira (nunca só o que
+        // está filtrado na busca/instrumento/status/lado, pedido dela
+        // 25/ago/2026). Convidados só entra como linha própria quando existe
+        // pelo menos 1 (pedido dela: "se não tiver convidados, eles não
+        // apareceriam") -- nunca mais somado escondido dentro de Ritmistas/
+        // Diretoria. Peça com um único grupo continua com total simples, sem
+        // quebrar em blocos à toa (ver totalGradeHtml).
         const totalizador = document.getElementById('figurino-entregas-totalizador');
         if (totalizador) {
-            const doLadoTotal = lado => figurinoEntregaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === lado);
-            const ritmista = doLadoTotal('ritmista');
-            const diretoria = doLadoTotal('diretoria');
             if (figurinoEntregaPessoasCache.length === 0) {
                 totalizador.innerHTML = '';
-            } else if (ritmista.length > 0 && diretoria.length > 0) {
-                const totalR = ritmista.length, entreguesR = ritmista.filter(p => p.entregue).length;
-                const totalD = diretoria.length, entreguesD = diretoria.filter(p => p.entregue).length;
-                // Grid de verdade (27/ago/2026, pedido dela): "FALTAM" (linha
-                // de cima) precisa começar exatamente onde "DIRETORIA" (linha
-                // de baixo) começa -- gap sozinho não garante isso, porque as
-                // duas linhas têm conteúdo diferente. Com grid de 2 colunas,
-                // o "Total" (do total-duplo de cima, achatado via
-                // display:contents) cai na coluna 1 e o "Faltam" na coluna 2 --
-                // as mesmas colunas onde "Ritmistas" e "Diretoria" caem embaixo.
-                totalizador.innerHTML = `<div class="figurino-total-grid">
-                    ${totalDuploHtml(totalR + totalD, (totalR - entreguesR) + (totalD - entreguesD))}
-                    <div class="secao-titulo">Ritmistas</div>
-                    <div class="secao-titulo">Diretoria</div>
-                    <div>${totalDuploHtml(totalR, totalR - entreguesR, true)}</div>
-                    <div>${totalDuploHtml(totalD, totalD - entreguesD, true)}</div>
-                </div>`;
             } else {
-                const total = figurinoEntregaPessoasCache.length;
-                const entregues = figurinoEntregaPessoasCache.filter(p => p.entregue).length;
-                totalizador.innerHTML = totalDuploHtml(total, total - entregues);
+                const ritmistas = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === 'ritmista');
+                const diretoria = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === 'diretoria');
+                const convidados = figurinoEntregaPessoasCache.filter(p => p.tipo === 'extra');
+                const grupos = [
+                    { label: 'Ritmistas', total: ritmistas.length, feito: ritmistas.filter(p => p.entregue).length },
+                    { label: 'Diretoria', total: diretoria.length, feito: diretoria.filter(p => p.entregue).length },
+                    { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.entregue).length },
+                ].filter(g => g.total > 0);
+                totalizador.innerHTML = totalGradeHtml(grupos);
             }
         }
     }
@@ -6022,36 +6049,28 @@
         select.value = valorAtual;
     }
 
-    // Mesmo padrão de Entrega de Figurino (27/ago/2026): separa Ritmistas x
-    // Diretoria em 2 blocos quando o evento inclui os dois -- Convidados
-    // entram somados dentro do bloco do grupo deles (ritmista ou
-    // diretoria), nunca um terceiro bloco à parte (conferido no código de
-    // Figurino antes de replicar aqui -- ele também não separa Convidados
-    // no totalizador). Evento só de Ritmistas continua com um total
-    // simples, sem quebrar em blocos à toa.
+    // Mesmo padrão de Entrega de Figurino, refeito 29/ago/2026 pra caber
+    // Convidados como grupo próprio (era somado escondido dentro de
+    // Ritmistas/Diretoria) -- só entra como linha quando existe pelo menos
+    // 1 (pedido dela: "se não tiver convidados, eles não apareceriam").
+    // Evento com um único grupo continua com total simples, sem quebrar em
+    // blocos à toa (ver totalGradeHtml).
     function atualizarTotalizadorPresenca() {
         const el = document.getElementById('presenca-totalizador');
         if (!el) return;
-        const doLadoTotal = lado => presencaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === lado);
-        const ritmista = doLadoTotal('ritmista');
-        const diretoria = doLadoTotal('diretoria');
         if (presencaPessoasCache.length === 0) {
             el.innerHTML = '';
-        } else if (ritmista.length > 0 && diretoria.length > 0) {
-            const totalR = ritmista.length, presentesR = ritmista.filter(p => p.presente).length;
-            const totalD = diretoria.length, presentesD = diretoria.filter(p => p.presente).length;
-            el.innerHTML = `<div class="figurino-total-grid">
-                ${totalDuploHtml(totalR + totalD, (totalR - presentesR) + (totalD - presentesD))}
-                <div class="secao-titulo">Ritmistas</div>
-                <div class="secao-titulo">Diretoria</div>
-                <div>${totalDuploHtml(totalR, totalR - presentesR, true)}</div>
-                <div>${totalDuploHtml(totalD, totalD - presentesD, true)}</div>
-            </div>`;
-        } else {
-            const total = presencaPessoasCache.length;
-            const presentes = presencaPessoasCache.filter(p => p.presente).length;
-            el.innerHTML = totalDuploHtml(total, total - presentes);
+            return;
         }
+        const ritmistas = presencaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === 'ritmista');
+        const diretoria = presencaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === 'diretoria');
+        const convidados = presencaPessoasCache.filter(p => p.tipo === 'extra');
+        const grupos = [
+            { label: 'Ritmistas', total: ritmistas.length, feito: ritmistas.filter(p => p.presente).length },
+            { label: 'Diretoria', total: diretoria.length, feito: diretoria.filter(p => p.presente).length },
+            { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.presente).length },
+        ].filter(g => g.total > 0);
+        el.innerHTML = totalGradeHtml(grupos);
     }
 
     function renderizarPresencaLista() {
