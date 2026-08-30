@@ -2545,6 +2545,18 @@
         <div id="vg-figurino"></div>
     </div>
 
+    <!-- Resumo de Presença -- mesmo padrão de Entrega de Figurino acima,
+         mesma correção (30/ago/2026, achado dela: "marquei em evento
+         iniciado e não mostrou o box novo... precisa estar funcionando
+         assim como a entrega de figurino"). Só aparece com pelo menos 1
+         evento com "Evento Iniciado" ligado e "Evento Finalizado"
+         desligado (os dois interruptores ficam na própria tela de Lista de
+         Presença). Cada evento, dentro do card, é seu próprio acordeão. -->
+    <div class="vg-card" id="vg-eventos-card" style="display:none;">
+        <div class="vg-secao-titulo">📋 Presença</div>
+        <div id="vg-eventos"></div>
+    </div>
+
     <!-- Controle de Menores -- Declaração do Responsável (27/ago/2026,
          pedido dela). Mesmo padrão de acordeão fechado por padrão de
          "Ritmistas por Instrumento" -- só o total geral na pílula, clica
@@ -3062,7 +3074,7 @@
 
     async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); carregarResumoEntregaFigurino(); return; }
+        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); carregarResumoEntregaFigurino(); carregarResumoEventosAtivos(); return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=${select}&order=created_at.desc`, {
             headers: authHeaders
@@ -3086,6 +3098,7 @@
         renderizarContagemInstrumentos();
         renderizarControleMenores();
         carregarResumoEntregaFigurino();
+        carregarResumoEventosAtivos();
     }
 
     function toggleStatusSelect() {
@@ -4332,6 +4345,130 @@
                     <span class="vg-figurino-peca-titulo">${esc(item.nome)}</span>
                     <span class="vg-secao-resumo">
                         ${totalDuploHtml(totalGeral, totalGeral - entreguesGeral, true)}
+                        <span class="vg-secao-seta${aberto ? ' aberta' : ''}">›</span>
+                    </span>
+                </div>
+                ${aberto ? corpoHtml : ''}
+            </div>`;
+        }).join('');
+    }
+
+    // Resumo de Presença na Visão Geral -- mesmo padrão de
+    // carregarResumoEntregaFigurino/renderizarResumoEntregaFigurino
+    // (30/ago/2026), só trocando "peça" por "evento" e figurino_entregas
+    // por evento_presencas. Cada evento ativo (iniciado=true,
+    // finalizado=false) pode ter um conjunto diferente de perfis de
+    // diretoria (evento.perfis_diretoria_inclusos) -- busca pessoas pela
+    // UNIÃO de todos os perfis envolvidos (mesma ideia do union de
+    // publico em Figurino), filtra por evento na hora de desenhar.
+    async function carregarResumoEventosAtivos() {
+        const card = document.getElementById('vg-eventos-card');
+        if (!card) return;
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { card.style.display = 'none'; return; }
+        const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&iniciado=eq.true&finalizado=eq.false&select=id,nome,perfis_diretoria_inclusos,inclui_extras`, { headers: authHeaders });
+        const eventos = resAtivos.ok ? await resAtivos.json() : [];
+        if (eventos.length === 0) { card.style.display = 'none'; document.getElementById('vg-eventos').innerHTML = ''; return; }
+        const eventoIds = eventos.map(e => e.id);
+        const perfis = [...new Set(['ritmista', ...eventos.flatMap(e => e.perfis_diretoria_inclusos || [])])];
+        const precisaExtras = eventos.some(e => e.inclui_extras);
+        const buscas = [
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=in.(${perfis.join(',')})&select=id,perfil,instrumento_nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=in.(${eventoIds.join(',')})&vinculo_id=not.is.null&select=vinculo_id,evento_id`, { headers: authHeaders }),
+        ];
+        if (precisaExtras) {
+            buscas.push(
+                fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&select=id,grupo`, { headers: authHeaders }),
+                fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=in.(${eventoIds.join(',')})&extra_id=not.is.null&select=extra_id,evento_id`, { headers: authHeaders }),
+            );
+        }
+        const [resPessoas, resPresencas, resExtras, resExtrasPresencas] = await Promise.all(buscas);
+        const pessoas = resPessoas.ok ? await resPessoas.json() : [];
+        const presencas = resPresencas.ok ? await resPresencas.json() : [];
+        const extras = (precisaExtras && resExtras && resExtras.ok) ? await resExtras.json() : [];
+        const extrasPresencas = (precisaExtras && resExtrasPresencas && resExtrasPresencas.ok) ? await resExtrasPresencas.json() : [];
+        card.style.display = 'block';
+        renderizarResumoEventosAtivos(eventos, pessoas, presencas, extras, extrasPresencas);
+    }
+
+    let vgEventosAbertos = new Set();
+    let vgEventosUltimoRender = null;
+    function toggleVgEventoAberto(eventoId) {
+        if (vgEventosAbertos.has(eventoId)) vgEventosAbertos.delete(eventoId);
+        else vgEventosAbertos.add(eventoId);
+        if (vgEventosUltimoRender) renderizarResumoEventosAtivos(...vgEventosUltimoRender);
+    }
+
+    function renderizarResumoEventosAtivos(eventos, pessoas, presencas, extras, extrasPresencas) {
+        vgEventosUltimoRender = [eventos, pessoas, presencas, extras, extrasPresencas];
+        const div = document.getElementById('vg-eventos');
+        if (!div) return;
+        const presentesPorEvento = {};
+        presencas.forEach(p => {
+            if (!presentesPorEvento[p.evento_id]) presentesPorEvento[p.evento_id] = new Set();
+            presentesPorEvento[p.evento_id].add(p.vinculo_id);
+        });
+        const extrasPresentesPorEvento = {};
+        (extrasPresencas || []).forEach(p => {
+            if (!extrasPresentesPorEvento[p.evento_id]) extrasPresentesPorEvento[p.evento_id] = new Set();
+            extrasPresentesPorEvento[p.evento_id].add(p.extra_id);
+        });
+        const linhaHtml = (nome, presentes, total, ehGrupo) => {
+            const faltam = total - presentes;
+            return `
+            <div class="vg-instrumento-linha${ehGrupo ? ' vg-instrumento-linha--grupo' : ''}">
+                <span class="vg-instrumento-linha-nome">${ehGrupo ? '<sup class="vg-instrumento-linha-asterisco">*</sup>' : ''}${esc(nome)}</span>
+                <span style="display:flex;align-items:center;gap:14px;">
+                    ${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}
+                    <span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}">${presentes} / ${total}</span>
+                </span>
+            </div>`;
+        };
+        const eventosOrdenados = [...eventos].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        div.innerHTML = eventosOrdenados.map((evento, idx) => {
+            const presentesSet = presentesPorEvento[evento.id] || new Set();
+            const perfisDiretoria = evento.perfis_diretoria_inclusos || [];
+            const pessoasAlvo = pessoas.filter(p => p.perfil === 'ritmista' || perfisDiretoria.includes(p.perfil));
+            const pessoasRitmista = pessoasAlvo.filter(p => p.perfil === 'ritmista');
+            const pessoasDiretoria = pessoasAlvo.filter(p => p.perfil !== 'ritmista');
+            let corpoHtml = '';
+            let totalGeral = 0, presentesGeral = 0;
+            if (pessoasRitmista.length > 0) {
+                const porInstrumento = {};
+                pessoasRitmista.forEach(p => {
+                    const chave = p.instrumento_nome || 'Sem instrumento';
+                    if (!porInstrumento[chave]) porInstrumento[chave] = { total: 0, presentes: 0 };
+                    porInstrumento[chave].total++;
+                    if (presentesSet.has(p.id)) porInstrumento[chave].presentes++;
+                });
+                const linhas = Object.entries(porInstrumento).map(([nome, v]) => ({ nome, ...v }))
+                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+                corpoHtml += linhas.map(l => linhaHtml(l.nome, l.presentes, l.total)).join('');
+                linhas.forEach(l => { totalGeral += l.total; presentesGeral += l.presentes; });
+            }
+            if (pessoasDiretoria.length > 0) {
+                const presentes = pessoasDiretoria.filter(p => presentesSet.has(p.id)).length;
+                corpoHtml += linhaHtml('Diretoria', presentes, pessoasDiretoria.length, true);
+                totalGeral += pessoasDiretoria.length; presentesGeral += presentes;
+            }
+            if (evento.inclui_extras) {
+                const grupos = gruposExtraDoPublico(['ritmista', ...perfisDiretoria]);
+                const extrasAlvo = (extras || []).filter(e => grupos.includes(e.grupo));
+                const extrasPresentesSet = extrasPresentesPorEvento[evento.id] || new Set();
+                if (extrasAlvo.length > 0) {
+                    const presentesExtras = extrasAlvo.filter(e => extrasPresentesSet.has(e.id)).length;
+                    corpoHtml += linhaHtml('Convidados', presentesExtras, extrasAlvo.length, true);
+                    totalGeral += extrasAlvo.length; presentesGeral += presentesExtras;
+                }
+            }
+            if (!corpoHtml) corpoHtml = `<div style="color:#bbb;font-size:13px;padding:4px 0 9px;">Ninguém pra registrar presença ainda.</div>`;
+            const aberto = vgEventosAbertos.has(evento.id);
+            return `
+            <div style="${idx === 0 ? '' : 'margin-top:16px;'}">
+                <div class="vg-secao-titulo vg-secao-titulo--clicavel" style="margin-bottom:${aberto ? '8px' : '0'};" onclick="toggleVgEventoAberto(${evento.id})">
+                    <span class="vg-figurino-peca-titulo">${esc(evento.nome)}</span>
+                    <span class="vg-secao-resumo">
+                        ${totalDuploHtml(totalGeral, totalGeral - presentesGeral, true)}
                         <span class="vg-secao-seta${aberto ? ' aberta' : ''}">›</span>
                     </span>
                 </div>
@@ -6332,6 +6469,10 @@
         });
         const emCache = presencaEventosCache.find(e => e.id === evento.id);
         if (emCache) emCache[campo] = valor;
+        // Mesmo padrão de salvarFlagFigurinoEntrega -- Iniciado/Finalizado
+        // decide se o evento aparece no resumo da Visão Geral (30/ago/2026,
+        // correção: existia só o interruptor, nunca tinha ligado no card).
+        carregarResumoEventosAtivos();
     }
     function toggleEventoIniciado() { salvarFlagEvento('iniciado', !presencaEventoAtual.iniciado); }
     function toggleEventoFinalizado() { salvarFlagEvento('finalizado', !presencaEventoAtual.finalizado); }
