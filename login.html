@@ -387,6 +387,19 @@
         });
     }
 
+    // Pra voltar direto pra onde a pessoa estava tentando ir (ex: confirmar
+    // presença/figurino escaneando um QR fora do app -- 30/ago/2026, achado
+    // real dela: sem isso, depois de logar a pessoa caía solta em
+    // admin/carteirinha, tinha que escanear o QR de novo do zero). Só aceita
+    // caminho relativo dentro do próprio site (começa com "/", sem "://")
+    // -- nunca redireciona pra fora.
+    function proximaUrlSegura() {
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get('next');
+        if (!next || !next.startsWith('/') || next.startsWith('//') || /^\/[a-z][a-z0-9+.-]*:/i.test(next)) return null;
+        return next;
+    }
+
     async function tentarSessaoExistente() {
         const params = new URLSearchParams(window.location.search);
         const forcarTroca = params.get('trocar') === '1';
@@ -420,6 +433,9 @@
     // Retomado tanto direto (sem Face ID ativo) quanto depois de um
     // desbloqueio com sucesso (ver tentarDesbloquearFaceId).
     async function continuarSessaoExistente(cache, session, forcarTroca) {
+        const proxima = proximaUrlSegura();
+        if (proxima) { window.location.href = proxima; return; }
+
         if (cache.super_admin) {
             window.location.href = 'admin';
             return;
@@ -727,6 +743,10 @@
             erroLogin('Dados incorretos. Verifique seu CPF (ou e-mail) e senha.', 'erro');
             return;
         }
+
+        const proxima = proximaUrlSegura();
+        if (proxima) { window.location.href = proxima; return; }
+
         if (pessoa.super_admin) {
             // foto_url não entrava aqui -- a bolinha do cabeçalho (admin.html)
             // nunca mostrava a foto do Super Admin, só as iniciais, mesmo com

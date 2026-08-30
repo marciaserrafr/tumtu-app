@@ -111,10 +111,11 @@
         const session = sessionData.session;
 
         if (!session) {
+            const proxima = encodeURIComponent(window.location.pathname + window.location.search);
             div.innerHTML = `
                 <div class="secao">Confirmar Figurino</div>
-                <p class="subtexto">Pra confirmar que recebeu a peça, primeiro entre no TumTu -- depois volte a escanear esse QR.</p>
-                <a class="btn-acao" href="login">Entrar no TumTu</a>
+                <p class="subtexto">Pra confirmar que recebeu a peça, primeiro entre no TumTu.</p>
+                <a class="btn-acao" href="login?next=${proxima}">Entrar no TumTu</a>
             `;
             return;
         }
