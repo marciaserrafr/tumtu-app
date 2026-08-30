@@ -938,11 +938,9 @@
            .figurino-entrega-topo (totalizador + controles lado a lado,
            empilha sozinho em tela estreita), só que tudo dentro do mesmo
            .vg-card em vez de duas caixas brancas encostadas. */
-        .pres-topo { display: flex; align-items: flex-start; gap: 40px; flex-wrap: wrap; }
-        .pres-acoes { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; flex: 1; }
-        .pres-trilhos { display: flex; gap: 22px; flex-wrap: wrap; }
-        .pres-separador-v { width: 1px; height: 22px; background: #e5e2ee; flex-shrink: 0; }
-        .pres-qr-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+        .pres-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+        .pres-trilhos { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+        .pres-qr-btns { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .btn-contorno {
             background: #fff; border: 1.5px solid #D4AF37; border-radius: 20px; padding: 8px 14px;
             display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700;
@@ -2284,22 +2282,19 @@
         <div class="vg-card">
             <div class="pres-topo">
                 <div id="presenca-totalizador"></div>
-                <div id="presenca-btns-qr" class="pres-acoes" style="display:none;">
-                    <div class="pres-trilhos" id="pres-trilhos-wrap" style="display:none;">
-                        <label class="trilho" onclick="toggleEventoIniciado()">
-                            <span class="trilho-trecho off" id="pres-trilho-iniciado"><span class="trilho-bolinha"></span></span>
-                            <span class="trilho-label off" id="pres-trilho-iniciado-label">Evento Iniciado</span>
-                        </label>
-                        <label class="trilho" onclick="toggleEventoFinalizado()">
-                            <span class="trilho-trecho off" id="pres-trilho-finalizado"><span class="trilho-bolinha"></span></span>
-                            <span class="trilho-label off" id="pres-trilho-finalizado-label">Evento Finalizado</span>
-                        </label>
-                    </div>
-                    <div class="pres-separador-v" id="pres-separador" style="display:none;"></div>
-                    <div class="pres-qr-btns" id="pres-qr-btns" style="display:none;">
-                        <button type="button" id="presenca-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrEvento()">🎫 Mostrar QR do Evento</button>
-                        <button type="button" id="presenca-btn-escanear" class="btn-contorno" onclick="abrirScannerPresenca()">📷 Escanear</button>
-                    </div>
+                <div class="pres-trilhos" id="pres-trilhos-wrap" style="display:none;">
+                    <label class="trilho" onclick="toggleEventoIniciado()">
+                        <span class="trilho-trecho off" id="pres-trilho-iniciado"><span class="trilho-bolinha"></span></span>
+                        <span class="trilho-label off" id="pres-trilho-iniciado-label">Evento Iniciado</span>
+                    </label>
+                    <label class="trilho" onclick="toggleEventoFinalizado()">
+                        <span class="trilho-trecho off" id="pres-trilho-finalizado"><span class="trilho-bolinha"></span></span>
+                        <span class="trilho-label off" id="pres-trilho-finalizado-label">Evento Finalizado</span>
+                    </label>
+                </div>
+                <div class="pres-qr-btns" id="pres-qr-btns" style="display:none;">
+                    <button type="button" id="presenca-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrEvento()">🎫 Mostrar QR do Evento</button>
+                    <button type="button" id="presenca-btn-escanear" class="btn-contorno" onclick="abrirScannerPresenca()">📷 Escanear</button>
                 </div>
             </div>
         </div>
@@ -6293,14 +6288,10 @@
         // mesmo risco que já foi achado e corrigido antes noutras telas).
         const podeEditarEvento = souSuperAdmin || tenhoCapacidade('editar_eventos');
         const podeMarcarPresenca = souSuperAdmin || tenhoCapacidade('marcar_presenca');
-        const btnsQr = document.getElementById('presenca-btns-qr');
-        if (btnsQr) btnsQr.style.display = (podeEditarEvento || podeMarcarPresenca) ? 'flex' : 'none';
         const trilhosWrap = document.getElementById('pres-trilhos-wrap');
         if (trilhosWrap) trilhosWrap.style.display = podeEditarEvento ? 'flex' : 'none';
         const qrBtns = document.getElementById('pres-qr-btns');
         if (qrBtns) qrBtns.style.display = podeMarcarPresenca ? 'flex' : 'none';
-        const separador = document.getElementById('pres-separador');
-        if (separador) separador.style.display = (podeEditarEvento && podeMarcarPresenca) ? 'block' : 'none';
         renderPresencaTrilhos();
         await carregarPresencaPessoas();
     }
