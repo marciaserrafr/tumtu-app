@@ -944,9 +944,13 @@
         /* Risquinho quase invisível marcando a fronteira entre os 3 blocos
            (números / Iniciado-Finalizado / QR) -- pedido dela, 30/ago/2026,
            depois de eu ter tirado o separador junto com o wrapper único que
-           causava a distribuição ruim. align-self:stretch pra acompanhar a
-           altura do bloco mais alto da linha (os números). */
-        .pres-divisor-v { width: 1px; align-self: stretch; background: #ececec; flex-shrink: 0; }
+           causava a distribuição ruim. Altura FIXA (22px, mesmo valor já
+           usado antes nesta mesma tela) -- align-self:stretch (1ª tentativa)
+           esticava até a altura do bloco mais alto da linha (os números +
+           "Ver menos"), virando uma barra comprida e desproporcional
+           (achado dela, print real). align-self:center pra ficar no meio
+           da linha, não grudado no topo. */
+        .pres-divisor-v { width: 1px; height: 22px; align-self: center; background: #ececec; flex-shrink: 0; }
         /* Detalhe por grupo (Ritmistas/Diretoria/Convidados) mora FORA do
            totalizador (que fica compacto, do tamanho só dos números) --
            vira seção própria, largura total do cartão (30/ago/2026, achado
@@ -4010,7 +4014,7 @@
             return `
                 <div class="vg-instrumento-linha">
                     <span>${esc(g.label)}</span>
-                    <span style="display:flex;align-items:center;">
+                    <span style="display:flex;align-items:center;gap:14px;">
                         ${faltamG > 0 ? `<span class="vg-instrumento-faltam">${faltamG === 1 ? 'Falta' : 'Faltam'} ${faltamG}</span>` : ''}
                         <span class="vg-instrumento-qtd">${g.feito} / ${g.total}</span>
                     </span>
