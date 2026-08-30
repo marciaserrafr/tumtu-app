@@ -1130,9 +1130,20 @@
         .par-mini .total-duplo-rotulo { font-size: 10px; margin-top: 1px; }
         /* Totalizador + interruptores lado a lado em tela larga, empilhado
            em tela estreita -- sem media query, só o wrap natural do flex
-           (27/ago/2026, ideia dela). */
+           (27/ago/2026, ideia dela). Totalizador travado em 50% de verdade
+           (30/ago/2026, pedido dela) -- antes a largura vinha do conteúdo
+           (travarLarguraTotalizador calculava em px), agora é sempre metade
+           da tela/card, então não precisa mais desse cálculo por JS. */
         .figurino-entrega-topo { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
+        .figurino-entrega-topo .total-duplo-card { flex: 1 1 calc(50% - 8px); max-width: calc(50% - 8px); box-sizing: border-box; }
         .figurino-entrega-flags { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 220px; }
+        /* Presença: os 2 botões (Mostrar QR / Escanear) ficam lado a lado,
+           mesmo tamanho, em vez de empilhados -- tanto ao lado do
+           totalizador (tela larga) quanto embaixo dele (celular, depois do
+           wrap). Só aqui -- em Figurino o mesmo container tem 2 checkboxes
+           + 1 botão, que continuam empilhados como sempre. */
+        #presenca-btns-qr { flex-direction: row; }
+        #presenca-btns-qr .btn-novo { flex: 1; justify-content: center; }
 
         /* Figurinos recebidos, direto no card do Convidado (26/ago/2026, pedido dela). */
         .extra-figurino-status { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e0e0e0; }
@@ -5654,7 +5665,6 @@
                     { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.entregue).length },
                 ].filter(g => g.total > 0);
                 totalizador.innerHTML = totalGradeHtml(grupos, 'figurino');
-                travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
             }
         }
     }
@@ -6302,7 +6312,6 @@
             { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.presente).length },
         ].filter(g => g.total > 0);
         el.innerHTML = totalGradeHtml(grupos, 'presenca');
-        travarLarguraTotalizador('presenca-totalizador', 'presenca');
     }
 
     function renderizarPresencaLista() {
