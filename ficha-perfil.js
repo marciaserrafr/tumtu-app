@@ -160,7 +160,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=31');
+        const res = await fetch('ficha-perfil.partial.html?v=32');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -561,6 +561,11 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     // marcar entregue é sempre pela tela dedicada (Mais → Figurino).
     fpRenderizarEntregaFigurino(alvo);
 
+    // Eventos (30/ago/2026) -- mesmo padrão de leitura de Entrega de
+    // Figurinos, marcar presença é sempre pela tela dedicada (Mais →
+    // Presença).
+    fpRenderizarEventos(alvo);
+
     // Ritmista só ganha "Editar" de Medidas se a bateria liberou (Permissões
     // → "Permitir que o ritmista edite as medidas") E se sobrar algum campo
     // em branco pra preencher -- sem isso, fica exatamente como já era
@@ -762,16 +767,70 @@ async function fpRenderizarEntregaFigurino(alvo) {
     const ativos = resAtivos.ok ? await resAtivos.json() : [];
     const mestre = resMestre.ok ? await resMestre.json() : [];
     const entregas = resEntregas.ok ? await resEntregas.json() : [];
-    const ativosIds = new Set(ativos.map(a => a.figurino_item_mestre_id));
-    const itens = mestre.filter(m => ativosIds.has(m.id));
+    // Guarda entrega_finalizada por item, não só o id -- precisa pra decidir
+    // entre "Não entregue" (a entrega dessa peça já foi encerrada, é um fato)
+    // e "Entrega ainda não registrada" (ainda não encerrou, não afirma nada
+    // -- pedido dela, 30/ago/2026, mesmo raciocínio aplicado a Eventos).
+    const finalizadaPorItem = {};
+    ativos.forEach(a => { finalizadaPorItem[a.figurino_item_mestre_id] = !!a.entrega_finalizada; });
+    const itens = mestre.filter(m => finalizadaPorItem.hasOwnProperty(m.id));
     if (itens.length === 0) { secao.style.display = 'none'; return; }
     const entregaPorItem = {};
     entregas.forEach(e => { entregaPorItem[e.figurino_item_id] = !!e.entregue_em; });
-    grid.innerHTML = itens.map(it => `
-        <div class="ficha-campo full ficha-campo--linha">
+    // Mesmo padrão visual de Medidas (label em cima, valor embaixo) -- não
+    // mais linha própria lado a lado (achado dela, 30/ago/2026: com o texto
+    // "Não entregue" a fonte grande do valor ficava desproporcional ao lado
+    // do rótulo pequeno). Sem ".full", os itens fluem lado a lado na grade
+    // conforme mais peças forem cadastradas, igual qualquer outro campo.
+    grid.innerHTML = itens.map(it => {
+        const entregue = entregaPorItem[it.id];
+        const texto = entregue ? '✓ Entregue' : (finalizadaPorItem[it.id] ? 'Não entregue' : 'Entrega ainda não registrada');
+        return `
+        <div class="ficha-campo">
             <span>${it.nome}</span>
-            <strong class="${entregaPorItem[it.id] ? 'ficha-valor-entregue' : 'ficha-valor-pendente'}">${entregaPorItem[it.id] ? '✓ Entregue' : 'Não entregue'}</strong>
-        </div>`).join('');
+            <strong class="${entregue ? 'ficha-valor-entregue' : 'ficha-valor-pendente'}">${texto}</strong>
+        </div>`;
+    }).join('');
+}
+
+// Eventos: mesmo padrão de leitura de fpRenderizarEntregaFigurino -- nunca
+// editável aqui, marcar presença é sempre pela tela dedicada (Mais →
+// Presença). Diferente de Figurino, mostra a seção mesmo sem nenhum evento
+// (texto explícito "Nenhum evento registrado ainda."), a pedido dela --
+// sumir sem explicação deixaria parecendo que a seção nem existe.
+async function fpRenderizarEventos(alvo) {
+    const grid = fpEl('fp-eventos-grid');
+    const secao = fpEl('fp-secao-eventos');
+    if (!grid || !secao) return;
+    if (!alvo.vinculo_id) { secao.style.display = 'none'; return; }
+
+    secao.style.display = '';
+    grid.innerHTML = '<span style="color:#9993ab;font-size:13px;">Carregando...</span>';
+
+    const authHeaders = await fpAuthHeaders();
+    const [resEventos, resPresencas] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${alvo.bateria_id}&select=id,nome,data,finalizado,perfis_diretoria_inclusos&order=data.desc`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?vinculo_id=eq.${alvo.vinculo_id}`, { headers: authHeaders }),
+    ]);
+    const todosEventos = resEventos.ok ? await resEventos.json() : [];
+    const presencas = resPresencas.ok ? await resPresencas.json() : [];
+    // Ritmista participa de todo evento da bateria; Diretoria só dos que
+    // incluem o cargo dela -- mesma lógica de "publico" já usada em Figurino.
+    const eventos = todosEventos.filter(ev => alvo.perfil === 'ritmista' || (ev.perfis_diretoria_inclusos || []).includes(alvo.perfil));
+    if (eventos.length === 0) {
+        grid.innerHTML = '<span style="color:#9993ab;font-size:13px;">Nenhum evento registrado ainda.</span>';
+        return;
+    }
+    const presentePorEvento = new Set(presencas.map(p => p.evento_id));
+    grid.innerHTML = eventos.map(ev => {
+        const presente = presentePorEvento.has(ev.id);
+        const texto = presente ? '✓ Presente' : (ev.finalizado ? 'Não esteve presente' : 'Presença ainda não registrada');
+        return `
+        <div class="ficha-campo">
+            <span>${ev.nome}${ev.data ? ' · ' + fpFormatarData(ev.data) : ''}</span>
+            <strong class="${presente ? 'ficha-valor-entregue' : 'ficha-valor-pendente'}">${texto}</strong>
+        </div>`;
+    }).join('');
 }
 
 // Resolve a pendência antiga: Ritmista pode preencher (nunca editar de
