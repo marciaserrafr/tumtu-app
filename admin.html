@@ -938,9 +938,17 @@
            .figurino-entrega-topo (totalizador + controles lado a lado,
            empilha sozinho em tela estreita), só que tudo dentro do mesmo
            .vg-card em vez de duas caixas brancas encostadas. */
-        .pres-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-        .pres-trilhos { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
-        .pres-qr-btns { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        /* 3 blocos do MESMO tamanho (30/ago/2026, pedido dela: "3 partes
+           iguais... a linha de cada um alinhada no centro e meio") -- cada
+           bloco (totalizador, Iniciado/Finalizado, QR) vira flex:1 1 0,
+           ocupando exatamente 1/3 da largura, sem depender do tamanho do
+           próprio conteúdo. align-items:center (vertical) é seguro agora
+           porque o detalhe por grupo saiu de dentro do totalizador -- a
+           altura de cada bloco não muda mais quando "Ver por grupo" abre. */
+        .pres-topo { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+        #presenca-totalizador, .pres-trilhos, .pres-qr-btns { flex: 1 1 0; min-width: 0; }
+        .pres-trilhos { display: flex; align-items: center; justify-content: center; gap: 22px; flex-wrap: wrap; }
+        .pres-qr-btns { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
         /* Risquinho quase invisível marcando a fronteira entre os 3 blocos
            (números / Iniciado-Finalizado / QR) -- pedido dela, 30/ago/2026,
            depois de eu ter tirado o separador junto com o wrapper único que
