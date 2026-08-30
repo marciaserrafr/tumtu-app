@@ -972,10 +972,21 @@
            computador estreita, nunca a largura real de um iPhone). Agora
            empilha de propósito, cada bloco com a largura toda -- e some o
            risquinho vertical, que não faz sentido sozinho numa linha. */
+        /* 30/ago/2026 -- resgatado o desenho combinado com ela (rascunho de
+           comparação salvo antes de publicar, achado depois dela reportar
+           "não foi esse o desenho combinado"): no celular, Iniciado e
+           Finalizado ficam LADO A LADO na mesma linha (rótulo curto, sem
+           "Evento"/"Entrega"), e os botões de QR ganham uma linha própria
+           embaixo, separada por um traço fino -- não é tudo empilhado numa
+           coluna única de itens soltos. */
         @media (max-width: 600px) {
             .pres-divisor-v { display: none; }
-            .pres-topo { flex-direction: column; align-items: stretch; }
+            .pres-topo { flex-direction: column; align-items: stretch; gap: 14px; }
             #presenca-totalizador, #figurino-entregas-totalizador, .pres-trilhos, .pres-qr-btns { flex: none; width: 100%; }
+            .pres-trilhos { justify-content: flex-start; gap: 26px; }
+            .pres-qr-btns { justify-content: flex-start; border-top: 1px solid #eee; padding-top: 12px; }
+            .trilho-label-completo { display: none; }
+            .trilho-label-curto { display: inline; }
         }
         /* Detalhe por grupo (Ritmistas/Diretoria/Convidados) mora FORA do
            totalizador (que fica compacto, do tamanho só dos números) --
@@ -1001,6 +1012,12 @@
         .trilho-label { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
         .trilho-label.on { color: #2d7a4f; }
         .trilho-label.off { color: #706c87; }
+        /* Rótulo curto ("Iniciado"/"Finalizado", sem "Evento"/"Entrega" na
+           frente) só aparece no celular -- desenho combinado com ela
+           (resgatado de um rascunho de comparação, 30/ago/2026): sem a
+           palavra extra, os dois interruptores cabem lado a lado numa
+           largura de celular, em vez de cada um numa linha própria. */
+        .trilho-label-curto { display: none; }
         /* Versão pequena, pro cabeçalho fechado dos cards da Visão Geral --
            mesmas cores, fonte reduzida pra caber ao lado do título. */
         .total-duplo--mini { gap: 14px; }
@@ -2218,11 +2235,13 @@
                 <div class="pres-trilhos">
                     <label class="trilho" onclick="toggleMostraVisaoGeralClick()">
                         <span class="trilho-trecho off" id="figurino-trilho-iniciada"><span class="trilho-bolinha"></span></span>
-                        <span class="trilho-label off" id="figurino-trilho-iniciada-label">Entrega Iniciada</span>
+                        <span class="trilho-label off trilho-label-completo" id="figurino-trilho-iniciada-label">Entrega Iniciada</span>
+                        <span class="trilho-label off trilho-label-curto" id="figurino-trilho-iniciada-label-curto">Iniciada</span>
                     </label>
                     <label class="trilho" onclick="toggleEntregaFinalizadaClick()">
                         <span class="trilho-trecho off" id="figurino-trilho-finalizada"><span class="trilho-bolinha"></span></span>
-                        <span class="trilho-label off" id="figurino-trilho-finalizada-label">Entrega Finalizada</span>
+                        <span class="trilho-label off trilho-label-completo" id="figurino-trilho-finalizada-label">Entrega Finalizada</span>
+                        <span class="trilho-label off trilho-label-curto" id="figurino-trilho-finalizada-label-curto">Finalizada</span>
                     </label>
                 </div>
                 <div class="pres-divisor-v" id="figurino-divisor-2" style="display:none;"></div>
@@ -2320,11 +2339,13 @@
                 <div class="pres-trilhos" id="pres-trilhos-wrap" style="display:none;">
                     <label class="trilho" onclick="toggleEventoIniciado()">
                         <span class="trilho-trecho off" id="pres-trilho-iniciado"><span class="trilho-bolinha"></span></span>
-                        <span class="trilho-label off" id="pres-trilho-iniciado-label">Evento Iniciado</span>
+                        <span class="trilho-label off trilho-label-completo" id="pres-trilho-iniciado-label">Evento Iniciado</span>
+                        <span class="trilho-label off trilho-label-curto" id="pres-trilho-iniciado-label-curto">Iniciado</span>
                     </label>
                     <label class="trilho" onclick="toggleEventoFinalizado()">
                         <span class="trilho-trecho off" id="pres-trilho-finalizado"><span class="trilho-bolinha"></span></span>
-                        <span class="trilho-label off" id="pres-trilho-finalizado-label">Evento Finalizado</span>
+                        <span class="trilho-label off trilho-label-completo" id="pres-trilho-finalizado-label">Evento Finalizado</span>
+                        <span class="trilho-label off trilho-label-curto" id="pres-trilho-finalizado-label-curto">Finalizado</span>
                     </label>
                 </div>
                 <div class="pres-divisor-v" id="pres-divisor-2" style="display:none;"></div>
@@ -5644,12 +5665,13 @@
         const bf = bateriaFigurinoCache.find(x => x.figurino_item_mestre_id === item.id);
         const aplicar = (idTrecho, idLabel, ligado) => {
             const trecho = document.getElementById(idTrecho);
-            const label = document.getElementById(idLabel);
-            if (!trecho || !label) return;
-            trecho.classList.toggle('on', ligado);
-            trecho.classList.toggle('off', !ligado);
-            label.classList.toggle('on', ligado);
-            label.classList.toggle('off', !ligado);
+            if (trecho) { trecho.classList.toggle('on', ligado); trecho.classList.toggle('off', !ligado); }
+            [idLabel, idLabel + '-curto'].forEach(id => {
+                const label = document.getElementById(id);
+                if (!label) return;
+                label.classList.toggle('on', ligado);
+                label.classList.toggle('off', !ligado);
+            });
         };
         aplicar('figurino-trilho-iniciada', 'figurino-trilho-iniciada-label', !!(bf && bf.mostra_visao_geral));
         aplicar('figurino-trilho-finalizada', 'figurino-trilho-finalizada-label', !!(bf && bf.entrega_finalizada));
@@ -6467,12 +6489,13 @@
         if (!evento) return;
         const aplicar = (idTrecho, idLabel, ligado) => {
             const trecho = document.getElementById(idTrecho);
-            const label = document.getElementById(idLabel);
-            if (!trecho || !label) return;
-            trecho.classList.toggle('on', ligado);
-            trecho.classList.toggle('off', !ligado);
-            label.classList.toggle('on', ligado);
-            label.classList.toggle('off', !ligado);
+            if (trecho) { trecho.classList.toggle('on', ligado); trecho.classList.toggle('off', !ligado); }
+            [idLabel, idLabel + '-curto'].forEach(id => {
+                const label = document.getElementById(id);
+                if (!label) return;
+                label.classList.toggle('on', ligado);
+                label.classList.toggle('off', !ligado);
+            });
         };
         aplicar('pres-trilho-iniciado', 'pres-trilho-iniciado-label', !!evento.iniciado);
         aplicar('pres-trilho-finalizado', 'pres-trilho-finalizado-label', !!evento.finalizado);
