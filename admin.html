@@ -931,6 +931,36 @@
         .total-duplo-numero.total { color: #D4AF37; }
         .total-duplo-numero.faltam { color: var(--cor-terracota); }
         .total-duplo-rotulo { font-size: 12px; color: #888; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.3px; }
+        /* Cartão único da Lista de Presença -- números, interruptores
+           (Iniciado/Finalizado) e botões de QR juntos num só cartão
+           (30/ago/2026, depois de ela reprovar a versão com várias caixas
+           separadas: "cheio de quadrado"). Mesma ideia de
+           .figurino-entrega-topo (totalizador + controles lado a lado,
+           empilha sozinho em tela estreita), só que tudo dentro do mesmo
+           .vg-card em vez de duas caixas brancas encostadas. */
+        .pres-topo { display: flex; align-items: center; gap: 40px; flex-wrap: wrap; }
+        .pres-acoes { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; flex: 1; }
+        .pres-trilhos { display: flex; gap: 22px; flex-wrap: wrap; }
+        .pres-separador-v { width: 1px; height: 22px; background: #e5e2ee; flex-shrink: 0; }
+        .pres-qr-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-contorno {
+            background: #fff; border: 1.5px solid #D4AF37; border-radius: 20px; padding: 8px 14px;
+            display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700;
+            color: #12101a; white-space: nowrap; cursor: pointer; font-family: inherit;
+        }
+        /* Interruptor (trilho/bolinha) -- mesmo visual do Desfile
+           (ficha-perfil.js, "ela adorava o visual"), antes só inline-style;
+           aqui vira classe reaproveitável pra Iniciado/Finalizado. */
+        .trilho { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+        .trilho-trecho { width: 40px; height: 22px; border-radius: 11px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+        .trilho-trecho.on { background: #2d7a4f; }
+        .trilho-trecho.off { background: #c7d3e0; }
+        .trilho-bolinha { position: absolute; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: left 0.2s; }
+        .trilho-trecho.on .trilho-bolinha { left: 19px; }
+        .trilho-trecho.off .trilho-bolinha { left: 3px; }
+        .trilho-label { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+        .trilho-label.on { color: #2d7a4f; }
+        .trilho-label.off { color: #706c87; }
         /* Versão pequena, pro cabeçalho fechado dos cards da Visão Geral --
            mesmas cores, fonte reduzida pra caber ao lado do título. */
         .total-duplo--mini { gap: 14px; }
@@ -2247,15 +2277,30 @@
     <div id="presenca-tela-marcar" class="config-subtela" style="display:none;">
         <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Lista de Presença</button>
         <div class="painel-titulo" id="presenca-evento-titulo">Lista de Presença</div>
-        <!-- Totalizador + botões lado a lado em tela larga, mesmo padrão já
-             aprovado em Entrega de Figurino (27/ago/2026) -- aproveita o
-             espaço vazio ao lado do card em vez de empilhar tudo embaixo;
-             em celular o wrap do flex empilha sozinho. -->
-        <div class="figurino-entrega-topo">
-            <div id="presenca-totalizador" class="total-duplo-card"></div>
-            <div id="presenca-btns-qr" class="figurino-entrega-flags" style="display:none;">
-                <button type="button" id="presenca-btn-mostrar-qr" class="btn-novo" onclick="abrirQrEvento()">📺 Mostrar QR do Evento</button>
-                <button type="button" id="presenca-btn-escanear" class="btn-novo" onclick="abrirScannerPresenca()">📷 Escanear</button>
+        <!-- Cartão único: números + Iniciado/Finalizado (interruptor) +
+             botões de QR, tudo junto num só .vg-card (30/ago/2026 -- antes
+             eram 2 caixas separadas, "cheio de quadrado" na avaliação
+             dela). Em tela estreita, o wrap do flex empilha sozinho. -->
+        <div class="vg-card">
+            <div class="pres-topo">
+                <div id="presenca-totalizador"></div>
+                <div id="presenca-btns-qr" class="pres-acoes" style="display:none;">
+                    <div class="pres-trilhos" id="pres-trilhos-wrap" style="display:none;">
+                        <label class="trilho" onclick="toggleEventoIniciado()">
+                            <span class="trilho-trecho off" id="pres-trilho-iniciado"><span class="trilho-bolinha"></span></span>
+                            <span class="trilho-label off" id="pres-trilho-iniciado-label">Evento Iniciado</span>
+                        </label>
+                        <label class="trilho" onclick="toggleEventoFinalizado()">
+                            <span class="trilho-trecho off" id="pres-trilho-finalizado"><span class="trilho-bolinha"></span></span>
+                            <span class="trilho-label off" id="pres-trilho-finalizado-label">Evento Finalizado</span>
+                        </label>
+                    </div>
+                    <div class="pres-separador-v" id="pres-separador" style="display:none;"></div>
+                    <div class="pres-qr-btns" id="pres-qr-btns" style="display:none;">
+                        <button type="button" id="presenca-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrEvento()">🎫 Mostrar QR do Evento</button>
+                        <button type="button" id="presenca-btn-escanear" class="btn-contorno" onclick="abrirScannerPresenca()">📷 Escanear</button>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="figurino-tabs-lado" id="presenca-filtro-lado" style="display:none;"></div>
@@ -6178,6 +6223,40 @@
             </div>`).join('');
     }
 
+    // Interruptores "Evento Iniciado"/"Evento Finalizado" (30/ago/2026) --
+    // mesmo padrão de salvamento de Figurino (salvarFlagFigurinoEntrega),
+    // só que aqui a coluna é direto na própria linha de `eventos` (não uma
+    // tabela-ponte por bateria). Rótulo do interruptor nunca muda de texto
+    // (diferente de Desfile) -- só a cor/posição indicam ligado/desligado.
+    function renderPresencaTrilhos() {
+        const evento = presencaEventoAtual;
+        if (!evento) return;
+        const aplicar = (idTrecho, idLabel, ligado) => {
+            const trecho = document.getElementById(idTrecho);
+            const label = document.getElementById(idLabel);
+            if (!trecho || !label) return;
+            trecho.classList.toggle('on', ligado);
+            trecho.classList.toggle('off', !ligado);
+            label.classList.toggle('on', ligado);
+            label.classList.toggle('off', !ligado);
+        };
+        aplicar('pres-trilho-iniciado', 'pres-trilho-iniciado-label', !!evento.iniciado);
+        aplicar('pres-trilho-finalizado', 'pres-trilho-finalizado-label', !!evento.finalizado);
+    }
+    async function salvarFlagEvento(campo, valor) {
+        const evento = presencaEventoAtual;
+        if (!evento) return;
+        evento[campo] = valor;
+        renderPresencaTrilhos();
+        await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${evento.id}`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ [campo]: valor })
+        });
+        const emCache = presencaEventosCache.find(e => e.id === evento.id);
+        if (emCache) emCache[campo] = valor;
+    }
+    function toggleEventoIniciado() { salvarFlagEvento('iniciado', !presencaEventoAtual.iniciado); }
+    function toggleEventoFinalizado() { salvarFlagEvento('finalizado', !presencaEventoAtual.finalizado); }
+
     async function abrirPresencaEvento(eventoId) {
         const evento = presencaEventosCache.find(e => e.id === eventoId);
         if (!evento) return;
@@ -6192,8 +6271,25 @@
         // dela): reserva o espaço do totalizador com um "carregando" desde
         // já, pra não nascer vazio enquanto o resto da tela já aparece.
         document.getElementById('presenca-totalizador').innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        // Iniciado/Finalizado é dado do EVENTO (editar_eventos) -- diferente
+        // de Mostrar QR/Escanear, que é sobre MARCAR presença
+        // (marcar_presenca). São capacidades reais diferentes no banco;
+        // mostrar cada bloco só quando a pessoa realmente tem a permissão
+        // certa evita o "botão aparece habilitado e não funciona" (a trava
+        // de verdade é o RLS de `eventos`, checado com
+        // tenho_capacidade('editar_eventos', ...) -- só escondendo teria o
+        // mesmo risco que já foi achado e corrigido antes noutras telas).
+        const podeEditarEvento = souSuperAdmin || tenhoCapacidade('editar_eventos');
+        const podeMarcarPresenca = souSuperAdmin || tenhoCapacidade('marcar_presenca');
         const btnsQr = document.getElementById('presenca-btns-qr');
-        if (btnsQr) btnsQr.style.display = (souSuperAdmin || tenhoCapacidade('marcar_presenca')) ? 'flex' : 'none';
+        if (btnsQr) btnsQr.style.display = (podeEditarEvento || podeMarcarPresenca) ? 'flex' : 'none';
+        const trilhosWrap = document.getElementById('pres-trilhos-wrap');
+        if (trilhosWrap) trilhosWrap.style.display = podeEditarEvento ? 'flex' : 'none';
+        const qrBtns = document.getElementById('pres-qr-btns');
+        if (qrBtns) qrBtns.style.display = podeMarcarPresenca ? 'flex' : 'none';
+        const separador = document.getElementById('pres-separador');
+        if (separador) separador.style.display = (podeEditarEvento && podeMarcarPresenca) ? 'block' : 'none';
+        renderPresencaTrilhos();
         await carregarPresencaPessoas();
     }
 
