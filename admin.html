@@ -775,11 +775,33 @@
         .ficha-campo.full { grid-column: 1 / -1; }
         .btn-imprimir { display: inline-flex; align-items: center; gap: 6px; background: var(--cor-fundo-escuro); color: white; border: none; padding: 9px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
 
+        /* Impressão (29/ago/2026): consolidado num único bloco -- antes
+           existiam DUAS regras "esconde tudo, exceto X" competindo (essa
+           aqui, já existente pra imprimir a ficha da pessoa, e uma nova que
+           eu tinha criado só pros QRs) -- como as duas são !important e a
+           ficha não sabia da existência do QR (nem vice-versa), a de cima
+           sempre vencia e escondia o QR também (foi o que aconteceu: "no
+           pdf não aparece imagem nenhuma"). Corrigido juntando os dois QRs
+           na MESMA lista de exceção -- só pode existir uma regra dessas por
+           página, com todos os "isso pode aparecer sozinho ao imprimir"
+           listados juntos. Os overlays de QR continuam com display:none
+           inline quando fechados, então essa regra não faz nada com eles
+           fora do momento em que a pessoa mandou imprimir com um aberto. */
         @media print {
-            body > *:not(#modalCadastroOverlay) { display: none !important; }
+            body > *:not(#modalCadastroOverlay):not(#presenca-qr-overlay):not(#figurino-qr-overlay) { display: none !important; }
             #modalCadastroOverlay { position: static !important; background: none !important; display: block !important; }
             #modalCadastroOverlay .modal { box-shadow: none; margin: 0; max-width: 100%; }
             .modal-acoes { display: none !important; }
+
+            #presenca-qr-overlay, #figurino-qr-overlay {
+                position: absolute !important;
+                inset: 0 !important;
+                background: #fff !important;
+                height: auto !important;
+                min-height: 100%;
+            }
+            #presenca-qr-rotulo, #presenca-qr-evento, #figurino-qr-rotulo, #figurino-qr-item { color: #12101a !important; }
+            .oculta-impressao { display: none !important; }
         }
 
         /* TABLET */
@@ -1101,31 +1123,6 @@
         .figurino-entrega-topo { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
         .figurino-entrega-flags { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 220px; }
 
-        /* Imprimir o QR do evento (29/ago/2026) -- o navegador não imprime
-           elementos position:fixed de forma confiável (em vários navegadores
-           eles somem da página impressa/do PDF sem aviso nenhum -- foi o que
-           aconteceu com ela: "no pdf não aparece imagem nenhuma"). Solução
-           padrão: uma classe no <body> (ligada/desligada pelo JS que abre/
-           fecha o overlay, não por tentar "adivinhar" o estado via CSS) que,
-           só enquanto o QR está aberto, esconde todo o resto da página e
-           troca o overlay de fixed pra absolute (isso sim imprime). Fora
-           desse estado, imprimir qualquer outra tela continua 100% normal. */
-        @media print {
-            body.imprimindo-qr-evento > *:not(#presenca-qr-overlay) { display: none !important; }
-            body.imprimindo-qr-evento #presenca-qr-overlay,
-            body.imprimindo-qr-figurino #figurino-qr-overlay {
-                position: absolute !important;
-                inset: 0 !important;
-                background: #fff !important;
-                height: auto !important;
-                min-height: 100%;
-            }
-            /* Mesma correção pro QR de Figurino (29/ago/2026), classe própria
-               pra não interferir com o overlay de Presença. */
-            body.imprimindo-qr-figurino > *:not(#figurino-qr-overlay) { display: none !important; }
-            #presenca-qr-rotulo, #presenca-qr-evento, #figurino-qr-rotulo, #figurino-qr-item { color: #12101a !important; }
-            .oculta-impressao { display: none !important; }
-        }
         /* Figurinos recebidos, direto no card do Convidado (26/ago/2026, pedido dela). */
         .extra-figurino-status { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e0e0e0; }
         .extra-figurino-linha { display: flex; align-items: center; gap: 7px; font-size: 12.5px; }
@@ -6381,12 +6378,10 @@
         const url = `${window.location.origin}/presenca?e=${presencaEventoAtual.id}`;
         new QRCode(container, { text: url, width: 240, height: 240, colorDark: '#12101a', colorLight: '#ffffff' });
         document.getElementById('presenca-qr-overlay').style.display = 'block';
-        document.body.classList.add('imprimindo-qr-evento');
     }
 
     function fecharQrEvento() {
         document.getElementById('presenca-qr-overlay').style.display = 'none';
-        document.body.classList.remove('imprimindo-qr-evento');
     }
 
     // QR da peça de Figurino (29/ago/2026) -- mesma ideia do QR do evento em
@@ -6402,12 +6397,10 @@
         const url = `${window.location.origin}/figurino?f=${item.id}`;
         new QRCode(container, { text: url, width: 240, height: 240, colorDark: '#12101a', colorLight: '#ffffff' });
         document.getElementById('figurino-qr-overlay').style.display = 'block';
-        document.body.classList.add('imprimindo-qr-figurino');
     }
 
     function fecharQrFigurino() {
         document.getElementById('figurino-qr-overlay').style.display = 'none';
-        document.body.classList.remove('imprimindo-qr-figurino');
     }
 
     function presencaScannerLoop() {
