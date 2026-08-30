@@ -1954,26 +1954,25 @@
         </div>
         <!-- FILTRO STATUS -->
         <div class="multi-select" id="statusSelectWrap">
-            <div class="multi-select-trigger ativo" id="statusSelectTrigger" onclick="toggleStatusSelect()">
-                <span id="statusSelectLabel">Ativos, Pendentes</span>
+            <div class="multi-select-trigger" id="statusSelectTrigger" onclick="toggleStatusSelect()">
+                <span id="statusSelectLabel">Todos os status</span>
                 <span id="statusSelectArrow">▼</span>
             </div>
-            <!-- Padrão inicial = Ativos + Pendentes marcados (não "Todos os
-                 status") -- pedido da Márcia, 18/ago/2026: lista completa
-                 (com suspenso/desligado/rejeitado) polui o dia a dia, "não é
-                 legal". Estilo Excel, 20/ago/2026: cada checkbox controla
-                 exatamente o que aparece -- desmarcar tudo mostra lista
-                 vazia (não mais "sem filtro = mostra tudo"); "Limpar" vira
-                 "Marcar todos" quando chega em zero. -->
+            <!-- Padrão inicial = Todos os status marcados (29/ago/2026,
+                 pedido da Márcia -- reverte o padrão "Ativos + Pendentes" de
+                 18/ago/2026). Estilo Excel, 20/ago/2026: cada checkbox
+                 controla exatamente o que aparece -- desmarcar tudo mostra
+                 lista vazia (não mais "sem filtro = mostra tudo"); "Limpar"
+                 vira "Marcar todos" quando chega em zero. -->
             <div class="multi-select-dropdown" id="statusSelectDropdown" style="display:none;">
                 <label class="multi-select-option"><input type="checkbox" value="aprovado" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
-                <label class="multi-select-option"><input type="checkbox" value="nao_desfila" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b556e;margin:0 4px;"></span>Não Desfila</label>
-                <label class="multi-select-option"><input type="checkbox" value="desligado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
-                <label class="multi-select-option"><input type="checkbox" value="menor" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1a5fa8;margin:0 4px;"></span>Menores</label>
-                <label class="multi-select-option"><input type="checkbox" value="repique_bossa" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6d28d9;margin:0 4px;"></span>Repique de Bossa</label>
+                <label class="multi-select-option"><input type="checkbox" value="nao_desfila" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b556e;margin:0 4px;"></span>Não Desfila</label>
+                <label class="multi-select-option"><input type="checkbox" value="desligado" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
+                <label class="multi-select-option"><input type="checkbox" value="menor" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1a5fa8;margin:0 4px;"></span>Menores</label>
+                <label class="multi-select-option"><input type="checkbox" value="repique_bossa" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6d28d9;margin:0 4px;"></span>Repique de Bossa</label>
                 <label class="multi-select-option"><input type="checkbox" value="pendente" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
-                <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
-                <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
+                <label class="multi-select-option"><input type="checkbox" value="rejeitado" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
+                <label class="multi-select-option"><input type="checkbox" value="suspenso" checked onchange="onChangeStatus()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="statusMarcarTudoLink" onclick="toggleMarcarTudoStatus()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
                     <button type="button" class="btn-ficha" onclick="aplicarFiltroStatus()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
@@ -2512,16 +2511,16 @@
         </div>
         <!-- FILTRO STATUS -->
         <div class="multi-select" id="statusDiretoriaSelectWrap">
-            <div class="multi-select-trigger ativo" id="statusDiretoriaSelectTrigger" onclick="toggleStatusDiretoriaSelect()">
-                <span id="statusDiretoriaSelectLabel">Ativos, Pendentes</span>
+            <div class="multi-select-trigger" id="statusDiretoriaSelectTrigger" onclick="toggleStatusDiretoriaSelect()">
+                <span id="statusDiretoriaSelectLabel">Todos os status</span>
                 <span id="statusDiretoriaSelectArrow">▼</span>
             </div>
             <div class="multi-select-dropdown" id="statusDiretoriaSelectDropdown" style="display:none;">
                 <label class="multi-select-option"><input type="checkbox" value="aprovado" checked onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
-                <label class="multi-select-option"><input type="checkbox" value="desligado" onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
+                <label class="multi-select-option"><input type="checkbox" value="desligado" checked onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
                 <label class="multi-select-option"><input type="checkbox" value="pendente" checked onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
-                <label class="multi-select-option"><input type="checkbox" value="rejeitado" onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
-                <label class="multi-select-option"><input type="checkbox" value="suspenso" onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
+                <label class="multi-select-option"><input type="checkbox" value="rejeitado" checked onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
+                <label class="multi-select-option"><input type="checkbox" value="suspenso" checked onchange="onChangeStatusDiretoria()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
                 <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
                     <span id="statusDiretoriaMarcarTudoLink" onclick="toggleMarcarTudoStatusDiretoria()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
                     <button type="button" class="btn-ficha" onclick="aplicarFiltroStatusDiretoria()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
@@ -2770,7 +2769,7 @@
 
     let todosRitmistas = [];
     let listaFiltradaAtual = [];
-    let filtroStatusSelecionados = ['aprovado', 'pendente'];
+    let filtroStatusSelecionados = ['aprovado', 'nao_desfila', 'desligado', 'menor', 'repique_bossa', 'pendente', 'rejeitado', 'suspenso'];
     const semAcento = s => (s||'').toLowerCase().normalize('NFD').split('').filter(c => c.charCodeAt(0) < 768 || c.charCodeAt(0) > 879).join('').trim();
     let acaoAtualId = null;
 
@@ -8737,10 +8736,10 @@
     let listaDiretoriaAtual = [];
     // Busca + Filtros (Cargo/Status) -- padronizado com Ritmistas,
     // 20/ago/2026. Cargo faz o papel de "Instrumento" (tudo marcado por
-    // padrão, estilo Excel); Status usa o mesmo padrão inicial de
-    // Ritmistas (Ativos + Pendentes).
+    // padrão, estilo Excel); Status também nasce tudo marcado (29/ago/2026,
+    // reverte o padrão "Ativos + Pendentes" de 18/ago/2026, pedido dela).
     let filtroCargoDiretoriaSelecionados = ['mestre', 'diretor', 'apoio'];
-    let filtroStatusDiretoriaSelecionados = ['aprovado', 'pendente'];
+    let filtroStatusDiretoriaSelecionados = ['aprovado', 'desligado', 'pendente', 'rejeitado', 'suspenso'];
 
     async function carregarDiretoria(leve = false) {
         if (diretoriaCarregada) return;
