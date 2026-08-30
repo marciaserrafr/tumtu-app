@@ -791,7 +791,7 @@ async function fpRenderizarEntregaFigurino(alvo) {
     // conforme mais peças forem cadastradas, igual qualquer outro campo.
     grid.innerHTML = itens.map(it => {
         const entregue = entregaPorItem[it.id];
-        const texto = entregue ? '✓ Entregue' : (finalizadaPorItem[it.id] ? 'Não entregue' : 'Entrega ainda não registrada');
+        const texto = entregue ? '✓ Entregue' : (finalizadaPorItem[it.id] ? 'Não entregue' : 'Pendente');
         return `
         <div class="ficha-campo">
             <span>${it.nome}</span>
@@ -835,7 +835,7 @@ async function fpRenderizarEventos(alvo) {
     const presentePorEvento = new Set(presencas.map(p => p.evento_id));
     grid.innerHTML = eventos.map(ev => {
         const presente = presentePorEvento.has(ev.id);
-        const texto = presente ? '✓ Presente' : (ev.finalizado ? 'Não esteve presente' : 'Presença ainda não registrada');
+        const texto = presente ? '✓ Presente' : (ev.finalizado ? 'Faltou' : 'Pendente');
         return `
         <div class="ficha-campo">
             <span>${ev.nome}${ev.data ? ' · ' + fpFormatarData(ev.data) : ''}</span>

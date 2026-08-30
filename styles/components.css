@@ -206,8 +206,13 @@
    desproporcional (rótulo pequeno ao lado de valor grande). Também deixa
    os itens fluírem lado a lado na grade conforme mais forem cadastrados,
    em vez de um por linha inteira. */
-.ficha-valor-entregue { color: #2d7a4f; }
-.ficha-valor-pendente { color: #888; }
+/* Especificidade extra (.ficha-campo strong.X) necessária -- achado dela,
+   31/ago/2026, print real: a regra geral ".ficha-campo strong" (cor quase
+   preta, #0f172a) tem mais força que ".ficha-valor-X" sozinha (mesma
+   especificidade de 1 classe, mas a geral soma tipo+classe), então
+   sempre vencia e o texto saía preto em vez de verde/cinza. */
+.ficha-campo strong.ficha-valor-entregue { color: #2d7a4f; }
+.ficha-campo strong.ficha-valor-pendente { color: #888; }
 @media (max-width: 480px) {
   .ficha-grid { grid-template-columns: 1fr; }
 }
