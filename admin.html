@@ -365,11 +365,19 @@
 
         /* Multi-select instrumento */
         .multi-select { position: relative; display: inline-block; }
+        /* Mesmo formato de pílula (borda arredondada) já usado nos filtros
+           de Entrega de Figurino/Presença (.figurino-pill-select) --
+           29/ago/2026, pedido dela: "esse formato é mais elegante do que o
+           quadrado que está lá... ficaria padronizado". Continua sendo um
+           multi-select de verdade (checkboxes + Aplicar), só o visual do
+           botão que abre mudou -- .ativo (preenchido escuro) só liga
+           quando o filtro está genuinamente parcial (nem tudo, nem nada
+           marcado), nunca no estado "Todos". */
         .multi-select-trigger {
-            padding: 6px 13px; border-radius: 6px;
-            border: 1px solid #e0e0e0; background: #fafafa;
-            color: #555; cursor: pointer; font-size: 13px; font-weight: normal;
-            display: inline-flex; align-items: center; gap: 8px; min-width: 180px;
+            padding: 7px 14px; border-radius: 20px;
+            border: 1.5px solid #e0e0e0; background: #fff;
+            color: #12101a; cursor: pointer; font-size: 12.5px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 8px;
             justify-content: space-between; user-select: none; min-width: 140px;
         }
         .multi-select-trigger.ativo {
@@ -5367,25 +5375,35 @@
             }));
         }
         figurinoEntregaPessoasCache = linhasPessoas.concat(linhasExtras);
-        popularFiltroInstrumentoEntregasFigurino();
         renderizarFiltroLadoFigurino();
+        popularFiltroInstrumentoEntregasFigurino();
         renderizarEntregasFigurinoLista();
     }
 
-    // Filtro de 2 opções (27/ago/2026) -- só aparece quando a peça cobre
-    // Ritmista(s) E Diretoria (Mestre/Diretor/Apoio) ao mesmo tempo. Troca só
-    // o que a LISTA mostra; o totalizador continua somando os dois lados
-    // separados, sempre visível.
+    // Convidados virou uma aba própria (29/ago/2026, pedido dela: "assim
+    // como tem o totalizador, tenha um lugar separado para Convidados" --
+    // antes ficavam misturados dentro da aba Ritmista/Diretoria). Até 3
+    // abas agora: Ritmista, Diretoria, Convidados -- só aparece a aba que
+    // realmente tem gente (mesmo espírito do totalizador, que só mostra
+    // linha de um grupo com total>0), e a barra de abas só aparece quando
+    // sobra mais de uma.
     function renderizarFiltroLadoFigurino() {
         const el = document.getElementById('figurino-filtro-lado');
         if (!el) return;
         const item = figurinoEntregaItemAtual;
         const cobreRitmista = item.publico.includes('ritmista');
         const cobreDiretoria = item.publico.some(p => p !== 'ritmista');
-        if (!(cobreRitmista && cobreDiretoria)) { el.style.display = 'none'; el.innerHTML = ''; return; }
+        const temConvidados = figurinoEntregaPessoasCache.some(p => p.tipo === 'extra');
+        const lados = [];
+        if (cobreRitmista) lados.push('ritmista');
+        if (cobreDiretoria) lados.push('diretoria');
+        if (temConvidados) lados.push('convidados');
+        if (!lados.includes(figurinoEntregaLadoAtual)) figurinoEntregaLadoAtual = lados[0] || 'ritmista';
+        if (lados.length <= 1) { el.style.display = 'none'; el.innerHTML = ''; return; }
         el.style.display = '';
-        el.innerHTML = ['ritmista', 'diretoria'].map(lado =>
-            `<button type="button" class="${figurinoEntregaLadoAtual === lado ? 'ativo' : ''}" onclick="mudarLadoFigurino('${lado}')">${lado === 'ritmista' ? 'Ritmista' : 'Diretoria'}</button>`
+        const LABEL_LADO_FIGURINO = { ritmista: 'Ritmista', diretoria: 'Diretoria', convidados: 'Convidados' };
+        el.innerHTML = lados.map(lado =>
+            `<button type="button" class="${figurinoEntregaLadoAtual === lado ? 'ativo' : ''}" onclick="mudarLadoFigurino('${lado}')">${LABEL_LADO_FIGURINO[lado]}</button>`
         ).join('');
     }
     function mudarLadoFigurino(lado) {
@@ -5395,27 +5413,26 @@
         renderizarEntregasFigurinoLista();
     }
 
-    // Mesma pílula serve pros dois lados (27/ago/2026, pedido dela: faltava
-    // um filtro na Diretoria, equivalente ao Instrumento da Ritmista) --
-    // Ritmista filtra por instrumento, Diretoria filtra por tipo de pessoa
-    // (Mestre/Diretor de Bateria/Diretoria (Apoio)). Convidados continua
-    // sendo uma opção à parte nos dois lados.
+    // Mesma pílula serve pra Ritmista/Diretoria (27/ago/2026) -- Ritmista
+    // filtra por instrumento, Diretoria filtra por tipo de pessoa (Mestre/
+    // Diretor de Bateria/Diretoria (Apoio)). Convidados (29/ago/2026, agora
+    // aba própria) não usa esse filtro -- a divisão por Ritmista/Diretor de
+    // Bateria/Diretoria (Apoio) já aparece como título de seção na lista.
     function popularFiltroInstrumentoEntregasFigurino() {
         const select = document.getElementById('figurino-entregas-filtro-instrumento');
         if (!select) return;
         const valorAtual = select.value;
-        const doLado = figurinoEntregaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
-        const temExtras = doLado.some(p => p.tipo === 'extra');
+        const doLado = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
         if (figurinoEntregaLadoAtual === 'ritmista') {
             const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
             select.innerHTML = '<option value="">Todos</option>'
-                + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('')
-                + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
-        } else {
-            const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.tipo === 'vinculo' && x.perfil === p));
+                + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
+        } else if (figurinoEntregaLadoAtual === 'diretoria') {
+            const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
             select.innerHTML = '<option value="">Todos</option>'
-                + tipos.map(p => `<option value="${p}">${LABEL_PUBLICO_FIGURINO[p]}</option>`).join('')
-                + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
+                + tipos.map(p => `<option value="${p}">${LABEL_PUBLICO_FIGURINO[p]}</option>`).join('');
+        } else {
+            select.innerHTML = '<option value="">Todos</option>';
         }
         select.value = valorAtual;
     }
@@ -5430,25 +5447,23 @@
         const container = document.getElementById('figurino-entregas-lista');
         if (!container) return;
         const item = figurinoEntregaItemAtual;
-        // Filtro de lado (27/ago/2026) primeiro -- Ritmista e Diretoria nunca
-        // aparecem misturados na mesma lista, mesmo quando a peça cobre os
-        // dois. A mesma pílula filtra por Instrumento do lado Ritmista, ou
-        // por Tipo de pessoa (Mestre/Diretor de Bateria/Diretoria (Apoio))
-        // do lado Diretoria (27/ago/2026, pedido dela) -- Convidados
-        // continua uma opção à parte nos dois.
-        const doLado = figurinoEntregaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
+        // Filtro de lado -- Ritmista, Diretoria e Convidados (29/ago/2026,
+        // virou aba própria) nunca aparecem misturados na mesma lista. A
+        // pílula de Instrumento/Tipo só existe pra Ritmista/Diretoria --
+        // Convidados nunca usa (ver popularFiltroInstrumentoEntregasFigurino).
+        const doLado = figurinoEntregaLadoAtual === 'convidados'
+            ? figurinoEntregaPessoasCache.filter(p => p.tipo === 'extra')
+            : figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
         const filtroInstrumentoEl = document.getElementById('figurino-entregas-filtro-instrumento');
-        const mostrarFiltroInstrumento = figurinoEntregaLadoAtual === 'ritmista'
-            ? (doLado.some(p => p.instrumento_nome) || doLado.some(p => p.tipo === 'extra'))
-            : doLado.length > 0;
+        const mostrarFiltroInstrumento = figurinoEntregaLadoAtual !== 'convidados'
+            && (figurinoEntregaLadoAtual === 'ritmista' ? doLado.some(p => p.instrumento_nome) : doLado.length > 0);
         filtroInstrumentoEl.style.display = mostrarFiltroInstrumento ? '' : 'none';
         const busca = (document.getElementById('figurino-entregas-busca').value || '').trim().toLowerCase();
-        const instrumentoFiltro = filtroInstrumentoEl.value;
+        const instrumentoFiltro = mostrarFiltroInstrumento ? filtroInstrumentoEl.value : '';
         const statusFiltro = document.getElementById('figurino-entregas-filtro-status').value;
         const filtrada = doLado.filter(p => {
             if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
-            if (instrumentoFiltro === '__extras__' && p.tipo !== 'extra') return false;
-            if (instrumentoFiltro && instrumentoFiltro !== '__extras__') {
+            if (instrumentoFiltro) {
                 if (figurinoEntregaLadoAtual === 'ritmista') {
                     if (p.instrumento_nome !== instrumentoFiltro) return false;
                 } else if (p.perfil !== instrumentoFiltro) return false;
@@ -5487,7 +5502,7 @@
             return `
             <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
                 <div style="min-width:0;flex:1;">
-                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
+                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ` · <span style="color:#D4AF37;font-style:italic;font-weight:400;">${esc(p.apelido)}</span>` : ''}</div>
                     <div style="font-size:12px;color:var(--cor-texto-muted);">${detalhe}</div>
                 </div>
                 <div class="figurino-tamanho-caixa">${esc(p.tamanho || '—')}</div>
@@ -5497,37 +5512,31 @@
         if (filtrada.length === 0) {
             container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>';
         } else if (figurinoEntregaLadoAtual === 'ritmista') {
-            const principais = filtrada.filter(p => p.tipo === 'vinculo');
-            const extrasList = filtrada.filter(p => p.tipo === 'extra');
-            const mostrarSecoes = principais.length > 0 && extrasList.length > 0;
-            let html = '';
-            if (principais.length > 0) {
-                if (mostrarSecoes) html += `<div class="secao-titulo">Ritmistas</div>`;
-                html += principais.map(linhaPessoaHtml).join('');
-            }
-            if (extrasList.length > 0) {
-                if (mostrarSecoes) html += `<div class="secao-titulo">Convidados</div>`;
-                html += extrasList.map(linhaPessoaHtml).join('');
-            }
-            container.innerHTML = html;
-        } else {
-            // Lado Diretoria sub-divide por cargo específico (Mestres/
-            // Diretores de Bateria/Diretoria (Apoio)) -- mesma divisão de 3
-            // grupos já usada em Convidados (27/ago/2026, pedido dela: a
-            // lista estava misturando Diretor de Bateria e Diretoria (Apoio)
-            // sem separar). Convidado de cada cargo entra dentro da mesma
-            // seção do cargo, não misturado com os outros.
+            container.innerHTML = filtrada.map(linhaPessoaHtml).join('');
+        } else if (figurinoEntregaLadoAtual === 'diretoria') {
+            // Sub-divide por cargo específico (Mestres/Diretores de Bateria/
+            // Diretoria (Apoio)) -- pedido dela, 27/ago/2026.
             let html = '';
             ['mestre', 'diretor', 'apoio'].forEach(perfil => {
-                const vinculos = filtrada.filter(p => p.tipo === 'vinculo' && p.perfil === perfil);
-                const convidados = filtrada.filter(p => p.tipo === 'extra' && p.perfil === perfil);
-                if (vinculos.length === 0 && convidados.length === 0) return;
+                const vinculos = filtrada.filter(p => p.perfil === perfil);
+                if (vinculos.length === 0) return;
                 html += `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[perfil]}</div>`;
                 html += vinculos.map(linhaPessoaHtml).join('');
-                if (convidados.length > 0) {
-                    html += `<div style="font-size:12px;font-weight:700;color:var(--cor-texto-muted);margin:8px 0 4px;">Convidados</div>`;
-                    html += convidados.map(linhaPessoaHtml).join('');
-                }
+            });
+            container.innerHTML = html;
+        } else {
+            // Aba Convidados (29/ago/2026, pedido dela: "assim como tem o
+            // totalizador, tenha um lugar separado para Convidados... e
+            // este esteja separado pelo título Ritmista e Diretoria de
+            // Bateria e Diretoria Apoio") -- mesma sub-divisão de 3 grupos
+            // já usada em Diretoria, aplicada aqui pelo grupo de origem do
+            // Convidado (nunca "mestre" -- Convidado não tem esse grupo).
+            let html = '';
+            ['ritmista', 'diretor', 'apoio'].forEach(perfil => {
+                const doGrupo = filtrada.filter(p => p.perfil === perfil);
+                if (doGrupo.length === 0) return;
+                html += `<div class="secao-titulo">${LABEL_PUBLICO_FIGURINO[perfil]}</div>`;
+                html += doGrupo.map(linhaPessoaHtml).join('');
             });
             container.innerHTML = html;
         }
@@ -6128,16 +6137,24 @@
         atualizarTotalizadorPresenca();
     }
 
-    // Só aparece quando o evento inclui Diretoria além de Ritmistas --
-    // mesma regra de renderizarFiltroLadoFigurino.
+    // Convidados virou aba própria (29/ago/2026, mesmo pedido de Figurino:
+    // "assim como tem o totalizador, tenha um lugar separado para
+    // Convidados"). Até 3 abas: Ritmista, Diretoria, Convidados -- só
+    // aparece a que tem gente, e a barra só aparece com mais de uma.
     function renderizarFiltroLadoPresenca() {
         const el = document.getElementById('presenca-filtro-lado');
         if (!el) return;
         const cobreDiretoria = (presencaEventoAtual.perfis_diretoria_inclusos || []).length > 0;
-        if (!cobreDiretoria) { el.style.display = 'none'; el.innerHTML = ''; return; }
+        const temConvidados = presencaPessoasCache.some(p => p.tipo === 'extra');
+        const lados = ['ritmista'];
+        if (cobreDiretoria) lados.push('diretoria');
+        if (temConvidados) lados.push('convidados');
+        if (!lados.includes(presencaLadoAtual)) presencaLadoAtual = lados[0];
+        if (lados.length <= 1) { el.style.display = 'none'; el.innerHTML = ''; return; }
         el.style.display = '';
-        el.innerHTML = ['ritmista', 'diretoria'].map(lado =>
-            `<button type="button" class="${presencaLadoAtual === lado ? 'ativo' : ''}" onclick="mudarLadoPresenca('${lado}')">${lado === 'ritmista' ? 'Ritmista' : 'Diretoria'}</button>`
+        const LABEL_LADO_PRESENCA = { ritmista: 'Ritmista', diretoria: 'Diretoria', convidados: 'Convidados' };
+        el.innerHTML = lados.map(lado =>
+            `<button type="button" class="${presencaLadoAtual === lado ? 'ativo' : ''}" onclick="mudarLadoPresenca('${lado}')">${LABEL_LADO_PRESENCA[lado]}</button>`
         ).join('');
     }
     function mudarLadoPresenca(lado) {
@@ -6147,26 +6164,25 @@
         renderizarPresencaLista();
     }
 
-    // Mesma pílula serve pros dois lados (mesmo padrão de Figurino): filtra
-    // por Instrumento no lado Ritmista, por Tipo de pessoa (Mestre/Diretor
-    // de Bateria/Diretoria (Apoio)) no lado Diretoria. Convidados é uma
-    // opção à parte nos dois, quando o evento inclui.
+    // Mesma pílula serve pra Ritmista/Diretoria (filtra por Instrumento ou
+    // por Tipo de pessoa) -- Convidados (29/ago/2026, agora aba própria)
+    // não usa esse filtro, a divisão por Ritmista/Diretor de Bateria/
+    // Diretoria (Apoio) já aparece como título de seção na lista.
     function popularFiltroTipoPresenca() {
         const select = document.getElementById('presenca-filtro-tipo');
         if (!select) return;
         const valorAtual = select.value;
-        const doLado = presencaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === presencaLadoAtual);
-        const temExtras = doLado.some(p => p.tipo === 'extra');
+        const doLado = presencaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === presencaLadoAtual);
         if (presencaLadoAtual === 'ritmista') {
             const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
             select.innerHTML = '<option value="">Todos</option>'
-                + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('')
-                + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
-        } else {
-            const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.tipo === 'vinculo' && x.perfil === p));
+                + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
+        } else if (presencaLadoAtual === 'diretoria') {
+            const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
             select.innerHTML = '<option value="">Todos</option>'
-                + tipos.map(p => `<option value="${p}">${LABEL_PERFIL_DIRETORIA_PRESENCA[p]}</option>`).join('')
-                + (temExtras ? `<option value="__extras__">Convidados</option>` : '');
+                + tipos.map(p => `<option value="${p}">${LABEL_PERFIL_DIRETORIA_PRESENCA[p]}</option>`).join('');
+        } else {
+            select.innerHTML = '<option value="">Todos</option>';
         }
         select.value = valorAtual;
     }
@@ -6198,19 +6214,19 @@
     function renderizarPresencaLista() {
         const container = document.getElementById('presenca-pessoas-lista');
         if (!container) return;
-        const doLado = presencaPessoasCache.filter(p => ladoDoPerfil(p.perfil) === presencaLadoAtual);
+        const doLado = presencaLadoAtual === 'convidados'
+            ? presencaPessoasCache.filter(p => p.tipo === 'extra')
+            : presencaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === presencaLadoAtual);
         const filtroTipoEl = document.getElementById('presenca-filtro-tipo');
-        const mostrarFiltroTipo = presencaLadoAtual === 'ritmista'
-            ? (doLado.some(p => p.instrumento_nome) || doLado.some(p => p.tipo === 'extra'))
-            : doLado.length > 0;
+        const mostrarFiltroTipo = presencaLadoAtual !== 'convidados'
+            && (presencaLadoAtual === 'ritmista' ? doLado.some(p => p.instrumento_nome) : doLado.length > 0);
         filtroTipoEl.style.display = mostrarFiltroTipo ? '' : 'none';
         const busca = (document.getElementById('presenca-busca').value || '').trim().toLowerCase();
-        const tipoFiltro = filtroTipoEl.value;
+        const tipoFiltro = mostrarFiltroTipo ? filtroTipoEl.value : '';
         const statusFiltro = document.getElementById('presenca-filtro-status').value;
         const filtrada = doLado.filter(p => {
             if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
-            if (tipoFiltro === '__extras__' && p.tipo !== 'extra') return false;
-            if (tipoFiltro && tipoFiltro !== '__extras__') {
+            if (tipoFiltro) {
                 if (presencaLadoAtual === 'ritmista') { if (p.instrumento_nome !== tipoFiltro) return false; }
                 else if (p.perfil !== tipoFiltro) return false;
             }
@@ -6242,7 +6258,7 @@
             return `
             <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
                 <div style="min-width:0;flex:1;">
-                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
+                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ` · <span style="color:#D4AF37;font-style:italic;font-weight:400;">${esc(p.apelido)}</span>` : ''}</div>
                     <div style="font-size:12px;color:var(--cor-texto-muted);">${detalhe}</div>
                 </div>
                 <div class="figurino-coluna-acao">${acaoHtml}</div>
@@ -6251,34 +6267,28 @@
         if (filtrada.length === 0) {
             container.innerHTML = '<div class="estado-vazio">Ninguém encontrado com esse filtro.</div>';
         } else if (presencaLadoAtual === 'ritmista') {
-            const principais = filtrada.filter(p => p.tipo === 'vinculo');
-            const extrasList = filtrada.filter(p => p.tipo === 'extra');
-            const mostrarSecoes = principais.length > 0 && extrasList.length > 0;
-            let html = '';
-            if (principais.length > 0) {
-                if (mostrarSecoes) html += `<div class="secao-titulo">Ritmistas</div>`;
-                html += principais.map(linhaHtml).join('');
-            }
-            if (extrasList.length > 0) {
-                if (mostrarSecoes) html += `<div class="secao-titulo">Convidados</div>`;
-                html += extrasList.map(linhaHtml).join('');
-            }
-            container.innerHTML = html;
-        } else {
-            // Lado Diretoria sub-divide por cargo específico (mesma divisão
-            // já usada em Figurino) -- Convidado de cada cargo entra dentro
-            // da mesma seção do cargo, não misturado com os outros.
+            container.innerHTML = filtrada.map(linhaHtml).join('');
+        } else if (presencaLadoAtual === 'diretoria') {
+            // Sub-divide por cargo específico (mesma divisão já usada em
+            // Figurino).
             let html = '';
             ['mestre', 'diretor', 'apoio'].forEach(perfil => {
-                const vinculos = filtrada.filter(p => p.tipo === 'vinculo' && p.perfil === perfil);
-                const convidados = filtrada.filter(p => p.tipo === 'extra' && p.perfil === perfil);
-                if (vinculos.length === 0 && convidados.length === 0) return;
+                const vinculos = filtrada.filter(p => p.perfil === perfil);
+                if (vinculos.length === 0) return;
                 html += `<div class="secao-titulo">${LABEL_PERFIL_DIRETORIA_PRESENCA[perfil]}</div>`;
                 html += vinculos.map(linhaHtml).join('');
-                if (convidados.length > 0) {
-                    html += `<div style="font-size:12px;font-weight:700;color:var(--cor-texto-muted);margin:8px 0 4px;">Convidados</div>`;
-                    html += convidados.map(linhaHtml).join('');
-                }
+            });
+            container.innerHTML = html;
+        } else {
+            // Aba Convidados (29/ago/2026, pedido dela: lugar separado,
+            // dividido pelos mesmos títulos Ritmista/Diretor de Bateria/
+            // Diretoria (Apoio)) -- Convidado nunca tem grupo "mestre".
+            let html = '';
+            [['ritmista', 'Ritmista'], ['diretor', LABEL_PERFIL_DIRETORIA_PRESENCA.diretor], ['apoio', LABEL_PERFIL_DIRETORIA_PRESENCA.apoio]].forEach(([perfil, label]) => {
+                const doGrupo = filtrada.filter(p => p.perfil === perfil);
+                if (doGrupo.length === 0) return;
+                html += `<div class="secao-titulo">${label}</div>`;
+                html += doGrupo.map(linhaHtml).join('');
             });
             container.innerHTML = html;
         }
@@ -6640,8 +6650,8 @@
         { aba: 'dados-escola', label: 'Dados da Escola' },
         { aba: 'dados-bateria', label: 'Dados da Bateria' },
         { aba: 'configuracoes', label: 'Configurações' },
-        { aba: 'figurino', label: 'Entrega de Figurino' },
         { aba: 'extras', label: 'Convidados' },
+        { aba: 'figurino', label: 'Entrega de Figurino' },
         { aba: 'presenca', label: 'Lista de Presença' },
         { aba: 'comercial', label: 'Comercial' },
         { aba: 'permissoes', label: 'Permissões' },
