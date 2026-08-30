@@ -1128,15 +1128,18 @@
         .par-mini { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
         .par-mini .total-duplo-numero { font-size: 18px; }
         .par-mini .total-duplo-rotulo { font-size: 10px; margin-top: 1px; }
-        /* Totalizador + interruptores lado a lado em tela larga, empilhado
-           em tela estreita -- sem media query, só o wrap natural do flex
-           (27/ago/2026, ideia dela). Totalizador com largura do próprio
-           conteúdo (travada por JS, travarLarguraTotalizador, pra não mudar
-           ao abrir/fechar "Ver por grupo") -- tentativa de deixar fixo em
-           50% foi revertida em 30/ago/2026 (ela: "ficou com uma parte
-           enorme branca"). */
+        /* Totalizador + botões/interruptores -- os dois blocos sempre
+           dividem a linha meio a meio (30/ago/2026, pedido dela, com
+           desenho: linha divisória bem no meio, os dois esticando até
+           ela). flex-basis igual nos dois faz o split ficar 50/50 sozinho
+           quando cabem lado a lado (tela larga); quando não cabem e um
+           quebra pra baixo (celular), esse que ficou sozinho estica pra
+           100% da própria linha -- nunca sobra vão em branco do lado. Por
+           ser tamanho de flexbox (não mais do conteúdo), não precisa mais
+           travar por JS quando abre/fecha "Ver por grupo". */
         .figurino-entrega-topo { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
-        .figurino-entrega-flags { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 220px; }
+        .figurino-entrega-topo .total-duplo-card { flex: 1 1 280px; box-sizing: border-box; }
+        .figurino-entrega-flags { display: flex; flex-direction: column; gap: 10px; flex: 1 1 280px; }
         /* Botões dentro desse container (QR de Presença/Figurino) sempre
            empilhados e do mesmo tamanho -- largura 100% explícita porque
            <button> não estica sozinho com align-items:stretch do pai
@@ -5657,7 +5660,6 @@
                     { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.entregue).length },
                 ].filter(g => g.total > 0);
                 totalizador.innerHTML = totalGradeHtml(grupos, 'figurino');
-                travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
             }
         }
     }
@@ -6305,7 +6307,6 @@
             { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.presente).length },
         ].filter(g => g.total > 0);
         el.innerHTML = totalGradeHtml(grupos, 'presenca');
-        travarLarguraTotalizador('presenca-totalizador', 'presenca');
     }
 
     function renderizarPresencaLista() {
