@@ -926,7 +926,7 @@
            o conteúdo em vez de esticar a largura toda da tela e sobrar um
            vão vazio do lado direito (achado dela, 25/ago/2026: "tudo
            alinhado à esquerda e o resto todo vazio"). */
-        .total-duplo-card { display: inline-flex; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-radius: 14px; padding: 16px 22px; }
+        .total-duplo-card { display: inline-flex; flex-direction: column; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-radius: 14px; padding: 16px 22px; }
         .total-duplo-numero { font-size: 34px; font-weight: 800; line-height: 1; }
         .total-duplo-numero.total { color: #D4AF37; }
         .total-duplo-numero.faltam { color: var(--cor-terracota); }
@@ -941,6 +941,18 @@
         .pres-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
         .pres-trilhos { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
         .pres-qr-btns { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        /* Risquinho quase invisível marcando a fronteira entre os 3 blocos
+           (números / Iniciado-Finalizado / QR) -- pedido dela, 30/ago/2026,
+           depois de eu ter tirado o separador junto com o wrapper único que
+           causava a distribuição ruim. align-self:stretch pra acompanhar a
+           altura do bloco mais alto da linha (os números). */
+        .pres-divisor-v { width: 1px; align-self: stretch; background: #ececec; flex-shrink: 0; }
+        /* Detalhe por grupo (Ritmistas/Diretoria/Convidados) mora FORA do
+           totalizador (que fica compacto, do tamanho só dos números) --
+           vira seção própria, largura total do cartão (30/ago/2026, achado
+           dela: preso dentro da coluna estreita dos números, cortado antes
+           de chegar na borda direita). */
+        #presenca-grupos-detalhe { width: 100%; }
         .btn-contorno {
             background: #fff; border: 1.5px solid #D4AF37; border-radius: 20px; padding: 8px 14px;
             display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700;
@@ -2269,6 +2281,7 @@
         <div class="vg-card">
             <div class="pres-topo">
                 <div id="presenca-totalizador"></div>
+                <div class="pres-divisor-v" id="pres-divisor-1" style="display:none;"></div>
                 <div class="pres-trilhos" id="pres-trilhos-wrap" style="display:none;">
                     <label class="trilho" onclick="toggleEventoIniciado()">
                         <span class="trilho-trecho off" id="pres-trilho-iniciado"><span class="trilho-bolinha"></span></span>
@@ -2279,11 +2292,13 @@
                         <span class="trilho-label off" id="pres-trilho-finalizado-label">Evento Finalizado</span>
                     </label>
                 </div>
+                <div class="pres-divisor-v" id="pres-divisor-2" style="display:none;"></div>
                 <div class="pres-qr-btns" id="pres-qr-btns" style="display:none;">
                     <button type="button" id="presenca-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrEvento()">🎫 Mostrar QR do Evento</button>
                     <button type="button" id="presenca-btn-escanear" class="btn-contorno" onclick="abrirScannerPresenca()">📷 Escanear</button>
                 </div>
             </div>
+            <div id="presenca-grupos-detalhe"></div>
         </div>
         <div class="figurino-tabs-lado" id="presenca-filtro-lado" style="display:none;"></div>
         <input type="text" id="presenca-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarPresencaLista()"
@@ -3960,17 +3975,29 @@
         const aberto = !totalizadorDetalheEstaAberto(idPrefix);
         totalizadorDetalheAberto[idPrefix] = aberto;
         const wrap = document.getElementById(`totalizador-grupos-${idPrefix}`);
-        if (wrap) wrap.style.display = aberto ? 'contents' : 'none';
+        // 'block', não mais 'contents' -- as linhas (.vg-instrumento-linha)
+        // saíram de dentro da grade (30/ago/2026, ver comentário em
+        // totalGradeHtml), não precisam mais virar item direto de um grid pai.
+        if (wrap) wrap.style.display = aberto ? 'block' : 'none';
         const seta = document.getElementById(`totalizador-toggle-seta-${idPrefix}`);
         if (seta) seta.classList.toggle('aberta', aberto);
         const rotulo = document.getElementById(`totalizador-toggle-rotulo-${idPrefix}`);
         if (rotulo) rotulo.textContent = aberto ? 'Ver menos' : 'Ver por grupo';
     }
 
+    // Retorna { hero, detalhe } em vez de um bloco só (30/ago/2026, achado
+    // dela em Presença: o detalhe por grupo ficava preso dentro da coluna
+    // estreita dos números -- porque ficava dentro da MESMA grade de 2
+    // colunas do hero, encolhida no fechar/travada na largura do hero no
+    // abrir. Agora o detalhe é uma peça separada, cada tela decide onde
+    // colocar: Figurino continua empilhando os dois dentro do mesmo cartão
+    // (.total-duplo-card virou flex-direction:column pra isso); Presença
+    // bota o hero dentro do trio esquerda/meio/direita e o detalhe como
+    // seção própria, largura total do cartão.
     function totalGradeHtml(grupos, idPrefix) {
         const totalGeral = grupos.reduce((s, g) => s + g.total, 0);
         const feitoGeral = grupos.reduce((s, g) => s + g.feito, 0);
-        if (grupos.length <= 1) return totalDuploHtml(totalGeral, totalGeral - feitoGeral);
+        if (grupos.length <= 1) return { hero: totalDuploHtml(totalGeral, totalGeral - feitoGeral), detalhe: '' };
         const faltamGeral = totalGeral - feitoGeral;
         const aberto = totalizadorDetalheEstaAberto(idPrefix);
         // Cada grupo = 1 linha (30/ago/2026, pedido dela: "igual Ritmistas
@@ -3981,7 +4008,7 @@
         const linhas = grupos.map(g => {
             const faltamG = g.total - g.feito;
             return `
-                <div class="vg-instrumento-linha" style="grid-column:1/-1;">
+                <div class="vg-instrumento-linha">
                     <span>${esc(g.label)}</span>
                     <span style="display:flex;align-items:center;">
                         ${faltamG > 0 ? `<span class="vg-instrumento-faltam">${faltamG === 1 ? 'Falta' : 'Faltam'} ${faltamG}</span>` : ''}
@@ -3989,17 +4016,18 @@
                     </span>
                 </div>`;
         }).join('');
-        return `<div class="totalizador-grade">
+        const hero = `<div class="totalizador-grade">
             <div class="celula-hero"><div class="total-duplo-numero total">${totalGeral}</div><div class="total-duplo-rotulo">Total</div></div>
             <div class="celula-hero"><div class="total-duplo-numero faltam">${faltamGeral}</div><div class="total-duplo-rotulo">${faltamGeral === 1 ? 'Falta' : 'Faltam'}</div></div>
             <button type="button" onclick="toggleTotalizadorDetalhe('${idPrefix}')" style="grid-column:1/-1;background:none;border:none;padding:4px 0 2px;margin:0;font-family:inherit;font-size:11px;font-weight:700;color:#8b88a0;cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
                 <span id="totalizador-toggle-rotulo-${idPrefix}">${aberto ? 'Ver menos' : 'Ver por grupo'}</span>
                 <span class="vg-secao-seta ${aberto ? 'aberta' : ''}" id="totalizador-toggle-seta-${idPrefix}" style="font-size:12px;">›</span>
             </button>
-            <div id="totalizador-grupos-${idPrefix}" style="display:${aberto ? 'contents' : 'none'};">
-                ${linhas}
-            </div>
         </div>`;
+        const detalhe = `<div id="totalizador-grupos-${idPrefix}" style="display:${aberto ? 'block' : 'none'};margin-top:6px;">
+            ${linhas}
+        </div>`;
+        return { hero, detalhe };
     }
 
     // Card nasce sempre ABERTO (25/ago/2026, pedido dela) -- ao contrário
@@ -5711,7 +5739,8 @@
                     { label: 'Diretoria', total: diretoria.length, feito: diretoria.filter(p => p.entregue).length },
                     { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.entregue).length },
                 ].filter(g => g.total > 0);
-                totalizador.innerHTML = totalGradeHtml(grupos, 'figurino');
+                const grade = totalGradeHtml(grupos, 'figurino');
+                totalizador.innerHTML = grade.hero + grade.detalhe;
                 travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
             }
         }
@@ -6285,6 +6314,13 @@
         if (trilhosWrap) trilhosWrap.style.display = podeEditarEvento ? 'flex' : 'none';
         const qrBtns = document.getElementById('pres-qr-btns');
         if (qrBtns) qrBtns.style.display = podeMarcarPresenca ? 'flex' : 'none';
+        // Risquinhos de separação -- só aparecem entre 2 blocos que estão
+        // os DOIS visíveis (pedido dela, 30/ago/2026: "ajuda a separar o
+        // que é cada coisa").
+        const divisor1 = document.getElementById('pres-divisor-1');
+        if (divisor1) divisor1.style.display = podeEditarEvento ? 'block' : 'none';
+        const divisor2 = document.getElementById('pres-divisor-2');
+        if (divisor2) divisor2.style.display = (podeEditarEvento && podeMarcarPresenca) ? 'block' : 'none';
         renderPresencaTrilhos();
         await carregarPresencaPessoas();
     }
@@ -6406,7 +6442,10 @@
             { label: 'Diretoria', total: diretoria.length, feito: diretoria.filter(p => p.presente).length },
             { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.presente).length },
         ].filter(g => g.total > 0);
-        el.innerHTML = totalGradeHtml(grupos, 'presenca');
+        const grade = totalGradeHtml(grupos, 'presenca');
+        el.innerHTML = grade.hero;
+        const detalheEl = document.getElementById('presenca-grupos-detalhe');
+        if (detalheEl) detalheEl.innerHTML = grade.detalhe;
         travarLarguraTotalizador('presenca-totalizador', 'presenca');
     }
 
