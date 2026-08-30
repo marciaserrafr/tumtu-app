@@ -2430,7 +2430,7 @@
                      abrindo aquilo ali") -- o "🎉 Hoje!" de cada linha só
                      aparece depois de abrir; esse aqui mora no cabeçalho, que
                      é a única parte sempre visível. -->
-                <span id="vg-aniversariantes-hoje-badge" style="display:none;background:#D4AF37;color:#12101a;font-size:10.5px;font-weight:800;text-transform:none;letter-spacing:normal;padding:3px 9px;border-radius:20px;flex-shrink:0;">🎉 Hoje</span>
+                <span id="vg-aniversariantes-hoje-badge" style="display:none;color:#D4AF37;font-size:11px;font-weight:800;text-transform:none;letter-spacing:normal;flex-shrink:0;">🎉 Hoje</span>
             </span>
             <span class="vg-secao-resumo">
                 <div id="vg-aniversariantes-total"></div>
@@ -3865,11 +3865,38 @@
     // -- mesma regra de antes pra peça/evento de um lado só). Com 2+
     // grupos, mostra o total geral + 1 linha por grupo, numa grade real
     // (ver comentário CSS de .totalizador-grade).
-    function totalGradeHtml(grupos) {
+    // Detalhe por grupo agora é colapsável (29/ago/2026, pedido dela: "penso
+    // sempre no celular... tem opção de ser fechado no celular e aberto
+    // aqui [computador]?") -- o total geral (219/219) continua sempre à
+    // mostra, só o detalhe por grupo (Ritmistas/Diretoria/Convidados) fica
+    // atrás de uma setinha. Nasce aberto em tela larga, fechado no celular
+    // (mesma régua de 600px já usada nos outros breakpoints do app) -- só
+    // na PRIMEIRA vez que aquele totalizador (Figurino ou Presença, cada
+    // um com seu próprio estado) é desenhado; depois disso, lembra o que a
+    // pessoa escolheu enquanto a tela continuar aberta (recarregamentos
+    // automáticos não fecham de volta sozinhos).
+    let totalizadorDetalheAberto = {};
+    function totalizadorDetalheEstaAberto(idPrefix) {
+        if (!(idPrefix in totalizadorDetalheAberto)) totalizadorDetalheAberto[idPrefix] = window.innerWidth > 600;
+        return totalizadorDetalheAberto[idPrefix];
+    }
+    function toggleTotalizadorDetalhe(idPrefix) {
+        const aberto = !totalizadorDetalheEstaAberto(idPrefix);
+        totalizadorDetalheAberto[idPrefix] = aberto;
+        const wrap = document.getElementById(`totalizador-grupos-${idPrefix}`);
+        if (wrap) wrap.style.display = aberto ? 'contents' : 'none';
+        const seta = document.getElementById(`totalizador-toggle-seta-${idPrefix}`);
+        if (seta) seta.classList.toggle('aberta', aberto);
+        const rotulo = document.getElementById(`totalizador-toggle-rotulo-${idPrefix}`);
+        if (rotulo) rotulo.textContent = aberto ? 'Ver menos' : 'Ver por grupo';
+    }
+
+    function totalGradeHtml(grupos, idPrefix) {
         const totalGeral = grupos.reduce((s, g) => s + g.total, 0);
         const feitoGeral = grupos.reduce((s, g) => s + g.feito, 0);
         if (grupos.length <= 1) return totalDuploHtml(totalGeral, totalGeral - feitoGeral);
         const faltamGeral = totalGeral - feitoGeral;
+        const aberto = totalizadorDetalheEstaAberto(idPrefix);
         const linhas = grupos.map(g => {
             const faltamG = g.total - g.feito;
             return `
@@ -3883,7 +3910,13 @@
         return `<div class="totalizador-grade">
             <div class="celula-hero"><div class="total-duplo-numero total">${totalGeral}</div><div class="total-duplo-rotulo">Total</div></div>
             <div class="celula-hero"><div class="total-duplo-numero faltam">${faltamGeral}</div><div class="total-duplo-rotulo">${faltamGeral === 1 ? 'Falta' : 'Faltam'}</div></div>
-            ${linhas}
+            <button type="button" onclick="toggleTotalizadorDetalhe('${idPrefix}')" style="grid-column:1/-1;background:none;border:none;padding:4px 0 2px;margin:0;font-family:inherit;font-size:11px;font-weight:700;color:#8b88a0;cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
+                <span id="totalizador-toggle-rotulo-${idPrefix}">${aberto ? 'Ver menos' : 'Ver por grupo'}</span>
+                <span class="vg-secao-seta ${aberto ? 'aberta' : ''}" id="totalizador-toggle-seta-${idPrefix}" style="font-size:12px;">›</span>
+            </button>
+            <div id="totalizador-grupos-${idPrefix}" style="display:${aberto ? 'contents' : 'none'};">
+                ${linhas}
+            </div>
         </div>`;
     }
 
@@ -5603,7 +5636,7 @@
                     { label: 'Diretoria', total: diretoria.length, feito: diretoria.filter(p => p.entregue).length },
                     { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.entregue).length },
                 ].filter(g => g.total > 0);
-                totalizador.innerHTML = totalGradeHtml(grupos);
+                totalizador.innerHTML = totalGradeHtml(grupos, 'figurino');
             }
         }
     }
@@ -6250,7 +6283,7 @@
             { label: 'Diretoria', total: diretoria.length, feito: diretoria.filter(p => p.presente).length },
             { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.presente).length },
         ].filter(g => g.total > 0);
-        el.innerHTML = totalGradeHtml(grupos);
+        el.innerHTML = totalGradeHtml(grupos, 'presenca');
     }
 
     function renderizarPresencaLista() {
