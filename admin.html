@@ -2422,7 +2422,16 @@
          Fechado por padrão (mesmo pedido que já valia pros outros cards). -->
     <div class="vg-card">
         <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgAniversariantesAberto()">
-            <span id="vg-aniversariantes-titulo">🎂 Aniversariantes do mês</span>
+            <span style="display:flex;align-items:center;gap:8px;min-width:0;">
+                <span id="vg-aniversariantes-titulo">🎂 Aniversariantes do mês</span>
+                <!-- Aviso visível mesmo com o card fechado (29/ago/2026,
+                     pedido dela: "se estiver fechado ngm vai saber que tem
+                     um aniversariante no dia... no dia a dia ngm vai ficar
+                     abrindo aquilo ali") -- o "🎉 Hoje!" de cada linha só
+                     aparece depois de abrir; esse aqui mora no cabeçalho, que
+                     é a única parte sempre visível. -->
+                <span id="vg-aniversariantes-hoje-badge" style="display:none;background:#D4AF37;color:#12101a;font-size:10.5px;font-weight:800;text-transform:none;letter-spacing:normal;padding:3px 9px;border-radius:20px;flex-shrink:0;">🎉 Hoje</span>
+            </span>
             <span class="vg-secao-resumo">
                 <div id="vg-aniversariantes-total"></div>
                 <span class="vg-secao-seta" id="vg-aniversariantes-seta">›</span>
@@ -2520,7 +2529,7 @@
             <div class="multi-select-trigger" id="cargoSelectTrigger" onclick="toggleCargoSelect()">
                 <span style="display:flex;align-items:center;gap:6px;">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="4 4 20 4 14 12 14 19 10 21 10 12 4 4"></polygon></svg>
-                    <span id="cargoSelectLabel">Mestres, Diretores de Bateria, Diretores</span>
+                    <span id="cargoSelectLabel">Todos - Diretoria</span>
                 </span>
                 <span id="cargoSelectArrow">▼</span>
             </div>
@@ -3770,6 +3779,12 @@
 
         const totalAnivEl = document.getElementById('vg-aniversariantes-total');
         if (totalAnivEl) totalAnivEl.innerHTML = `<div class="total-duplo total-duplo--mini"><div class="total-duplo-item"><div class="total-duplo-numero total">${aniv.length}</div><div class="total-duplo-rotulo">Total</div></div></div>`;
+
+        const hojeBadgeEl = document.getElementById('vg-aniversariantes-hoje-badge');
+        if (hojeBadgeEl) {
+            const temHoje = aniv.some(r => new Date(r.nascimento + 'T00:00:00').getDate() === diaAtual);
+            hojeBadgeEl.style.display = temHoje ? '' : 'none';
+        }
 
         const div = document.getElementById('vg-aniversariantes');
         if (aniv.length === 0) {
@@ -8827,7 +8842,7 @@
         const labelsCargo = { mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretores (Apoio)' };
         const label = document.getElementById('cargoSelectLabel');
         if (filtroCargoDiretoriaSelecionados.length === total) {
-            label.textContent = 'Mestres, Diretores de Bateria, Diretores (Apoio)';
+            label.textContent = 'Todos - Diretoria';
         } else if (filtroCargoDiretoriaSelecionados.length === 0) {
             label.textContent = 'Nenhum cargo';
         } else {
