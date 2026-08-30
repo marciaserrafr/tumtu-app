@@ -788,6 +788,16 @@
            inline quando fechados, então essa regra não faz nada com eles
            fora do momento em que a pessoa mandou imprimir com um aberto. */
         @media print {
+            /* O <body> do app inteiro é `height:100vh; overflow:hidden`
+               (linha ~55, pro app-shell nunca rolar por trás da barra
+               fixa) -- em modo impressão o Chrome calcula "100vh" errado
+               (fica perto de zero), e com overflow:hidden isso CORTA o
+               conteúdo do overlay fora antes mesmo de qualquer regra de
+               display entrar em jogo. Achado depois de continuar sumindo
+               mesmo já com só uma regra de exceção (a correção anterior).
+               Sem isso, nada do que vem depois nesse bloco funciona. */
+            body { overflow: visible !important; height: auto !important; }
+
             body > *:not(#modalCadastroOverlay):not(#presenca-qr-overlay):not(#figurino-qr-overlay) { display: none !important; }
             #modalCadastroOverlay { position: static !important; background: none !important; display: block !important; }
             #modalCadastroOverlay .modal { box-shadow: none; margin: 0; max-width: 100%; }
