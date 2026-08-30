@@ -3896,7 +3896,9 @@
     // automáticos não fecham de volta sozinhos).
     let totalizadorDetalheAberto = {};
     function totalizadorDetalheEstaAberto(idPrefix) {
-        if (!(idPrefix in totalizadorDetalheAberto)) totalizadorDetalheAberto[idPrefix] = window.innerWidth > 600;
+        // Nasce sempre fechado, em qualquer tamanho de tela (30/ago/2026,
+        // pedido dela) -- antes abria sozinho em tela larga (>600px).
+        if (!(idPrefix in totalizadorDetalheAberto)) totalizadorDetalheAberto[idPrefix] = false;
         return totalizadorDetalheAberto[idPrefix];
     }
     // Trava a largura do card na largura que ele teria ABERTO (29/ago/2026,
