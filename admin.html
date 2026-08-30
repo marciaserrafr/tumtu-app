@@ -2192,14 +2192,14 @@
 <div class="painel" id="painel-presenca">
     <div id="presenca-lista">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <div class="painel-titulo">Presença</div>
+        <div class="painel-titulo">Lista de Presença</div>
         <p class="config-sub-desc">Marque presença por evento. Pra cadastrar um evento novo, use Configurações → Eventos.</p>
         <div id="presenca-eventos-lista" class="lista-cards"></div>
     </div>
 
     <div id="presenca-tela-marcar" class="config-subtela" style="display:none;">
-        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Presença</button>
-        <div class="painel-titulo" id="presenca-evento-titulo">Presença</div>
+        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Lista de Presença</button>
+        <div class="painel-titulo" id="presenca-evento-titulo">Lista de Presença</div>
         <!-- Totalizador + botões lado a lado em tela larga, mesmo padrão já
              aprovado em Entrega de Figurino (27/ago/2026) -- aproveita o
              espaço vazio ao lado do card em vez de empilhar tudo embaixo;
@@ -5264,6 +5264,13 @@
         document.getElementById('figurino-tela-entregas').style.display = 'block';
         document.getElementById('figurino-entregas-titulo').textContent = item.nome;
         document.getElementById('figurino-entregas-busca').value = '';
+        // Reserva o espaço do totalizador com um "carregando" desde já
+        // (29/ago/2026, achado dela) -- antes ele nascia vazio e só ganhava
+        // conteúdo no fim de carregarEntregasFigurino(), enquanto o resto
+        // da tela (checkboxes, botão do QR) já aparecia na hora -- dava a
+        // sensação de tela "subindo aos poucos" por partes. Mesmo padrão
+        // já usado noutros lugares do app pra evitar essa pulada.
+        document.getElementById('figurino-entregas-totalizador').innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         const bfExistente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === item.id);
         document.getElementById('figurino-mostra-visao-geral').checked = !!(bfExistente && bfExistente.mostra_visao_geral);
         document.getElementById('figurino-entrega-finalizada').checked = !!(bfExistente && bfExistente.entrega_finalizada);
@@ -5313,7 +5320,7 @@
         if (!item) return;
         const bateriaId = bateriaIdContexto();
         const container = document.getElementById('figurino-entregas-lista');
-        container.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        container.innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         // Peça pode cobrir vários públicos ao mesmo tempo agora (27/ago/2026)
         // -- busca todo mundo relevante de uma vez (perfil=in.(...)); qual
         // "lado" (Ritmista/Diretoria) a lista mostra é decidido depois, na
@@ -6066,6 +6073,10 @@
         document.getElementById('presenca-tela-marcar').style.display = 'block';
         document.getElementById('presenca-evento-titulo').textContent = evento.nome;
         document.getElementById('presenca-busca').value = '';
+        // Mesmo ajuste feito em Entrega de Figurino (29/ago/2026, achado
+        // dela): reserva o espaço do totalizador com um "carregando" desde
+        // já, pra não nascer vazio enquanto o resto da tela já aparece.
+        document.getElementById('presenca-totalizador').innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         const btnsQr = document.getElementById('presenca-btns-qr');
         if (btnsQr) btnsQr.style.display = (souSuperAdmin || tenhoCapacidade('marcar_presenca')) ? 'flex' : 'none';
         await carregarPresencaPessoas();
@@ -6080,7 +6091,7 @@
         if (!evento) return;
         const bateriaId = bateriaIdContexto();
         const container = document.getElementById('presenca-pessoas-lista');
-        container.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        container.innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         const perfis = ['ritmista', ...(evento.perfis_diretoria_inclusos || [])];
         const buscas = [
             fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=in.(${perfis.join(',')})&order=nome&select=id,pessoa_id,nome,apelido,perfil,instrumento_nome,qr_token`, { headers: authHeaders }),
@@ -6631,7 +6642,7 @@
         { aba: 'configuracoes', label: 'Configurações' },
         { aba: 'figurino', label: 'Entrega de Figurino' },
         { aba: 'extras', label: 'Convidados' },
-        { aba: 'presenca', label: 'Presença' },
+        { aba: 'presenca', label: 'Lista de Presença' },
         { aba: 'comercial', label: 'Comercial' },
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
@@ -7545,7 +7556,7 @@
             { chave: 'exportar_diretoria', label: 'Exportar pra Excel', dependeDe: 'ver_acessos' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
-        { grupo: 'Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos', dependeDe: 'ver_eventos' }] },
+        { grupo: 'Lista de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos', dependeDe: 'ver_eventos' }] },
         { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Visualizar' }, { chave: 'editar_extras', label: 'Cadastrar e editar', dependeDe: 'ver_extras' }] },
         { grupo: 'Carteirinha', itens: [{ chave: 'ver_carteirinha_outros', label: 'Visualizar a carteirinha de outra pessoa' }] },
         { grupo: 'Configurações', itens: [
@@ -8730,7 +8741,7 @@
         // foto por trás) a lista já tem conteúdo real na tela; sobrescrever
         // com spinner de novo causava um pisca-pisca sem necessidade.
         if (!listaDiretoriaAtual.length) {
-            lista.innerHTML = '<div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+            lista.innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         }
 
         if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
