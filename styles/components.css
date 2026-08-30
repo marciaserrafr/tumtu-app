@@ -206,6 +206,7 @@
 .ficha-campo--linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .ficha-campo--linha span { margin-bottom: 0; }
 .ficha-valor-entregue { color: #2d7a4f; }
+.ficha-valor-pendente { color: #888; }
 @media (max-width: 480px) {
   .ficha-grid { grid-template-columns: 1fr; }
 }

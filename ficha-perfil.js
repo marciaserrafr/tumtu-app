@@ -770,7 +770,7 @@ async function fpRenderizarEntregaFigurino(alvo) {
     grid.innerHTML = itens.map(it => `
         <div class="ficha-campo full ficha-campo--linha">
             <span>${it.nome}</span>
-            <strong class="${entregaPorItem[it.id] ? 'ficha-valor-entregue' : ''}">${entregaPorItem[it.id] ? '✓ Entregue' : '—'}</strong>
+            <strong class="${entregaPorItem[it.id] ? 'ficha-valor-entregue' : 'ficha-valor-pendente'}">${entregaPorItem[it.id] ? '✓ Entregue' : 'Não entregue'}</strong>
         </div>`).join('');
 }
 
