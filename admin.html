@@ -960,11 +960,22 @@
            quando fechado), não só a linha de cima. align-self:stretch
            acompanha a altura do item mais alto da linha (o totalizador). */
         .pres-divisor-v { width: 1px; align-self: stretch; background: #ececec; flex-shrink: 0; }
-        /* Some no celular (30/ago/2026, confirmado com ela): quando os 3
-           blocos empilham (flex-wrap natural), um risquinho vertical solto
-           sozinho numa linha não faz sentido nenhum. */
+        /* 30/ago/2026 -- correção real: o "flex-wrap natural" que o
+           comentário anterior descrevia NUNCA acontecia de verdade. Os 3
+           blocos usam flex:1 1 0 + min-width:0 (pra ficarem exatamente do
+           mesmo tamanho no computador) -- só que min-width:0 também tira a
+           trava que normalmente força um item a quebrar de linha antes de
+           encolher demais, então no celular eles só iam espremendo o
+           conteúdo (texto/botão) até sobrepor um em cima do outro, em vez
+           de empilhar. Achado por ela testando no celular de verdade (as
+           rodadas de ajuste anteriores só testaram numa janela de
+           computador estreita, nunca a largura real de um iPhone). Agora
+           empilha de propósito, cada bloco com a largura toda -- e some o
+           risquinho vertical, que não faz sentido sozinho numa linha. */
         @media (max-width: 600px) {
             .pres-divisor-v { display: none; }
+            .pres-topo { flex-direction: column; align-items: stretch; }
+            #presenca-totalizador, #figurino-entregas-totalizador, .pres-trilhos, .pres-qr-btns { flex: none; width: 100%; }
         }
         /* Detalhe por grupo (Ritmistas/Diretoria/Convidados) mora FORA do
            totalizador (que fica compacto, do tamanho só dos números) --
@@ -1485,7 +1496,14 @@
             .baterias-grid { grid-template-columns: 1fr; }
             .form-grid { grid-template-columns: 1fr; }
             .form-grid .campo-full { grid-column: 1; }
-            .item-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+            /* .item-card-simples fica de fora -- é o cartão só de "nome +
+               setinha" (sem .item-acoes), usado como link de navegação
+               (Lista de Presença, Figurino em Configurações). Sem essa
+               exceção, virava coluna igual aos outros .item-card, jogando a
+               setinha sozinha embaixo à esquerda em vez de ficar ao lado do
+               texto, à direita (achado dela, 30/ago/2026, print real do
+               celular). */
+            .item-card:not(.item-card-simples) { flex-direction: column; align-items: flex-start; gap: 12px; }
             .item-acoes { width: 100%; justify-content: flex-end; }
 
             /* NAV ABAS -- mesmo comportamento de .sa-sidebar aqui em cima:
@@ -5576,7 +5594,7 @@
             const itensCat = itensAtivos.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
             if (itensCat.length === 0) return '';
             return `<div class="secao-titulo">${esc(cat.nome)}</div>` + itensCat.map(it => `
-                    <div class="item-card" onclick="abrirEntregasFigurino(${it.id})" style="cursor:pointer;">
+                    <div class="item-card item-card-simples" onclick="abrirEntregasFigurino(${it.id})" style="cursor:pointer;">
                         <div class="item-info"><div class="item-nome">${esc(it.nome)}</div><div class="item-detalhe">Público: ${esc(it.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(', '))}</div></div>
                         <span class="config-item-seta">›</span>
                     </div>`).join('');
@@ -6430,7 +6448,7 @@
         if (!container) return;
         if (presencaEventosCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum evento cadastrado ainda. Crie um em Configurações → Eventos.</div>'; return; }
         container.innerHTML = presencaEventosCache.map(ev => `
-            <div class="item-card" onclick="abrirPresencaEvento(${ev.id})" style="cursor:pointer;">
+            <div class="item-card item-card-simples" onclick="abrirPresencaEvento(${ev.id})" style="cursor:pointer;">
                 <div class="item-info">
                     <div class="item-nome">${esc(ev.nome)}</div>
                     <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
