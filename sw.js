@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tumtu-shell-v421';
+const CACHE_NAME = 'tumtu-shell-v422';
 
 // Arquivos com "?v=N" têm o número subido a cada mudança de conteúdo —
 // isso muda a URL inteira, então nem o cache do navegador nem caches de
@@ -11,6 +11,7 @@ const APP_SHELL = [
   './admin',
   './carteirinha',
   './qr',
+  './presenca',
   './redefinir-senha',
   './politica-privacidade',
   './ficha-perfil.js?v=44',

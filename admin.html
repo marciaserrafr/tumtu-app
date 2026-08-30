@@ -20,6 +20,10 @@
          existe na carteirinha (qr_token), direto pela câmera do celular,
          sem abrir link nenhum. -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
+    <!-- Gera o QR do próprio evento (Diretor exibe/projeta, Ritmista escaneia
+         com a câmera do celular pra confirmar a própria presença sozinho) --
+         mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="ficha-perfil.js?v=44"></script>
     <script src="faceid.js?v=1"></script>
     <style>
@@ -2182,7 +2186,10 @@
         <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Presença</button>
         <div class="painel-titulo" id="presenca-evento-titulo">Presença</div>
         <div id="presenca-totalizador" class="total-duplo-card"></div>
-        <button type="button" id="presenca-btn-escanear" class="btn-novo" style="display:none;margin:14px 0;" onclick="abrirScannerPresenca()">📷 Escanear QR</button>
+        <div id="presenca-btns-qr" style="display:none;gap:10px;margin:14px 0;">
+            <button type="button" id="presenca-btn-mostrar-qr" class="btn-novo" style="flex:1;" onclick="abrirQrEvento()">📺 Mostrar QR do Evento</button>
+            <button type="button" id="presenca-btn-escanear" class="btn-novo" style="flex:1;" onclick="abrirScannerPresenca()">📷 Escanear</button>
+        </div>
         <div class="figurino-tabs-lado" id="presenca-filtro-lado" style="display:none;"></div>
         <input type="text" id="presenca-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarPresencaLista()"
             style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;margin-bottom:10px;">
@@ -2220,6 +2227,26 @@
         </div>
         <div id="presenca-scanner-feedback" style="padding:22px 20px;text-align:center;min-height:76px;font-size:15px;flex-shrink:0;"></div>
         <canvas id="presenca-scanner-canvas" style="display:none;"></canvas>
+    </div>
+</div>
+
+<!-- QR do evento pra auto-confirmação (29/ago/2026) -- o Diretor abre isso e
+     projeta/mostra a tela; cada Ritmista escaneia com a câmera do PRÓPRIO
+     celular (fora do app, direto pela câmera nativa) e confirma sozinho,
+     sem o Diretor precisar escanear um por um. -->
+<div id="presenca-qr-overlay" style="display:none;position:fixed;inset:0;z-index:2000;background:#0b0a12;">
+    <div style="display:flex;flex-direction:column;height:100%;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;flex-shrink:0;">
+            <div>
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#D4AF37;font-weight:700;">QR do evento</div>
+                <div id="presenca-qr-evento" style="font-size:16px;font-weight:800;color:#fff;"></div>
+            </div>
+            <button type="button" onclick="fecharQrEvento()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;">
+            <div id="presenca-qr-codigo" style="background:#fff;padding:20px;border-radius:16px;"></div>
+            <div style="color:#b3aec8;font-size:14px;text-align:center;max-width:320px;">Peça pra cada pessoa escanear com a câmera do próprio celular pra confirmar a própria presença.</div>
+        </div>
     </div>
 </div>
 
@@ -5952,6 +5979,7 @@
         // ela continuaria ligada em segundo plano depois de sair da tela
         // (idempotente, não faz nada se já estava fechada).
         fecharScannerPresenca();
+        fecharQrEvento();
         document.querySelectorAll('#painel-presenca .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('presenca-lista').style.display = 'block';
     }
@@ -5988,8 +6016,8 @@
         document.getElementById('presenca-tela-marcar').style.display = 'block';
         document.getElementById('presenca-evento-titulo').textContent = evento.nome;
         document.getElementById('presenca-busca').value = '';
-        const btnEscanear = document.getElementById('presenca-btn-escanear');
-        if (btnEscanear) btnEscanear.style.display = (souSuperAdmin || tenhoCapacidade('marcar_presenca')) ? '' : 'none';
+        const btnsQr = document.getElementById('presenca-btns-qr');
+        if (btnsQr) btnsQr.style.display = (souSuperAdmin || tenhoCapacidade('marcar_presenca')) ? 'flex' : 'none';
         await carregarPresencaPessoas();
     }
 
@@ -6271,6 +6299,26 @@
             presencaScannerStream.getTracks().forEach(t => t.stop());
             presencaScannerStream = null;
         }
+    }
+
+    // QR do próprio evento (29/ago/2026) -- o Diretor abre/projeta essa
+    // tela, cada Ritmista escaneia com a câmera do PRÓPRIO celular (fora do
+    // app) e cai em presenca.html, que confirma sozinho -- sem o Diretor
+    // precisar escanear ninguém. Aponta pra mesma URL base do site (rota
+    // limpa, sem .html -- ver vercel.json).
+    function abrirQrEvento() {
+        if (!presencaEventoAtual) return;
+        if (typeof QRCode !== 'function') { mostrarToast('O QR ainda não carregou -- tenta de novo em alguns segundos.', 'erro'); return; }
+        document.getElementById('presenca-qr-evento').textContent = presencaEventoAtual.nome;
+        const container = document.getElementById('presenca-qr-codigo');
+        container.innerHTML = '';
+        const url = `${window.location.origin}/presenca?e=${presencaEventoAtual.id}`;
+        new QRCode(container, { text: url, width: 240, height: 240, colorDark: '#12101a', colorLight: '#ffffff' });
+        document.getElementById('presenca-qr-overlay').style.display = 'block';
+    }
+
+    function fecharQrEvento() {
+        document.getElementById('presenca-qr-overlay').style.display = 'none';
     }
 
     function presencaScannerLoop() {
@@ -8903,6 +8951,7 @@
         // scanner aberto -- sem isso, a câmera ficaria ligada em segundo
         // plano (idempotente, não faz nada se já estava fechada).
         fecharScannerPresenca();
+        fecharQrEvento();
         window.scrollTo(0, 0);
         document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
         document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
