@@ -412,7 +412,7 @@
         }
         .cadastro-cabecalho:hover { background: #fafafa; }
         .cadastro-cabecalho-titulo { display: flex; align-items: center; gap: 8px; }
-        .cadastro-cabecalho-tracinho { display: inline-block; width: 3px; height: 14px; background: #12101a; flex-shrink: 0; }
+        .cadastro-cabecalho-tracinho { display: inline-block; width: 3px; height: 14px; background: var(--cor-destaque); flex-shrink: 0; }
 
         /* "Exportar" (Ritmistas/Diretoria) -- estava borda #ccc + texto #666,
            lia como desabilitado (achado da Márcia, 20/ago/2026: função
@@ -1130,20 +1130,19 @@
         .par-mini .total-duplo-rotulo { font-size: 10px; margin-top: 1px; }
         /* Totalizador + interruptores lado a lado em tela larga, empilhado
            em tela estreita -- sem media query, só o wrap natural do flex
-           (27/ago/2026, ideia dela). Totalizador travado em 50% de verdade
-           (30/ago/2026, pedido dela) -- antes a largura vinha do conteúdo
-           (travarLarguraTotalizador calculava em px), agora é sempre metade
-           da tela/card, então não precisa mais desse cálculo por JS. */
+           (27/ago/2026, ideia dela). Totalizador com largura do próprio
+           conteúdo (travada por JS, travarLarguraTotalizador, pra não mudar
+           ao abrir/fechar "Ver por grupo") -- tentativa de deixar fixo em
+           50% foi revertida em 30/ago/2026 (ela: "ficou com uma parte
+           enorme branca"). */
         .figurino-entrega-topo { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
-        .figurino-entrega-topo .total-duplo-card { flex: 1 1 calc(50% - 8px); max-width: calc(50% - 8px); box-sizing: border-box; }
         .figurino-entrega-flags { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 220px; }
-        /* Presença: os 2 botões (Mostrar QR / Escanear) ficam lado a lado,
-           mesmo tamanho, em vez de empilhados -- tanto ao lado do
-           totalizador (tela larga) quanto embaixo dele (celular, depois do
-           wrap). Só aqui -- em Figurino o mesmo container tem 2 checkboxes
-           + 1 botão, que continuam empilhados como sempre. */
-        #presenca-btns-qr { flex-direction: row; }
-        #presenca-btns-qr .btn-novo { flex: 1; justify-content: center; }
+        /* Botões dentro desse container (QR de Presença/Figurino) sempre
+           empilhados e do mesmo tamanho -- largura 100% explícita porque
+           <button> não estica sozinho com align-items:stretch do pai
+           (30/ago/2026, achado dela: ficavam empilhados só que com tamanhos
+           diferentes, um mais estreito que o outro por causa do texto). */
+        .figurino-entrega-flags .btn-novo { width: 100%; box-sizing: border-box; justify-content: center; }
 
         /* Figurinos recebidos, direto no card do Convidado (26/ago/2026, pedido dela). */
         .extra-figurino-status { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e0e0e0; }
@@ -5658,6 +5657,7 @@
                     { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.entregue).length },
                 ].filter(g => g.total > 0);
                 totalizador.innerHTML = totalGradeHtml(grupos, 'figurino');
+                travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
             }
         }
     }
@@ -6305,6 +6305,7 @@
             { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.presente).length },
         ].filter(g => g.total > 0);
         el.innerHTML = totalGradeHtml(grupos, 'presenca');
+        travarLarguraTotalizador('presenca-totalizador', 'presenca');
     }
 
     function renderizarPresencaLista() {
