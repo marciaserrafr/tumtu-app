@@ -4222,21 +4222,14 @@
             if (item.inclui_extras) {
                 const grupos = gruposExtraDoPublico(item.publico);
                 const extrasAlvo = (extras || []).filter(e => grupos.includes(e.grupo));
-                const extrasRitmista = extrasAlvo.filter(e => e.grupo === 'ritmista');
-                const extrasDiretoria = extrasAlvo.filter(e => e.grupo !== 'ritmista');
                 const extrasEntreguesSet = extrasEntreguesPorItem[item.id] || new Set();
-                // Rótulo "Convidados - Ritmistas"/"Convidados - Diretoria" em
-                // vez de só "Convidados" -- mesma nomenclatura dos cards
-                // novos da Visão Geral (27/ago/2026).
-                if (extrasRitmista.length > 0) {
-                    const entreguesExtras = extrasRitmista.filter(e => extrasEntreguesSet.has(e.id)).length;
-                    corpoHtml += linhaHtml('Convidados - Ritmistas', entreguesExtras, extrasRitmista.length, true);
-                    totalGeral += extrasRitmista.length; entreguesGeral += entreguesExtras;
-                }
-                if (extrasDiretoria.length > 0) {
-                    const entreguesExtras = extrasDiretoria.filter(e => extrasEntreguesSet.has(e.id)).length;
-                    corpoHtml += linhaHtml('Convidados - Diretoria', entreguesExtras, extrasDiretoria.length, true);
-                    totalGeral += extrasDiretoria.length; entreguesGeral += entreguesExtras;
+                // Contagem única "Convidados" (30/ago/2026, pedido dela) --
+                // antes separava "Convidados - Ritmistas"/"Convidados -
+                // Diretoria" em 2 linhas; agora soma os dois num só total.
+                if (extrasAlvo.length > 0) {
+                    const entreguesExtras = extrasAlvo.filter(e => extrasEntreguesSet.has(e.id)).length;
+                    corpoHtml += linhaHtml('Convidados', entreguesExtras, extrasAlvo.length, true);
+                    totalGeral += extrasAlvo.length; entreguesGeral += entreguesExtras;
                 }
             }
             if (!corpoHtml) corpoHtml = `<div style="color:#bbb;font-size:13px;padding:4px 0 9px;">Ninguém em ${item.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(' / ').toLowerCase()} ainda.</div>`;
