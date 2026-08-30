@@ -931,6 +931,14 @@
         .total-duplo-numero.total { color: #D4AF37; }
         .total-duplo-numero.faltam { color: var(--cor-terracota); }
         .total-duplo-rotulo { font-size: 12px; color: #888; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.3px; }
+        /* Números (Total/Faltam) do totalizador -- era grid de largura
+           justa (max-content), ficava colado à esquerda mesmo dentro de um
+           bloco largo (achado dela, 30/ago/2026: "poderia dar mais espaço
+           entre eles"). Vira flex simples, width:100% -- ocupa a largura
+           real do bloco (o próprio .total-duplo-card ou o terço da Lista
+           de Presença), Total numa ponta e Faltam na outra. */
+        .pres-hero-bloco { display: flex; flex-direction: column; width: 100%; }
+        .pres-hero-numeros { display: flex; justify-content: space-between; width: 100%; }
         /* Cartão único da Lista de Presença -- números, interruptores
            (Iniciado/Finalizado) e botões de QR juntos num só cartão
            (30/ago/2026, depois de ela reprovar a versão com várias caixas
@@ -1169,14 +1177,13 @@
             padding: 7px 30px 7px 32px;
             font-family: inherit; font-size: 12.5px; font-weight: 600; color: #12101a; cursor: pointer;
         }
-        /* Grid pro totalizador com detalhamento por grupo (Figurino/Presença,
-           função compartilhada totalGradeHtml). Coluna 1/2 = só o par Total/
-           Faltam do topo (número grande). Cada grupo abaixo (Ritmistas/
-           Diretoria/Convidados) é uma linha só, .vg-instrumento-linha --
-           mesmo componente já usado em "Ritmistas por Instrumento" na Visão
-           Geral (30/ago/2026, pedido dela: "igual do visão geral") --
-           span:1/-1 pra atravessar as 2 colunas da grade. */
-        .totalizador-grade { display: grid; grid-template-columns: max-content max-content; column-gap: 32px; align-items: center; }
+        /* Totalizador (Figurino/Presença, função compartilhada
+           totalGradeHtml): hero (Total/Faltam) em flex, não mais grid --
+           .pres-hero-numeros/.pres-hero-bloco cuidam disso agora. Detalhe
+           por grupo (Ritmistas/Diretoria/Convidados) é uma linha só cada,
+           .vg-instrumento-linha -- mesmo componente já usado em "Ritmistas
+           por Instrumento" na Visão Geral (30/ago/2026, pedido dela:
+           "igual do visão geral"). */
         .celula-hero { display: flex; flex-direction: column; align-items: flex-start; padding-bottom: 14px; }
         /* Totalizador + interruptores lado a lado em tela larga, empilhado
            em tela estreita -- sem media query, só o wrap natural do flex
@@ -3940,8 +3947,7 @@
     // 1, pedido dela: "se não tiver convidados, eles não apareceriam").
     // Com 0 ou 1 grupo, mostra só o total simples (sem detalhamento à toa
     // -- mesma regra de antes pra peça/evento de um lado só). Com 2+
-    // grupos, mostra o total geral + 1 linha por grupo, numa grade real
-    // (ver comentário CSS de .totalizador-grade).
+    // grupos, mostra o total geral (hero) + 1 linha por grupo (detalhe).
     // Detalhe por grupo agora é colapsável (29/ago/2026, pedido dela: "penso
     // sempre no celular... tem opção de ser fechado no celular e aberto
     // aqui [computador]?") -- o total geral (219/219) continua sempre à
@@ -3970,22 +3976,16 @@
         const card = document.getElementById(cardId);
         const wrap = document.getElementById(`totalizador-grupos-${idPrefix}`);
         if (!card || !wrap) return; // sem detalhe (0 ou 1 grupo) -- nada pra travar
-        const grade = card.querySelector('.totalizador-grade');
+        // Só trava a largura do CARTÃO (não mais de colunas de grade -- o
+        // hero virou flex simples, sem grid, 30/ago/2026, ver totalGradeHtml
+        // -- "Ver por grupo" não faz mais o número pular de coluna). Ainda
+        // relevante pro cartão de Figurino (largura por conteúdo, muda se o
+        // detalhe por grupo for mais largo que o hero); em Presença é
+        // inofensivo, já que o bloco lá é flex:1 (largura fixa pelo pai).
         const estavaFechado = wrap.style.display === 'none';
         card.style.minWidth = '0';
-        if (grade) grade.style.gridTemplateColumns = '';
-        if (estavaFechado) wrap.style.display = 'contents';
+        if (estavaFechado) wrap.style.display = 'block';
         card.style.minWidth = card.getBoundingClientRect().width + 'px';
-        // Trava também a largura de cada COLUNA da grade (não só do cartão
-        // inteiro) -- 30/ago/2026, achado dela: com "Ver por grupo" aberto,
-        // linhas como "Ritmistas 201/201" são mais largas que só "219",
-        // então a coluna do Faltam alargava sozinha pra caber elas; ao
-        // fechar, essas linhas saem da grade e a coluna encolhe de volta,
-        // fazendo o "219 Faltam" pular de posição. Medindo a largura real
-        // de cada coluna enquanto está aberto e travando esse valor em px
-        // (em vez de deixar max-content recalcular a cada abrir/fechar), o
-        // Faltam nunca mais muda de lugar.
-        if (grade) grade.style.gridTemplateColumns = getComputedStyle(grade).gridTemplateColumns;
         if (estavaFechado) wrap.style.display = 'none';
     }
     function toggleTotalizadorDetalhe(idPrefix) {
@@ -4033,10 +4033,12 @@
                     </span>
                 </div>`;
         }).join('');
-        const hero = `<div class="totalizador-grade">
-            <div class="celula-hero"><div class="total-duplo-numero total">${totalGeral}</div><div class="total-duplo-rotulo">Total</div></div>
-            <div class="celula-hero"><div class="total-duplo-numero faltam">${faltamGeral}</div><div class="total-duplo-rotulo">${faltamGeral === 1 ? 'Falta' : 'Faltam'}</div></div>
-            <button type="button" onclick="toggleTotalizadorDetalhe('${idPrefix}')" style="grid-column:1/-1;background:none;border:none;padding:4px 0 2px;margin:0;font-family:inherit;font-size:11px;font-weight:700;color:#8b88a0;cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
+        const hero = `<div class="pres-hero-bloco">
+            <div class="pres-hero-numeros">
+                <div class="celula-hero"><div class="total-duplo-numero total">${totalGeral}</div><div class="total-duplo-rotulo">Total</div></div>
+                <div class="celula-hero"><div class="total-duplo-numero faltam">${faltamGeral}</div><div class="total-duplo-rotulo">${faltamGeral === 1 ? 'Falta' : 'Faltam'}</div></div>
+            </div>
+            <button type="button" onclick="toggleTotalizadorDetalhe('${idPrefix}')" style="background:none;border:none;padding:4px 0 2px;margin:0;font-family:inherit;font-size:11px;font-weight:700;color:#8b88a0;cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
                 <span id="totalizador-toggle-rotulo-${idPrefix}">${aberto ? 'Ver menos' : 'Ver por grupo'}</span>
                 <span class="vg-secao-seta ${aberto ? 'aberta' : ''}" id="totalizador-toggle-seta-${idPrefix}" style="font-size:12px;">›</span>
             </button>
