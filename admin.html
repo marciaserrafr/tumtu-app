@@ -1140,28 +1140,15 @@
             padding: 7px 30px 7px 32px;
             font-family: inherit; font-size: 12.5px; font-weight: 600; color: #12101a; cursor: pointer;
         }
-        /* Grid de verdade pro totalizador com detalhamento por grupo (29/ago/
-           2026, refeito pra caber Convidados também -- antes só existia
-           Ritmistas/Diretoria lado a lado, agora empilhado, um grupo por
-           linha, e "Convidados" entra como grupo próprio, nunca mais somado
-           escondido dentro de Ritmistas/Diretoria). Usado por Entrega de
-           Figurino e Presença (função compartilhada totalGradeHtml).
-           Coluna 1 = rótulo do grupo (ou o bloco "Total" do topo), coluna 2
-           = sempre o par Total/Faltam -- um grid CSS de verdade garante que
-           a coluna 2 comece sempre no mesmo X, pedido dela: "Faltam do
-           totalzão tem que começar onde os pares de baixo começam", pra
-           qualquer tamanho de rótulo (Ritmistas/Diretoria/Convidados).
-           ".divisor" é um item PRÓPRIO da grade (grid-column:1/-1) --
-           atravessa as 2 colunas de uma vez, vira uma linha só e contínua
-           (achado dela testando a prévia: border-top por célula quebrava a
-           linha em 2 pedaços, com buraco no meio). */
+        /* Grid pro totalizador com detalhamento por grupo (Figurino/Presença,
+           função compartilhada totalGradeHtml). Coluna 1/2 = só o par Total/
+           Faltam do topo (número grande). Cada grupo abaixo (Ritmistas/
+           Diretoria/Convidados) é uma linha só, .vg-instrumento-linha --
+           mesmo componente já usado em "Ritmistas por Instrumento" na Visão
+           Geral (30/ago/2026, pedido dela: "igual do visão geral") --
+           span:1/-1 pra atravessar as 2 colunas da grade. */
         .totalizador-grade { display: grid; grid-template-columns: max-content max-content; column-gap: 32px; align-items: center; }
         .celula-hero { display: flex; flex-direction: column; align-items: flex-start; padding-bottom: 14px; }
-        .divisor { grid-column: 1 / -1; border-top: 1px solid #eee; margin: 3px 0; }
-        .rotulo-linha { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding: 8px 0; }
-        .par-mini { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
-        .par-mini .total-duplo-numero { font-size: 18px; }
-        .par-mini .total-duplo-rotulo { font-size: 10px; margin-top: 1px; }
         /* Totalizador + interruptores lado a lado em tela larga, empilhado
            em tela estreita -- sem media query, só o wrap natural do flex
            (27/ago/2026, ideia dela). Totalizador com largura do próprio
@@ -3986,14 +3973,20 @@
         if (grupos.length <= 1) return totalDuploHtml(totalGeral, totalGeral - feitoGeral);
         const faltamGeral = totalGeral - feitoGeral;
         const aberto = totalizadorDetalheEstaAberto(idPrefix);
+        // Cada grupo = 1 linha (30/ago/2026, pedido dela: "igual Ritmistas
+        // por Instrumento da Visão Geral") -- reaproveita o componente real
+        // (.vg-instrumento-linha) que já existe pra exatamente esse tipo de
+        // informação, em vez do grid de número grande por grupo que só o
+        // total geral (topo) continua usando.
         const linhas = grupos.map(g => {
             const faltamG = g.total - g.feito;
             return `
-                <div class="divisor"></div>
-                <div class="rotulo-linha">${esc(g.label)}</div>
-                <div class="par-mini">
-                    <div class="total-duplo-item"><div class="total-duplo-numero total">${g.total}</div><div class="total-duplo-rotulo">Total</div></div>
-                    <div class="total-duplo-item"><div class="total-duplo-numero faltam">${faltamG}</div><div class="total-duplo-rotulo">${faltamG === 1 ? 'Falta' : 'Faltam'}</div></div>
+                <div class="vg-instrumento-linha" style="grid-column:1/-1;">
+                    <span>${esc(g.label)}</span>
+                    <span style="display:flex;align-items:center;">
+                        ${faltamG > 0 ? `<span class="vg-instrumento-faltam">${faltamG === 1 ? 'Falta' : 'Faltam'} ${faltamG}</span>` : ''}
+                        <span class="vg-instrumento-qtd">${g.feito} / ${g.total}</span>
+                    </span>
                 </div>`;
         }).join('');
         return `<div class="totalizador-grade">
