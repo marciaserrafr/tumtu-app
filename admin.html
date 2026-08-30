@@ -5452,7 +5452,7 @@
         const doLado = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
         if (figurinoEntregaLadoAtual === 'ritmista') {
             const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-            select.innerHTML = '<option value="">Todos</option>'
+            select.innerHTML = '<option value="">Todos os instrumentos</option>'
                 + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
         } else if (figurinoEntregaLadoAtual === 'diretoria') {
             const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
@@ -6202,7 +6202,7 @@
         const doLado = presencaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === presencaLadoAtual);
         if (presencaLadoAtual === 'ritmista') {
             const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-            select.innerHTML = '<option value="">Todos</option>'
+            select.innerHTML = '<option value="">Todos os instrumentos</option>'
                 + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
         } else if (presencaLadoAtual === 'diretoria') {
             const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
