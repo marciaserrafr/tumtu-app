@@ -1112,14 +1112,18 @@
            desse estado, imprimir qualquer outra tela continua 100% normal. */
         @media print {
             body.imprimindo-qr-evento > *:not(#presenca-qr-overlay) { display: none !important; }
-            body.imprimindo-qr-evento #presenca-qr-overlay {
+            body.imprimindo-qr-evento #presenca-qr-overlay,
+            body.imprimindo-qr-figurino #figurino-qr-overlay {
                 position: absolute !important;
                 inset: 0 !important;
                 background: #fff !important;
                 height: auto !important;
                 min-height: 100%;
             }
-            #presenca-qr-rotulo, #presenca-qr-evento { color: #12101a !important; }
+            /* Mesma correção pro QR de Figurino (29/ago/2026), classe própria
+               pra não interferir com o overlay de Presença. */
+            body.imprimindo-qr-figurino > *:not(#figurino-qr-overlay) { display: none !important; }
+            #presenca-qr-rotulo, #presenca-qr-evento, #figurino-qr-rotulo, #figurino-qr-item { color: #12101a !important; }
             .oculta-impressao { display: none !important; }
         }
         /* Figurinos recebidos, direto no card do Convidado (26/ago/2026, pedido dela). */
@@ -2132,6 +2136,11 @@
                         <span class="item-nome">Entrega Finalizada</span>
                     </label>
                 </div>
+                <!-- QR da peça (29/ago/2026) -- mesma ideia de Presença: o
+                     Diretor mostra/projeta, cada pessoa escaneia com a
+                     câmera do PRÓPRIO celular na hora de pegar a peça e
+                     confirma sozinha, sem a Diretoria marcar um por um. -->
+                <button type="button" id="figurino-btn-mostrar-qr" class="btn-novo" style="display:none;" onclick="abrirQrFigurino()">📺 Mostrar QR da Peça</button>
             </div>
         </div>
         <!-- Filtro de lado (27/ago/2026) -- aba, não pílula: é navegação
@@ -2277,6 +2286,28 @@
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;">
             <div id="presenca-qr-codigo" style="background:#fff;padding:20px;border-radius:16px;"></div>
             <div id="presenca-qr-instrucao" class="oculta-impressao" style="color:#b3aec8;font-size:14px;text-align:center;max-width:320px;">Peça pra cada pessoa escanear com a câmera do próprio celular pra confirmar a própria presença.</div>
+        </div>
+    </div>
+</div>
+
+<!-- QR da peça de Figurino pra auto-confirmação (29/ago/2026) -- mesmo
+     padrão do QR do evento em Presença, só trocando "confirmar presença"
+     por "confirmar que recebeu a peça". -->
+<div id="figurino-qr-overlay" style="display:none;position:fixed;inset:0;z-index:2000;background:#0b0a12;">
+    <div style="display:flex;flex-direction:column;height:100%;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;flex-shrink:0;">
+            <div>
+                <div id="figurino-qr-rotulo" style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#D4AF37;font-weight:700;">QR da peça</div>
+                <div id="figurino-qr-item" style="font-size:16px;font-weight:800;color:#fff;"></div>
+            </div>
+            <div class="oculta-impressao" style="display:flex;gap:10px;">
+                <button type="button" onclick="window.print()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">🖨️ Imprimir</button>
+                <button type="button" onclick="fecharQrFigurino()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
+            </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;">
+            <div id="figurino-qr-codigo" style="background:#fff;padding:20px;border-radius:16px;"></div>
+            <div class="oculta-impressao" style="color:#b3aec8;font-size:14px;text-align:center;max-width:320px;">Peça pra cada pessoa escanear com a câmera do próprio celular na hora de pegar a peça, e confirmar sozinha que recebeu.</div>
         </div>
     </div>
 </div>
@@ -5199,6 +5230,7 @@
     let figurinoEntregaLadoAtual = 'ritmista';
 
     function voltarFigurinoLista() {
+        fecharQrFigurino();
         document.querySelectorAll('#painel-figurino .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('figurino-lista').style.display = 'block';
     }
@@ -5251,6 +5283,8 @@
         const bfExistente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === item.id);
         document.getElementById('figurino-mostra-visao-geral').checked = !!(bfExistente && bfExistente.mostra_visao_geral);
         document.getElementById('figurino-entrega-finalizada').checked = !!(bfExistente && bfExistente.entrega_finalizada);
+        const btnQrFigurino = document.getElementById('figurino-btn-mostrar-qr');
+        if (btnQrFigurino) btnQrFigurino.style.display = (souSuperAdmin || tenhoCapacidade('editar_figurino')) ? '' : 'none';
         await carregarEntregasFigurino();
     }
 
@@ -6011,6 +6045,7 @@
         // (idempotente, não faz nada se já estava fechada).
         fecharScannerPresenca();
         fecharQrEvento();
+        fecharQrFigurino();
         document.querySelectorAll('#painel-presenca .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('presenca-lista').style.display = 'block';
     }
@@ -6352,6 +6387,27 @@
     function fecharQrEvento() {
         document.getElementById('presenca-qr-overlay').style.display = 'none';
         document.body.classList.remove('imprimindo-qr-evento');
+    }
+
+    // QR da peça de Figurino (29/ago/2026) -- mesma ideia do QR do evento em
+    // Presença: a pessoa escaneia com a câmera do PRÓPRIO celular na hora de
+    // pegar a peça e confirma sozinha (ver figurino.html).
+    function abrirQrFigurino() {
+        const item = figurinoEntregaItemAtual;
+        if (!item) return;
+        if (typeof QRCode !== 'function') { mostrarToast('O QR ainda não carregou -- tenta de novo em alguns segundos.', 'erro'); return; }
+        document.getElementById('figurino-qr-item').textContent = item.nome;
+        const container = document.getElementById('figurino-qr-codigo');
+        container.innerHTML = '';
+        const url = `${window.location.origin}/figurino?f=${item.id}`;
+        new QRCode(container, { text: url, width: 240, height: 240, colorDark: '#12101a', colorLight: '#ffffff' });
+        document.getElementById('figurino-qr-overlay').style.display = 'block';
+        document.body.classList.add('imprimindo-qr-figurino');
+    }
+
+    function fecharQrFigurino() {
+        document.getElementById('figurino-qr-overlay').style.display = 'none';
+        document.body.classList.remove('imprimindo-qr-figurino');
     }
 
     function presencaScannerLoop() {
@@ -8985,6 +9041,7 @@
         // plano (idempotente, não faz nada se já estava fechada).
         fecharScannerPresenca();
         fecharQrEvento();
+        fecharQrFigurino();
         window.scrollTo(0, 0);
         document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
         document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
