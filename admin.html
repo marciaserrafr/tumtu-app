@@ -1100,6 +1100,28 @@
            (27/ago/2026, ideia dela). */
         .figurino-entrega-topo { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
         .figurino-entrega-flags { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 220px; }
+
+        /* Imprimir o QR do evento (29/ago/2026) -- o navegador não imprime
+           elementos position:fixed de forma confiável (em vários navegadores
+           eles somem da página impressa/do PDF sem aviso nenhum -- foi o que
+           aconteceu com ela: "no pdf não aparece imagem nenhuma"). Solução
+           padrão: uma classe no <body> (ligada/desligada pelo JS que abre/
+           fecha o overlay, não por tentar "adivinhar" o estado via CSS) que,
+           só enquanto o QR está aberto, esconde todo o resto da página e
+           troca o overlay de fixed pra absolute (isso sim imprime). Fora
+           desse estado, imprimir qualquer outra tela continua 100% normal. */
+        @media print {
+            body.imprimindo-qr-evento > *:not(#presenca-qr-overlay) { display: none !important; }
+            body.imprimindo-qr-evento #presenca-qr-overlay {
+                position: absolute !important;
+                inset: 0 !important;
+                background: #fff !important;
+                height: auto !important;
+                min-height: 100%;
+            }
+            #presenca-qr-rotulo, #presenca-qr-evento { color: #12101a !important; }
+            .oculta-impressao { display: none !important; }
+        }
         /* Figurinos recebidos, direto no card do Convidado (26/ago/2026, pedido dela). */
         .extra-figurino-status { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e0e0e0; }
         .extra-figurino-linha { display: flex; align-items: center; gap: 7px; font-size: 12.5px; }
@@ -2244,14 +2266,17 @@
     <div style="display:flex;flex-direction:column;height:100%;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;flex-shrink:0;">
             <div>
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#D4AF37;font-weight:700;">QR do evento</div>
+                <div id="presenca-qr-rotulo" style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#D4AF37;font-weight:700;">QR do evento</div>
                 <div id="presenca-qr-evento" style="font-size:16px;font-weight:800;color:#fff;"></div>
             </div>
-            <button type="button" onclick="fecharQrEvento()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
+            <div class="oculta-impressao" style="display:flex;gap:10px;">
+                <button type="button" onclick="window.print()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">🖨️ Imprimir</button>
+                <button type="button" onclick="fecharQrEvento()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
+            </div>
         </div>
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;">
             <div id="presenca-qr-codigo" style="background:#fff;padding:20px;border-radius:16px;"></div>
-            <div style="color:#b3aec8;font-size:14px;text-align:center;max-width:320px;">Peça pra cada pessoa escanear com a câmera do próprio celular pra confirmar a própria presença.</div>
+            <div id="presenca-qr-instrucao" class="oculta-impressao" style="color:#b3aec8;font-size:14px;text-align:center;max-width:320px;">Peça pra cada pessoa escanear com a câmera do próprio celular pra confirmar a própria presença.</div>
         </div>
     </div>
 </div>
@@ -6321,10 +6346,12 @@
         const url = `${window.location.origin}/presenca?e=${presencaEventoAtual.id}`;
         new QRCode(container, { text: url, width: 240, height: 240, colorDark: '#12101a', colorLight: '#ffffff' });
         document.getElementById('presenca-qr-overlay').style.display = 'block';
+        document.body.classList.add('imprimindo-qr-evento');
     }
 
     function fecharQrEvento() {
         document.getElementById('presenca-qr-overlay').style.display = 'none';
+        document.body.classList.remove('imprimindo-qr-evento');
     }
 
     function presencaScannerLoop() {
