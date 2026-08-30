@@ -8119,6 +8119,22 @@
         return grupos.map(g => `<strong>${esc(g.grupo)}:</strong> ${esc(g.labels.join(', '))}`).join('<br>') + restrito;
     }
 
+    // "Ver detalhes"/"Ver menos" do resumo de Permissões dentro da ficha
+    // (31/ago/2026, pedido dela: com muita capacidade ligada -- ex: Lolo,
+    // Jhones -- o resumo detalhado de cima deixava o formulário enorme).
+    // Mesmo padrão visual/comportamento já usado em "Ver por grupo"
+    // (totalGradeHtml) -- nasce fechado, só o rótulo/seta ficam visíveis.
+    function toggleResumoPermissoesFicha() {
+        const det = document.getElementById('fp-permissoes-detalhe');
+        const seta = document.getElementById('fp-permissoes-toggle-seta');
+        const rotulo = document.getElementById('fp-permissoes-toggle-rotulo');
+        if (!det || !seta || !rotulo) return;
+        const aberto = det.style.display !== 'block';
+        det.style.display = aberto ? 'block' : 'none';
+        seta.classList.toggle('aberta', aberto);
+        rotulo.textContent = aberto ? 'Ver menos' : 'Ver detalhes';
+    }
+
     async function carregarPermissoesEscola() {
         const bateriaId = bateriaAtualData ? bateriaAtualData.id : null;
         const chkRitmista = document.getElementById('pe-ritmista-edita-medidas');
@@ -9476,7 +9492,11 @@
                     <div class="ficha-secao-titulo">Permissões</div>
                     <div class="ficha-campo full">
                         <span>Nesta bateria</span>
-                        <div style="font-size:13px;line-height:1.6;">${permissoesResumoDetalhado(a)}</div>
+                        <button type="button" onclick="toggleResumoPermissoesFicha()" style="background:none;border:none;padding:4px 0 2px;margin:0 0 8px;font-family:inherit;font-size:11px;font-weight:700;color:#8b88a0;cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
+                            <span id="fp-permissoes-toggle-rotulo">Ver detalhes</span>
+                            <span class="vg-secao-seta" id="fp-permissoes-toggle-seta" style="font-size:12px;">›</span>
+                        </button>
+                        <div id="fp-permissoes-detalhe" style="display:none;font-size:13px;line-height:1.6;">${permissoesResumoDetalhado(a)}</div>
                     </div>
                     <button type="button" class="btn-ficha" style="margin-top:8px;" onclick="fpIrParaPermissoesDeFicha(${a.id})">Editar permissões</button>
                 </div>` : '';
