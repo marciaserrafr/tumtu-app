@@ -775,44 +775,21 @@
         .ficha-campo.full { grid-column: 1 / -1; }
         .btn-imprimir { display: inline-flex; align-items: center; gap: 6px; background: var(--cor-fundo-escuro); color: white; border: none; padding: 9px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
 
-        /* Impressão (29/ago/2026): consolidado num único bloco -- antes
-           existiam DUAS regras "esconde tudo, exceto X" competindo (essa
-           aqui, já existente pra imprimir a ficha da pessoa, e uma nova que
-           eu tinha criado só pros QRs) -- como as duas são !important e a
-           ficha não sabia da existência do QR (nem vice-versa), a de cima
-           sempre vencia e escondia o QR também (foi o que aconteceu: "no
-           pdf não aparece imagem nenhuma"). Corrigido juntando os dois QRs
-           na MESMA lista de exceção -- só pode existir uma regra dessas por
-           página, com todos os "isso pode aparecer sozinho ao imprimir"
-           listados juntos. Os overlays de QR continuam com display:none
-           inline quando fechados, então essa regra não faz nada com eles
-           fora do momento em que a pessoa mandou imprimir com um aberto. */
         @media print {
-            /* O <body> do app inteiro é `height:100vh; overflow:hidden`
-               (linha ~55, pro app-shell nunca rolar por trás da barra
-               fixa) -- em modo impressão o Chrome calcula "100vh" errado
-               (fica perto de zero), e com overflow:hidden isso CORTA o
-               conteúdo do overlay fora antes mesmo de qualquer regra de
-               display entrar em jogo. Achado depois de continuar sumindo
-               mesmo já com só uma regra de exceção (a correção anterior).
-               Sem isso, nada do que vem depois nesse bloco funciona. */
-            body { overflow: visible !important; height: auto !important; }
-
-            body > *:not(#modalCadastroOverlay):not(#presenca-qr-overlay):not(#figurino-qr-overlay) { display: none !important; }
+            body > *:not(#modalCadastroOverlay) { display: none !important; }
             #modalCadastroOverlay { position: static !important; background: none !important; display: block !important; }
             #modalCadastroOverlay .modal { box-shadow: none; margin: 0; max-width: 100%; }
             .modal-acoes { display: none !important; }
-
-            #presenca-qr-overlay, #figurino-qr-overlay {
-                position: absolute !important;
-                inset: 0 !important;
-                background: #fff !important;
-                height: auto !important;
-                min-height: 100%;
-            }
-            #presenca-qr-rotulo, #presenca-qr-evento, #figurino-qr-rotulo, #figurino-qr-item { color: #12101a !important; }
-            .oculta-impressao { display: none !important; }
         }
+        /* Imprimir o QR do evento/peça (29/ago/2026) -- depois de 3
+           tentativas de fazer o overlay em cima do app imprimir direto
+           (regra de exceção, depois corrigindo overflow:hidden do body) sem
+           sucesso pra ela, abandonado esse caminho por completo (nenhuma
+           regra @media print restante mexe nos overlays de QR). Em vez de
+           brigar com o CSS do app inteiro (regras demais competindo, body
+           de altura fixa complicado pra impressão), "Imprimir" agora abre
+           uma JANELA NOVA, mínima, só com o QR -- ver
+           imprimirQrEvento()/imprimirQrFigurino(). */
 
         /* TABLET */
         @media (max-width: 900px) {
@@ -2286,7 +2263,7 @@
                 <div id="presenca-qr-evento" style="font-size:16px;font-weight:800;color:#fff;"></div>
             </div>
             <div class="oculta-impressao" style="display:flex;gap:10px;">
-                <button type="button" onclick="window.print()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">🖨️ Imprimir</button>
+                <button type="button" onclick="imprimirQrEvento()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">🖨️ Imprimir</button>
                 <button type="button" onclick="fecharQrEvento()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
             </div>
         </div>
@@ -2308,7 +2285,7 @@
                 <div id="figurino-qr-item" style="font-size:16px;font-weight:800;color:#fff;"></div>
             </div>
             <div class="oculta-impressao" style="display:flex;gap:10px;">
-                <button type="button" onclick="window.print()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">🖨️ Imprimir</button>
+                <button type="button" onclick="imprimirQrFigurino()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">🖨️ Imprimir</button>
                 <button type="button" onclick="fecharQrFigurino()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
             </div>
         </div>
@@ -6411,6 +6388,41 @@
 
     function fecharQrFigurino() {
         document.getElementById('figurino-qr-overlay').style.display = 'none';
+    }
+
+    // Imprimir o QR (29/ago/2026) -- depois de 3 tentativas de fazer o
+    // overlay em cima do app imprimir direto (sempre em branco pra ela,
+    // mesmo com a regra certa e o overflow do body corrigido), abandonado
+    // esse caminho. Em vez de brigar com o CSS do app inteiro, abre uma
+    // JANELA NOVA, mínima, só com o título + a imagem do QR (extraída do
+    // <canvas> já desenhado na tela, via toDataURL) -- não tem NADA do
+    // resto do app nessa janela pra atrapalhar a impressão.
+    function imprimirQrEmJanela(titulo, containerId) {
+        const canvas = document.querySelector(`#${containerId} canvas`);
+        if (!canvas) { mostrarToast('O QR ainda não carregou -- tenta de novo em alguns segundos.', 'erro'); return; }
+        const dataUrl = canvas.toDataURL('image/png');
+        const win = window.open('', '_blank', 'width=420,height=560');
+        if (!win) { mostrarToast('O navegador bloqueou a janela de impressão -- permite pop-ups pro TumTu e tenta de novo.', 'erro'); return; }
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(titulo)}</title>
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body { font-family: Arial, sans-serif; text-align:center; padding:40px 20px; }
+                h1 { font-size:18px; margin-bottom:24px; color:#12101a; }
+                img { width:280px; height:280px; }
+            </style></head>
+            <body><h1>${esc(titulo)}</h1><img src="${dataUrl}"></body></html>`);
+        win.document.close();
+        win.onload = () => { setTimeout(() => { win.focus(); win.print(); }, 250); };
+    }
+
+    function imprimirQrEvento() {
+        if (!presencaEventoAtual) return;
+        imprimirQrEmJanela(presencaEventoAtual.nome, 'presenca-qr-codigo');
+    }
+
+    function imprimirQrFigurino() {
+        if (!figurinoEntregaItemAtual) return;
+        imprimirQrEmJanela(figurinoEntregaItemAtual.nome, 'figurino-qr-codigo');
     }
 
     function presencaScannerLoop() {
