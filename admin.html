@@ -944,17 +944,18 @@
         /* Risquinho quase invisível marcando a fronteira entre os 3 blocos
            (números / Iniciado-Finalizado / QR) -- pedido dela, 30/ago/2026,
            depois de eu ter tirado o separador junto com o wrapper único que
-           causava a distribuição ruim. Altura FIXA (22px, mesmo valor já
-           usado antes nesta mesma tela). align-self:stretch (1ª tentativa)
-           esticava até a altura do bloco mais alto da linha inteira (os
-           números + "Ver menos" embaixo); align-self:center (2ª tentativa)
-           centralizava nessa mesma altura toda, ficando solto no meio do
-           card em vez de colado na linha do interruptor/botões (achado
-           dela, print real). align-self:flex-start é o certo: gruda no
-           topo, mesma linha de "219 TOTAL" e do interruptor -- os 3 blocos
-           já nascem alinhados no topo (.pres-topo tem align-items:
-           flex-start), o risquinho só precisa seguir a mesma régua. */
-        .pres-divisor-v { width: 1px; height: 22px; align-self: flex-start; background: #ececec; flex-shrink: 0; }
+           causava a distribuição ruim. Passou por 3 tentativas até ela
+           confirmar que a primeira (esticar) era a certa -- ela queria
+           separar o BLOCO TODO (números + "Ver menos" + detalhe por grupo
+           quando fechado), não só a linha de cima. align-self:stretch
+           acompanha a altura do item mais alto da linha (o totalizador). */
+        .pres-divisor-v { width: 1px; align-self: stretch; background: #ececec; flex-shrink: 0; }
+        /* Some no celular (30/ago/2026, confirmado com ela): quando os 3
+           blocos empilham (flex-wrap natural), um risquinho vertical solto
+           sozinho numa linha não faz sentido nenhum. */
+        @media (max-width: 600px) {
+            .pres-divisor-v { display: none; }
+        }
         /* Detalhe por grupo (Ritmistas/Diretoria/Convidados) mora FORA do
            totalizador (que fica compacto, do tamanho só dos números) --
            vira seção própria, largura total do cartão (30/ago/2026, achado
