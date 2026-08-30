@@ -851,6 +851,12 @@
                experiência... em todos os dispositivos". */
             .filtros .multi-select { width: 100%; }
             .filtros .multi-select-trigger { width: 100%; box-sizing: border-box; }
+            /* Mesmo padrão pros filtros de Figurino/Presença (30/ago/2026,
+               pedido dela) -- são um componente diferente (select nativo,
+               não o multi-select customizado acima), por isso nunca tinham
+               ganho essa regra; ficavam pequenos, do tamanho do texto, sem
+               bater com o tamanho dos outros filtros no celular. */
+            .figurino-filtros-linha .figurino-pill-select { width: 100%; box-sizing: border-box; }
 
             .modal { padding: 20px 16px; margin: 12px; }
             .ficha-grid { grid-template-columns: 1fr; }
