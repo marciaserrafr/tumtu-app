@@ -24,7 +24,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=48"></script>
+    <script src="ficha-perfil.js?v=49"></script>
     <script src="faceid.js?v=1"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -8004,43 +8004,60 @@
         { grupo: 'Visão Geral', itens: [{ chave: 'ver_visao_geral', label: 'Visualizar' }] },
         { grupo: 'Dados da Escola', itens: [{ chave: 'ver_dados_escola', label: 'Visualizar' }, { chave: 'editar_dados_escola', label: 'Editar', dependeDe: 'ver_dados_escola' }] },
         { grupo: 'Dados da Bateria', itens: [{ chave: 'ver_dados_bateria', label: 'Visualizar' }, { chave: 'editar_dados_bateria', label: 'Editar', dependeDe: 'ver_dados_bateria' }] },
+        // Ritmistas/Diretoria ganharam "subgrupo" em 30/ago/2026 (pedido dela:
+        // "eu queria que a permissão fizesse menção de onde está mexendo") --
+        // cada bloco misturava capacidades de 3 lugares bem diferentes (a
+        // tela toda / o Novo Cadastro / a ficha de UMA pessoa) sem separação
+        // nenhuma. `subgrupo` é só um rótulo visual (renderizarEditorPermissoesPessoa
+        // desenha um título menor a cada troca) -- não muda chave, dependência
+        // nem trava real nenhuma.
         { grupo: 'Ritmistas', itens: [
-            { chave: 'ver_ritmistas', label: 'Visualizar lista (nome, apelido, instrumento, status)' },
-            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, endereço, contato de emergência e dados do responsável', dependeDe: 'ver_ritmistas' },
-            { chave: 'ver_novo_cadastro_ritmistas', label: 'Visualizar Novo Cadastro', dependeDe: 'ver_ritmistas' },
-            { chave: 'criar_cadastro_ritmistas', label: 'Criar Novo Cadastro', dependeDe: 'ver_novo_cadastro_ritmistas' },
-            { chave: 'copiar_link_cadastro_ritmistas', label: 'Copiar Link de Cadastro', dependeDe: 'ver_novo_cadastro_ritmistas' },
-            { chave: 'aprovar_ritmistas', label: 'Aprovar', dependeDe: 'ver_ritmistas' },
-            { chave: 'rejeitar_ritmistas', label: 'Rejeitar', dependeDe: 'ver_ritmistas' },
-            { chave: 'suspender_ritmistas', label: 'Suspender', dependeDe: 'ver_ritmistas' },
-            { chave: 'desligar_ritmistas', label: 'Desligar', dependeDe: 'ver_ritmistas' },
-            { chave: 'reativar_ritmistas', label: 'Reativar', dependeDe: 'ver_ritmistas' },
-            { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas' },
-            { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas' },
-            { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_ritmistas' },
-            { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe' },
-            { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas' },
-            { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa' },
-            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas' },
-            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_declaracao_responsavel' },
-            { chave: 'ver_nao_desfila', label: 'Visualizar Não Desfila', dependeDe: 'ver_ritmistas' },
-            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila' },
-            { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas' },
-            { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes' },
-            { chave: 'exportar_ritmistas', label: 'Exportar pra Excel', dependeDe: 'ver_ritmistas' },
+            { chave: 'ver_ritmistas', label: 'Visualizar lista (nome, apelido, instrumento, status)', subgrupo: 'Lista de Ritmistas' },
+            { chave: 'exportar_ritmistas', label: 'Exportar pra Excel', dependeDe: 'ver_ritmistas', subgrupo: 'Lista de Ritmistas' },
+            { chave: 'ver_novo_cadastro_ritmistas', label: 'Visualizar Novo Cadastro', dependeDe: 'ver_ritmistas', subgrupo: 'Novo Cadastro' },
+            { chave: 'criar_cadastro_ritmistas', label: 'Criar Novo Cadastro', dependeDe: 'ver_novo_cadastro_ritmistas', subgrupo: 'Novo Cadastro' },
+            { chave: 'copiar_link_cadastro_ritmistas', label: 'Copiar Link de Cadastro', dependeDe: 'ver_novo_cadastro_ritmistas', subgrupo: 'Novo Cadastro' },
+            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, endereço, contato de emergência e dados do responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'aprovar_ritmistas', label: 'Aprovar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'rejeitar_ritmistas', label: 'Rejeitar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'suspender_ritmistas', label: 'Suspender', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'desligar_ritmistas', label: 'Desligar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'reativar_ritmistas', label: 'Reativar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'ver_nao_desfila', label: 'Visualizar Não Desfila', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Ficha do Ritmista' },
         ] },
         { grupo: 'Diretoria', itens: [
-            { chave: 'ver_acessos', label: 'Visualizar lista (nome, apelido, cargo)' },
-            { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, endereço e contato de emergência', dependeDe: 'ver_acessos' },
-            { chave: 'ver_novo_cadastro_diretoria', label: 'Visualizar Novo Cadastro', dependeDe: 'ver_acessos' },
-            { chave: 'criar_cadastro_diretoria', label: 'Criar Novo Cadastro', dependeDe: 'ver_novo_cadastro_diretoria' },
-            { chave: 'copiar_link_cadastro_diretoria', label: 'Copiar Link de Cadastro', dependeDe: 'ver_novo_cadastro_diretoria' },
-            { chave: 'aprovar_acessos', label: 'Aprovar', dependeDe: 'ver_acessos' },
-            { chave: 'rejeitar_acessos', label: 'Rejeitar', dependeDe: 'ver_acessos' },
-            { chave: 'suspender_acessos', label: 'Suspender', dependeDe: 'ver_acessos' },
-            { chave: 'desligar_acessos', label: 'Desligar', dependeDe: 'ver_acessos' },
-            { chave: 'reativar_acessos', label: 'Reativar', dependeDe: 'ver_acessos' },
-            { chave: 'exportar_diretoria', label: 'Exportar pra Excel', dependeDe: 'ver_acessos' },
+            { chave: 'ver_acessos', label: 'Visualizar lista (nome, apelido, cargo)', subgrupo: 'Lista de Diretoria' },
+            { chave: 'exportar_diretoria', label: 'Exportar pra Excel', dependeDe: 'ver_acessos', subgrupo: 'Lista de Diretoria' },
+            { chave: 'ver_novo_cadastro_diretoria', label: 'Visualizar Novo Cadastro', dependeDe: 'ver_acessos', subgrupo: 'Novo Cadastro' },
+            { chave: 'criar_cadastro_diretoria', label: 'Criar Novo Cadastro', dependeDe: 'ver_novo_cadastro_diretoria', subgrupo: 'Novo Cadastro' },
+            { chave: 'copiar_link_cadastro_diretoria', label: 'Copiar Link de Cadastro', dependeDe: 'ver_novo_cadastro_diretoria', subgrupo: 'Novo Cadastro' },
+            { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, endereço e contato de emergência', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
+            { chave: 'aprovar_acessos', label: 'Aprovar', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
+            { chave: 'rejeitar_acessos', label: 'Rejeitar', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
+            { chave: 'suspender_acessos', label: 'Suspender', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
+            { chave: 'desligar_acessos', label: 'Desligar', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
+            { chave: 'reativar_acessos', label: 'Reativar', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
+            // Naipe (30/ago/2026): morava em "Ritmistas" sem fazer sentido --
+            // Naipe é um dado só de Diretor de Bateria, nunca de Ritmista.
+            // Também nunca teve trava real nenhuma (achado dela) -- corrigido
+            // junto no trigger aplicar_matriz_edicao_vinculos.
+            { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
+            { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Ficha da Diretoria' },
+            // Permissões (30/ago/2026): saiu do bloco solto "Permissões" pra
+            // cá -- ver/editar as permissões de alguém é uma ação que
+            // acontece de dentro da ficha dessa pessoa (o botão "Editar
+            // permissões" já mora lá), mesmo raciocínio do Naipe acima.
+            { chave: 'ver_permissoes', label: 'Visualizar Permissões', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
+            { chave: 'editar_permissoes', label: 'Editar Permissões', dependeDe: 'ver_permissoes', subgrupo: 'Ficha da Diretoria' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
         { grupo: 'Lista de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos', dependeDe: 'ver_eventos' }] },
@@ -8059,7 +8076,6 @@
             { chave: 'editar_eventos', label: 'Criar/editar Eventos', dependeDe: 'ver_eventos' },
         ] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Visualizar' }] },
-        { grupo: 'Permissões', itens: [{ chave: 'ver_permissoes', label: 'Visualizar' }, { chave: 'editar_permissoes', label: 'Editar', dependeDe: 'ver_permissoes' }] },
     ];
     const TODAS_CAPACIDADES = GRUPOS_CAPACIDADES.flatMap(g => g.itens.map(i => i.chave));
     // Mapa chave -> chave "pai" da qual depende (Reforma de Permissões, 28/ago/
@@ -8111,12 +8127,30 @@
     function permissoesResumoDetalhado(p) {
         if (p.modo_carteirinha_individual) return 'Modo Carteirinha individual — não entra na gestão';
         const caps = p.capacidades || {};
-        const grupos = GRUPOS_CAPACIDADES
-            .map(g => ({ grupo: g.grupo, labels: g.itens.filter(i => caps[i.chave]).map(i => i.label) }))
-            .filter(g => g.labels.length > 0);
-        const restrito = p.restrito_ao_naipe ? '<br><strong>Restrito ao naipe:</strong> só Ritmistas do naipe que lidera' : '';
-        if (grupos.length === 0) return 'Nenhuma capacidade ligada' + restrito;
-        return grupos.map(g => `<strong>${esc(g.grupo)}:</strong> ${esc(g.labels.join(', '))}`).join('<br>') + restrito;
+        const linhas = [];
+        GRUPOS_CAPACIDADES.forEach(g => {
+            const ligados = g.itens.filter(i => caps[i.chave]);
+            if (ligados.length === 0) return;
+            // Grupos com subgrupo (Ritmistas/Diretoria, 30/ago/2026) mostram o
+            // título do grupo sozinho e cada subgrupo (Lista/Novo Cadastro/
+            // Ficha) numa linha própria, indentada -- mesma separação "onde
+            // está mexendo" pedida por ela pra tela de edição.
+            if (!ligados.some(i => i.subgrupo)) {
+                linhas.push(`<strong>${esc(g.grupo)}:</strong> ${esc(ligados.map(i => i.label).join(', '))}`);
+                return;
+            }
+            linhas.push(`<strong>${esc(g.grupo)}</strong>`);
+            const porSubgrupo = [];
+            ligados.forEach(i => {
+                let bucket = porSubgrupo.find(b => b.subgrupo === i.subgrupo);
+                if (!bucket) { bucket = { subgrupo: i.subgrupo, labels: [] }; porSubgrupo.push(bucket); }
+                bucket.labels.push(i.label);
+            });
+            porSubgrupo.forEach(b => linhas.push(`<span style="padding-left:10px;"><i>${esc(b.subgrupo)}:</i> ${esc(b.labels.join(', '))}</span>`));
+        });
+        if (p.restrito_ao_naipe) linhas.push('<strong>Restrito ao naipe:</strong> só Ritmistas do naipe que lidera');
+        if (linhas.length === 0) return 'Nenhuma capacidade ligada';
+        return linhas.join('<br>');
     }
 
     // "Ver detalhes"/"Ver menos" do resumo de Permissões dentro da ficha
@@ -8324,11 +8358,19 @@
             ${GRUPOS_CAPACIDADES.map(g => `
                 <div class="ficha-secao">
                     <div class="ficha-secao-titulo">${esc(g.grupo)}</div>
-                    ${g.itens.map(c => `
+                    ${g.itens.map((c, idx) => {
+                        // Sub-título "onde está mexendo" (Lista/Novo Cadastro/Ficha) a
+                        // cada troca de subgrupo -- pedido dela, 30/ago/2026. Reaproveita
+                        // .config-grupo-titulo, mesmo estilo já aprovado em Instrumentos
+                        // (Tradicionais/Especiais).
+                        const trocouSubgrupo = c.subgrupo && c.subgrupo !== (g.itens[idx - 1] || {}).subgrupo;
+                        const subtitulo = trocouSubgrupo ? `<div class="config-grupo-titulo" style="margin-top:${idx === 0 ? '4px' : '18px'};">${esc(c.subgrupo)}</div>` : '';
+                        return subtitulo + `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                             <input type="checkbox" id="pp-cap-${c.chave}" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
                             <label for="pp-cap-${c.chave}" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
-                        </div>`).join('')}
+                        </div>`;
+                    }).join('')}
                     ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' && pe.temNaipe ? `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;">
                             <input type="checkbox" id="pp-restrito-naipe" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.restritoAoNaipe ? 'checked' : ''}>

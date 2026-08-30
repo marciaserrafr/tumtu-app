@@ -134,6 +134,16 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
         return new Set(base);
     }
 
+    if ((atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') && alvoPerfil === 'diretor') {
+        // Naipe que lidera, editando OUTRO Diretor (30/ago/2026) -- capacidade
+        // própria (editar_naipe), agora com trava real no trigger
+        // aplicar_matriz_edicao_vinculos. A própria pessoa sempre edita o
+        // próprio naipe (ramo de autoedição acima), isso nunca muda.
+        const campos = new Set();
+        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_naipe')) campos.add('naipe');
+        return campos;
+    }
+
     if ((atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') && alvoPerfil === 'ritmista') {
         // Repique de Bossa saiu daqui em 26/ago/2026 -- campo delicado,
         // ganhou capacidade própria (editar_repique_bossa), conferida à
@@ -581,12 +591,20 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     if (blocoRepiqueBossa) blocoRepiqueBossa.style.display = 'none';
     fpAplicarPermissaoRepiqueBossa(alvo);
 
-    // Naipe só existe pra Diretor -- mesmo critério de esconder a seção
-    // inteira pra quem não se aplica.
+    // Naipe só existe pra Diretor. Autoedição e Super Admin sempre veem --
+    // pra quem está olhando a ficha de OUTRO Diretor, passa a depender das
+    // capacidades ver_naipe/editar_naipe (30/ago/2026, pedido dela: "se não
+    // tiver nem visualizar é pq essa informação nem vai aparecer para a
+    // pessoa" -- antes qualquer um com acesso à Diretoria via ver_acessos
+    // enxergava, sem checar nada específico).
     const secaoNaipe = fpEl('fp-secao-naipe');
     if (secaoNaipe) {
-        secaoNaipe.style.display = alvo.perfil === 'diretor' ? '' : 'none';
-        fpEl('fp-naipe').textContent = fpResolverSeloNaipe(alvo.naipe) || '—';
+        const podeVerNaipe = alvo.perfil === 'diretor' && (
+            fpEstado.autoedicao || fpEstado.meuPerfil === 'super_admin' ||
+            (typeof tenhoCapacidade === 'function' && (tenhoCapacidade('ver_naipe') || tenhoCapacidade('editar_naipe')))
+        );
+        secaoNaipe.style.display = podeVerNaipe ? '' : 'none';
+        if (podeVerNaipe) fpEl('fp-naipe').textContent = fpResolverSeloNaipe(alvo.naipe) || '—';
     }
     // Escondida por padrão mesmo em autoedição — só aparece dentro do modo
     // "Editar" (ver fpAtivarEdicao/fpCancelarEdicao), pra ter o mesmo
