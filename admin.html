@@ -3880,6 +3880,23 @@
         if (!(idPrefix in totalizadorDetalheAberto)) totalizadorDetalheAberto[idPrefix] = window.innerWidth > 600;
         return totalizadorDetalheAberto[idPrefix];
     }
+    // Trava a largura do card na largura que ele teria ABERTO (29/ago/2026,
+    // pedido dela: "não gosto da opção que quando quer ver mais ele muda de
+    // largura... tem que manter a largura de quando ele já é aberto").
+    // Sem número mágico chutado -- mede de verdade toda vez que os dados são
+    // desenhados (abre por uma fração de segundo se estiver fechado, mede,
+    // fecha de novo), então acompanha sozinho se os números ficarem maiores
+    // (ex: bateria com 4 dígitos) sem eu precisar adivinhar um valor fixo.
+    function travarLarguraTotalizador(cardId, idPrefix) {
+        const card = document.getElementById(cardId);
+        const wrap = document.getElementById(`totalizador-grupos-${idPrefix}`);
+        if (!card || !wrap) return; // sem detalhe (0 ou 1 grupo) -- nada pra travar
+        const estavaFechado = wrap.style.display === 'none';
+        card.style.minWidth = '0';
+        if (estavaFechado) wrap.style.display = 'contents';
+        card.style.minWidth = card.getBoundingClientRect().width + 'px';
+        if (estavaFechado) wrap.style.display = 'none';
+    }
     function toggleTotalizadorDetalhe(idPrefix) {
         const aberto = !totalizadorDetalheEstaAberto(idPrefix);
         totalizadorDetalheAberto[idPrefix] = aberto;
@@ -5637,6 +5654,7 @@
                     { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.entregue).length },
                 ].filter(g => g.total > 0);
                 totalizador.innerHTML = totalGradeHtml(grupos, 'figurino');
+                travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
             }
         }
     }
@@ -6284,6 +6302,7 @@
             { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.presente).length },
         ].filter(g => g.total > 0);
         el.innerHTML = totalGradeHtml(grupos, 'presenca');
+        travarLarguraTotalizador('presenca-totalizador', 'presenca');
     }
 
     function renderizarPresencaLista() {
