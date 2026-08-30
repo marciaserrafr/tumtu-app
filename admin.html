@@ -921,12 +921,6 @@
            da Visão Geral (Ritmistas por Instrumento / Entrega de Figurino). */
         .total-duplo { display: flex; align-items: center; gap: 14px; }
         .total-duplo-item { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-        /* Caixa branca que embrulha o total-duplo no fim da Entrega de
-           Figurino -- inline-flex (não flex) de propósito, pra "abraçar" só
-           o conteúdo em vez de esticar a largura toda da tela e sobrar um
-           vão vazio do lado direito (achado dela, 25/ago/2026: "tudo
-           alinhado à esquerda e o resto todo vazio"). */
-        .total-duplo-card { display: inline-flex; flex-direction: column; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-radius: 14px; padding: 16px 22px; }
         .total-duplo-numero { font-size: 34px; font-weight: 800; line-height: 1; }
         .total-duplo-numero.total { color: #D4AF37; }
         .total-duplo-numero.faltam { color: var(--cor-terracota); }
@@ -935,17 +929,17 @@
            justa (max-content), ficava colado à esquerda mesmo dentro de um
            bloco largo (achado dela, 30/ago/2026: "poderia dar mais espaço
            entre eles"). Vira flex simples, width:100% -- ocupa a largura
-           real do bloco (o próprio .total-duplo-card ou o terço da Lista
-           de Presença), Total numa ponta e Faltam na outra. */
+           real do bloco (o terço da Lista de Presença ou de Entrega de
+           Figurino), Total numa ponta e Faltam na outra. */
         .pres-hero-bloco { display: flex; flex-direction: column; width: 100%; }
         .pres-hero-numeros { display: flex; justify-content: space-between; width: 100%; }
-        /* Cartão único da Lista de Presença -- números, interruptores
-           (Iniciado/Finalizado) e botões de QR juntos num só cartão
-           (30/ago/2026, depois de ela reprovar a versão com várias caixas
-           separadas: "cheio de quadrado"). Mesma ideia de
-           .figurino-entrega-topo (totalizador + controles lado a lado,
-           empilha sozinho em tela estreita), só que tudo dentro do mesmo
-           .vg-card em vez de duas caixas brancas encostadas. */
+        /* Cartão único de 3 blocos -- números, interruptores e botão(ões) de
+           QR juntos num só cartão (30/ago/2026, Presença primeiro, depois
+           ela reprovar a versão com várias caixas separadas: "cheio de
+           quadrado"; Figurino ganhou o mesmo tratamento depois, pedido
+           dela: "mesmo padrão"). Classes .pres-* compartilhadas pelas duas
+           telas, apesar do nome -- tudo dentro do mesmo .vg-card, empilha
+           sozinho em tela estreita (flex-wrap natural). */
         /* 3 blocos do MESMO tamanho (30/ago/2026, pedido dela: "3 partes
            iguais... a linha de cada um alinhada no centro e meio") -- cada
            bloco (totalizador, Iniciado/Finalizado, QR) vira flex:1 1 0,
@@ -954,7 +948,7 @@
            porque o detalhe por grupo saiu de dentro do totalizador -- a
            altura de cada bloco não muda mais quando "Ver por grupo" abre. */
         .pres-topo { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-        #presenca-totalizador, .pres-trilhos, .pres-qr-btns { flex: 1 1 0; min-width: 0; }
+        #presenca-totalizador, #figurino-entregas-totalizador, .pres-trilhos, .pres-qr-btns { flex: 1 1 0; min-width: 0; }
         .pres-trilhos { display: flex; align-items: center; justify-content: center; gap: 22px; flex-wrap: wrap; }
         .pres-qr-btns { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
         /* Risquinho quase invisível marcando a fronteira entre os 3 blocos
@@ -977,7 +971,7 @@
            vira seção própria, largura total do cartão (30/ago/2026, achado
            dela: preso dentro da coluna estreita dos números, cortado antes
            de chegar na borda direita). */
-        #presenca-grupos-detalhe { width: 100%; }
+        #presenca-grupos-detalhe, #figurino-grupos-detalhe { width: 100%; }
         .btn-contorno {
             background: #fff; border: 1.5px solid #D4AF37; border-radius: 20px; padding: 8px 14px;
             display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700;
@@ -1187,21 +1181,11 @@
         .celula-hero { display: flex; flex-direction: column; align-items: flex-start; padding-bottom: 14px; }
         /* Totalizador + interruptores lado a lado em tela larga, empilhado
            em tela estreita -- sem media query, só o wrap natural do flex
-           (27/ago/2026, ideia dela). Totalizador com largura do próprio
-           conteúdo (travada por JS, travarLarguraTotalizador, pra não mudar
-           ao abrir/fechar "Ver por grupo") -- tentativa de deixar o card
-           preenchido/esticado (metade da tela) foi revertida em 30/ago/2026:
-           ela achou "tudo muito vazio" com os números tão espaçados. Volta a
-           ser do tamanho justo do conteúdo, como sempre foi -- só os botões
-           do lado continuam largura 100% (ela pediu pra não mexer neles). */
-        .figurino-entrega-topo { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
-        .figurino-entrega-flags { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 220px; }
-        /* Botões dentro desse container (QR de Presença/Figurino) sempre
-           empilhados e do mesmo tamanho -- largura 100% explícita porque
-           <button> não estica sozinho com align-items:stretch do pai
-           (30/ago/2026, achado dela: ficavam empilhados só que com tamanhos
-           diferentes, um mais estreito que o outro por causa do texto). */
-        .figurino-entrega-flags .btn-novo { width: 100%; box-sizing: border-box; justify-content: center; }
+           (27/ago/2026, ideia dela). Layout antigo (.figurino-entrega-topo/
+           -flags, totalizador ao lado de checkboxes empilhados) substituído
+           em 30/ago/2026 pelo mesmo cartão de 3 blocos de Presença
+           (.pres-topo/.pres-trilhos/.pres-qr-btns), pedido dela: "mesmo
+           padrão". */
 
         /* Figurinos recebidos, direto no card do Convidado (26/ago/2026, pedido dela). */
         .extra-figurino-status { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e0e0e0; }
@@ -2193,37 +2177,46 @@
              mesmo lado, se "Incluir Extras" estiver ligado), nunca só o que
              está filtrado na busca/instrumento -- é o total da peça
              inteira, ver renderizarEntregasFigurinoLista(). -->
-        <div class="figurino-entrega-topo">
-            <div id="figurino-entregas-totalizador" class="total-duplo-card"></div>
-            <!-- Dois interruptores, pedido dela, 24/ago/2026: ativar a peça em
-                 Configurações (com antecedência) não quer dizer que ela deve
-                 aparecer na Visão Geral -- "Entrega Iniciada" é uma decisão à
-                 parte, sempre nasce desligada. "Entrega Finalizada" é o fim de
-                 verdade (nada mais pra entregar pra ninguém) -- também some
-                 da Visão Geral, mesmo que "Entrega Iniciada" esteja ligado.
-                 Rótulo "Mostrar na Visão Geral" trocado por "Entrega Iniciada"
-                 a pedido dela, 24/ago/2026 -- id/função internos continuam
-                 com o nome antigo (mostra_visao_geral/toggleMostraVisaoGeral),
-                 só o texto visível mudou. -->
-            <div class="figurino-entrega-flags">
-                <div class="item-card">
-                    <label class="config-instrumento-check">
-                        <input type="checkbox" id="figurino-mostra-visao-geral" onchange="toggleMostraVisaoGeral(this.checked)">
-                        <span class="item-nome">Entrega Iniciada</span>
+        <!-- Mesmo cartão único de 3 blocos (números / interruptores / QR) já
+             usado em Lista de Presença (30/ago/2026, pedido dela: "quero que
+             vc implemente isso para o entrega de figurino também, mesmo
+             padrão") -- classes .pres-* são compartilhadas entre as duas
+             telas, apesar do nome. Interruptores viram trilho/bolinha (igual
+             Desfile), botão com contorno em vez de dourado sólido. -->
+        <div class="vg-card">
+            <div class="pres-topo">
+                <div id="figurino-entregas-totalizador"></div>
+                <div class="pres-divisor-v"></div>
+                <!-- Dois interruptores, pedido dela, 24/ago/2026: ativar a peça em
+                     Configurações (com antecedência) não quer dizer que ela deve
+                     aparecer na Visão Geral -- "Entrega Iniciada" é uma decisão à
+                     parte, sempre nasce desligada. "Entrega Finalizada" é o fim de
+                     verdade (nada mais pra entregar pra ninguém) -- também some
+                     da Visão Geral, mesmo que "Entrega Iniciada" esteja ligado.
+                     Rótulo "Mostrar na Visão Geral" trocado por "Entrega Iniciada"
+                     a pedido dela, 24/ago/2026 -- id/função internos continuam
+                     com o nome antigo (mostra_visao_geral/toggleMostraVisaoGeral),
+                     só o texto visível mudou. -->
+                <div class="pres-trilhos">
+                    <label class="trilho" onclick="toggleMostraVisaoGeralClick()">
+                        <span class="trilho-trecho off" id="figurino-trilho-iniciada"><span class="trilho-bolinha"></span></span>
+                        <span class="trilho-label off" id="figurino-trilho-iniciada-label">Entrega Iniciada</span>
+                    </label>
+                    <label class="trilho" onclick="toggleEntregaFinalizadaClick()">
+                        <span class="trilho-trecho off" id="figurino-trilho-finalizada"><span class="trilho-bolinha"></span></span>
+                        <span class="trilho-label off" id="figurino-trilho-finalizada-label">Entrega Finalizada</span>
                     </label>
                 </div>
-                <div class="item-card">
-                    <label class="config-instrumento-check">
-                        <input type="checkbox" id="figurino-entrega-finalizada" onchange="toggleEntregaFinalizada(this.checked)">
-                        <span class="item-nome">Entrega Finalizada</span>
-                    </label>
-                </div>
+                <div class="pres-divisor-v" id="figurino-divisor-2" style="display:none;"></div>
                 <!-- QR da peça (29/ago/2026) -- mesma ideia de Presença: o
                      Diretor mostra/projeta, cada pessoa escaneia com a
                      câmera do PRÓPRIO celular na hora de pegar a peça e
                      confirma sozinha, sem a Diretoria marcar um por um. -->
-                <button type="button" id="figurino-btn-mostrar-qr" class="btn-novo" style="display:none;" onclick="abrirQrFigurino()">📺 Mostrar QR da Peça</button>
+                <div class="pres-qr-btns" id="figurino-qr-btns" style="display:none;">
+                    <button type="button" id="figurino-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrFigurino()">🎫 Mostrar QR da Peça</button>
+                </div>
             </div>
+            <div id="figurino-grupos-detalhe"></div>
         </div>
         <!-- Filtro de lado (27/ago/2026) -- aba, não pílula: é navegação
              (qual lado da bateria estou vendo), não um filtro de refino como
@@ -4006,11 +3999,9 @@
     // dela em Presença: o detalhe por grupo ficava preso dentro da coluna
     // estreita dos números -- porque ficava dentro da MESMA grade de 2
     // colunas do hero, encolhida no fechar/travada na largura do hero no
-    // abrir. Agora o detalhe é uma peça separada, cada tela decide onde
-    // colocar: Figurino continua empilhando os dois dentro do mesmo cartão
-    // (.total-duplo-card virou flex-direction:column pra isso); Presença
-    // bota o hero dentro do trio esquerda/meio/direita e o detalhe como
-    // seção própria, largura total do cartão.
+    // abrir). Figurino e Presença agora usam o MESMO cartão de 3 blocos
+    // (hero/números | interruptores | QR, classes .pres-*) -- hero vai no
+    // 1º bloco, detalhe vira seção própria de largura total, embaixo dos 3.
     function totalGradeHtml(grupos, idPrefix) {
         const totalGeral = grupos.reduce((s, g) => s + g.total, 0);
         const feitoGeral = grupos.reduce((s, g) => s + g.feito, 0);
@@ -5476,12 +5467,49 @@
         // sensação de tela "subindo aos poucos" por partes. Mesmo padrão
         // já usado noutros lugares do app pra evitar essa pulada.
         document.getElementById('figurino-entregas-totalizador').innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
-        const bfExistente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === item.id);
-        document.getElementById('figurino-mostra-visao-geral').checked = !!(bfExistente && bfExistente.mostra_visao_geral);
-        document.getElementById('figurino-entrega-finalizada').checked = !!(bfExistente && bfExistente.entrega_finalizada);
-        const btnQrFigurino = document.getElementById('figurino-btn-mostrar-qr');
-        if (btnQrFigurino) btnQrFigurino.style.display = (souSuperAdmin || tenhoCapacidade('editar_figurino')) ? '' : 'none';
+        renderFigurinoTrilhos();
+        // Botão de QR e o risquinho ao lado dele só aparecem junto (30/ago/
+        // 2026, mesmo padrão de Presença) -- os interruptores continuam
+        // sempre visíveis (nunca tiveram gate próprio, diferente de Presença
+        // onde Iniciado/Finalizado depende de editar_eventos).
+        const podeEditarFigurino = souSuperAdmin || tenhoCapacidade('editar_figurino');
+        const qrBtnsFigurino = document.getElementById('figurino-qr-btns');
+        if (qrBtnsFigurino) qrBtnsFigurino.style.display = podeEditarFigurino ? 'flex' : 'none';
+        const divisor2Figurino = document.getElementById('figurino-divisor-2');
+        if (divisor2Figurino) divisor2Figurino.style.display = podeEditarFigurino ? 'block' : 'none';
         await carregarEntregasFigurino();
+    }
+
+    // Mesmo padrão de renderPresencaTrilhos -- reflete o estado real
+    // (bateriaFigurinoCache) nos 2 interruptores (Entrega Iniciada/
+    // Finalizada), sem mudar o texto do rótulo (só cor/posição).
+    function renderFigurinoTrilhos() {
+        const item = figurinoEntregaItemAtual;
+        if (!item) return;
+        const bf = bateriaFigurinoCache.find(x => x.figurino_item_mestre_id === item.id);
+        const aplicar = (idTrecho, idLabel, ligado) => {
+            const trecho = document.getElementById(idTrecho);
+            const label = document.getElementById(idLabel);
+            if (!trecho || !label) return;
+            trecho.classList.toggle('on', ligado);
+            trecho.classList.toggle('off', !ligado);
+            label.classList.toggle('on', ligado);
+            label.classList.toggle('off', !ligado);
+        };
+        aplicar('figurino-trilho-iniciada', 'figurino-trilho-iniciada-label', !!(bf && bf.mostra_visao_geral));
+        aplicar('figurino-trilho-finalizada', 'figurino-trilho-finalizada-label', !!(bf && bf.entrega_finalizada));
+    }
+    function toggleMostraVisaoGeralClick() {
+        const item = figurinoEntregaItemAtual;
+        const bf = item && bateriaFigurinoCache.find(x => x.figurino_item_mestre_id === item.id);
+        toggleMostraVisaoGeral(!(bf && bf.mostra_visao_geral));
+        renderFigurinoTrilhos();
+    }
+    function toggleEntregaFinalizadaClick() {
+        const item = figurinoEntregaItemAtual;
+        const bf = item && bateriaFigurinoCache.find(x => x.figurino_item_mestre_id === item.id);
+        toggleEntregaFinalizada(!(bf && bf.entrega_finalizada));
+        renderFigurinoTrilhos();
     }
 
     // Cada valor de público mapeia direto pro mesmo grupo em extras.grupo --
@@ -5746,9 +5774,11 @@
         // Diretoria. Peça com um único grupo continua com total simples, sem
         // quebrar em blocos à toa (ver totalGradeHtml).
         const totalizador = document.getElementById('figurino-entregas-totalizador');
+        const detalheEl = document.getElementById('figurino-grupos-detalhe');
         if (totalizador) {
             if (figurinoEntregaPessoasCache.length === 0) {
                 totalizador.innerHTML = '';
+                if (detalheEl) detalheEl.innerHTML = '';
             } else {
                 const ritmistas = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === 'ritmista');
                 const diretoria = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === 'diretoria');
@@ -5759,7 +5789,8 @@
                     { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.entregue).length },
                 ].filter(g => g.total > 0);
                 const grade = totalGradeHtml(grupos, 'figurino');
-                totalizador.innerHTML = grade.hero + grade.detalhe;
+                totalizador.innerHTML = grade.hero;
+                if (detalheEl) detalheEl.innerHTML = grade.detalhe;
                 travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
             }
         }
