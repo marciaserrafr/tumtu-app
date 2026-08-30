@@ -2422,21 +2422,21 @@
          Fechado por padrão (mesmo pedido que já valia pros outros cards). -->
     <div class="vg-card">
         <div class="vg-secao-titulo vg-secao-titulo--clicavel" onclick="toggleVgAniversariantesAberto()">
-            <span style="display:flex;align-items:center;gap:8px;min-width:0;">
-                <span id="vg-aniversariantes-titulo">🎂 Aniversariantes do mês</span>
-                <!-- Aviso visível mesmo com o card fechado (29/ago/2026,
-                     pedido dela: "se estiver fechado ngm vai saber que tem
-                     um aniversariante no dia... no dia a dia ngm vai ficar
-                     abrindo aquilo ali") -- o "🎉 Hoje!" de cada linha só
-                     aparece depois de abrir; esse aqui mora no cabeçalho, que
-                     é a única parte sempre visível. -->
-                <span id="vg-aniversariantes-hoje-badge" style="display:none;color:#D4AF37;font-size:11px;font-weight:800;text-transform:none;letter-spacing:normal;flex-shrink:0;">🎉 Hoje</span>
-            </span>
+            <span id="vg-aniversariantes-titulo">🎂 Aniversariantes do mês</span>
             <span class="vg-secao-resumo">
                 <div id="vg-aniversariantes-total"></div>
                 <span class="vg-secao-seta" id="vg-aniversariantes-seta">›</span>
             </span>
         </div>
+        <!-- Aviso visível mesmo com o card fechado (29/ago/2026, pedido
+             dela: "se estiver fechado ngm vai saber que tem um
+             aniversariante no dia"). Linha própria, embaixo do título --
+             tentei primeiro deixar tudo na mesma linha do título, mas o
+             título já é longo e quebrava em 2 linhas no celular, espremendo
+             o aviso no meio da bagunça (achado dela, com print real).
+             Nessa linha própria cabe até a frase inteira que ela queria
+             desde o começo, sem brigar por espaço com o título. -->
+        <div id="vg-aniversariantes-hoje-badge" style="display:none;color:#D4AF37;font-size:12px;font-weight:700;margin:0 0 10px;">🎉 Tem aniversariante hoje</div>
         <div id="vg-aniversariantes" style="display:none;"><div class="vazio" style="padding:16px 0;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
     </div>
 
