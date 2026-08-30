@@ -925,14 +925,14 @@
         .total-duplo-numero.total { color: #D4AF37; }
         .total-duplo-numero.faltam { color: var(--cor-terracota); }
         .total-duplo-rotulo { font-size: 12px; color: #888; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.3px; }
-        /* Números (Total/Faltam) do totalizador -- era grid de largura
-           justa (max-content), ficava colado à esquerda mesmo dentro de um
-           bloco largo (achado dela, 30/ago/2026: "poderia dar mais espaço
-           entre eles"). Vira flex simples, width:100% -- ocupa a largura
-           real do bloco (o terço da Lista de Presença ou de Entrega de
-           Figurino), Total numa ponta e Faltam na outra. */
+        /* Números (Total/Faltam) do totalizador -- era grid de largura justa
+           (max-content), colado à esquerda (achado dela, 30/ago/2026:
+           "poderia dar mais espaço entre eles"). justify-content:space-
+           between (1ª tentativa) jogou os dois pras pontas do bloco --
+           "ficou muito separado" (ela testou ao vivo). Meio-termo: gap fixo
+           bem maior que o original (32px→56px), sem esticar até a borda. */
         .pres-hero-bloco { display: flex; flex-direction: column; width: 100%; }
-        .pres-hero-numeros { display: flex; justify-content: space-between; width: 100%; }
+        .pres-hero-numeros { display: flex; gap: 56px; }
         /* Cartão único de 3 blocos -- números, interruptores e botão(ões) de
            QR juntos num só cartão (30/ago/2026, Presença primeiro, depois
            ela reprovar a versão com várias caixas separadas: "cheio de
