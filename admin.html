@@ -5456,7 +5456,7 @@
                 + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
         } else if (figurinoEntregaLadoAtual === 'diretoria') {
             const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
-            select.innerHTML = '<option value="">Todos</option>'
+            select.innerHTML = '<option value="">Todos - Diretoria</option>'
                 + tipos.map(p => `<option value="${p}">${LABEL_PUBLICO_FIGURINO[p]}</option>`).join('');
         } else {
             select.innerHTML = '<option value="">Todos</option>';
@@ -6206,7 +6206,7 @@
                 + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
         } else if (presencaLadoAtual === 'diretoria') {
             const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
-            select.innerHTML = '<option value="">Todos</option>'
+            select.innerHTML = '<option value="">Todos - Diretoria</option>'
                 + tipos.map(p => `<option value="${p}">${LABEL_PERFIL_DIRETORIA_PRESENCA[p]}</option>`).join('');
         } else {
             select.innerHTML = '<option value="">Todos</option>';
