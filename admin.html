@@ -939,7 +939,7 @@
            empilha sozinho em tela estreita), só que tudo dentro do mesmo
            .vg-card em vez de duas caixas brancas encostadas. */
         .pres-topo { display: flex; align-items: flex-start; gap: 40px; flex-wrap: wrap; }
-        .pres-acoes { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; flex: 1; }
+        .pres-acoes { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; flex: 1; }
         .pres-trilhos { display: flex; gap: 22px; flex-wrap: wrap; }
         .pres-separador-v { width: 1px; height: 22px; background: #e5e2ee; flex-shrink: 0; }
         .pres-qr-btns { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -3956,10 +3956,22 @@
         const card = document.getElementById(cardId);
         const wrap = document.getElementById(`totalizador-grupos-${idPrefix}`);
         if (!card || !wrap) return; // sem detalhe (0 ou 1 grupo) -- nada pra travar
+        const grade = card.querySelector('.totalizador-grade');
         const estavaFechado = wrap.style.display === 'none';
         card.style.minWidth = '0';
+        if (grade) grade.style.gridTemplateColumns = '';
         if (estavaFechado) wrap.style.display = 'contents';
         card.style.minWidth = card.getBoundingClientRect().width + 'px';
+        // Trava também a largura de cada COLUNA da grade (não só do cartão
+        // inteiro) -- 30/ago/2026, achado dela: com "Ver por grupo" aberto,
+        // linhas como "Ritmistas 201/201" são mais largas que só "219",
+        // então a coluna do Faltam alargava sozinha pra caber elas; ao
+        // fechar, essas linhas saem da grade e a coluna encolhe de volta,
+        // fazendo o "219 Faltam" pular de posição. Medindo a largura real
+        // de cada coluna enquanto está aberto e travando esse valor em px
+        // (em vez de deixar max-content recalcular a cada abrir/fechar), o
+        // Faltam nunca mais muda de lugar.
+        if (grade) grade.style.gridTemplateColumns = getComputedStyle(grade).gridTemplateColumns;
         if (estavaFechado) wrap.style.display = 'none';
     }
     function toggleTotalizadorDetalhe(idPrefix) {
