@@ -984,7 +984,19 @@
            Presença e Figurino -- os dois ficam idênticos, sem risco de um
            empilhar e o outro não (preocupação real dela). */
         @media (max-width: 600px) {
-            .pres-divisor-v { display: none; }
+            /* !important necessário aqui -- achado real, 30/ago/2026,
+               depois dela reportar respiro diferente entre Presença e
+               Figurino: o script liga/desliga esse risquinho via
+               style.display direto no elemento (abrirPresencaEvento), sem
+               saber a largura da tela -- na Presença, quem tem permissão
+               de editar (inclusive Super Admin) sempre acaba com
+               display:block ali, que vence a regra normal do media query
+               (estilo inline pesa mais) e o risquinho volta a contar como
+               um item de verdade no cartão, dobrando o respiro até o
+               "Evento Iniciado" (28px em vez de 14px). No Figurino esse
+               risquinho nunca é tocado por JS, por isso só lá o respiro
+               já saía certo. */
+            .pres-divisor-v { display: none !important; }
             .pres-topo { flex-direction: column; align-items: stretch; gap: 14px; }
             #presenca-totalizador, #figurino-entregas-totalizador, .pres-trilhos, .pres-qr-btns { flex: none; width: 100%; }
             .pres-trilhos { justify-content: flex-start; gap: 16px; }
