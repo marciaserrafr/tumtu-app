@@ -2185,10 +2185,16 @@
     <div id="presenca-tela-marcar" class="config-subtela" style="display:none;">
         <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Presença</button>
         <div class="painel-titulo" id="presenca-evento-titulo">Presença</div>
-        <div id="presenca-totalizador" class="total-duplo-card"></div>
-        <div id="presenca-btns-qr" style="display:none;gap:10px;margin:14px 0;">
-            <button type="button" id="presenca-btn-mostrar-qr" class="btn-novo" style="flex:1;" onclick="abrirQrEvento()">📺 Mostrar QR do Evento</button>
-            <button type="button" id="presenca-btn-escanear" class="btn-novo" style="flex:1;" onclick="abrirScannerPresenca()">📷 Escanear</button>
+        <!-- Totalizador + botões lado a lado em tela larga, mesmo padrão já
+             aprovado em Entrega de Figurino (27/ago/2026) -- aproveita o
+             espaço vazio ao lado do card em vez de empilhar tudo embaixo;
+             em celular o wrap do flex empilha sozinho. -->
+        <div class="figurino-entrega-topo">
+            <div id="presenca-totalizador" class="total-duplo-card"></div>
+            <div id="presenca-btns-qr" class="figurino-entrega-flags" style="display:none;">
+                <button type="button" id="presenca-btn-mostrar-qr" class="btn-novo" onclick="abrirQrEvento()">📺 Mostrar QR do Evento</button>
+                <button type="button" id="presenca-btn-escanear" class="btn-novo" onclick="abrirScannerPresenca()">📷 Escanear</button>
+            </div>
         </div>
         <div class="figurino-tabs-lado" id="presenca-filtro-lado" style="display:none;"></div>
         <input type="text" id="presenca-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarPresencaLista()"
