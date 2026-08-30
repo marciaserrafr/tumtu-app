@@ -772,8 +772,15 @@ async function fpRenderizarEntregaFigurino(alvo) {
     // e "Entrega ainda não registrada" (ainda não encerrou, não afirma nada
     // -- pedido dela, 30/ago/2026, mesmo raciocínio aplicado a Eventos).
     const finalizadaPorItem = {};
-    ativos.forEach(a => { finalizadaPorItem[a.figurino_item_mestre_id] = !!a.entrega_finalizada; });
-    const itens = mestre.filter(m => finalizadaPorItem.hasOwnProperty(m.id));
+    // Só entra na ficha quem já teve a entrega INICIADA (achado dela,
+    // 30/ago/2026: peça que nem começou a ser entregue não deveria
+    // aparecer -- só polui, sem nada de útil pra mostrar ainda).
+    const iniciadaPorItem = {};
+    ativos.forEach(a => {
+        finalizadaPorItem[a.figurino_item_mestre_id] = !!a.entrega_finalizada;
+        iniciadaPorItem[a.figurino_item_mestre_id] = !!a.mostra_visao_geral;
+    });
+    const itens = mestre.filter(m => iniciadaPorItem[m.id]);
     if (itens.length === 0) { secao.style.display = 'none'; return; }
     const entregaPorItem = {};
     entregas.forEach(e => { entregaPorItem[e.figurino_item_id] = !!e.entregue_em; });
@@ -808,8 +815,12 @@ async function fpRenderizarEventos(alvo) {
     grid.innerHTML = '<span style="color:#9993ab;font-size:13px;">Carregando...</span>';
 
     const authHeaders = await fpAuthHeaders();
+    // Só entra na ficha quem já teve o evento INICIADO (achado dela,
+    // 30/ago/2026: evento que nem começou não deveria aparecer -- só polui,
+    // sem nada de útil pra mostrar ainda -- mesmo raciocínio aplicado a
+    // Figurino/mostra_visao_geral).
     const [resEventos, resPresencas] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${alvo.bateria_id}&select=id,nome,data,finalizado,perfis_diretoria_inclusos&order=data.desc`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${alvo.bateria_id}&iniciado=eq.true&select=id,nome,data,finalizado,perfis_diretoria_inclusos&order=data.desc`, { headers: authHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?vinculo_id=eq.${alvo.vinculo_id}`, { headers: authHeaders }),
     ]);
     const todosEventos = resEventos.ok ? await resEventos.json() : [];
