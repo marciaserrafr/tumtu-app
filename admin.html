@@ -3144,7 +3144,15 @@
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); carregarResumoEntregaFigurino(); carregarResumoEventosAtivos(); return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=${select}&order=created_at.desc`, {
+        // eh_convidado=eq.false (31/ago/2026, correção emergencial em
+        // produção): "Convidado Especial" é uma funcionalidade nova, ainda
+        // só no branch de preview -- mas o banco já tem a coluna desde a
+        // sessão passada, e qualquer teste feito pelo link de preview grava
+        // no MESMO banco de produção. Sem esse filtro, esse tipo de pessoa
+        // aparecia misturada aqui, em produção, pra qualquer Diretoria de
+        // verdade ver. Contenção enquanto a funcionalidade completa não é
+        // publicada de vez.
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&select=${select}&order=created_at.desc`, {
             headers: authHeaders
         });
         const novos = await res.json();
@@ -8233,7 +8241,11 @@
             if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
             return;
         }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe,naipe`, { headers: authHeaders });
+        // eh_convidado=eq.false -- CRÍTICO, mesma correção emergencial: sem
+        // isso, um Convidado apareceria na tela de Permissões misturado com
+        // Diretoria de verdade, e poderia ganhar capacidade de gestão sem
+        // querer (regra dela: Convidado nunca pode ter permissão nenhuma).
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe,naipe`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
     }
@@ -9311,7 +9323,8 @@
 
         if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
-        const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=${select}`;
+        // eh_convidado=eq.false -- mesma correção emergencial de carregarRitmistas().
+        const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=${select}`;
 
         const res = await fetch(url, {
             headers: authHeaders
