@@ -42,7 +42,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding: 20px 20px 12px;
+            padding: 20px 20px calc(12px + env(safe-area-inset-bottom));
         }
         /* Sem position:fixed de propósito (era assim antes) — num monitor
            de computador com a janela mais baixa que o conteúdo, o cabeçalho
