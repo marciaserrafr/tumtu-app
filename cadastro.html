@@ -925,7 +925,7 @@
     // pedido dela: Calça de Diretoria usa escala numérica, diferente da de
     // Ritmista -- uma categoria pode ser restrita a só alguns públicos,
     // configurado em Configurações → Categoria de Figurino).
-    async function carregarOpcoesMedidas(bateriaId, perfil) {
+    async function carregarOpcoesMedidas(bateriaId, perfil, ehConvidadoEspecial) {
         const container = document.getElementById('linha-medidas-dinamico');
         const secao = document.getElementById('secao-medidas');
         if (!container) return;
@@ -938,8 +938,14 @@
             const opcoes = res.ok ? await res.json() : [];
             const porTipo = {};
             opcoes.forEach(o => {
-                const publico = Array.isArray(o.publico) ? o.publico : ['ritmista', 'mestre', 'diretor', 'apoio'];
+                const publico = Array.isArray(o.publico) ? o.publico : ['ritmista', 'mestre', 'diretor', 'apoio', 'extra'];
                 if (perfil && !publico.includes(perfil)) return;
+                // Convidado Especial (31/ago/2026): reaproveita o mesmo
+                // checkbox "Convidados" de Categoria de Figurino (Configurações)
+                // que já existia pro Convidado simples -- desmarcar "Convidados"
+                // ali também tira a Medida do cadastro do Convidado Especial,
+                // sem precisar de nenhuma configuração nova.
+                if (ehConvidadoEspecial && !publico.includes('extra')) return;
                 if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { nome: o.tipo_nome, grupo: o.tipo_grupo, tamanhos: [] };
                 porTipo[o.tipo_id].tamanhos.push(o.nome_exibicao);
             });
@@ -1020,7 +1026,7 @@
         linkFixoAtual = { perfil, bateriaId: bateria.id, ehConvidadoEspecial };
         atualizarCampoInstrumento(perfil);
         await carregarOpcoesInstrumento(bateria.id);
-        await carregarOpcoesMedidas(bateria.id, perfil);
+        await carregarOpcoesMedidas(bateria.id, perfil, ehConvidadoEspecial);
 
         const cargoLabel = (perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor de Bateria' : perfil === 'apoio' ? 'Diretor (Apoio)' : 'Ritmista');
         document.getElementById('convite-cargo').textContent = ehConvidadoEspecial ? `Convidado Especial – ${cargoLabel}` : cargoLabel;
