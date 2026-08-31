@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 > Este arquivo é lido automaticamente pelo Claude Code toda vez que uma sessão começa nesta pasta. É a ficha de instruções fixas do projeto — diferente dos documentos em `docs/`, que são a documentação de produto/técnica para humanos. Atualizar sempre que uma decisão importante mudar o que está escrito aqui.
-> Última atualização: 30/ago/2026 (sessão de permissões por contexto, domínio app.tumtu.com.br e ícones Lucide)
+> Última atualização: 31/ago/2026 (correção do nome exibido no prompt de Face ID)
 
 ---
 
@@ -379,6 +379,8 @@ Achado técnico no caminho: o link já aparecia como texto visível numa caixinh
 🚧 **Pendente, combinado mas não iniciado**: "Confirmar Presença" — botão condicional (só aparece com evento aberto pra aquela bateria) dentro do novo menu de ícones da carteirinha, abrindo a câmera pra ler o QR do evento sem sair do app nem pedir login de novo (resolve a fricção de login registrada em `project-qr-autoconfirmacao-login-next`). Motivo de ainda não ter sido feito: ela pausou no fim da sessão de 30/ago/2026 por causa do uso semanal ("já atingi 79% do meu uso da semana"), pediu explicitamente pra registrar tudo e só ser acionada de novo se for bug ou algo muito necessário. O menu novo (ícones soltos, sem caixa) já está pronto pra receber esse botão quando ela retomar.
 
 ✅ **Aviso de aniversário do dia vira terracota (30/ago/2026, fechando a sessão)** — achado dela ao vivo, no celular: a frase "🎉 Tem aniversariante hoje!" (topo do cartão "Aniversariantes do mês", Visão Geral) estava dourada (`#D4AF37`) num fundo branco, contraste fraco. Trocada pra `var(--cor-terracota)` — mesma cor já usada pra avisos de atenção nesse mesmo cartão branco (ex: "Pendentes"), não é cor nova. Pelo mesmo motivo de consistência (mesma informação, mesma cor), o "🎉 Hoje!" que aparece do lado do nome de cada aniversariante do dia, dentro da lista, também virou terracota. **Sessão encerrada aqui** — ela confirmou "fecharemos por hoje".
+
+✅ **Bug real corrigido: prompt de Face ID do iPhone mostrava "pessoa-151" em vez do nome da pessoa (31/ago/2026)** — achado dela usando o app no dia a dia ("Não achei isso muito legal"). Causa: `faceid.js`, campo `user.name` do WebAuthn (o texto que o sistema operacional exibe no prompt nativo de biometria) estava montado como `'pessoa-' + pessoaId` — só o `displayName` (campo secundário, nem sempre mostrado pelo Safari) usava o nome de verdade. Corrigido pra usar o nome real da pessoa nos dois campos. **Só vale pra quem ativar o Face ID dali pra frente** — a credencial grava esse nome no momento da criação, então quem já tinha ativado antes (inclusive as duas contas dela) precisa desligar e ligar de novo em Meu Perfil pra o iPhone parar de mostrar o número antigo. `faceid.js` v1→v2.
 
 ---
 
