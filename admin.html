@@ -2317,27 +2317,28 @@
 <div class="painel" id="painel-extras">
     <div id="extras-lista-tela">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <!-- Bloco próprio (31/ago/2026, junto com Convidado Especial abaixo)
-             -- a aba abre pra quem tem ver_extras OU ver_convidados_especiais
-             (ver podeVerAba), então esse bloco precisa da própria trava
-             ver_extras, senão quem só tem a capacidade de Convidado Especial
-             enxergaria esse grupo também de graça. -->
-        <div id="extras-simples-bloco">
-            <div class="painel-titulo">Convidados</div>
-            <p class="config-sub-desc">Pessoas que não compõem a bateria, mas podem ser convidadas para os eventos em que necessitam os figurinos adequados. Cada Convidado é associado ao grupo de Ritmistas ou de Diretoria, pra definir qual figurino ele vai receber.</p>
-            <div id="extras-editor" style="display:none;"></div>
-            <button type="button" id="extras-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoExtra()">+ Novo Convidado</button>
-            <div id="extras-total-geral" style="font-size:13px;color:#888;margin:-12px 0 16px;"></div>
-            <div id="extras-lista" class="lista-cards"></div>
-        </div>
+        <div class="painel-titulo">Convidados</div>
+        <p class="config-sub-desc">Pessoas que não compõem a bateria, mas podem ser convidadas para os eventos em que necessitam os figurinos adequados. Cada Convidado é associado ao grupo de Ritmistas ou de Diretoria, pra definir qual figurino ele vai receber.</p>
+        <div id="extras-editor" style="display:none;"></div>
+        <button type="button" id="extras-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoExtra()">+ Novo Convidado</button>
+        <div id="extras-total-geral" style="font-size:13px;color:#888;margin:-12px 0 16px;"></div>
+        <div id="extras-lista" class="lista-cards"></div>
+    </div>
+</div>
 
-        <!-- Convidado Especial (31/ago/2026) -- diferente do Convidado acima:
-             tem carteirinha e login de verdade (vínculo real, eh_convidado=
-             true), com fila de aprovação própria. Só existe se a bateria
-             tiver o gate comercial ligado (Comercial → Convidado Especial). -->
-        <div id="convidados-especiais-bloco" style="display:none;margin-top:32px;">
-            <div class="painel-titulo" style="font-size:18px;">Convidado Especial</div>
-            <p class="config-sub-desc">Tem carteirinha e login de verdade, diferente do Convidado acima -- fica de fora da contagem normal de Ritmistas e Diretoria.</p>
+<!-- PAINEL CONVIDADO ESPECIAL (31/ago/2026) -- tela própria, separada de
+     "Convidados" acima (pedido dela: telas diferentes, mesmo grupo "Mais" do
+     menu). Diferente do Convidado simples: tem carteirinha e login de
+     verdade (vínculo real, eh_convidado=true), com fila de aprovação
+     própria. Só existe se a bateria tiver o gate comercial ligado
+     (Comercial → Convidado Especial). -->
+<div class="painel" id="painel-convidados-especiais">
+    <div id="convidados-especiais-tela">
+        <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
+        <div class="painel-titulo">Convidado Especial</div>
+        <p class="config-sub-desc">Tem carteirinha e login de verdade, diferente do Convidado simples -- fica de fora da contagem normal de Ritmistas e Diretoria.</p>
+        <div id="convidados-especiais-desabilitado" style="display:none;" class="estado-vazio">Esse recurso não está ativado para esta bateria. Ative em Comercial → Convidado Especial.</div>
+        <div id="convidados-especiais-conteudo">
             <div id="linksCadastroConvidadoEspecial"></div>
             <button id="btnExportarConvidadosEspeciais" class="btn-exportar" style="margin:12px 0 0;display:none;" onclick="abrirModalExportar('convidado_especial')">⬇ Exportar</button>
             <div id="convidados-especiais-total-geral" style="font-size:13px;color:#888;margin:16px 0 16px;"></div>
@@ -2568,8 +2569,8 @@
          comercial ligado. -->
     <div class="vg-grupo-titulo" id="vgTituloConvidadosEspeciais" style="display:none;">Convidado Especial</div>
     <div class="grade-status" id="totalizadoresConvidadosEspeciais" style="display:none;">
-        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Ativos <b id="totalConvidadosEspeciaisAtivos">—</b></div>
-        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Pendentes <b id="totalConvidadosEspeciaisPendentes">—</b></div>
+        <div class="grade-item" onclick="trocarAba('convidados-especiais', document.querySelector('.aba-btn[data-aba=administrativo]'))">Ativos <b id="totalConvidadosEspeciaisAtivos">—</b></div>
+        <div class="grade-item" onclick="trocarAba('convidados-especiais', document.querySelector('.aba-btn[data-aba=administrativo]'))">Pendentes <b id="totalConvidadosEspeciaisPendentes">—</b></div>
     </div>
 
     <!-- Empilhado, um card embaixo do outro (era grid de 2 colunas até
@@ -6148,29 +6149,24 @@
     }
 
     async function iniciarExtrasTab() {
-        // A aba abre pra quem tem ver_extras OU ver_convidados_especiais --
-        // esse bloco simples (Convidado sem login) precisa da própria trava
-        // ver_extras, senão vazaria de graça pra quem só tem a capacidade
-        // do Convidado Especial (ver podeVerAba).
-        const podeVerExtrasSimples = souSuperAdmin || tenhoCapacidade('ver_extras');
-        const blocoSimples = document.getElementById('extras-simples-bloco');
-        if (blocoSimples) blocoSimples.style.display = podeVerExtrasSimples ? '' : 'none';
-        if (podeVerExtrasSimples) {
-            extraEditando = null;
-            renderizarEditorExtra();
-            const btnNovo = document.getElementById('extras-btn-novo');
-            if (btnNovo) btnNovo.style.display = tenhoCapacidade('editar_extras') ? '' : 'none';
-            await carregarExtras();
-            await carregarFigurinoParaExtras();
-            renderizarExtrasLista();
-        }
+        extraEditando = null;
+        renderizarEditorExtra();
+        const btnNovo = document.getElementById('extras-btn-novo');
+        if (btnNovo) btnNovo.style.display = tenhoCapacidade('editar_extras') ? '' : 'none';
+        await carregarExtras();
+        await carregarFigurinoParaExtras();
+        renderizarExtrasLista();
         atualizarTotalizadorExtras();
-        // Convidado Especial (31/ago/2026) mora na mesma aba, mas é grupo
-        // totalmente à parte (vinculos.eh_convidado=true, não extras).
+    }
+
+    // Convidado Especial (31/ago/2026) -- tela própria (ver painel-convidados-
+    // especiais), separada de "Convidados" (extras) acima, pedido dela:
+    // são conceitos bem diferentes (login/carteirinha de verdade vs não),
+    // só moram no mesmo grupo "Mais" do menu.
+    async function iniciarConvidadosEspeciaisTab() {
         await carregarConvidadosEspeciais();
         renderizarConvidadosEspeciais();
         atualizarTotalizadorConvidadosEspeciais();
-        aplicarGatingBotoesExportar();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -6220,12 +6216,13 @@
         rejeitado: '<span class="badge badge-rejeitado">Rejeitado</span>',
     };
     function renderizarConvidadosEspeciais() {
-        const bloco = document.getElementById('convidados-especiais-bloco');
-        if (!bloco) return;
+        const conteudo = document.getElementById('convidados-especiais-conteudo');
+        const aviso = document.getElementById('convidados-especiais-desabilitado');
+        if (!conteudo) return;
         const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
-        const podeVer = souSuperAdmin || tenhoCapacidade('ver_convidados_especiais');
-        bloco.style.display = (habilitado && podeVer) ? '' : 'none';
-        if (!habilitado || !podeVer) return;
+        conteudo.style.display = habilitado ? '' : 'none';
+        if (aviso) aviso.style.display = habilitado ? 'none' : '';
+        if (!habilitado) return;
 
         renderizarLinksCadastroConvidadoEspecial();
 
@@ -7268,11 +7265,11 @@
     function podeVerAba(aba) {
         if (aba === 'comercial') return souSuperAdmin;
         if (aba === 'configuracoes') return Object.keys(CAPACIDADE_CONFIG_SUBTELA).some(nome => podeVerConfigSubtela(nome));
-        // Convidado Especial (31/ago/2026) mora na mesma aba "Convidados",
-        // mas com capacidade própria -- abre a aba pra quem tem QUALQUER
-        // uma das duas (o bloco certo dentro dela se esconde sozinho, ver
-        // iniciarExtrasTab/renderizarConvidadosEspeciais).
-        if (aba === 'extras') return tenhoCapacidade('ver_extras') || tenhoCapacidade('ver_convidados_especiais');
+        // Convidado Especial (31/ago/2026): tela própria, mas só existe de
+        // verdade se a bateria tiver o gate comercial ligado -- Super Admin
+        // sempre pode entrar (precisa poder checar/ligar o gate em
+        // Comercial), Mestre/Diretor só com a capacidade E o gate ligado.
+        if (aba === 'convidados-especiais') return souSuperAdmin || (tenhoCapacidade('ver_convidados_especiais') && !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha));
         const capacidadeExigida = CAPACIDADE_DA_ABA[aba];
         return !capacidadeExigida || tenhoCapacidade(capacidadeExigida);
     }
@@ -7280,7 +7277,7 @@
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
     // das capacidades dos itens que ela agrupa.
-    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'permissoes', 'historico'];
+    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'extras', 'convidados-especiais', 'presenca', 'permissoes', 'historico'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -7366,6 +7363,7 @@
         { aba: 'dados-bateria', label: 'Dados da Bateria' },
         { aba: 'configuracoes', label: 'Configurações' },
         { aba: 'extras', label: 'Convidados' },
+        { aba: 'convidados-especiais', label: 'Convidado Especial' },
         { aba: 'figurino', label: 'Entrega de Figurino' },
         { aba: 'presenca', label: 'Lista de Presença' },
         { aba: 'comercial', label: 'Comercial' },
@@ -9926,6 +9924,7 @@
         if (aba === 'comercial') renderizarComercialTab();
         if (aba === 'figurino') iniciarFigurinoTab();
         if (aba === 'extras') iniciarExtrasTab();
+        if (aba === 'convidados-especiais') iniciarConvidadosEspeciaisTab();
         if (aba === 'presenca') iniciarPresencaTab();
         if (aba === 'permissoes') { permissoesPessoaEditando = null; voltarPermissoesLista(); renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'historico') carregarHistoricoEscolaSA();
