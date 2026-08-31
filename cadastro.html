@@ -1609,6 +1609,13 @@
                 document.getElementById('formCadastro').reset();
                 document.querySelector('.foto-preview').innerHTML = '<span>Clique para adicionar foto</span>';
                 travarFormulario(false);
+                // Bug real achado por ela, 31/ago/2026: reset() só limpa os
+                // campos, nunca volta a barra de progresso -- a tela ficava
+                // travada no "Passo 6 de 6" (senha + botão Enviar cadastro)
+                // por baixo da mensagem de sucesso, mesmo o cadastro já
+                // tendo funcionado. Sempre existiu, não é coisa nova do
+                // Convidado Especial -- afeta qualquer cadastro de Ritmista.
+                mostrarEtapa(1);
             }
         } else {
             const erroTexto = await res.text();

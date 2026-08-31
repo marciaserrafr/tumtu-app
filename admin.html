@@ -6255,11 +6255,30 @@
         const container = document.getElementById('convidados-especiais-lista');
         if (!container) return;
         if (convidadosEspeciaisCache.length === 0) { container.innerHTML = '<div class="estado-vazio">Nenhum Convidado cadastrado ainda.</div>'; return; }
-        container.innerHTML = convidadosEspeciaisCache.map(r => `
-            <div class="item-card" onclick="abrirFichaConvidadoEspecial(${r.id})" style="cursor:pointer;">
-                <div class="item-info"><div class="item-nome">${esc(r.nome)}</div><div class="item-detalhe">${LABEL_PERFIL_CONVIDADO_ESPECIAL[r.perfil] || r.perfil}</div></div>
-                <div class="item-acoes">${BADGE_STATUS_CONVIDADO_ESPECIAL[r.status] || ''}</div>
-            </div>`).join('');
+        // Mesmo padrão de card de Ritmistas/Diretoria (card-ritmista, foto/
+        // inicial, Ativar/Rejeitar inline quando pendente) -- achado dela,
+        // 31/ago/2026: a 1ª versão só mostrava um badge, sem os botões que
+        // já existem nos outros dois grupos.
+        container.innerHTML = convidadosEspeciaisCache.map(r => {
+            const inicial = (r.nome || '?')[0].toUpperCase();
+            const fotoHtml = r.foto_url ? `<img src="${r.foto_url}" style="object-position:${r.foto_pos_x ?? 50}% ${r.foto_pos_y ?? 50}%;">` : inicial;
+            const badgeStatus = BADGE_STATUS_CONVIDADO_ESPECIAL[r.status] || '';
+            const podeAgir = souSuperAdmin || tenhoCapacidade('aprovar_convidados_especiais');
+            const acoesExtras = (r.status === 'pendente' && podeAgir)
+                ? `<button class="btn-card-acao btn-card-ativar" onclick="event.stopPropagation();atualizarStatus(${r.id},'aprovado',null,recarregarConvidadosEspeciais)">Ativar</button>
+                   <button class="btn-card-acao btn-card-rejeitar" onclick="event.stopPropagation();atualizarStatus(${r.id},'rejeitado',null,recarregarConvidadosEspeciais)">Rejeitar</button>`
+                : '';
+            const direita = `${acoesExtras}${badgeStatus}<span class="card-chevron">›</span>`;
+            return `
+            <div class="card-ritmista ${r.status}" onclick="abrirFichaConvidadoEspecial(${r.id})">
+                <div class="card-foto">${fotoHtml}</div>
+                <div class="card-esquerda">
+                    <div class="card-linha1"><span class="card-nome">${esc(r.nome)}</span>${r.apelido ? `<span class="card-apelido-inline">${esc(r.apelido)}</span>` : ''}</div>
+                    <div class="card-linha2"><span class="dir-badge-cargo">${LABEL_PERFIL_CONVIDADO_ESPECIAL[r.perfil] || r.perfil}</span></div>
+                </div>
+                <div class="card-direita">${direita}</div>
+            </div>`;
+        }).join('');
     }
 
     function recarregarConvidadosEspeciais() {
