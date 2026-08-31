@@ -8499,7 +8499,15 @@
             if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
             return;
         }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe,naipe`, { headers: authHeaders });
+        // eh_convidado=eq.false (31/ago/2026): CRÍTICO -- Convidado Especial -
+        // Diretor/Apoio nunca pode ganhar permissão de gestão nenhuma, mesmo
+        // acidentalmente. Sem esse filtro, um Diretor de verdade abrindo o
+        // grupo "Diretor de Bateria"/"Diretor (Apoio)" em Permissões veria
+        // (e poderia editar) as permissões de um Convidado misturado na
+        // lista -- ele já nunca acessa o painel (modo_carteirinha_individual
+        // sempre true pra esse grupo), mas capacidades nunca deviam nem
+        // existir na ficha dele, muito menos serem ligáveis por essa tela.
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe,naipe`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
     }
