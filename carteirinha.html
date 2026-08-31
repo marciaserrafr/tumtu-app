@@ -17,6 +17,12 @@
     <link rel="stylesheet" href="styles/components.css?v=24">
     <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=36">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
+    <!-- Leitor de QR pra "Confirmar Presença" (31/ago/2026) -- mesma
+         biblioteca já usada no leitor da Diretoria em admin.html; aqui é o
+         Ritmista/Diretoria escaneando o QR do EVENTO (projetado pelo
+         Diretor), de dentro do próprio app, pra nunca precisar logar de
+         novo num navegador separado (fricção conhecida de presenca.html). -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
         /* Desliga a transição suave nativa entre páginas (ligada globalmente
@@ -250,6 +256,13 @@
             <span class="c-btn-icone-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span>
             <span class="c-btn-icone-lb">Trocar</span>
         </button>
+        <!-- "Confirmar Presença" (31/ago/2026) -- só aparece quando existe
+             pelo menos um evento da bateria, elegível pro cargo da pessoa,
+             ainda sem presença confirmada (ver verificarPresencaPendente). -->
+        <button class="c-btn-icone" id="btnPresenca" style="display:none;" onclick="abrirPresenca();">
+            <span class="c-btn-icone-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg></span>
+            <span class="c-btn-icone-lb">Presença</span>
+        </button>
     </div>
 
 </div>
@@ -259,6 +272,20 @@
     <div class="ficha-modal-box">
         <div id="fp-container-perfil"></div>
     </div>
+</div>
+
+<!-- SCANNER DE PRESENÇA (31/ago/2026) -- câmera do próprio celular, dentro
+     do app, lendo o QR do evento que o Diretor projeta/mostra. -->
+<div id="presencaScannerOverlay" style="display:none;position:fixed;inset:0;z-index:2000;background:#0b0a12;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;flex-shrink:0;">
+        <div style="font-size:16px;font-weight:800;color:#fff;">Confirmar Presença</div>
+        <button type="button" onclick="fecharPresenca()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
+    </div>
+    <div style="flex:1;position:relative;overflow:hidden;background:#000;">
+        <video id="presencaScannerVideo" playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
+    </div>
+    <div id="presencaScannerFeedback" style="padding:22px 20px;text-align:center;min-height:76px;font-size:15px;flex-shrink:0;color:#8d88a3;"></div>
+    <canvas id="presencaScannerCanvas" style="display:none;"></canvas>
 </div>
 
 <div class="c-toast" id="cToast"></div>
@@ -673,6 +700,9 @@
             if (ritmista.totalVinculos > 1) {
                 document.getElementById('btnTrocarBateria').style.display = 'flex';
             }
+            // "Confirmar Presença" -- roda em paralelo, sem atrasar o resto
+            // da tela (mesmo espírito de renderMestres acima).
+            verificarPresencaPendente(ritmista);
             const cacheado = lerConfigCache(ritmista.bateria_id);
             (async () => {
                 await renderCarteirinha(ritmista);
@@ -783,6 +813,177 @@
     // busca todos os vínculos e mostra a telinha de escolher, mesmo já logado.
     function trocarBateria() {
         window.location.href = 'login?trocar=1';
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // CONFIRMAR PRESENÇA (31/ago/2026) — leitor de QR dentro do próprio app.
+    // Resolve a fricção de presenca.html (escanear com a câmera comum do
+    // celular podia pedir login de novo, mesmo já logado no app instalado —
+    // aqui a sessão já está aberta, então nunca precisa logar de novo).
+    // Reaproveita a MESMA lógica de confirmação que presenca.html já usa
+    // (mesma tabela, mesma regra de banco) — só muda onde a câmera roda.
+    // ══════════════════════════════════════════════════════════════════
+
+    function escHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    async function tokenAtual() {
+        const { data } = await sb.auth.getSession();
+        return data.session ? data.session.access_token : SUPABASE_KEY;
+    }
+
+    // Mostra o botão só quando existe pelo menos um evento da bateria,
+    // elegível pro cargo da pessoa, que ela ainda não confirmou — nunca
+    // um botão "morto" sem nada pra confirmar. Silencioso em erro (o
+    // botão simplesmente não aparece, sem travar o resto da carteirinha).
+    async function verificarPresencaPendente(ritmista) {
+        try {
+            const token = await tokenAtual();
+            const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` };
+            const resEventos = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${ritmista.bateria_id}&select=id,perfis_diretoria_inclusos`, { headers: hdrs });
+            const eventos = resEventos.ok ? await resEventos.json() : [];
+            const elegiveis = eventos.filter(e => ritmista.perfil === 'ritmista' || (e.perfis_diretoria_inclusos || []).includes(ritmista.perfil));
+            if (!elegiveis.length) return;
+
+            const resConfirmadas = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?vinculo_id=eq.${ritmista.id}&select=evento_id`, { headers: hdrs });
+            const confirmadas = resConfirmadas.ok ? await resConfirmadas.json() : [];
+            const idsConfirmados = new Set(confirmadas.map(c => c.evento_id));
+
+            if (elegiveis.some(e => !idsConfirmados.has(e.id))) {
+                document.getElementById('btnPresenca').style.display = 'flex';
+            }
+        } catch (e) { /* botão só não aparece */ }
+    }
+
+    let presencaCartStream = null;
+    let presencaCartAnimId = null;
+    let presencaCartUltimoLido = null;
+    let presencaCartUltimoTs = 0;
+
+    async function abrirPresenca() {
+        if (typeof jsQR !== 'function') { mostrarToast('O leitor de QR ainda não carregou — tenta de novo em alguns segundos.', 'erro'); return; }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { mostrarToast('Esse navegador não dá acesso à câmera.', 'erro'); return; }
+        const overlay = document.getElementById('presencaScannerOverlay');
+        document.getElementById('presencaScannerFeedback').innerHTML = 'Aponte a câmera pro QR do evento.';
+        presencaCartUltimoLido = null;
+        overlay.style.display = 'flex';
+        try {
+            presencaCartStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        } catch (e) {
+            mostrarToast('Não consegui acessar a câmera — confira a permissão do navegador pro TumTu.', 'erro');
+            overlay.style.display = 'none';
+            return;
+        }
+        const video = document.getElementById('presencaScannerVideo');
+        video.srcObject = presencaCartStream;
+        await video.play();
+        presencaCartLoop();
+    }
+
+    function fecharPresenca() {
+        document.getElementById('presencaScannerOverlay').style.display = 'none';
+        if (presencaCartAnimId) cancelAnimationFrame(presencaCartAnimId);
+        presencaCartAnimId = null;
+        if (presencaCartStream) {
+            presencaCartStream.getTracks().forEach(t => t.stop());
+            presencaCartStream = null;
+        }
+    }
+
+    function presencaCartLoop() {
+        const video = document.getElementById('presencaScannerVideo');
+        if (!video || document.getElementById('presencaScannerOverlay').style.display === 'none') return;
+        if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+            presencaCartAnimId = requestAnimationFrame(presencaCartLoop);
+            return;
+        }
+        const canvas = document.getElementById('presencaScannerCanvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imagem = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const codigo = jsQR(imagem.data, imagem.width, imagem.height);
+        if (codigo && codigo.data) processarQrPresenca(codigo.data);
+        presencaCartAnimId = requestAnimationFrame(presencaCartLoop);
+    }
+
+    // O QR do evento é uma URL (".../presenca?e=<id>") -- extrai só o id;
+    // se vier só o número puro (sem URL), usa o texto lido direto.
+    function extrairEventoIdDaLeitura(texto) {
+        try {
+            const url = new URL(texto);
+            const e = url.searchParams.get('e');
+            if (e) return e;
+        } catch (err) { /* não era uma URL válida -- tenta como id puro abaixo */ }
+        return (texto || '').trim();
+    }
+
+    async function processarQrPresenca(textoLido) {
+        const eventoId = extrairEventoIdDaLeitura(textoLido);
+        const agora = Date.now();
+        // A câmera lê o mesmo QR em quase todo frame enquanto a pessoa não
+        // afasta o celular -- sem isso, ficaria tentando de novo em loop.
+        if (eventoId === presencaCartUltimoLido && (agora - presencaCartUltimoTs) < 3000) return;
+        presencaCartUltimoLido = eventoId;
+        presencaCartUltimoTs = agora;
+
+        const feedback = document.getElementById('presencaScannerFeedback');
+        const ritmista = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        if (!ritmista || !eventoId || !/^\d+$/.test(eventoId)) {
+            feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">QR não reconhecido.</span>';
+            return;
+        }
+
+        feedback.innerHTML = 'Verificando...';
+        try {
+            const token = await tokenAtual();
+            const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` };
+
+            const resEvento = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoId}&select=id,nome,bateria_id,perfis_diretoria_inclusos`, { headers: hdrs });
+            const eventos = resEvento.ok ? await resEvento.json() : [];
+            if (!eventos.length) { feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Evento não encontrado.</span>'; return; }
+            const evento = eventos[0];
+
+            if (evento.bateria_id !== ritmista.bateria_id) {
+                feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Esse QR é de outra bateria.</span>';
+                return;
+            }
+            const elegivel = ritmista.perfil === 'ritmista' || (evento.perfis_diretoria_inclusos || []).includes(ritmista.perfil);
+            if (!elegivel) {
+                feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Esse evento não inclui o seu cargo.</span>';
+                return;
+            }
+
+            const resJa = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${eventoId}&vinculo_id=eq.${ritmista.id}&select=id`, { headers: hdrs });
+            const jaConfirmado = resJa.ok ? await resJa.json() : [];
+            if (jaConfirmado.length) {
+                feedback.innerHTML = `<span style="color:#D4AF37;font-weight:700;">✓ Presença já confirmada em ${escHtml(evento.nome)}.</span>`;
+                return;
+            }
+
+            feedback.innerHTML = `Confirmando presença em ${escHtml(evento.nome)}...`;
+            const resInsert = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas`, {
+                method: 'POST',
+                headers: { ...hdrs, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                body: JSON.stringify({
+                    evento_id: Number(eventoId),
+                    vinculo_id: ritmista.id,
+                    pessoa_id: ritmista.pessoa_id,
+                    bateria_id: ritmista.bateria_id,
+                    confirmado_por: ritmista.pessoa_id,
+                }),
+            });
+            if (resInsert.ok) {
+                feedback.innerHTML = `<span style="color:#5cb85c;font-weight:700;font-size:16px;">✓ Presença confirmada em ${escHtml(evento.nome)}!</span>`;
+                verificarPresencaPendente(ritmista); // reconfere -- esconde o botão se não sobrar mais nada pendente
+            } else {
+                feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Não consegui confirmar. Tenta de novo.</span>';
+            }
+        } catch (e) {
+            feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Erro ao verificar. Tenta de novo.</span>';
+        }
     }
 </script>
 </body>
