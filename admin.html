@@ -2374,11 +2374,81 @@
         <div id="extras-lista" class="lista-cards"></div>
     </div>
 
-    <!-- Conteúdo do Modelo Especial -->
+    <!-- Conteúdo do Modelo Especial -- mesmo padrão estético de Ritmistas/
+         Diretoria (pedido dela, 31/ago/2026): Exportar, "Novo cadastro"
+         recolhido, busca, filtros (Tipo de Convidado faz o papel de
+         Cargo/Instrumento) e Status. -->
     <div id="convidados-especiais-conteudo" style="display:none;">
-        <div id="linksCadastroConvidadoEspecial"></div>
-        <button id="btnExportarConvidadosEspeciais" class="btn-exportar" style="margin:12px 0 0;display:none;" onclick="abrirModalExportar('convidado_especial')">⬇ Exportar</button>
-        <div id="convidados-especiais-total-geral" style="font-size:13px;color:#888;margin:16px 0 16px;"></div>
+
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+            <button id="btnExportarConvidadosEspeciais" class="btn-exportar" style="display:none;" onclick="abrirModalExportar('convidado_especial')">⬇ Exportar</button>
+        </div>
+
+        <div id="cadastroConvidadoEspecialCabecalho" class="cadastro-cabecalho" onclick="toggleCadastroConvidadoEspecial()">
+            <span class="cadastro-cabecalho-titulo"><span class="cadastro-cabecalho-tracinho"></span>Novo cadastro</span>
+            <span class="config-item-seta" id="cadastroConvidadoEspecialSeta">›</span>
+        </div>
+        <div id="cadastroConvidadoEspecialConteudo" style="display:none;margin-top:12px;">
+            <!-- "+ Cadastrar X" (cadastro manual, como em Ritmistas/Diretoria)
+                 ainda NÃO existe aqui de propósito -- depende de uma mudança
+                 na Edge Function admin-create-user (rodando com service_role,
+                 fora deste arquivo) pra saber lidar com Convidado Especial;
+                 sem isso o botão criaria um Ritmista/Diretor comum por
+                 engano, sem eh_convidado=true. Ver conversa de 31/ago/2026. -->
+            <div id="linksCadastroConvidadoEspecial"></div>
+        </div>
+
+        <div style="margin:16px 0;display:flex;gap:8px;">
+            <input type="text" id="campoBuscaConvidadoEspecial" placeholder="Buscar por nome ou apelido..." oninput="aplicarFiltrosConvidadosEspeciais()" onkeydown="if(event.key==='Enter') aplicarFiltrosConvidadosEspeciais()"
+                style="flex:1;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+            <button type="button" class="btn-ficha" onclick="aplicarFiltrosConvidadosEspeciais()" style="flex-shrink:0;">Buscar</button>
+        </div>
+
+        <div class="secao-titulo secao-titulo-neutro" style="margin-top:0;">Filtros</div>
+        <div class="filtros" style="margin-bottom:24px;">
+            <!-- FILTRO TIPO DE CONVIDADO -->
+            <div class="multi-select" id="tipoConvidadoSelectWrap">
+                <div class="multi-select-trigger" id="tipoConvidadoSelectTrigger" onclick="toggleTipoConvidadoSelect()">
+                    <span style="display:flex;align-items:center;gap:6px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="4 4 20 4 14 12 14 19 10 21 10 12 4 4"></polygon></svg>
+                        <span id="tipoConvidadoSelectLabel">Todos os tipos</span>
+                    </span>
+                    <span id="tipoConvidadoSelectArrow">▼</span>
+                </div>
+                <div class="multi-select-dropdown" id="tipoConvidadoSelectDropdown" style="display:none;">
+                    <label class="multi-select-option"><input type="checkbox" value="ritmista" checked onchange="onChangeTipoConvidado()">Ritmista</label>
+                    <label class="multi-select-option"><input type="checkbox" value="diretor" checked onchange="onChangeTipoConvidado()">Diretor de Bateria</label>
+                    <label class="multi-select-option"><input type="checkbox" value="apoio" checked onchange="onChangeTipoConvidado()">Diretor (Apoio)</label>
+                    <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
+                        <span id="tipoConvidadoMarcarTudoLink" onclick="toggleMarcarTudoTipoConvidado()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+                        <button type="button" class="btn-ficha" onclick="aplicarFiltroTipoConvidado()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
+                    </div>
+                </div>
+            </div>
+            <!-- FILTRO STATUS -->
+            <div class="multi-select" id="statusConvidadoSelectWrap">
+                <div class="multi-select-trigger" id="statusConvidadoSelectTrigger" onclick="toggleStatusConvidadoSelect()">
+                    <span style="display:flex;align-items:center;gap:6px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="4 4 20 4 14 12 14 19 10 21 10 12 4 4"></polygon></svg>
+                        <span id="statusConvidadoSelectLabel">Todos os status</span>
+                    </span>
+                    <span id="statusConvidadoSelectArrow">▼</span>
+                </div>
+                <div class="multi-select-dropdown" id="statusConvidadoSelectDropdown" style="display:none;">
+                    <label class="multi-select-option"><input type="checkbox" value="aprovado" checked onchange="onChangeStatusConvidado()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#28a745;margin:0 4px;"></span>Ativos</label>
+                    <label class="multi-select-option"><input type="checkbox" value="desligado" checked onchange="onChangeStatusConvidado()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc3545;margin:0 4px;"></span>Desligados</label>
+                    <label class="multi-select-option"><input type="checkbox" value="pendente" checked onchange="onChangeStatusConvidado()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffc107;margin:0 4px;"></span>Pendentes</label>
+                    <label class="multi-select-option"><input type="checkbox" value="rejeitado" checked onchange="onChangeStatusConvidado()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d;margin:0 4px;"></span>Rejeitados</label>
+                    <label class="multi-select-option"><input type="checkbox" value="suspenso" checked onchange="onChangeStatusConvidado()"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fd7e14;margin:0 4px;"></span>Suspensos</label>
+                    <div style="border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;">
+                        <span id="statusConvidadoMarcarTudoLink" onclick="toggleMarcarTudoStatusConvidado()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+                        <button type="button" class="btn-ficha" onclick="aplicarFiltroStatusConvidado()" style="padding:4px 12px;font-size:12px;">Aplicar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="convidados-especiais-total-geral" style="font-size:13px;color:#888;margin:0 0 16px;"></div>
         <div id="convidados-especiais-lista" class="lista-cards"></div>
     </div>
 </div>
@@ -5157,6 +5227,15 @@
         div.style.display = abrindo ? 'block' : 'none';
         if (seta) seta.textContent = abrindo ? '⌄' : '›';
     }
+    // Mesmo padrão de Ritmistas/Diretoria, 31/ago/2026 (pedido dela: mesma
+    // estética nas 3 telas).
+    function toggleCadastroConvidadoEspecial() {
+        const div = document.getElementById('cadastroConvidadoEspecialConteudo');
+        const seta = document.getElementById('cadastroConvidadoEspecialSeta');
+        const abrindo = div.style.display === 'none';
+        div.style.display = abrindo ? 'block' : 'none';
+        if (seta) seta.textContent = abrindo ? '⌄' : '›';
+    }
     function renderizarLinkCadastroRitmista() {
         const div = document.getElementById('linkCadastroRitmista');
         if (!div) return;
@@ -6349,8 +6428,12 @@
     }
 
     async function iniciarConvidadosEspeciaisTab() {
+        const be = document.getElementById('btnExportarConvidadosEspeciais');
+        if (be) be.style.display = (souSuperAdmin || tenhoCapacidade('exportar_convidados_especiais')) ? '' : 'none';
+        const cc = document.getElementById('cadastroConvidadoEspecialCabecalho');
+        if (cc) cc.style.display = (souSuperAdmin || tenhoCapacidade('copiar_link_convidados_especiais')) ? '' : 'none';
         await carregarConvidadosEspeciais();
-        renderizarConvidadosEspeciais();
+        aplicarFiltrosConvidadosEspeciais();
         atualizarTotalizadorConvidadosEspeciais();
     }
 
@@ -6400,10 +6483,17 @@
         desligado: '<span class="badge badge-desligado">Desligado</span>',
         rejeitado: '<span class="badge badge-rejeitado">Rejeitado</span>',
     };
-    function renderizarConvidadosEspeciais() {
+    // Recebe a lista já filtrada (busca + Tipo de Convidado + Status, ver
+    // aplicarFiltrosConvidadosEspeciais) -- agrupa por tipo com título e
+    // contador própria (pedido dela, 31/ago/2026: "os títulos por tipo de
+    // convidado, o contador por tipo de convidado"), mesmo padrão de seção
+    // já usado em Presença/Figurino (secao-titulo por perfil, só aparece
+    // quem tem gente).
+    function renderizarConvidadosEspeciais(lista) {
         // Só é chamada quando a bateria já está em modo Especial (ver
         // iniciarConvidadosAba) -- sem checagem própria de "habilitado" aqui.
         renderizarLinksCadastroConvidadoEspecial();
+        lista = lista || convidadosEspeciaisCache;
 
         const totalEl = document.getElementById('convidados-especiais-total-geral');
         if (totalEl) totalEl.textContent = `${convidadosEspeciaisCache.length} convidado(s) no total`;
@@ -6411,11 +6501,12 @@
         const container = document.getElementById('convidados-especiais-lista');
         if (!container) return;
         if (convidadosEspeciaisCache.length === 0) { container.innerHTML = '<div class="estado-vazio">Nenhum Convidado cadastrado ainda.</div>'; return; }
+        if (lista.length === 0) { container.innerHTML = '<div class="estado-vazio">Nenhum Convidado encontrado com esses filtros.</div>'; return; }
         // Mesmo padrão de card de Ritmistas/Diretoria (card-ritmista, foto/
         // inicial, Ativar/Rejeitar inline quando pendente) -- achado dela,
         // 31/ago/2026: a 1ª versão só mostrava um badge, sem os botões que
         // já existem nos outros dois grupos.
-        container.innerHTML = convidadosEspeciaisCache.map(r => {
+        const cardHtml = r => {
             const inicial = (r.nome || '?')[0].toUpperCase();
             const fotoHtml = r.foto_url ? `<img src="${r.foto_url}" style="object-position:${r.foto_pos_x ?? 50}% ${r.foto_pos_y ?? 50}%;">` : inicial;
             const badgeStatus = BADGE_STATUS_CONVIDADO_ESPECIAL[r.status] || '';
@@ -6434,11 +6525,16 @@
                 </div>
                 <div class="card-direita">${direita}</div>
             </div>`;
+        };
+        container.innerHTML = ['ritmista', 'diretor', 'apoio'].map(perfil => {
+            const doGrupo = lista.filter(r => r.perfil === perfil);
+            if (doGrupo.length === 0) return '';
+            return `<div class="secao-titulo">${LABEL_PERFIL_CONVIDADO_ESPECIAL[perfil]} (${doGrupo.length})</div>` + doGrupo.map(cardHtml).join('');
         }).join('');
     }
 
     function recarregarConvidadosEspeciais() {
-        return carregarConvidadosEspeciais().then(() => { renderizarConvidadosEspeciais(); atualizarTotalizadorConvidadosEspeciais(); });
+        return carregarConvidadosEspeciais().then(() => { aplicarFiltrosConvidadosEspeciais(); atualizarTotalizadorConvidadosEspeciais(); });
     }
 
     // Ficha de Convidado Especial reaproveita os DOIS modais que já existem
@@ -9832,6 +9928,90 @@
     // reverte o padrão "Ativos + Pendentes" de 18/ago/2026, pedido dela).
     let filtroCargoDiretoriaSelecionados = ['mestre', 'diretor', 'apoio'];
     let filtroStatusDiretoriaSelecionados = ['aprovado', 'desligado', 'pendente', 'rejeitado', 'suspenso'];
+
+    // Busca + Filtros de Convidados Especiais -- mesmo padrão de Diretoria,
+    // 31/ago/2026 (pedido dela: mesma estética das 3 telas). "Tipo de
+    // Convidado" faz o papel de Cargo (sem Mestre -- não existe "Convidado
+    // do Mestre", ver gruposExtraDoPublico). Sem "Menores"/"Não Desfila"/
+    // "Repique de Bossa" no Status -- conceitos exclusivos de Ritmista
+    // normal, mesmo conjunto de 5 status já usado em BADGE_STATUS_CONVIDADO_ESPECIAL.
+    let filtroTipoConvidadoSelecionados = ['ritmista', 'diretor', 'apoio'];
+    let filtroStatusConvidadoSelecionados = ['aprovado', 'desligado', 'pendente', 'rejeitado', 'suspenso'];
+
+    function toggleTipoConvidadoSelect() {
+        const dd = document.getElementById('tipoConvidadoSelectDropdown');
+        const arrow = document.getElementById('tipoConvidadoSelectArrow');
+        const aberto = dd.style.display !== 'none';
+        dd.style.display = aberto ? 'none' : 'block';
+        arrow.textContent = aberto ? '▼' : '▲';
+    }
+    function toggleMarcarTudoTipoConvidado() {
+        const marcados = document.querySelectorAll('#tipoConvidadoSelectDropdown input[type=checkbox]:checked').length;
+        const novoEstado = marcados === 0;
+        document.querySelectorAll('#tipoConvidadoSelectDropdown input[type=checkbox]').forEach(c => c.checked = novoEstado);
+        onChangeTipoConvidado();
+    }
+    function onChangeTipoConvidado() {
+        const checks = document.querySelectorAll('#tipoConvidadoSelectDropdown input[type=checkbox]:checked');
+        filtroTipoConvidadoSelecionados = Array.from(checks).map(c => c.value);
+        const total = document.querySelectorAll('#tipoConvidadoSelectDropdown input[type=checkbox]').length;
+        const label = document.getElementById('tipoConvidadoSelectLabel');
+        if (filtroTipoConvidadoSelecionados.length === total) {
+            label.textContent = 'Todos os tipos';
+        } else if (filtroTipoConvidadoSelecionados.length === 0) {
+            label.textContent = 'Nenhum tipo';
+        } else {
+            label.textContent = filtroTipoConvidadoSelecionados.map(v => LABEL_PERFIL_CONVIDADO_ESPECIAL[v]).join(', ');
+        }
+        document.getElementById('tipoConvidadoSelectTrigger').classList.toggle('ativo', filtroTipoConvidadoSelecionados.length > 0 && filtroTipoConvidadoSelecionados.length < total);
+        const marcarTudoEl = document.getElementById('tipoConvidadoMarcarTudoLink');
+        if (marcarTudoEl) marcarTudoEl.textContent = filtroTipoConvidadoSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
+    }
+    function aplicarFiltroTipoConvidado() { toggleTipoConvidadoSelect(); aplicarFiltrosConvidadosEspeciais(); }
+
+    function toggleStatusConvidadoSelect() {
+        const dd = document.getElementById('statusConvidadoSelectDropdown');
+        const arrow = document.getElementById('statusConvidadoSelectArrow');
+        const aberto = dd.style.display !== 'none';
+        dd.style.display = aberto ? 'none' : 'block';
+        arrow.textContent = aberto ? '▼' : '▲';
+    }
+    function toggleMarcarTudoStatusConvidado() {
+        const marcados = document.querySelectorAll('#statusConvidadoSelectDropdown input[type=checkbox]:checked').length;
+        const novoEstado = marcados === 0;
+        document.querySelectorAll('#statusConvidadoSelectDropdown input[type=checkbox]').forEach(c => c.checked = novoEstado);
+        onChangeStatusConvidado();
+    }
+    function onChangeStatusConvidado() {
+        const checks = document.querySelectorAll('#statusConvidadoSelectDropdown input[type=checkbox]:checked');
+        filtroStatusConvidadoSelecionados = Array.from(checks).map(c => c.value);
+        const total = document.querySelectorAll('#statusConvidadoSelectDropdown input[type=checkbox]').length;
+        const label = document.getElementById('statusConvidadoSelectLabel');
+        if (filtroStatusConvidadoSelecionados.length === total) {
+            label.textContent = 'Todos os status';
+        } else if (filtroStatusConvidadoSelecionados.length === 0) {
+            label.textContent = 'Nenhum status';
+        } else {
+            label.textContent = filtroStatusConvidadoSelecionados.map(v => LABELS_STATUS_FILTRO[v]).join(', ');
+        }
+        document.getElementById('statusConvidadoSelectTrigger').classList.toggle('ativo', filtroStatusConvidadoSelecionados.length > 0 && filtroStatusConvidadoSelecionados.length < total);
+        const marcarTudoEl = document.getElementById('statusConvidadoMarcarTudoLink');
+        if (marcarTudoEl) marcarTudoEl.textContent = filtroStatusConvidadoSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
+    }
+    function aplicarFiltroStatusConvidado() { toggleStatusConvidadoSelect(); aplicarFiltrosConvidadosEspeciais(); }
+
+    function aplicarFiltrosConvidadosEspeciais() {
+        let lista = (convidadosEspeciaisCache || []).filter(r => {
+            const tipoOk = filtroTipoConvidadoSelecionados.includes(r.perfil);
+            const statusOk = filtroStatusConvidadoSelecionados.includes(r.status);
+            return tipoOk && statusOk;
+        });
+        const busca = semAcento(document.getElementById('campoBuscaConvidadoEspecial')?.value || '');
+        if (busca) {
+            lista = lista.filter(r => semAcento(r.nome).includes(busca) || semAcento(r.apelido).includes(busca));
+        }
+        renderizarConvidadosEspeciais(lista);
+    }
 
     async function carregarDiretoria(leve = false) {
         if (diretoriaCarregada) return;
