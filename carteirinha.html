@@ -941,7 +941,15 @@
             const token = await tokenAtual();
             const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` };
 
-            const resEvento = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoId}&select=id,nome,bateria_id,perfis_diretoria_inclusos`, { headers: hdrs });
+            // As duas checagens (evento existe/é elegível, e já não foi
+            // confirmado antes) não dependem uma da outra -- rodam ao mesmo
+            // tempo em vez de uma esperar a outra terminar, corta uma ida e
+            // volta inteira até o banco (achado real da Márcia, 31/ago/2026:
+            // "demorou pra registrar", testando ao vivo).
+            const [resEvento, resJa] = await Promise.all([
+                fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoId}&select=id,nome,bateria_id,perfis_diretoria_inclusos`, { headers: hdrs }),
+                fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${eventoId}&vinculo_id=eq.${ritmista.id}&select=id`, { headers: hdrs }),
+            ]);
             const eventos = resEvento.ok ? await resEvento.json() : [];
             if (!eventos.length) { feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Evento não encontrado.</span>'; return; }
             const evento = eventos[0];
@@ -956,7 +964,6 @@
                 return;
             }
 
-            const resJa = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${eventoId}&vinculo_id=eq.${ritmista.id}&select=id`, { headers: hdrs });
             const jaConfirmado = resJa.ok ? await resJa.json() : [];
             if (jaConfirmado.length) {
                 feedback.innerHTML = `<span style="color:#D4AF37;font-weight:700;">✓ Presença já confirmada em ${escHtml(evento.nome)}.</span>`;
