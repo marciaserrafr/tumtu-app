@@ -784,16 +784,18 @@
    do cartão, ícones de linha (Lucide, licença livre) em vez de emoji.
    Com 1 ou 2 itens visíveis, o space-around já centraliza sozinho --
    não precisa mais de uma classe/regra à parte pro caso "só um botão"
-   (existia antes como .botoes-solo, removida). */
+   (existia antes como .botoes-solo, removida).
+   Sem caixa/fundo/borda ao redor (removida em 30/ago/2026 -- achado dela
+   ao vivo: "um retângulo pesado", cor "bruta" -- Instagram de verdade
+   também não tem caixa nos ícones do rodapé, só os ícones soltos no
+   fundo da tela). Isso também tira de vez o problema da borda cortando
+   embaixo no iPhone (sem borda, não tem o que cortar). */
 .c-botoes {
   display: flex;
   justify-content: space-around;
   align-items: center;
   width: var(--largura-cartao, 300px);
-  background: var(--cor-fundo-medio);
-  border: 1px solid rgba(212, 175, 55, 0.18);
-  border-radius: 14px;
-  padding: 8px 4px;
+  padding: 4px 4px 0;
 }
 
 .c-btn-icone {
