@@ -2309,14 +2309,33 @@
 
 </div>
 
-<!-- PAINEL EXTRAS (25/ago/2026) -- gente de fora que ganha Figurino mas não
-     desfila (amigos que o Mestre/Diretoria convida pra eventos). Cadastro
-     mínimo: nome + de qual lado vieram (Ritmistas ou Diretoria, só pra
-     entrar na peça de Figurino certa) + tamanho. Sem CPF, sem login, sem
-     carteirinha -- não é Ritmista nem Diretoria. -->
+<!-- PAINEL CONVIDADOS (25/ago/2026, reorganizado em 31/ago/2026 -- pedido
+     dela: virou um menu pai "Convidados" com 2 sub-telas, mesmo padrão já
+     usado em "Configurações" (lista nível 1 -> sub-tela nível 2). "Simples"
+     é o Convidado original (gente de fora que ganha Figurino mas não
+     desfila, sem CPF/login/carteirinha). "Especiais" é o Convidado Especial
+     (31/ago/2026) -- vínculo de verdade, com login/carteirinha, mas 100%
+     separado da contagem normal de Ritmistas/Diretoria; só existe se a
+     bateria tiver o gate comercial `convidado_tem_carteirinha` ligado. -->
 <div class="painel" id="painel-extras">
-    <div id="extras-lista-tela">
+
+    <!-- Lista (nível 1, mesmo estilo de Configurações) -->
+    <div id="convidados-lista">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
+        <div class="painel-titulo">Convidados</div>
+        <div id="convidados-item-simples" class="config-item" onclick="abrirConvidadosSubtela('simples')">
+            <span>Simples</span>
+            <span class="config-item-seta">›</span>
+        </div>
+        <div id="convidados-item-especiais" class="config-item" onclick="abrirConvidadosSubtela('especiais')">
+            <span>Especiais</span>
+            <span class="config-item-seta">›</span>
+        </div>
+    </div>
+
+    <!-- Sub-tela: Simples -->
+    <div id="convidados-tela-simples" class="config-subtela" style="display:none;">
+        <button type="button" class="btn-voltar-config" onclick="voltarConvidadosLista()">← Convidados</button>
         <div class="painel-titulo">Convidados</div>
         <p class="config-sub-desc">Pessoas que não compõem a bateria, mas podem ser convidadas para os eventos em que necessitam os figurinos adequados. Cada Convidado é associado ao grupo de Ritmistas ou de Diretoria, pra definir qual figurino ele vai receber.</p>
         <div id="extras-editor" style="display:none;"></div>
@@ -2324,17 +2343,10 @@
         <div id="extras-total-geral" style="font-size:13px;color:#888;margin:-12px 0 16px;"></div>
         <div id="extras-lista" class="lista-cards"></div>
     </div>
-</div>
 
-<!-- PAINEL CONVIDADO ESPECIAL (31/ago/2026) -- tela própria, separada de
-     "Convidados" acima (pedido dela: telas diferentes, mesmo grupo "Mais" do
-     menu). Diferente do Convidado simples: tem carteirinha e login de
-     verdade (vínculo real, eh_convidado=true), com fila de aprovação
-     própria. Só existe se a bateria tiver o gate comercial ligado
-     (Comercial → Convidado Especial). -->
-<div class="painel" id="painel-convidados-especiais">
-    <div id="convidados-especiais-tela">
-        <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
+    <!-- Sub-tela: Especiais -->
+    <div id="convidados-tela-especiais" class="config-subtela" style="display:none;">
+        <button type="button" class="btn-voltar-config" onclick="voltarConvidadosLista()">← Convidados</button>
         <div class="painel-titulo">Convidado Especial</div>
         <p class="config-sub-desc">Tem carteirinha e login de verdade, diferente do Convidado simples -- fica de fora da contagem normal de Ritmistas e Diretoria.</p>
         <div id="convidados-especiais-desabilitado" style="display:none;" class="estado-vazio">Esse recurso não está ativado para esta bateria. Ative em Comercial → Convidado Especial.</div>
@@ -2569,8 +2581,8 @@
          comercial ligado. -->
     <div class="vg-grupo-titulo" id="vgTituloConvidadosEspeciais" style="display:none;">Convidado Especial</div>
     <div class="grade-status" id="totalizadoresConvidadosEspeciais" style="display:none;">
-        <div class="grade-item" onclick="trocarAba('convidados-especiais', document.querySelector('.aba-btn[data-aba=administrativo]'))">Ativos <b id="totalConvidadosEspeciaisAtivos">—</b></div>
-        <div class="grade-item" onclick="trocarAba('convidados-especiais', document.querySelector('.aba-btn[data-aba=administrativo]'))">Pendentes <b id="totalConvidadosEspeciaisPendentes">—</b></div>
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'));abrirConvidadosSubtela('especiais')">Ativos <b id="totalConvidadosEspeciaisAtivos">—</b></div>
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'));abrirConvidadosSubtela('especiais')">Pendentes <b id="totalConvidadosEspeciaisPendentes">—</b></div>
     </div>
 
     <!-- Empilhado, um card embaixo do outro (era grid de 2 colunas até
@@ -6159,10 +6171,32 @@
         atualizarTotalizadorExtras();
     }
 
-    // Convidado Especial (31/ago/2026) -- tela própria (ver painel-convidados-
-    // especiais), separada de "Convidados" (extras) acima, pedido dela:
-    // são conceitos bem diferentes (login/carteirinha de verdade vs não),
-    // só moram no mesmo grupo "Mais" do menu.
+    // "Convidados" (31/ago/2026, reorganizado a pedido dela) -- menu pai com
+    // 2 sub-telas, mesmo padrão de "Configurações" (abrirConfigTela/
+    // voltarConfigLista). "Simples" é o Convidado original (sem login);
+    // "Especiais" é o Convidado Especial (login/carteirinha de verdade).
+    function iniciarConvidadosAba() {
+        voltarConvidadosLista();
+        const itemEspeciais = document.getElementById('convidados-item-especiais');
+        if (itemEspeciais) itemEspeciais.style.display = (tenhoCapacidade('ver_convidados_especiais') && !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha)) ? '' : 'none';
+        const itemSimples = document.getElementById('convidados-item-simples');
+        if (itemSimples) itemSimples.style.display = tenhoCapacidade('ver_extras') ? '' : 'none';
+    }
+    function abrirConvidadosSubtela(nome) {
+        if (nome === 'especiais' && !(souSuperAdmin || tenhoCapacidade('ver_convidados_especiais'))) return;
+        document.getElementById('convidados-lista').style.display = 'none';
+        document.querySelectorAll('#painel-extras .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('convidados-tela-' + nome).style.display = 'block';
+        if (nome === 'simples') iniciarExtrasTab();
+        if (nome === 'especiais') iniciarConvidadosEspeciaisTab();
+    }
+    function voltarConvidadosLista() {
+        document.querySelectorAll('#painel-extras .config-subtela').forEach(el => el.style.display = 'none');
+        document.getElementById('convidados-lista').style.display = 'block';
+    }
+
+    // Chamada só por abrirConvidadosSubtela('especiais') -- carrega e
+    // renderiza a sub-tela "Especiais" dentro de #painel-extras.
     async function iniciarConvidadosEspeciaisTab() {
         await carregarConvidadosEspeciais();
         renderizarConvidadosEspeciais();
@@ -7265,11 +7299,11 @@
     function podeVerAba(aba) {
         if (aba === 'comercial') return souSuperAdmin;
         if (aba === 'configuracoes') return Object.keys(CAPACIDADE_CONFIG_SUBTELA).some(nome => podeVerConfigSubtela(nome));
-        // Convidado Especial (31/ago/2026): tela própria, mas só existe de
-        // verdade se a bateria tiver o gate comercial ligado -- Super Admin
-        // sempre pode entrar (precisa poder checar/ligar o gate em
-        // Comercial), Mestre/Diretor só com a capacidade E o gate ligado.
-        if (aba === 'convidados-especiais') return souSuperAdmin || (tenhoCapacidade('ver_convidados_especiais') && !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha));
+        // "Convidados" (31/ago/2026) virou menu pai com 2 sub-telas (Simples/
+        // Especiais, ver abrirConvidadosSubtela) -- abre pra quem tem
+        // QUALQUER uma das duas capacidades (cada linha da lista se esconde
+        // sozinha dentro da tela, ver iniciarConvidadosAba).
+        if (aba === 'extras') return tenhoCapacidade('ver_extras') || (tenhoCapacidade('ver_convidados_especiais') && !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha));
         const capacidadeExigida = CAPACIDADE_DA_ABA[aba];
         return !capacidadeExigida || tenhoCapacidade(capacidadeExigida);
     }
@@ -7277,7 +7311,7 @@
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
     // das capacidades dos itens que ela agrupa.
-    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'extras', 'convidados-especiais', 'presenca', 'permissoes', 'historico'];
+    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'permissoes', 'historico'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -7363,7 +7397,6 @@
         { aba: 'dados-bateria', label: 'Dados da Bateria' },
         { aba: 'configuracoes', label: 'Configurações' },
         { aba: 'extras', label: 'Convidados' },
-        { aba: 'convidados-especiais', label: 'Convidado Especial' },
         { aba: 'figurino', label: 'Entrega de Figurino' },
         { aba: 'presenca', label: 'Lista de Presença' },
         { aba: 'comercial', label: 'Comercial' },
@@ -9923,8 +9956,7 @@
         if (aba === 'dados-bateria') renderizarDadosBateriaTab(false);
         if (aba === 'comercial') renderizarComercialTab();
         if (aba === 'figurino') iniciarFigurinoTab();
-        if (aba === 'extras') iniciarExtrasTab();
-        if (aba === 'convidados-especiais') iniciarConvidadosEspeciaisTab();
+        if (aba === 'extras') iniciarConvidadosAba();
         if (aba === 'presenca') iniciarPresencaTab();
         if (aba === 'permissoes') { permissoesPessoaEditando = null; voltarPermissoesLista(); renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'historico') carregarHistoricoEscolaSA();
