@@ -127,7 +127,6 @@ Tumtu/
 - **Lógica de Temporada** (recadastro leve por temporada + trava de carteirinha pra quem não revisou) — desenho detalhado já discutido com ela em 27/ago/2026, nada implementado. Ver `docs/tumtu-historico-sessoes.md`.
 - **"Ritmistas/Diretoria sem carteirinha esta temporada"** (bulk import com senha aleatória, pra Mestre que já pagou carteirinha física) — "Fica pra depois", 28/ago/2026.
 - **Área dedicada "Configurações → Carteirinha"** — hoje `validade_carteirinha` mora provisoriamente dentro do cadastro de escola.
-- **Limpeza manual do bug antigo de medida perdida no autocadastro** (corrigido pra cadastros novos desde ~23/ago) — restavam 2 pessoas com Medida em branco na Imperatriz na última conferida (25/ago/2026): Gabriel Finizola André, Lucas Antunes Ribeiro. Consulta pra recontar: ver seção 56.7 da documentação técnica.
 - **`viewport-fit=cover` faltando no site inteiro** — ver "Stack e infraestrutura" acima.
 - Textos de ajuda (`config-sub-desc`) longos demais espalhados pelo app — revisão pontual, não sistemática ainda.
 - Ideias soltas, sem decisão/desenho ainda (ver memória de longo prazo pra detalhe de cada uma): mascarar dados sensíveis em Meu Perfil (toque-pra-revelar), suporte via WhatsApp, suspender acesso por inadimplência, "Área de recados" futura, preview de cor de carteirinha sem criar escola demo.
