@@ -117,9 +117,22 @@ function fpEl(id) {
 }
 
 // Tabela A (autoedição) + Tabela B (editando outra pessoa) — fonte única.
-function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil) {
+// ehConvidado (31/ago/2026): Convidado Especial (vinculos.eh_convidado=true)
+// tem capacidade PRÓPRIA (editar_convidados_especiais) pra edição por
+// Diretoria -- gerenciar esse grupo pequeno não deve exigir as capacidades
+// granulares normais de Ritmistas/Diretoria (editar_instrumento_ritmista
+// etc.). Autoedição e Super Admin não mudam -- ramos abaixo, inalterados.
+function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil, ehConvidado) {
     if (atorPerfil === 'super_admin') {
         return new Set(FP_CAMPOS.map(c => c.col).concat(['foto_url', 'bateria_instrumento_id', 'naipe', 'repique_bossa', 'medidas']));
+    }
+
+    if (!autoedicao && ehConvidado && (atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio')) {
+        const campos = new Set();
+        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_convidados_especiais')) {
+            if (alvoPerfil === 'ritmista') { campos.add('bateria_instrumento_id'); campos.add('medidas'); }
+        }
+        return campos;
     }
 
     if (autoedicao) {
@@ -398,7 +411,7 @@ function toggleInfoCampo(btn) {
 function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     opcoes = opcoes || {};
     const autoedicao = alvo.pessoa_id === minhaPessoaId;
-    const editaveis = fpCamposEditaveis(meuPerfil, autoedicao, alvo.perfil);
+    const editaveis = fpCamposEditaveis(meuPerfil, autoedicao, alvo.perfil, alvo.eh_convidado === true);
     fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, medidasRestritoAoVazio: false, aoSalvar: opcoes.aoSalvar || null };
     fpFotoBase64 = null;
     fpFotoPosX = alvo.foto_pos_x ?? 50;

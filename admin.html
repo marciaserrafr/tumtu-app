@@ -24,7 +24,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=49"></script>
+    <script src="ficha-perfil.js?v=50"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -2317,12 +2317,32 @@
 <div class="painel" id="painel-extras">
     <div id="extras-lista-tela">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <div class="painel-titulo">Convidados</div>
-        <p class="config-sub-desc">Pessoas que não compõem a bateria, mas podem ser convidadas para os eventos em que necessitam os figurinos adequados. Cada Convidado é associado ao grupo de Ritmistas ou de Diretoria, pra definir qual figurino ele vai receber.</p>
-        <div id="extras-editor" style="display:none;"></div>
-        <button type="button" id="extras-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoExtra()">+ Novo Convidado</button>
-        <div id="extras-total-geral" style="font-size:13px;color:#888;margin:-12px 0 16px;"></div>
-        <div id="extras-lista" class="lista-cards"></div>
+        <!-- Bloco próprio (31/ago/2026, junto com Convidado Especial abaixo)
+             -- a aba abre pra quem tem ver_extras OU ver_convidados_especiais
+             (ver podeVerAba), então esse bloco precisa da própria trava
+             ver_extras, senão quem só tem a capacidade de Convidado Especial
+             enxergaria esse grupo também de graça. -->
+        <div id="extras-simples-bloco">
+            <div class="painel-titulo">Convidados</div>
+            <p class="config-sub-desc">Pessoas que não compõem a bateria, mas podem ser convidadas para os eventos em que necessitam os figurinos adequados. Cada Convidado é associado ao grupo de Ritmistas ou de Diretoria, pra definir qual figurino ele vai receber.</p>
+            <div id="extras-editor" style="display:none;"></div>
+            <button type="button" id="extras-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoExtra()">+ Novo Convidado</button>
+            <div id="extras-total-geral" style="font-size:13px;color:#888;margin:-12px 0 16px;"></div>
+            <div id="extras-lista" class="lista-cards"></div>
+        </div>
+
+        <!-- Convidado Especial (31/ago/2026) -- diferente do Convidado acima:
+             tem carteirinha e login de verdade (vínculo real, eh_convidado=
+             true), com fila de aprovação própria. Só existe se a bateria
+             tiver o gate comercial ligado (Comercial → Convidado Especial). -->
+        <div id="convidados-especiais-bloco" style="display:none;margin-top:32px;">
+            <div class="painel-titulo" style="font-size:18px;">Convidado Especial</div>
+            <p class="config-sub-desc">Tem carteirinha e login de verdade, diferente do Convidado acima -- fica de fora da contagem normal de Ritmistas e Diretoria.</p>
+            <div id="linksCadastroConvidadoEspecial"></div>
+            <button id="btnExportarConvidadosEspeciais" class="btn-exportar" style="margin:12px 0 0;display:none;" onclick="abrirModalExportar('convidado_especial')">⬇ Exportar</button>
+            <div id="convidados-especiais-total-geral" style="font-size:13px;color:#888;margin:16px 0 16px;"></div>
+            <div id="convidados-especiais-lista" class="lista-cards"></div>
+        </div>
     </div>
 </div>
 
@@ -2540,6 +2560,16 @@
     <div class="grade-status" id="totalizadoresExtras" style="display:none;">
         <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Ritmistas <b id="totalExtrasRitmistas">—</b></div>
         <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Diretoria <b id="totalExtrasDiretoria">—</b></div>
+    </div>
+
+    <!-- Convidado Especial (31/ago/2026) -- grupo à parte de "Convidados"
+         acima (aquele nunca tem login). Mesmo peso visual reduzido, só
+         aparece pra quem tem a capacidade própria E a bateria tiver o gate
+         comercial ligado. -->
+    <div class="vg-grupo-titulo" id="vgTituloConvidadosEspeciais" style="display:none;">Convidado Especial</div>
+    <div class="grade-status" id="totalizadoresConvidadosEspeciais" style="display:none;">
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Ativos <b id="totalConvidadosEspeciaisAtivos">—</b></div>
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Pendentes <b id="totalConvidadosEspeciaisPendentes">—</b></div>
     </div>
 
     <!-- Empilhado, um card embaixo do outro (era grid de 2 colunas até
@@ -3055,6 +3085,22 @@
         if (titulo) titulo.style.display = 'block';
     }
 
+    // Card "Convidado Especial" na Visão Geral (31/ago/2026) -- só pra quem
+    // tem ver_convidados_especiais E a bateria tiver o gate comercial
+    // ligado (mesma dupla trava do bloco dentro da aba Convidados).
+    function atualizarTotalizadorConvidadosEspeciais() {
+        const card = document.getElementById('totalizadoresConvidadosEspeciais');
+        const titulo = document.getElementById('vgTituloConvidadosEspeciais');
+        if (!card) return;
+        const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
+        if (!habilitado || (!souSuperAdmin && !tenhoCapacidade('ver_convidados_especiais'))) { card.style.display = 'none'; if (titulo) titulo.style.display = 'none'; return; }
+        const lista = convidadosEspeciaisCache || [];
+        document.getElementById('totalConvidadosEspeciaisAtivos').textContent = lista.filter(r => r.status === 'aprovado').length;
+        document.getElementById('totalConvidadosEspeciaisPendentes').textContent = lista.filter(r => r.status === 'pendente').length;
+        card.style.display = 'grid';
+        if (titulo) titulo.style.display = 'block';
+    }
+
     function bateriaIdContexto() {
         if (souSuperAdmin) return bateriaAtualData ? bateriaAtualData.id : null;
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
@@ -3144,7 +3190,12 @@
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); carregarResumoEntregaFigurino(); carregarResumoEventosAtivos(); return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&select=${select}&order=created_at.desc`, {
+        // eh_convidado=eq.false (31/ago/2026): Convidado Especial nunca entra
+        // na lista normal de Ritmistas -- tem fila e contagens 100% próprias
+        // (ver carregarConvidadosEspeciais). Filtrar aqui, na origem, já
+        // resolve totalizadores/Vagas/Aniversariantes/Exportar de graça,
+        // porque todos leem de todosRitmistas.
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&select=${select}&order=created_at.desc`, {
             headers: authHeaders
         });
         const novos = await res.json();
@@ -3520,6 +3571,13 @@
         grupoMedidasExportDiretoria,
     ];
     const LABELS_PERFIL_EXPORT = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
+    // Convidado Especial (31/ago/2026) mistura os 3 perfis numa fila só,
+    // por isso tem o próprio mapa de rótulos (com Ritmista, que a
+    // Diretoria normal nunca tem) -- ver labelsPerfilExportAtual().
+    const LABELS_PERFIL_EXPORT_CONVIDADO_ESPECIAL = { ritmista: 'Ritmista', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
+    function labelsPerfilExportAtual() {
+        return tipoExportacaoAtual === 'convidado_especial' ? LABELS_PERFIL_EXPORT_CONVIDADO_ESPECIAL : LABELS_PERFIL_EXPORT;
+    }
     let tipoExportacaoAtual = 'ritmistas';
     let sheetJSCarregado = false;
     function carregarSheetJS() {
@@ -3544,8 +3602,11 @@
     // vira "Cargo" pra quem usa Diretoria, ver exportSegundoFiltroLabel).
     function popularFiltrosExportacao() {
         const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
+        const ehConvidadoEspecial = tipoExportacaoAtual === 'convidado_especial';
         const statusesReais = ['aprovado', 'pendente', 'suspenso', 'rejeitado', 'desligado'];
-        const statusJaFiltrado = ehRitmistas ? filtroStatusSelecionados : filtroStatusDiretoriaSelecionados;
+        // Convidado Especial não tem filtro de lista lá fora pra herdar (a
+        // fila é sempre mostrada inteira) -- nasce sempre com tudo marcado.
+        const statusJaFiltrado = ehRitmistas ? filtroStatusSelecionados : ehConvidadoEspecial ? [] : filtroStatusDiretoriaSelecionados;
         const statusPre = statusJaFiltrado.length > 0 ? statusJaFiltrado : statusesReais;
         document.getElementById('exportStatusChecks').innerHTML = statusesReais.map(s => `
             <label class="exp-campo-linha">
@@ -3563,8 +3624,8 @@
             opts = instrumentos.map(i => ({ valor: String(i.id), rotulo: i.nome }));
             pre = filtroInstrumentosSelecionados.length > 0 ? filtroInstrumentosSelecionados.map(String) : opts.map(o => o.valor);
         } else {
-            opts = Object.entries(LABELS_PERFIL_EXPORT).map(([valor, rotulo]) => ({ valor, rotulo }));
-            pre = filtroCargoDiretoriaSelecionados.length > 0 ? filtroCargoDiretoriaSelecionados : opts.map(o => o.valor);
+            opts = Object.entries(labelsPerfilExportAtual()).map(([valor, rotulo]) => ({ valor, rotulo }));
+            pre = ehConvidadoEspecial ? opts.map(o => o.valor) : (filtroCargoDiretoriaSelecionados.length > 0 ? filtroCargoDiretoriaSelecionados : opts.map(o => o.valor));
         }
         document.getElementById('exportInstrumentoChecks').innerHTML = opts.map(o => `
             <label class="exp-campo-linha">
@@ -3580,7 +3641,7 @@
         const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
         const statusMarcados = Array.from(document.querySelectorAll('.export-status-check:checked')).map(c => c.value);
         const segundoMarcados = Array.from(document.querySelectorAll('.export-instrumento-check:checked')).map(c => c.value);
-        let lista = ehRitmistas ? todosRitmistas : listaDiretoriaAtual;
+        let lista = ehRitmistas ? todosRitmistas : tipoExportacaoAtual === 'convidado_especial' ? convidadosEspeciaisCache : listaDiretoriaAtual;
         if (statusMarcados.length > 0) lista = lista.filter(r => statusMarcados.includes(r.status || 'pendente'));
         if (segundoMarcados.length > 0) {
             lista = ehRitmistas
@@ -3592,9 +3653,10 @@
 
     function atualizarResumoExport() {
         const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
+        const ehConvidadoEspecial = tipoExportacaoAtual === 'convidado_especial';
         const total = listaFiltradaExportacao().length;
-        const singular = ehRitmistas ? 'ritmista' : 'pessoa da diretoria';
-        const plural = ehRitmistas ? 'ritmistas' : 'pessoas da diretoria';
+        const singular = ehRitmistas ? 'ritmista' : ehConvidadoEspecial ? 'convidado especial' : 'pessoa da diretoria';
+        const plural = ehRitmistas ? 'ritmistas' : ehConvidadoEspecial ? 'convidados especiais' : 'pessoas da diretoria';
         document.getElementById('exportResumoLista').innerHTML = total === 1
             ? `<strong>1 ${singular}</strong> será exportado(a) com os filtros marcados acima.`
             : `<strong>${total} ${plural}</strong> serão exportados com os filtros marcados acima.`;
@@ -3673,7 +3735,7 @@
                 } else {
                     valor = r[chave] ?? '';
                     if (chave === 'status') valor = LABELS_STATUS_EXPORT[valor] || valor;
-                    if (chave === 'perfil') valor = LABELS_PERFIL_EXPORT[valor] || valor;
+                    if (chave === 'perfil') valor = labelsPerfilExportAtual()[valor] || valor;
                 }
                 linha[campo.label] = valor;
             });
@@ -3717,7 +3779,7 @@
         // uma aba da outra quando exportado "separado por instrumento/cargo".
         const custom = document.getElementById('exportTituloCustom').value.trim();
         if (custom) return sufixoGrupo ? `${custom} — ${sufixoGrupo}` : custom;
-        let titulo = ehRitmistas ? 'Relatório de Ritmistas' : 'Relatório de Diretoria';
+        let titulo = ehRitmistas ? 'Relatório de Ritmistas' : tipoExportacaoAtual === 'convidado_especial' ? 'Relatório de Convidado Especial' : 'Relatório de Diretoria';
         const statusLabel = statusLabelExportacao();
         if (statusLabel) titulo += ` — ${statusLabel}`;
         if (sufixoGrupo) titulo += ` — ${sufixoGrupo}`;
@@ -3728,7 +3790,7 @@
         const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
         const lista = listaFiltradaExportacao();
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
-        const nomeAba = ehRitmistas ? 'Ritmistas' : 'Diretoria';
+        const nomeAba = ehRitmistas ? 'Ritmistas' : tipoExportacaoAtual === 'convidado_especial' ? 'Convidado Especial' : 'Diretoria';
         const formatoMarcado = document.querySelector('input[name="exportFormato"]:checked').value;
         const porGrupo = formatoMarcado === 'por-instrumento' || formatoMarcado === 'por-cargo';
 
@@ -3756,7 +3818,7 @@
             // Ritmistas; igualado pra Diretoria em 22/ago/2026.
             const grupos = {};
             lista.forEach(r => {
-                const nome = ehRitmistas ? (r.instrumento_nome || 'Sem instrumento') : (LABELS_PERFIL_EXPORT[r.perfil] || r.perfil);
+                const nome = ehRitmistas ? (r.instrumento_nome || 'Sem instrumento') : (labelsPerfilExportAtual()[r.perfil] || r.perfil);
                 (grupos[nome] = grupos[nome] || []).push(r);
             });
             const usados = new Set();
@@ -6086,14 +6148,163 @@
     }
 
     async function iniciarExtrasTab() {
-        extraEditando = null;
-        renderizarEditorExtra();
-        const btnNovo = document.getElementById('extras-btn-novo');
-        if (btnNovo) btnNovo.style.display = tenhoCapacidade('editar_extras') ? '' : 'none';
-        await carregarExtras();
-        await carregarFigurinoParaExtras();
-        renderizarExtrasLista();
+        // A aba abre pra quem tem ver_extras OU ver_convidados_especiais --
+        // esse bloco simples (Convidado sem login) precisa da própria trava
+        // ver_extras, senão vazaria de graça pra quem só tem a capacidade
+        // do Convidado Especial (ver podeVerAba).
+        const podeVerExtrasSimples = souSuperAdmin || tenhoCapacidade('ver_extras');
+        const blocoSimples = document.getElementById('extras-simples-bloco');
+        if (blocoSimples) blocoSimples.style.display = podeVerExtrasSimples ? '' : 'none';
+        if (podeVerExtrasSimples) {
+            extraEditando = null;
+            renderizarEditorExtra();
+            const btnNovo = document.getElementById('extras-btn-novo');
+            if (btnNovo) btnNovo.style.display = tenhoCapacidade('editar_extras') ? '' : 'none';
+            await carregarExtras();
+            await carregarFigurinoParaExtras();
+            renderizarExtrasLista();
+        }
         atualizarTotalizadorExtras();
+        // Convidado Especial (31/ago/2026) mora na mesma aba, mas é grupo
+        // totalmente à parte (vinculos.eh_convidado=true, não extras).
+        await carregarConvidadosEspeciais();
+        renderizarConvidadosEspeciais();
+        atualizarTotalizadorConvidadosEspeciais();
+        aplicarGatingBotoesExportar();
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // CONVIDADO ESPECIAL (31/ago/2026) -- vínculo de verdade (eh_convidado=
+    // true em vinculos), com login/carteirinha, mas 100% separado da
+    // contagem normal de Ritmistas/Diretoria. Só existe/aparece se a
+    // bateria tiver o gate comercial `convidado_tem_carteirinha` ligado
+    // (Comercial → Convidado Especial). Reaproveita o motor único de
+    // edição de perfil (fpMontar/fpIniciar) e os modais que já existem --
+    // usa o modal de Ritmista pra perfil='ritmista' e o modal de Diretoria
+    // pra perfil='diretor'/'apoio', só trocando a fonte dos dados
+    // (convidadosEspeciaisCache, não todosRitmistas/listaDiretoriaAtual) e
+    // a capacidade que libera os botões de ação (aprovar_convidados_
+    // especiais, uma só pra tudo -- fila pequena, não precisa do mesmo
+    // grau de granularidade de Ritmistas/Diretoria).
+    let convidadosEspeciaisCache = [];
+
+    async function carregarConvidadosEspeciais() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { convidadosEspeciaisCache = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&eh_convidado=eq.true&order=perfil.asc,nome.asc`, { headers: authHeaders });
+        const novos = res.ok ? await res.json() : [];
+        convidadosEspeciaisCache = Array.isArray(novos) ? novos : [];
+    }
+
+    function renderizarLinksCadastroConvidadoEspecial() {
+        const div = document.getElementById('linksCadastroConvidadoEspecial');
+        if (!div) return;
+        const codigo = codigoConviteBateria || bateriaIdContexto();
+        const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
+        if (!codigo || !habilitado) { div.innerHTML = ''; return; }
+        const podeCopiar = souSuperAdmin || tenhoCapacidade('copiar_link_convidados_especiais');
+        const base = `${window.location.origin}/cadastro?bateria=${codigo}&convidado_especial=1`;
+        div.innerHTML = caixaLinkCadastro('linksCadastroConvidadoEspecial-box', 'Links de cadastro', [
+            { label: 'Ritmista', url: base },
+            { label: 'Diretor de Bateria', url: `${base}&cargo=diretor` },
+            { label: 'Diretor (Apoio)', url: `${base}&cargo=apoio` },
+        ], podeCopiar);
+    }
+
+    const LABEL_PERFIL_CONVIDADO_ESPECIAL = { ritmista: 'Ritmista', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
+    const BADGE_STATUS_CONVIDADO_ESPECIAL = {
+        pendente:  '<span class="badge badge-pendente">Pendente</span>',
+        aprovado:  '<span class="badge badge-aprovado">Ativo</span>',
+        suspenso:  '<span class="badge badge-suspenso">Suspenso</span>',
+        desligado: '<span class="badge badge-desligado">Desligado</span>',
+        rejeitado: '<span class="badge badge-rejeitado">Rejeitado</span>',
+    };
+    function renderizarConvidadosEspeciais() {
+        const bloco = document.getElementById('convidados-especiais-bloco');
+        if (!bloco) return;
+        const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
+        const podeVer = souSuperAdmin || tenhoCapacidade('ver_convidados_especiais');
+        bloco.style.display = (habilitado && podeVer) ? '' : 'none';
+        if (!habilitado || !podeVer) return;
+
+        renderizarLinksCadastroConvidadoEspecial();
+
+        const totalEl = document.getElementById('convidados-especiais-total-geral');
+        if (totalEl) totalEl.textContent = `${convidadosEspeciaisCache.length} convidado(s) especial(is) no total`;
+
+        const container = document.getElementById('convidados-especiais-lista');
+        if (!container) return;
+        if (convidadosEspeciaisCache.length === 0) { container.innerHTML = '<div class="estado-vazio">Nenhum Convidado Especial cadastrado ainda.</div>'; return; }
+        container.innerHTML = convidadosEspeciaisCache.map(r => `
+            <div class="item-card" onclick="abrirFichaConvidadoEspecial(${r.id})" style="cursor:pointer;">
+                <div class="item-info"><div class="item-nome">${esc(r.nome)}</div><div class="item-detalhe">${LABEL_PERFIL_CONVIDADO_ESPECIAL[r.perfil] || r.perfil}</div></div>
+                <div class="item-acoes">${BADGE_STATUS_CONVIDADO_ESPECIAL[r.status] || ''}</div>
+            </div>`).join('');
+    }
+
+    function recarregarConvidadosEspeciais() {
+        return carregarConvidadosEspeciais().then(() => { renderizarConvidadosEspeciais(); atualizarTotalizadorConvidadosEspeciais(); });
+    }
+
+    // Ficha de Convidado Especial reaproveita os DOIS modais que já existem
+    // (Ritmista pra perfil='ritmista', Diretoria pra 'diretor'/'apoio') --
+    // mesmo motor fpMontar/fpIniciar, só com fonte de dados, capacidade e
+    // recarregamento próprios (nunca abrirCadastro()/abrirFichaAdmin(), que
+    // são hardcoded pra todosRitmistas/listaDiretoriaAtual e pras
+    // capacidades normais de Ritmistas/Diretoria).
+    async function abrirFichaConvidadoEspecial(id) {
+        const r = convidadosEspeciaisCache.find(x => x.id === id);
+        if (!r) return;
+        const status = r.status || 'pendente';
+        const nomeEscapado = (r.nome || '').replace(/'/g, "\\'");
+        const podeAgir = souSuperAdmin || tenhoCapacidade('aprovar_convidados_especiais');
+        let btns = '';
+        if (status === 'pendente') {
+            if (podeAgir) {
+                btns += `<button class="btn-ficha btn-ficha-ativar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();atualizarStatus(${r.id},'aprovado',null,recarregarConvidadosEspeciais)">Aprovar</button>`;
+                btns += `<button class="btn-ficha btn-ficha-rejeitar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();atualizarStatus(${r.id},'rejeitado',null,recarregarConvidadosEspeciais)">Rejeitar</button>`;
+            }
+        } else if (status === 'aprovado') {
+            if (podeAgir) {
+                btns += `<button class="btn-ficha btn-ficha-suspender" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();abrirModalSuspender(${r.id},'${nomeEscapado}','Convidado Especial',recarregarConvidadosEspeciais)">Suspender</button>`;
+                btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();abrirModalDesligar(${r.id},'${nomeEscapado}','Convidado Especial',recarregarConvidadosEspeciais)">Desligar</button>`;
+            }
+        } else if (status === 'suspenso') {
+            if (podeAgir) {
+                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();atualizarStatus(${r.id},'aprovado',null,recarregarConvidadosEspeciais)">Reativar</button>`;
+                btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();abrirModalDesligar(${r.id},'${nomeEscapado}','Convidado Especial',recarregarConvidadosEspeciais)">Desligar</button>`;
+            }
+        } else if (podeAgir) {
+            btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();atualizarStatus(${r.id},'aprovado',null,recarregarConvidadosEspeciais)">Reativar</button>`;
+        }
+
+        const meu = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        const podeVerCarteirinha = status === 'aprovado' && tenhoCapacidade('ver_carteirinha_outros');
+        const btnCarteirinha = podeVerCarteirinha ? `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${r.id})">Ver carteirinha ↗</button>` : '';
+        if (r.perfil === 'ritmista') {
+            fichaAtualId = id;
+            document.getElementById('fc-status-badge').innerHTML = BADGE_STATUS_CONVIDADO_ESPECIAL[status] || '';
+            await fpMontar(document.getElementById('fp-container-ritmista'));
+            fpIniciar(r, meu ? meu.perfil : null, meu ? meu.pessoa_id : null, { aoSalvar: recarregarConvidadosEspeciais });
+            const extraConteudo = document.getElementById('fp-extra-conteudo');
+            if (extraConteudo) extraConteudo.innerHTML = '';
+            btns += `<button class="btn-ficha" onclick="fecharModal('modalCadastroOverlay')">Fechar</button>`;
+            document.getElementById('fp-container-ritmista').querySelector('#fp-acoes-extra').innerHTML = btns;
+            document.getElementById('fp-container-ritmista').querySelector('#fp-ver-carteirinha').innerHTML = btnCarteirinha;
+            if (status !== 'aprovado' && status !== 'suspenso') document.getElementById('fp-container-ritmista').querySelector('#fp-btn-editar').style.display = 'none';
+            document.getElementById('modalCadastroOverlay').classList.add('aberto');
+        } else {
+            await fpMontar(document.getElementById('fp-container-admin'));
+            fpIniciar(r, meu ? meu.perfil : null, meu ? meu.pessoa_id : null, { aoSalvar: recarregarConvidadosEspeciais });
+            const extraAdmin = document.querySelector('#fp-container-admin #fp-extra-conteudo');
+            if (extraAdmin) extraAdmin.innerHTML = '';
+            btns += `<button class="btn-ficha" onclick="fecharModalAdmin()">Fechar</button>`;
+            document.querySelector('#fp-container-admin #fp-acoes-extra').innerHTML = btns;
+            document.querySelector('#fp-container-admin #fp-ver-carteirinha').innerHTML = btnCarteirinha;
+            if (status !== 'aprovado' && status !== 'suspenso') document.getElementById('fp-container-admin').querySelector('#fp-btn-editar').style.display = 'none';
+            document.getElementById('modalAdmin').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
     }
 
     // 3 grupos (27/ago/2026, era só Ritmistas/Diretoria) -- sem grupo
@@ -7057,6 +7268,11 @@
     function podeVerAba(aba) {
         if (aba === 'comercial') return souSuperAdmin;
         if (aba === 'configuracoes') return Object.keys(CAPACIDADE_CONFIG_SUBTELA).some(nome => podeVerConfigSubtela(nome));
+        // Convidado Especial (31/ago/2026) mora na mesma aba "Convidados",
+        // mas com capacidade própria -- abre a aba pra quem tem QUALQUER
+        // uma das duas (o bloco certo dentro dela se esconde sozinho, ver
+        // iniciarExtrasTab/renderizarConvidadosEspeciais).
+        if (aba === 'extras') return tenhoCapacidade('ver_extras') || tenhoCapacidade('ver_convidados_especiais');
         const capacidadeExigida = CAPACIDADE_DA_ABA[aba];
         return !capacidadeExigida || tenhoCapacidade(capacidadeExigida);
     }
@@ -7094,6 +7310,8 @@
     // lista: exportar tira dado sensível (CPF, endereço...) de dentro do
     // sistema.
     function aplicarGatingBotoesExportar() {
+        const be = document.getElementById('btnExportarConvidadosEspeciais');
+        if (be) be.style.display = (souSuperAdmin || tenhoCapacidade('exportar_convidados_especiais')) ? '' : 'none';
         if (souSuperAdmin) return;
         const br = document.getElementById('btnExportarRitmistas');
         const bd = document.getElementById('btnExportarDiretoria');
@@ -7955,6 +8173,14 @@
                 <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, Mestre e Diretor dessa bateria veem só a própria carteirinha ao entrar — sem acesso ao painel de gestão. Decisão comercial (ex: vender só a carteirinha pra quem não quer o módulo de gestão completo) — não é um dado operacional da bateria.</div>
             </div>
             <div class="ficha-secao">
+                <div class="ficha-secao-titulo">Convidado Especial</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="mv-convidado-tem-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:${podeEditar ? 'pointer' : 'not-allowed'};" ${b.convidado_tem_carteirinha ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} onchange="salvarConvidadoTemCarteirinha(this.checked)">
+                    <label for="mv-convidado-tem-carteirinha" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Ligado</label>
+                </div>
+                <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, essa bateria pode cadastrar gente de fora com carteirinha de verdade (login), separada da contagem normal de Ritmistas/Diretoria. Decisão comercial — não vendemos isso por padrão.</div>
+            </div>
+            <div class="ficha-secao">
                 <div class="ficha-secao-titulo">Status da Bateria</div>
                 <div style="display:flex;align-items:center;gap:10px;">
                     <span class="${ativaBateria ? 'badge-ativo' : 'badge-inativo'}">${ativaBateria ? 'Ativa' : 'Inativa'}</span>
@@ -7981,6 +8207,22 @@
             const idx = bateriasCache.findIndex(x => x.id === id);
             if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
             mostrarToast(ligado ? 'Modo Carteirinha ligado.' : 'Modo Carteirinha desligado.');
+        } else {
+            mostrarToast('Erro ao atualizar.', 'erro');
+        }
+    }
+    async function salvarConvidadoTemCarteirinha(ligado) {
+        const id = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!id) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ convidado_tem_carteirinha: ligado }) });
+        if (res.ok) {
+            const dados = await res.json();
+            bateriaAtualData = dados[0];
+            const idx = bateriasCache.findIndex(x => x.id === id);
+            if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
+            mostrarToast(ligado ? 'Convidado Especial ligado.' : 'Convidado Especial desligado.');
+            if (typeof renderizarConvidadosEspeciais === 'function') renderizarConvidadosEspeciais();
+            if (typeof atualizarTotalizadorConvidadosEspeciais === 'function') atualizarTotalizadorConvidadosEspeciais();
         } else {
             mostrarToast('Erro ao atualizar.', 'erro');
         }
@@ -8082,6 +8324,17 @@
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
         { grupo: 'Lista de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos', dependeDe: 'ver_eventos' }] },
         { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Visualizar' }, { chave: 'editar_extras', label: 'Cadastrar e editar', dependeDe: 'ver_extras' }] },
+        // Convidado Especial (31/ago/2026): capacidades próprias, separadas
+        // de Ritmistas/Diretoria -- gerenciar esse grupo pequeno não deve
+        // exigir acesso à gestão de verdade. Só tem efeito em baterias com o
+        // gate comercial `convidado_tem_carteirinha` ligado.
+        { grupo: 'Convidado Especial', itens: [
+            { chave: 'ver_convidados_especiais', label: 'Visualizar lista (nome, cargo, status)', subgrupo: 'Lista' },
+            { chave: 'aprovar_convidados_especiais', label: 'Aprovar, rejeitar, suspender, desligar e reativar', dependeDe: 'ver_convidados_especiais', subgrupo: 'Lista' },
+            { chave: 'exportar_convidados_especiais', label: 'Exportar pra Excel', dependeDe: 'ver_convidados_especiais', subgrupo: 'Lista' },
+            { chave: 'copiar_link_convidados_especiais', label: 'Copiar Link de Cadastro', dependeDe: 'ver_convidados_especiais', subgrupo: 'Novo Cadastro' },
+            { chave: 'editar_convidados_especiais', label: 'Editar ficha (instrumento, medidas)', dependeDe: 'ver_convidados_especiais', subgrupo: 'Ficha' },
+        ] },
         { grupo: 'Carteirinha', itens: [{ chave: 'ver_carteirinha_outros', label: 'Visualizar a carteirinha de outra pessoa' }] },
         { grupo: 'Configurações', itens: [
             { chave: 'ver_instrumentos', label: 'Visualizar Instrumentos da bateria' },
@@ -9311,7 +9564,8 @@
 
         if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
-        const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&order=perfil.asc,nome.asc&select=${select}`;
+        // eh_convidado=eq.false (31/ago/2026): mesmo raciocínio de carregarRitmistas() -- Convidado Especial - Diretor/Apoio tem fila própria.
+        const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=${select}`;
 
         const res = await fetch(url, {
             headers: authHeaders

@@ -339,9 +339,10 @@
         }
 
         // Busca o modo_piloto de cada bateria envolvida e anexa em cada vínculo — usado pra decidir admin.html x carteirinha.html.
-        const { data: baterias } = await sb.from('baterias').select('id, nome, modo_piloto').in('id', vinculos.map(v => v.bateria_id));
+        // convidado_tem_carteirinha (31/ago/2026) -- trava comercial do Convidado Especial, reconferida a cada login (ver continuarComVinculo).
+        const { data: baterias } = await sb.from('baterias').select('id, nome, modo_piloto, convidado_tem_carteirinha').in('id', vinculos.map(v => v.bateria_id));
         const infoPorBateria = Object.fromEntries((baterias || []).map(b => [b.id, b]));
-        vinculos.forEach(v => { v.modo_piloto = infoPorBateria[v.bateria_id]?.modo_piloto || false; v.totalVinculos = vinculos.length; });
+        vinculos.forEach(v => { v.modo_piloto = infoPorBateria[v.bateria_id]?.modo_piloto || false; v.convidado_tem_carteirinha = infoPorBateria[v.bateria_id]?.convidado_tem_carteirinha || false; v.totalVinculos = vinculos.length; });
 
         if (vinculos.length === 1 && !forcarEscolha) {
             continuarComVinculo(vinculos[0]);
@@ -454,9 +455,13 @@
         // Super Admin, desde o último login neste aparelho) — nunca confiar
         // cegamente no cache pra decidir acesso. Reconfere rápido (consulta
         // pequena) antes de liberar pelo atalho.
-        const { data: vinculoAtual } = await sb.from('vinculos').select('status, perfil, modo_carteirinha_individual')
+        const { data: vinculoAtual } = await sb.from('vinculos').select('status, perfil, modo_carteirinha_individual, eh_convidado, bateria:baterias(convidado_tem_carteirinha)')
             .eq('pessoa_id', cache.pessoa_id).eq('bateria_id', cache.bateria_id).maybeSingle();
-        if (!vinculoAtual || vinculoAtual.status !== 'aprovado' || vinculoAtual.perfil !== cache.perfil) {
+        // eh_convidado + convidado_tem_carteirinha (31/ago/2026) reconferidos
+        // aqui também -- se a Diretoria desligar o gate comercial depois do
+        // último login neste aparelho, cai pro caminho lento (que já sabe
+        // bloquear com a mensagem certa, ver continuarComVinculo).
+        if (!vinculoAtual || vinculoAtual.status !== 'aprovado' || vinculoAtual.perfil !== cache.perfil || (vinculoAtual.eh_convidado && !vinculoAtual.bateria?.convidado_tem_carteirinha)) {
             await buscarEEscolherVinculos(cache.pessoa_id, false);
             return;
         }
@@ -580,6 +585,15 @@
         // não seja um dos tratados acima (inclusive um valor novo que apareça
         // no futuro) fica bloqueado, em vez de liberar acesso por engano.
         if (vinculo.status !== 'aprovado') {
+            mostrarFormularioLogin();
+            mostrarMensagem('Seu acesso não está disponível no momento. Entre em contato com a diretoria.', 'erro');
+            return;
+        }
+        // Convidado Especial (31/ago/2026) só acessa enquanto a bateria dele
+        // tiver o gate comercial `convidado_tem_carteirinha` ligado -- se a
+        // Diretoria desligar isso depois de já ter gente aprovada, bloqueia
+        // igual a um status suspenso, sem apagar o cadastro.
+        if (vinculo.eh_convidado && !vinculo.convidado_tem_carteirinha) {
             mostrarFormularioLogin();
             mostrarMensagem('Seu acesso não está disponível no momento. Entre em contato com a diretoria.', 'erro');
             return;

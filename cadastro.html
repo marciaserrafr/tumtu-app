@@ -987,6 +987,9 @@
         if (!bateriaId) return;
 
         const cargoParam = params.get('cargo'); // 'mestre' | 'diretor' | 'apoio' | ausente = ritmista
+        // Convidado Especial (31/ago/2026): mesmo formulário de cada perfil,
+        // só marca o vínculo com eh_convidado=true e troca o rótulo exibido.
+        const ehConvidadoEspecial = params.get('convidado_especial') === '1';
         const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
         // Aceita tanto o código novo (?bateria=k3f8x2, não sequencial — evita
         // que alguém troque o número na URL e descubra quantas baterias
@@ -1014,13 +1017,13 @@
         }
 
         const perfil = cargoParam === 'mestre' ? 'mestre' : cargoParam === 'diretor' ? 'diretor' : cargoParam === 'apoio' ? 'apoio' : 'ritmista';
-        linkFixoAtual = { perfil, bateriaId: bateria.id };
+        linkFixoAtual = { perfil, bateriaId: bateria.id, ehConvidadoEspecial };
         atualizarCampoInstrumento(perfil);
         await carregarOpcoesInstrumento(bateria.id);
         await carregarOpcoesMedidas(bateria.id, perfil);
 
-        const cargoLabel = perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor de Bateria' : perfil === 'apoio' ? 'Diretor (Apoio)' : 'Ritmista';
-        document.getElementById('convite-cargo').textContent = cargoLabel;
+        const cargoLabel = (perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor de Bateria' : perfil === 'apoio' ? 'Diretor (Apoio)' : 'Ritmista');
+        document.getElementById('convite-cargo').textContent = ehConvidadoEspecial ? `Convidado Especial – ${cargoLabel}` : cargoLabel;
         document.getElementById('convite-bateria').textContent = bateria.nome;
         document.getElementById('convite-banner').style.display = 'block';
     }
@@ -1371,6 +1374,7 @@
         if (linkFixoAtual) {
             dados.perfil = linkFixoAtual.perfil;
             dados.bateria_id = linkFixoAtual.bateriaId;
+            dados.eh_convidado = linkFixoAtual.ehConvidadoEspecial === true;
             if (linkFixoAtual.perfil !== 'ritmista') {
                 const { data: nivelTotalId } = await sb.rpc('nivel_acesso_total_da_bateria', { p_bateria_id: linkFixoAtual.bateriaId });
                 dados.nivel_acesso_id = nivelTotalId || null;
@@ -1536,8 +1540,14 @@
             // já nasce com o Modo Carteirinha individual ligado -- pedido
             // dela, 25/ago/2026: cai direto na própria carteirinha ao
             // entrar, nunca no painel. Só vale pra cadastro novo a partir
-            // daqui -- quem já estava cadastrado antes não muda.
-            modo_carteirinha_individual: dados.perfil === 'apoio',
+            // daqui -- quem já estava cadastrado antes não muda. Convidado
+            // Especial - Diretor de Bateria (31/ago/2026) recebe a mesma
+            // trava, decisão dela: esse grupo nunca vê o painel de gestão.
+            modo_carteirinha_individual: dados.perfil === 'apoio' || (dados.eh_convidado === true && dados.perfil === 'diretor'),
+            // eh_convidado só existe no cadastro via link fixo (Convidado
+            // Especial) -- coluna travada no banco depois de criada, nunca
+            // editável, nem por autoedição.
+            eh_convidado: dados.eh_convidado === true,
         };
         const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos`, {
             method: 'POST',
