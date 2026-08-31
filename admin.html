@@ -24,7 +24,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=53"></script>
+    <script src="ficha-perfil.js?v=54"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -4394,11 +4394,13 @@
         if (!card) return;
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { card.style.display = 'none'; return; }
-        const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&mostra_visao_geral=eq.true&entrega_finalizada=eq.false&select=id,figurino_item_mestre_id,item:figurino_itens_mestre(id,nome,publico,inclui_extras)`, { headers: authHeaders });
+        const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&mostra_visao_geral=eq.true&entrega_finalizada=eq.false&select=id,figurino_item_mestre_id,publico,inclui_extras,item:figurino_itens_mestre(id,nome)`, { headers: authHeaders });
         const ativos = resAtivos.ok ? await resAtivos.json() : [];
         if (ativos.length === 0) { card.style.display = 'none'; document.getElementById('vg-figurino').innerHTML = ''; return; }
         const itemIds = ativos.map(a => a.figurino_item_mestre_id);
-        const itens = ativos.map(a => a.item).filter(Boolean);
+        // Público/Incluir Convidados agora moram na linha da bateria, não no
+        // item global (31/ago/2026) -- monta o objeto "pronto pra uso" aqui.
+        const itens = ativos.filter(a => a.item).map(a => ({ id: a.figurino_item_mestre_id, nome: a.item.nome, publico: publicoFigurinoBateria(a), inclui_extras: !!a.inclui_extras }));
         if (itens.length === 0) { card.style.display = 'none'; return; }
         const perfis = [...new Set(itens.flatMap(i => i.publico))];
         // "Incluir Extras" (25/ago/2026) soma junto o lado certo de Extras
@@ -5653,6 +5655,29 @@
     // Mestre/Diretor/Apoio. Ordem sempre Ritmistas primeiro.
     const LABEL_PUBLICO_FIGURINO = { ritmista: 'Ritmistas', mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretores (Apoio)' };
     const ORDEM_PUBLICO_FIGURINO = ['ritmista', 'mestre', 'diretor', 'apoio'];
+    // "Público" e "Incluir Convidados" deixaram de ser decisão global do item
+    // mestre e viraram ativação POR BATERIA (31/ago/2026, pedido dela --
+    // "Não tem como o Super Admin saber quem vai ter a camisa da final"),
+    // mesmo padrão já usado em Categoria de Figurino/Medida
+    // (publicoMedidaTipo). Sem valor ainda em bateria_figurino_itens.publico
+    // = todos os 4 públicos (mesmo fallback usado lá).
+    function publicoFigurinoBateria(bf) {
+        if (!bf || !Array.isArray(bf.publico)) return ['ritmista', 'mestre', 'diretor', 'apoio'];
+        return bf.publico;
+    }
+    // Junta o item global (nome/categoria) com a decisão desta bateria
+    // (publico/inclui_extras) -- usado em todo lugar que precisa do item
+    // "pronto pra uso" dentro de uma bateria (lista de entrega, ficha, etc.).
+    function itemFigurinoComBateria(itemGlobal) {
+        const bf = bateriaFigurinoCache.find(x => x.figurino_item_mestre_id === itemGlobal.id);
+        return { ...itemGlobal, publico: publicoFigurinoBateria(bf), inclui_extras: !!(bf && bf.inclui_extras) };
+    }
+    let figurinoConfigAbertos = new Set();
+    function toggleFigurinoConfigAberto(itemId) {
+        if (figurinoConfigAbertos.has(itemId)) figurinoConfigAbertos.delete(itemId);
+        else figurinoConfigAbertos.add(itemId);
+        renderizarConfigFigurino();
+    }
     function renderizarConfigFigurino() {
         const container = document.getElementById('config-figurino-lista');
         if (!container) return;
@@ -5669,18 +5694,40 @@
             return `<div class="secao-titulo">${esc(cat.nome)}</div>${itensCat.map(f => renderizarLinhaFigurinoConfig(f)).join('')}`;
         }).join('');
     }
+    // Card fechado (mesmo padrão de cardConfigMedidaTipo) -- clicar abre o
+    // Público/Incluir Convidados por dentro, só editável quando a peça já
+    // está ativa nesta bateria.
     function renderizarLinhaFigurinoConfig(f) {
         const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === f.id);
         const ativo = !!(existente && existente.ativo);
-        // A seção agora é a Categoria, não o público (27/ago/2026) -- então
-        // sempre mostra quais públicos a peça cobre, mesmo sendo só um.
-        const publicosTexto = f.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(', ');
+        const aberto = figurinoConfigAbertos.has(f.id);
+        const publico = publicoFigurinoBateria(existente);
+        const incluiExtras = !!(existente && existente.inclui_extras);
         return `
-            <div class="item-card">
-                <label class="config-instrumento-check">
-                    <input type="checkbox" ${ativo ? 'checked' : ''} onchange="salvarFigurinoBateria(${f.id}, this.checked)">
-                    <span class="item-nome">${esc(f.nome)} <span style="font-weight:400;color:var(--cor-texto-muted);">(${esc(publicosTexto)})</span></span>
-                </label>
+            <div class="item-card config-medida-card">
+                <div class="config-medida-header" onclick="toggleFigurinoConfigAberto(${f.id})">
+                    <label class="config-instrumento-check" onclick="event.stopPropagation()">
+                        <input type="checkbox" ${ativo ? 'checked' : ''} onchange="salvarFigurinoBateria(${f.id}, this.checked)">
+                        <span class="item-nome">${esc(f.nome)}</span>
+                    </label>
+                    <span class="config-medida-seta ${aberto ? 'aberta' : ''}">›</span>
+                </div>
+                ${aberto ? `<div class="config-medida-tamanhos">
+                    <div class="config-medida-publico">
+                        <div class="config-medida-publico-label">Público</div>
+                        <div class="config-medida-publico-itens">
+                            ${ORDEM_PUBLICO_FIGURINO.map(p => `
+                                <label class="config-instrumento-check">
+                                    <input type="checkbox" ${publico.includes(p) ? 'checked' : ''} ${ativo ? '' : 'disabled'} onchange="salvarFigurinoPublico(${f.id}, '${p}', this.checked)">
+                                    <span>${LABEL_PUBLICO_FIGURINO[p]}</span>
+                                </label>`).join('')}
+                        </div>
+                    </div>
+                    <label class="config-instrumento-check" style="margin-top:10px;">
+                        <input type="checkbox" ${incluiExtras ? 'checked' : ''} ${ativo ? '' : 'disabled'} onchange="salvarFigurinoIncluiExtras(${f.id}, this.checked)">
+                        <span>Incluir Convidados (soma junto os Convidados dos mesmos públicos marcados acima na entrega desta peça)</span>
+                    </label>
+                </div>` : ''}
             </div>`;
     }
     async function salvarFigurinoBateria(figurinoItemMestreId, ativo) {
@@ -5696,6 +5743,29 @@
                 method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, figurino_item_mestre_id: figurinoItemMestreId, ativo })
             });
         }
+        await carregarBateriaFigurino();
+        renderizarConfigFigurino();
+    }
+    // Só existe pra editar peça já ativada -- checkbox vem desabilitado
+    // quando a peça ainda está desligada (ver renderizarLinhaFigurinoConfig).
+    async function salvarFigurinoPublico(figurinoItemMestreId, perfil, checked) {
+        const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === figurinoItemMestreId);
+        if (!existente) return;
+        const atual = publicoFigurinoBateria(existente);
+        const novo = checked ? [...new Set([...atual, perfil])] : atual.filter(p => p !== perfil);
+        if (novo.length === 0) { mostrarToast('Mantenha pelo menos um público marcado.', 'erro'); renderizarConfigFigurino(); return; }
+        await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ publico: novo })
+        });
+        await carregarBateriaFigurino();
+        renderizarConfigFigurino();
+    }
+    async function salvarFigurinoIncluiExtras(figurinoItemMestreId, checked) {
+        const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === figurinoItemMestreId);
+        if (!existente) return;
+        await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ inclui_extras: checked })
+        });
         await carregarBateriaFigurino();
         renderizarConfigFigurino();
     }
@@ -5733,7 +5803,7 @@
         const container = document.getElementById('figurino-itens-lista');
         if (!container) return;
         const ativosIds = new Set(bateriaFigurinoCache.filter(bf => bf.ativo).map(bf => bf.figurino_item_mestre_id));
-        const itensAtivos = bibliotecaFigurino.filter(f => ativosIds.has(f.id));
+        const itensAtivos = bibliotecaFigurino.filter(f => ativosIds.has(f.id)).map(itemFigurinoComBateria);
         if (itensAtivos.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">👕</div>Nenhum Figurino ativo nesta bateria ainda. Ative em Configurações → Figurino.</div>'; return; }
         // Agrupa por Categoria de Figurino, não mais por público (27/ago/2026)
         // -- senão a mesma peça (mesmo clique, mesma tela de entrega) aparecia
@@ -5754,8 +5824,9 @@
 
     // ── Tela de entregas (por Figurino) ──────────────────────────────────
     async function abrirEntregasFigurino(itemId) {
-        const item = bibliotecaFigurino.find(i => i.id === itemId);
-        if (!item) return;
+        const itemGlobal = bibliotecaFigurino.find(i => i.id === itemId);
+        if (!itemGlobal) return;
+        const item = itemFigurinoComBateria(itemGlobal);
         figurinoEntregaItemAtual = item;
         // Nasce no lado Ritmista se a peça cobrir Ritmista, senão Diretoria
         // -- só existe escolha de verdade quando cobre os dois (ver
@@ -6172,9 +6243,10 @@
         extraFigurinoEntreguesPorExtra = {};
         const bateriaId = bateriaIdContexto();
         if (!bateriaId || extrasCache.length === 0) return;
-        const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&select=id,figurino_item_mestre_id,item:figurino_itens_mestre(id,nome,publico,inclui_extras)`, { headers: authHeaders });
+        const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&select=id,figurino_item_mestre_id,publico,inclui_extras,item:figurino_itens_mestre(id,nome)`, { headers: authHeaders });
         const ativos = resAtivos.ok ? await resAtivos.json() : [];
-        extraFigurinoItensAtivos = ativos.map(a => a.item).filter(it => it && it.inclui_extras);
+        extraFigurinoItensAtivos = ativos.filter(a => a.item && a.inclui_extras)
+            .map(a => ({ id: a.figurino_item_mestre_id, nome: a.item.nome, publico: publicoFigurinoBateria(a) }));
         if (extraFigurinoItensAtivos.length === 0) return;
         const itemIds = extraFigurinoItensAtivos.map(it => it.id);
         const extraIds = extrasCache.map(e => e.id);
@@ -9218,12 +9290,10 @@
         container.innerHTML = categorias.map(cat => {
             const itens = figurinoMestreCacheSA.filter(f => f.medida_tipo_id === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
             return `<div class="secao-titulo">${esc(cat.nome)}</div>` + itens.map(f => {
-                const publicosTexto = f.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(', ');
                 return `
                 <div class="item-card">
                     <div class="item-info">
                         <div class="item-nome">${esc(f.nome)} ${f.ativo === false ? '<span class="badge-inativo">Inativo</span>' : ''}</div>
-                        <div class="item-detalhe">Público: ${esc(publicosTexto)}${f.inclui_extras ? ' · Inclui Convidados' : ''}</div>
                     </div>
                     <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarFigurinoMestre(${f.id})">Editar</button></div>
                 </div>`;
@@ -9231,22 +9301,14 @@
         }).join('');
     }
     function abrirNovoFigurinoMestre() {
-        figurinoMestreEditando = { id: null, nome: '', medida_tipo_id: medidaTiposCacheSA[0] ? medidaTiposCacheSA[0].id : null, publico: ['ritmista'], ativo: true, inclui_extras: false };
+        figurinoMestreEditando = { id: null, nome: '', medida_tipo_id: medidaTiposCacheSA[0] ? medidaTiposCacheSA[0].id : null, ativo: true };
         renderizarEditorFigurinoMestre();
     }
     function abrirEditarFigurinoMestre(id) {
         const f = figurinoMestreCacheSA.find(x => x.id === id);
         if (!f) return;
-        figurinoMestreEditando = { id: f.id, nome: f.nome, medida_tipo_id: f.medida_tipo_id, publico: [...f.publico], ativo: f.ativo !== false, inclui_extras: !!f.inclui_extras };
+        figurinoMestreEditando = { id: f.id, nome: f.nome, medida_tipo_id: f.medida_tipo_id, ativo: f.ativo !== false };
         renderizarEditorFigurinoMestre();
-    }
-    // Público virou checkboxes (27/ago/2026, pedido dela) -- uma peça agora
-    // pode cobrir vários públicos ao mesmo tempo (ex: mesma "Camisa da
-    // Final" pra Ritmista e Diretor de Bateria, sem precisar cadastrar duas
-    // vezes). Ativação por bateria continua sendo por peça inteira, não
-    // muda -- só o rótulo passa a mostrar todos os públicos cobertos.
-    function onCheckPublicoFigurinoMestre() {
-        figurinoMestreEditando.publico = ORDEM_PUBLICO_FIGURINO.filter(p => document.getElementById(`fig-mestre-edit-publico-${p}`).checked);
     }
     function renderizarEditorFigurinoMestre() {
         const fe = figurinoMestreEditando;
@@ -9260,26 +9322,11 @@
             <div class="form-grid">
                 <div class="campo campo-full"><label>Nome *</label><input type="text" id="fig-mestre-edit-nome" value="${esc(fe.nome)}" placeholder="Ex: Camisa da Final"></div>
                 <div class="campo"><label>Categoria de Figurino (usa o tamanho dela) *</label><select id="fig-mestre-edit-categoria">${medidaTiposCacheSA.map(t => `<option value="${t.id}" ${fe.medida_tipo_id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}</select></div>
-                <div class="campo campo-full">
-                    <label>Público * <span style="font-weight:400;color:var(--cor-texto-muted);">(pode marcar mais de um)</span></label>
-                    <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;">
-                        ${ORDEM_PUBLICO_FIGURINO.map(p => `
-                            <label class="config-instrumento-check">
-                                <input type="checkbox" id="fig-mestre-edit-publico-${p}" ${fe.publico.includes(p) ? 'checked' : ''} onchange="onCheckPublicoFigurinoMestre()">
-                                <span>${LABEL_PUBLICO_FIGURINO[p]}</span>
-                            </label>`).join('')}
-                    </div>
-                </div>
                 <div class="campo"><label>Status</label><select id="fig-mestre-edit-ativo">
                     <option value="true" ${fe.ativo ? 'selected' : ''}>Ativo</option>
                     <option value="false" ${!fe.ativo ? 'selected' : ''}>Inativo</option>
                 </select></div>
-                <div class="campo campo-full">
-                    <label class="config-instrumento-check">
-                        <input type="checkbox" id="fig-mestre-edit-inclui-extras" ${fe.inclui_extras ? 'checked' : ''}>
-                        <span>Incluir Convidados (soma junto os Convidados dos mesmos públicos marcados acima na entrega desta peça)</span>
-                    </label>
-                </div>
+                <div class="campo campo-full" style="color:var(--cor-texto-muted);font-size:13px;">Público e "Incluir Convidados" agora são decisão de cada bateria -- ative essa peça em Configurações → Figurino, dentro da bateria, pra escolher.</div>
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -9296,17 +9343,14 @@
         const nome = document.getElementById('fig-mestre-edit-nome').value.trim();
         if (!nome) { mostrarToast('Informe o nome do Figurino.', 'erro'); return; }
         const medidaTipoId = Number(document.getElementById('fig-mestre-edit-categoria').value);
-        const publico = ORDEM_PUBLICO_FIGURINO.filter(p => document.getElementById(`fig-mestre-edit-publico-${p}`).checked);
-        if (publico.length === 0) { mostrarToast('Marque pelo menos um público.', 'erro'); return; }
         const ativo = document.getElementById('fig-mestre-edit-ativo').value === 'true';
-        const inclui_extras = document.getElementById('fig-mestre-edit-inclui-extras').checked;
         salvandoFigurinoMestre = true;
         try {
             if (figurinoMestreEditando.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${figurinoMestreEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, publico, nome, ativo, inclui_extras }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${figurinoMestreEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, nome, ativo }) });
             } else {
                 const ordem = Math.max(0, ...figurinoMestreCacheSA.map(i => i.ordem || 0)) + 1;
-                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, publico, nome, ativo, ordem, inclui_extras }) });
+                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, nome, ativo, ordem }) });
             }
             mostrarToast(figurinoMestreEditando.id ? 'Figurino atualizado!' : 'Figurino criado!');
             figurinoMestreEditando = null;

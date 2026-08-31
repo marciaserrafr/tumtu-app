@@ -124,7 +124,7 @@
 
         const [resPessoa, resItem] = await Promise.all([
             fetch(`${SUPABASE_URL}/rest/v1/pessoas?auth_user_id=eq.${session.user.id}&select=id,nome`, { headers: hdrs }),
-            fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${itemId}&select=id,nome,publico,ativo`, { headers: hdrs }),
+            fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${itemId}&select=id,nome,ativo`, { headers: hdrs }),
         ]);
         const pessoas = resPessoa.ok ? await resPessoa.json() : [];
         const itens = resItem.ok ? await resItem.json() : [];
@@ -137,24 +137,27 @@
 
         // A peça não pertence a UMA bateria só (é biblioteca mestre,
         // reaproveitável) -- acha, entre os vínculos aprovados da pessoa,
-        // qual bateria tem essa peça ativada E o perfil dela é elegível.
+        // qual bateria tem essa peça ativada E qual público essa bateria
+        // escolheu pra ela (Público/Incluir Convidados moram na linha da
+        // bateria desde 31/ago/2026, não mais no item global -- os dois
+        // aspectos são resolvidos juntos, olhando bateria_figurino_itens).
         const resVinculos = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?pessoa_id=eq.${pessoa.id}&status=eq.aprovado&select=id,perfil,bateria_id`, { headers: hdrs });
         const vinculos = resVinculos.ok ? await resVinculos.json() : [];
-        const vinculosElegiveis = vinculos.filter(v => item.publico.includes(v.perfil));
-
-        if (!vinculosElegiveis.length) {
-            div.innerHTML = `<div class="secao">${item.nome}</div><div class="erro">Essa peça não é do seu cargo.</div>`;
+        if (!vinculos.length) {
+            div.innerHTML = `<div class="secao">${item.nome}</div><div class="erro">Essa peça não está disponível na sua bateria.</div>`;
             return;
         }
 
-        const bateriaIds = vinculosElegiveis.map(v => v.bateria_id);
-        const resAtivas = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?figurino_item_mestre_id=eq.${itemId}&bateria_id=in.(${bateriaIds.join(',')})&ativo=eq.true&select=bateria_id`, { headers: hdrs });
+        const bateriaIds = vinculos.map(v => v.bateria_id);
+        const resAtivas = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?figurino_item_mestre_id=eq.${itemId}&bateria_id=in.(${bateriaIds.join(',')})&ativo=eq.true&select=bateria_id,publico`, { headers: hdrs });
         const ativas = resAtivas.ok ? await resAtivas.json() : [];
-        const bateriaIdsAtivas = new Set(ativas.map(a => a.bateria_id));
-        const vinculo = vinculosElegiveis.find(v => bateriaIdsAtivas.has(v.bateria_id));
+        const publicoPorBateria = {};
+        ativas.forEach(a => { publicoPorBateria[a.bateria_id] = Array.isArray(a.publico) ? a.publico : ['ritmista', 'mestre', 'diretor', 'apoio']; });
+        const vinculo = vinculos.find(v => publicoPorBateria[v.bateria_id] && publicoPorBateria[v.bateria_id].includes(v.perfil));
 
         if (!vinculo) {
-            div.innerHTML = `<div class="secao">${item.nome}</div><div class="erro">Essa peça não está disponível na sua bateria.</div>`;
+            const mensagem = ativas.length > 0 ? 'Essa peça não é do seu cargo.' : 'Essa peça não está disponível na sua bateria.';
+            div.innerHTML = `<div class="secao">${item.nome}</div><div class="erro">${mensagem}</div>`;
             return;
         }
 

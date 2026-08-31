@@ -803,14 +803,15 @@ async function fpRenderizarEntregaFigurino(alvo) {
     secao.style.display = '';
     grid.innerHTML = '<span style="color:#9993ab;font-size:13px;">Carregando...</span>';
 
-    // Peça pode cobrir mais de um público ao mesmo tempo (27/ago/2026) --
-    // publico virou lista; "cs" (contains) traz toda peça cujo público
-    // inclua o perfil desta pessoa.
+    // Peça pode cobrir mais de um público ao mesmo tempo (27/ago/2026).
+    // Público/Incluir Convidados moram na linha da bateria desde 31/ago/2026
+    // (não mais no item global) -- busca todo item ativo da bateria e filtra
+    // pelo publico de CADA linha, não mais por um publico global único.
     const publico = alvo.perfil;
     const authHeaders = await fpAuthHeaders();
     const [resAtivos, resMestre, resEntregas] = await Promise.all([
         fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${alvo.bateria_id}&ativo=eq.true`, { headers: authHeaders }),
-        fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?publico=cs.{${publico}}&ativo=eq.true&order=ordem`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?ativo=eq.true&order=ordem`, { headers: authHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?vinculo_id=eq.${alvo.vinculo_id}`, { headers: authHeaders }),
     ]);
     const ativos = resAtivos.ok ? await resAtivos.json() : [];
@@ -825,11 +826,15 @@ async function fpRenderizarEntregaFigurino(alvo) {
     // 30/ago/2026: peça que nem começou a ser entregue não deveria
     // aparecer -- só polui, sem nada de útil pra mostrar ainda).
     const iniciadaPorItem = {};
+    // Sem valor ainda em bateria_figurino_itens.publico = todos os 4
+    // públicos (mesmo fallback usado em admin.html).
+    const publicoPorItem = {};
     ativos.forEach(a => {
         finalizadaPorItem[a.figurino_item_mestre_id] = !!a.entrega_finalizada;
         iniciadaPorItem[a.figurino_item_mestre_id] = !!a.mostra_visao_geral;
+        publicoPorItem[a.figurino_item_mestre_id] = Array.isArray(a.publico) ? a.publico : ['ritmista', 'mestre', 'diretor', 'apoio'];
     });
-    const itens = mestre.filter(m => iniciadaPorItem[m.id]);
+    const itens = mestre.filter(m => iniciadaPorItem[m.id] && (publicoPorItem[m.id] || []).includes(publico));
     if (itens.length === 0) { secao.style.display = 'none'; return; }
     const entregaPorItem = {};
     entregas.forEach(e => { entregaPorItem[e.figurino_item_id] = !!e.entregue_em; });
