@@ -2310,52 +2310,33 @@
 </div>
 
 <!-- PAINEL CONVIDADOS (25/ago/2026, reorganizado em 31/ago/2026 -- pedido
-     dela: virou um menu pai "Convidados" com 2 sub-telas, mesmo padrão já
-     usado em "Configurações" (lista nível 1 -> sub-tela nível 2). "Simples"
-     é o Convidado original (gente de fora que ganha Figurino mas não
-     desfila, sem CPF/login/carteirinha). "Especiais" é o Convidado Especial
-     (31/ago/2026) -- vínculo de verdade, com login/carteirinha, mas 100%
-     separado da contagem normal de Ritmistas/Diretoria; só existe se a
-     bateria tiver o gate comercial `convidado_tem_carteirinha` ligado. -->
+     dela). Por trás existem 2 modelos, mas a bateria só usa UM por vez
+     (escolhido em Comercial → Convidado Especial: desligado = Modelo
+     Simples, ligado = Modelo Especial com carteirinha) -- pra quem usa o
+     app, é sempre só "Convidados", um menu só, sem escolha nenhuma visível.
+     Modelo Simples: gente de fora que ganha Figurino mas não desfila, sem
+     CPF/login/carteirinha. Modelo Especial: vínculo de verdade, com login/
+     carteirinha, mas 100% separado da contagem normal de Ritmistas/
+     Diretoria. Roteamento automático em iniciarConvidadosAba(). -->
 <div class="painel" id="painel-extras">
+    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
+    <div class="painel-titulo">Convidados</div>
+    <p class="config-sub-desc" id="convidados-desc"></p>
 
-    <!-- Lista (nível 1, mesmo estilo de Configurações) -->
-    <div id="convidados-lista">
-        <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <div class="painel-titulo">Convidados</div>
-        <div id="convidados-item-simples" class="config-item" onclick="abrirConvidadosSubtela('simples')">
-            <span>Simples</span>
-            <span class="config-item-seta">›</span>
-        </div>
-        <div id="convidados-item-especiais" class="config-item" onclick="abrirConvidadosSubtela('especiais')">
-            <span>Especiais</span>
-            <span class="config-item-seta">›</span>
-        </div>
-    </div>
-
-    <!-- Sub-tela: Simples -->
-    <div id="convidados-tela-simples" class="config-subtela" style="display:none;">
-        <button type="button" class="btn-voltar-config" onclick="voltarConvidadosLista()">← Convidados</button>
-        <div class="painel-titulo">Convidados</div>
-        <p class="config-sub-desc">Pessoas que não compõem a bateria, mas podem ser convidadas para os eventos em que necessitam os figurinos adequados. Cada Convidado é associado ao grupo de Ritmistas ou de Diretoria, pra definir qual figurino ele vai receber.</p>
+    <!-- Conteúdo do Modelo Simples -->
+    <div id="convidados-simples-conteudo">
         <div id="extras-editor" style="display:none;"></div>
         <button type="button" id="extras-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoExtra()">+ Novo Convidado</button>
         <div id="extras-total-geral" style="font-size:13px;color:#888;margin:-12px 0 16px;"></div>
         <div id="extras-lista" class="lista-cards"></div>
     </div>
 
-    <!-- Sub-tela: Especiais -->
-    <div id="convidados-tela-especiais" class="config-subtela" style="display:none;">
-        <button type="button" class="btn-voltar-config" onclick="voltarConvidadosLista()">← Convidados</button>
-        <div class="painel-titulo">Convidado Especial</div>
-        <p class="config-sub-desc">Tem carteirinha e login de verdade, diferente do Convidado simples -- fica de fora da contagem normal de Ritmistas e Diretoria.</p>
-        <div id="convidados-especiais-desabilitado" style="display:none;" class="estado-vazio">Esse recurso não está ativado para esta bateria. Ative em Comercial → Convidado Especial.</div>
-        <div id="convidados-especiais-conteudo">
-            <div id="linksCadastroConvidadoEspecial"></div>
-            <button id="btnExportarConvidadosEspeciais" class="btn-exportar" style="margin:12px 0 0;display:none;" onclick="abrirModalExportar('convidado_especial')">⬇ Exportar</button>
-            <div id="convidados-especiais-total-geral" style="font-size:13px;color:#888;margin:16px 0 16px;"></div>
-            <div id="convidados-especiais-lista" class="lista-cards"></div>
-        </div>
+    <!-- Conteúdo do Modelo Especial -->
+    <div id="convidados-especiais-conteudo" style="display:none;">
+        <div id="linksCadastroConvidadoEspecial"></div>
+        <button id="btnExportarConvidadosEspeciais" class="btn-exportar" style="margin:12px 0 0;display:none;" onclick="abrirModalExportar('convidado_especial')">⬇ Exportar</button>
+        <div id="convidados-especiais-total-geral" style="font-size:13px;color:#888;margin:16px 0 16px;"></div>
+        <div id="convidados-especiais-lista" class="lista-cards"></div>
     </div>
 </div>
 
@@ -2575,14 +2556,14 @@
         <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Diretoria <b id="totalExtrasDiretoria">—</b></div>
     </div>
 
-    <!-- Convidado Especial (31/ago/2026) -- grupo à parte de "Convidados"
-         acima (aquele nunca tem login). Mesmo peso visual reduzido, só
-         aparece pra quem tem a capacidade própria E a bateria tiver o gate
-         comercial ligado. -->
-    <div class="vg-grupo-titulo" id="vgTituloConvidadosEspeciais" style="display:none;">Convidado Especial</div>
+    <!-- Modelo Especial de Convidados (31/ago/2026) -- só aparece quando a
+         bateria está nesse modelo (nunca junto com o bloco "Convidados"
+         acima, os dois são mutuamente exclusivos). Rotulado "Convidados"
+         igual ao outro -- quem usa o app não sabe que existem 2 modelos. -->
+    <div class="vg-grupo-titulo" id="vgTituloConvidadosEspeciais" style="display:none;">Convidados</div>
     <div class="grade-status" id="totalizadoresConvidadosEspeciais" style="display:none;">
-        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'));abrirConvidadosSubtela('especiais')">Ativos <b id="totalConvidadosEspeciaisAtivos">—</b></div>
-        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'));abrirConvidadosSubtela('especiais')">Pendentes <b id="totalConvidadosEspeciaisPendentes">—</b></div>
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Ativos <b id="totalConvidadosEspeciaisAtivos">—</b></div>
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Pendentes <b id="totalConvidadosEspeciaisPendentes">—</b></div>
     </div>
 
     <!-- Empilhado, um card embaixo do outro (era grid de 2 colunas até
@@ -3090,7 +3071,9 @@
         const card = document.getElementById('totalizadoresExtras');
         const titulo = document.getElementById('vgTituloConvidados');
         if (!card) return;
-        if (!souSuperAdmin && !tenhoCapacidade('ver_extras')) { card.style.display = 'none'; if (titulo) titulo.style.display = 'none'; return; }
+        // Modelo Simples (31/ago/2026): some da Visão Geral quando a bateria
+        // está no modelo Especial -- os dois nunca aparecem juntos.
+        if (modoConvidadosEspecial() || (!souSuperAdmin && !tenhoCapacidade('ver_extras'))) { card.style.display = 'none'; if (titulo) titulo.style.display = 'none'; return; }
         const lista = extrasCache || [];
         document.getElementById('totalExtrasRitmistas').textContent = lista.filter(e => e.grupo === 'ritmista').length;
         document.getElementById('totalExtrasDiretoria').textContent = lista.filter(e => e.grupo === 'diretor' || e.grupo === 'apoio').length;
@@ -3668,8 +3651,8 @@
         const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
         const ehConvidadoEspecial = tipoExportacaoAtual === 'convidado_especial';
         const total = listaFiltradaExportacao().length;
-        const singular = ehRitmistas ? 'ritmista' : ehConvidadoEspecial ? 'convidado especial' : 'pessoa da diretoria';
-        const plural = ehRitmistas ? 'ritmistas' : ehConvidadoEspecial ? 'convidados especiais' : 'pessoas da diretoria';
+        const singular = ehRitmistas ? 'ritmista' : ehConvidadoEspecial ? 'convidado' : 'pessoa da diretoria';
+        const plural = ehRitmistas ? 'ritmistas' : ehConvidadoEspecial ? 'convidados' : 'pessoas da diretoria';
         document.getElementById('exportResumoLista').innerHTML = total === 1
             ? `<strong>1 ${singular}</strong> será exportado(a) com os filtros marcados acima.`
             : `<strong>${total} ${plural}</strong> serão exportados com os filtros marcados acima.`;
@@ -3792,7 +3775,7 @@
         // uma aba da outra quando exportado "separado por instrumento/cargo".
         const custom = document.getElementById('exportTituloCustom').value.trim();
         if (custom) return sufixoGrupo ? `${custom} — ${sufixoGrupo}` : custom;
-        let titulo = ehRitmistas ? 'Relatório de Ritmistas' : tipoExportacaoAtual === 'convidado_especial' ? 'Relatório de Convidado Especial' : 'Relatório de Diretoria';
+        let titulo = ehRitmistas ? 'Relatório de Ritmistas' : tipoExportacaoAtual === 'convidado_especial' ? 'Relatório de Convidados' : 'Relatório de Diretoria';
         const statusLabel = statusLabelExportacao();
         if (statusLabel) titulo += ` — ${statusLabel}`;
         if (sufixoGrupo) titulo += ` — ${sufixoGrupo}`;
@@ -3803,7 +3786,7 @@
         const ehRitmistas = tipoExportacaoAtual === 'ritmistas';
         const lista = listaFiltradaExportacao();
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
-        const nomeAba = ehRitmistas ? 'Ritmistas' : tipoExportacaoAtual === 'convidado_especial' ? 'Convidado Especial' : 'Diretoria';
+        const nomeAba = ehRitmistas ? 'Ritmistas' : tipoExportacaoAtual === 'convidado_especial' ? 'Convidados' : 'Diretoria';
         const formatoMarcado = document.querySelector('input[name="exportFormato"]:checked').value;
         const porGrupo = formatoMarcado === 'por-instrumento' || formatoMarcado === 'por-cargo';
 
@@ -6171,32 +6154,26 @@
         atualizarTotalizadorExtras();
     }
 
-    // "Convidados" (31/ago/2026, reorganizado a pedido dela) -- menu pai com
-    // 2 sub-telas, mesmo padrão de "Configurações" (abrirConfigTela/
-    // voltarConfigLista). "Simples" é o Convidado original (sem login);
-    // "Especiais" é o Convidado Especial (login/carteirinha de verdade).
+    // "Convidados" (31/ago/2026, reorganizado a pedido dela em 2 rodadas) --
+    // por trás tem 2 modelos (Simples/Especial), mas cada bateria só usa UM
+    // por vez, escolhido em Comercial → Convidado Especial (desligado =
+    // Simples, ligado = Especial). Pra quem usa o app é sempre só
+    // "Convidados", roteado automaticamente aqui -- nunca uma escolha
+    // visível, nunca os dois ao mesmo tempo.
+    function modoConvidadosEspecial() {
+        return !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
+    }
     function iniciarConvidadosAba() {
-        voltarConvidadosLista();
-        const itemEspeciais = document.getElementById('convidados-item-especiais');
-        if (itemEspeciais) itemEspeciais.style.display = (tenhoCapacidade('ver_convidados_especiais') && !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha)) ? '' : 'none';
-        const itemSimples = document.getElementById('convidados-item-simples');
-        if (itemSimples) itemSimples.style.display = tenhoCapacidade('ver_extras') ? '' : 'none';
-    }
-    function abrirConvidadosSubtela(nome) {
-        if (nome === 'especiais' && !(souSuperAdmin || tenhoCapacidade('ver_convidados_especiais'))) return;
-        document.getElementById('convidados-lista').style.display = 'none';
-        document.querySelectorAll('#painel-extras .config-subtela').forEach(el => el.style.display = 'none');
-        document.getElementById('convidados-tela-' + nome).style.display = 'block';
-        if (nome === 'simples') iniciarExtrasTab();
-        if (nome === 'especiais') iniciarConvidadosEspeciaisTab();
-    }
-    function voltarConvidadosLista() {
-        document.querySelectorAll('#painel-extras .config-subtela').forEach(el => el.style.display = 'none');
-        document.getElementById('convidados-lista').style.display = 'block';
+        const especial = modoConvidadosEspecial();
+        document.getElementById('convidados-simples-conteudo').style.display = especial ? 'none' : '';
+        document.getElementById('convidados-especiais-conteudo').style.display = especial ? '' : 'none';
+        const desc = document.getElementById('convidados-desc');
+        if (desc) desc.textContent = especial
+            ? 'Pessoas que não compõem a bateria oficial, mas têm acesso (login) e carteirinha própria -- ficam de fora da contagem de Ritmistas e Diretoria.'
+            : 'Pessoas que não compõem a bateria, mas podem ser convidadas para os eventos em que necessitam os figurinos adequados. Cada Convidado é associado ao grupo de Ritmistas ou de Diretoria, pra definir qual figurino ele vai receber.';
+        if (especial) iniciarConvidadosEspeciaisTab(); else iniciarExtrasTab();
     }
 
-    // Chamada só por abrirConvidadosSubtela('especiais') -- carrega e
-    // renderiza a sub-tela "Especiais" dentro de #painel-extras.
     async function iniciarConvidadosEspeciaisTab() {
         await carregarConvidadosEspeciais();
         renderizarConvidadosEspeciais();
@@ -6250,22 +6227,16 @@
         rejeitado: '<span class="badge badge-rejeitado">Rejeitado</span>',
     };
     function renderizarConvidadosEspeciais() {
-        const conteudo = document.getElementById('convidados-especiais-conteudo');
-        const aviso = document.getElementById('convidados-especiais-desabilitado');
-        if (!conteudo) return;
-        const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
-        conteudo.style.display = habilitado ? '' : 'none';
-        if (aviso) aviso.style.display = habilitado ? 'none' : '';
-        if (!habilitado) return;
-
+        // Só é chamada quando a bateria já está em modo Especial (ver
+        // iniciarConvidadosAba) -- sem checagem própria de "habilitado" aqui.
         renderizarLinksCadastroConvidadoEspecial();
 
         const totalEl = document.getElementById('convidados-especiais-total-geral');
-        if (totalEl) totalEl.textContent = `${convidadosEspeciaisCache.length} convidado(s) especial(is) no total`;
+        if (totalEl) totalEl.textContent = `${convidadosEspeciaisCache.length} convidado(s) no total`;
 
         const container = document.getElementById('convidados-especiais-lista');
         if (!container) return;
-        if (convidadosEspeciaisCache.length === 0) { container.innerHTML = '<div class="estado-vazio">Nenhum Convidado Especial cadastrado ainda.</div>'; return; }
+        if (convidadosEspeciaisCache.length === 0) { container.innerHTML = '<div class="estado-vazio">Nenhum Convidado cadastrado ainda.</div>'; return; }
         container.innerHTML = convidadosEspeciaisCache.map(r => `
             <div class="item-card" onclick="abrirFichaConvidadoEspecial(${r.id})" style="cursor:pointer;">
                 <div class="item-info"><div class="item-nome">${esc(r.nome)}</div><div class="item-detalhe">${LABEL_PERFIL_CONVIDADO_ESPECIAL[r.perfil] || r.perfil}</div></div>
@@ -6297,13 +6268,13 @@
             }
         } else if (status === 'aprovado') {
             if (podeAgir) {
-                btns += `<button class="btn-ficha btn-ficha-suspender" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();abrirModalSuspender(${r.id},'${nomeEscapado}','Convidado Especial',recarregarConvidadosEspeciais)">Suspender</button>`;
-                btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();abrirModalDesligar(${r.id},'${nomeEscapado}','Convidado Especial',recarregarConvidadosEspeciais)">Desligar</button>`;
+                btns += `<button class="btn-ficha btn-ficha-suspender" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();abrirModalSuspender(${r.id},'${nomeEscapado}','Convidado',recarregarConvidadosEspeciais)">Suspender</button>`;
+                btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();abrirModalDesligar(${r.id},'${nomeEscapado}','Convidado',recarregarConvidadosEspeciais)">Desligar</button>`;
             }
         } else if (status === 'suspenso') {
             if (podeAgir) {
                 btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();atualizarStatus(${r.id},'aprovado',null,recarregarConvidadosEspeciais)">Reativar</button>`;
-                btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();abrirModalDesligar(${r.id},'${nomeEscapado}','Convidado Especial',recarregarConvidadosEspeciais)">Desligar</button>`;
+                btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();abrirModalDesligar(${r.id},'${nomeEscapado}','Convidado',recarregarConvidadosEspeciais)">Desligar</button>`;
             }
         } else if (podeAgir) {
             btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();atualizarStatus(${r.id},'aprovado',null,recarregarConvidadosEspeciais)">Reativar</button>`;
@@ -7299,11 +7270,10 @@
     function podeVerAba(aba) {
         if (aba === 'comercial') return souSuperAdmin;
         if (aba === 'configuracoes') return Object.keys(CAPACIDADE_CONFIG_SUBTELA).some(nome => podeVerConfigSubtela(nome));
-        // "Convidados" (31/ago/2026) virou menu pai com 2 sub-telas (Simples/
-        // Especiais, ver abrirConvidadosSubtela) -- abre pra quem tem
-        // QUALQUER uma das duas capacidades (cada linha da lista se esconde
-        // sozinha dentro da tela, ver iniciarConvidadosAba).
-        if (aba === 'extras') return tenhoCapacidade('ver_extras') || (tenhoCapacidade('ver_convidados_especiais') && !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha));
+        // "Convidados" (31/ago/2026) roteia sozinho pro modelo ativo da
+        // bateria (Simples ou Especial, ver modoConvidadosEspecial) -- a
+        // capacidade exigida depende de qual dos dois está em uso.
+        if (aba === 'extras') return modoConvidadosEspecial() ? tenhoCapacidade('ver_convidados_especiais') : tenhoCapacidade('ver_extras');
         const capacidadeExigida = CAPACIDADE_DA_ABA[aba];
         return !capacidadeExigida || tenhoCapacidade(capacidadeExigida);
     }
@@ -8354,12 +8324,15 @@
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
         { grupo: 'Lista de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos', dependeDe: 'ver_eventos' }] },
-        { grupo: 'Convidados', itens: [{ chave: 'ver_extras', label: 'Visualizar' }, { chave: 'editar_extras', label: 'Cadastrar e editar', dependeDe: 'ver_extras' }] },
-        // Convidado Especial (31/ago/2026): capacidades próprias, separadas
-        // de Ritmistas/Diretoria -- gerenciar esse grupo pequeno não deve
-        // exigir acesso à gestão de verdade. Só tem efeito em baterias com o
-        // gate comercial `convidado_tem_carteirinha` ligado.
-        { grupo: 'Convidado Especial', itens: [
+        // Convidados (25/ago/2026, reorganizado 31/ago/2026): por trás são 2
+        // modelos -- Simples (extras, sem login) e Especial (vinculos, com
+        // login/carteirinha) -- mas cada bateria só usa UM por vez (escolhido
+        // em Comercial → Convidado Especial). `modoConvidados` marca qual é
+        // qual; renderizarEditorPermissoesPessoa/permissoesResumoDetalhado
+        // mostram só o grupo do modelo ativo, os dois rotulados "Convidados"
+        // -- pra quem usa o app, nunca fica visível que existem 2 modelos.
+        { grupo: 'Convidados', modoConvidados: 'simples', itens: [{ chave: 'ver_extras', label: 'Visualizar' }, { chave: 'editar_extras', label: 'Cadastrar e editar', dependeDe: 'ver_extras' }] },
+        { grupo: 'Convidados', modoConvidados: 'especial', itens: [
             { chave: 'ver_convidados_especiais', label: 'Visualizar lista (nome, cargo, status)', subgrupo: 'Lista' },
             { chave: 'aprovar_convidados_especiais', label: 'Aprovar, rejeitar, suspender, desligar e reativar', dependeDe: 'ver_convidados_especiais', subgrupo: 'Lista' },
             { chave: 'exportar_convidados_especiais', label: 'Exportar pra Excel', dependeDe: 'ver_convidados_especiais', subgrupo: 'Lista' },
@@ -8390,6 +8363,15 @@
     // triggers/RLS, independente disso).
     const DEPENDE_DE = {};
     GRUPOS_CAPACIDADES.forEach(g => g.itens.forEach(i => { if (i.dependeDe) DEPENDE_DE[i.chave] = i.dependeDe; }));
+
+    // "Convidados" tem 2 grupos internamente (modoConvidados: 'simples'/
+    // 'especial', ver GRUPOS_CAPACIDADES), mas a bateria só usa um por vez --
+    // essa lista tira o grupo do modelo que não está em uso, pra nunca
+    // aparecer duas seções "Convidados" (ou uma inútil) na tela.
+    function gruposCapacidadesVisiveis() {
+        const especial = modoConvidadosEspecial();
+        return GRUPOS_CAPACIDADES.filter(g => !g.modoConvidados || (g.modoConvidados === 'especial') === especial);
+    }
 
     let permissoesPessoaCache = [];
     let permissoesPessoaEditando = null;
@@ -8432,7 +8414,7 @@
         if (p.modo_carteirinha_individual) return 'Modo Carteirinha individual — não entra na gestão';
         const caps = p.capacidades || {};
         const linhas = [];
-        GRUPOS_CAPACIDADES.forEach(g => {
+        gruposCapacidadesVisiveis().forEach(g => {
             const ligados = g.itens.filter(i => caps[i.chave]);
             if (ligados.length === 0) return;
             // Grupos com subgrupo (Ritmistas/Diretoria, 30/ago/2026) mostram o
@@ -8659,7 +8641,7 @@
                     <label for="pp-modo-carteirinha" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
                 </div>
             </div>
-            ${GRUPOS_CAPACIDADES.map(g => `
+            ${gruposCapacidadesVisiveis().map(g => `
                 <div class="ficha-secao">
                     <div class="ficha-secao-titulo">${esc(g.grupo)}</div>
                     ${g.itens.map((c, idx) => {
@@ -8735,7 +8717,14 @@
         const pe = permissoesPessoaEditando;
         if (!pe) return;
         const capacidades = {};
-        TODAS_CAPACIDADES.forEach(c => { capacidades[c] = document.getElementById('pp-cap-' + c).checked; });
+        // "Convidados" (31/ago/2026) só renderiza o grupo do modelo ativo da
+        // bateria (ver gruposCapacidadesVisiveis) -- pra chave do modelo
+        // escondido, o checkbox nem existe na tela; preserva o valor que já
+        // estava salvo em vez de quebrar (ou de resetar pra false à toa).
+        TODAS_CAPACIDADES.forEach(c => {
+            const el = document.getElementById('pp-cap-' + c);
+            capacidades[c] = el ? el.checked : !!(pe.capacidades && pe.capacidades[c]);
+        });
         const modo_carteirinha_individual = document.getElementById('pp-modo-carteirinha').checked;
         // "Restrito ao naipe" só existe na tela pra Diretor de Bateria (ver
         // renderizarEditorPermissoesPessoa) -- pra qualquer outro perfil,
