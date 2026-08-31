@@ -1903,6 +1903,13 @@
         <div class="config-item" onclick="abrirPermissoesGrupo('diretor-naipe')"><span>Diretor de Bateria - Naipe</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('diretor')"><span>Diretor de Bateria</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('apoio')"><span>Diretor (Apoio)</span><span class="config-item-seta">›</span></div>
+        <!-- Convidados (31/ago/2026, pedido dela) -- grupo próprio, mesmo
+             padrão dos outros cargos, mas NUNCA reaproveita permissoesPessoaCache
+             (que exclui Convidado de propósito, ver carregarPermissoesEscola) --
+             usa convidadosEspeciaisCache e um editor restrito (só "Editar a
+             própria Medida"), pra nunca correr o risco de ligar por engano
+             uma capacidade de gestão de verdade num Convidado. -->
+        <div class="config-item" onclick="abrirPermissoesGrupo('convidados')"><span>Convidados</span><span class="config-item-seta">›</span></div>
     </div>
 
     <!-- Sub-tela: Ritmistas -- interruptor da bateria inteira, não é
@@ -1999,6 +2006,17 @@
                 style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
         </div>
         <div id="pe-perfis-lista-apoio" class="lista-cards"></div>
+    </div>
+
+    <div id="pe-tela-convidados" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
+        <div class="painel-titulo">Convidados</div>
+        <div class="config-sub-desc" style="margin-bottom:16px;">Convidado não tem acesso de gestão nenhum -- o único caso de exceção possível aqui é liberar que ele edite a própria Medida.</div>
+        <div style="margin-bottom:20px;">
+            <input type="text" id="pe-busca-convidados" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesGrupo('convidados')"
+                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        </div>
+        <div id="pe-perfis-lista-convidados" class="lista-cards"></div>
     </div>
 
     <!-- Editor por pessoa -- toma conta da tela inteira, por cima de
@@ -8405,6 +8423,10 @@
         'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && Array.isArray(p.naipe) && p.naipe.length > 0 },
         diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !(Array.isArray(p.naipe) && p.naipe.length > 0) },
         apoio: { label: 'Diretor (Apoio)', filtro: p => p.perfil === 'apoio' },
+        // Convidados (31/ago/2026) -- fonte de dados própria (convidadosEspeciaisCache,
+        // ver renderizarListaPermissoesGrupo), sem `filtro` porque nunca lê de
+        // permissoesPessoaCache. Editor restrito, ver renderizarEditorPermissoesPessoa.
+        convidados: { label: 'Convidados' },
     };
 
     // Usado na lista de Permissões (linha por pessoa, precisa ser curto --
@@ -8524,11 +8546,15 @@
     }
     // Navegação nível 1 ↔ nível 2 (mesmo padrão de Configurações/Entrega de
     // Figurino: abrirConfigTela/voltarConfigLista).
-    function abrirPermissoesGrupo(grupoId) {
+    async function abrirPermissoesGrupo(grupoId) {
         document.getElementById('pe-lista').style.display = 'none';
         document.querySelectorAll('#painel-permissoes .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('pe-tela-' + grupoId).style.display = 'block';
         permissoesGrupoAtual = grupoId;
+        // Convidados (31/ago/2026): recarrega sempre, é uma aba separada da
+        // tela de Convidados de verdade -- não pode confiar que já foi
+        // carregada nesta sessão.
+        if (grupoId === 'convidados') await carregarConvidadosEspeciais();
         if (PERMISSOES_GRUPOS[grupoId]) renderizarListaPermissoesGrupo(grupoId);
     }
     function voltarPermissoesLista() {
@@ -8602,7 +8628,11 @@
         const meta = PERMISSOES_GRUPOS[grupoId];
         const container = document.getElementById('pe-perfis-lista-' + grupoId);
         if (!meta || !container) return;
-        const doGrupo = permissoesPessoaCache.filter(meta.filtro);
+        // "Convidados" (31/ago/2026) NUNCA lê de permissoesPessoaCache (que
+        // exclui Convidado de propósito) -- usa convidadosEspeciaisCache,
+        // já carregada com as mesmas colunas (capacidades/modo_carteirinha_
+        // individual/etc, view ritmistas_com_instrumento sem select= restrito).
+        const doGrupo = grupoId === 'convidados' ? convidadosEspeciaisCache : permissoesPessoaCache.filter(meta.filtro);
         if (doGrupo.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔐</div>Ninguém nesse grupo, nesta bateria, ainda.</div>'; return; }
 
         const buscaEl = document.getElementById('pe-busca-' + grupoId);
@@ -8620,7 +8650,12 @@
     // esse grupo (grupoOrigem) em vez da lista de nível 1 -- reorganização
     // de 29/ago/2026.
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
-        const p = permissoesPessoaCache.find(x => x.id === vinculoId);
+        // Convidados (31/ago/2026): só encontrado aqui se vier de fato de
+        // convidadosEspeciaisCache -- nunca de permissoesPessoaCache (que já
+        // exclui eh_convidado de propósito). Essa segunda busca só acha
+        // alguém se o id realmente for de um Convidado carregado de verdade,
+        // não abre brecha nenhuma nova.
+        const p = permissoesPessoaCache.find(x => x.id === vinculoId) || convidadosEspeciaisCache.find(x => x.id === vinculoId);
         if (!p) return;
         permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
         // O editor toma conta da tela inteira, por cima da sub-tela do
@@ -8648,6 +8683,31 @@
         if (!editor) return;
         if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
+        // Convidados (31/ago/2026): editor SEMPRE restrito, nunca o genérico
+        // abaixo -- "CONVIDADO NÃO PODE NADA DE PERMISSÃO PARA MEXER EM NADA
+        // DE NGM" (regra dela). O único caso de exceção possível é editar a
+        // própria Medida. Nunca mostra Ritmistas/Diretoria/Figurino/etc,
+        // mesmo que essas capacidades existam no catálogo geral -- é
+        // fisicamente impossível ligar qualquer coisa além dessa por aqui.
+        if (pe.grupoOrigem === 'convidados') {
+            editor.innerHTML = `<div class="card-form">
+                <div style="margin-bottom:8px;"><span onclick="fecharEditorPermissoesPessoa()" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Convidados</span></div>
+                <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
+                <div class="ficha-secao">
+                    <div class="ficha-secao-titulo">Medida</div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                        <input type="checkbox" id="pp-cap-editar_propria_medida" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades.editar_propria_medida ? 'checked' : ''}>
+                        <label for="pp-cap-editar_propria_medida" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Pode editar a própria Medida</label>
+                    </div>
+                    <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Único caso de exceção possível pra um Convidado -- nenhuma outra permissão pode ser concedida por essa tela.</div>
+                </div>
+                <div class="form-rodape">
+                    <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button></div>
+                    <button class="btn-ficha" onclick="fecharEditorPermissoesPessoa()">Cancelar</button>
+                </div>
+            </div>`;
+            return;
+        }
         editor.innerHTML = `<div class="card-form">
             ${pe.veioDaFicha
                 ? `<div style="margin-bottom:8px;"><span onclick="abrirFichaAdmin(${pe.id})" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Voltar para a ficha</span></div>`
@@ -8744,7 +8804,12 @@
             const el = document.getElementById('pp-cap-' + c);
             capacidades[c] = el ? el.checked : !!(pe.capacidades && pe.capacidades[c]);
         });
-        const modo_carteirinha_individual = document.getElementById('pp-modo-carteirinha').checked;
+        // Editor restrito do grupo "Convidados" (ver renderizarEditorPermissoesPessoa)
+        // não mostra esse checkbox -- preserva o valor já salvo em vez de
+        // travar/resetar (Convidado Diretor/Apoio já nasce com isso true no
+        // cadastro; nunca deixar essa tela apagar isso à toa).
+        const modoCarteirinhaEl = document.getElementById('pp-modo-carteirinha');
+        const modo_carteirinha_individual = modoCarteirinhaEl ? modoCarteirinhaEl.checked : !!pe.modoCarteirinhaIndividual;
         // "Restrito ao naipe" só existe na tela pra Diretor de Bateria (ver
         // renderizarEditorPermissoesPessoa) -- pra qualquer outro perfil,
         // salva false (nunca ficou disponível pra marcar mesmo).
