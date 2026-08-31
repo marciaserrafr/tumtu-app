@@ -623,7 +623,10 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     // enxergava, sem checar nada específico).
     const secaoNaipe = fpEl('fp-secao-naipe');
     if (secaoNaipe) {
-        const podeVerNaipe = alvo.perfil === 'diretor' && (
+        // Convidado Especial (31/ago/2026) nunca vê Naipe, nem em autoedição
+        // -- não lidera naipe nenhum de verdade, campo não faz sentido pra
+        // ele (achado dela: "não faz sentido").
+        const podeVerNaipe = alvo.perfil === 'diretor' && alvo.eh_convidado !== true && (
             fpEstado.autoedicao || fpEstado.meuPerfil === 'super_admin' ||
             (typeof tenhoCapacidade === 'function' && (tenhoCapacidade('ver_naipe') || tenhoCapacidade('editar_naipe')))
         );
