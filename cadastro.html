@@ -625,6 +625,20 @@
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Cliente separado, só pra criar/entrar na conta de quem está se
+    // autocadastrando (link fixo) -- bug real achado 31/ago/2026: o cliente
+    // "sb" acima persiste sessão no localStorage do navegador, COMPARTILHADO
+    // com login.html/admin.html/carteirinha.html. Testar um autocadastro no
+    // mesmo aparelho/aba onde um Admin já está logado (ex: Diretor
+    // demonstrando o cadastro) trocava a sessão ativa dele pela da pessoa
+    // recém-cadastrada, sem nenhum aviso -- foi isso, não o banco, que fez a
+    // fila de Convidado Especial "sumir" durante o teste. Esse cliente nunca
+    // grava em localStorage; o token de cada login/cadastro já é sempre
+    // usado explicitamente (tokenCadastro) nas chamadas seguintes, então não
+    // precisa persistir sessão nenhuma aqui. "Modo manual" (Admin cadastrando
+    // por outra pessoa) continua usando "sb" normalmente -- ele só LÊ a
+    // sessão do Admin já logado, nunca cria uma nova.
+    const sbCadastro = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
 
     function toggleInfoCampo(btn) {
         const texto = btn.closest('.auth-form-group, .ficha-campo').querySelector('.info-campo-texto');
@@ -1466,7 +1480,7 @@
             // (erro em inglês, sem explicação). Agora tenta entrar com a senha
             // que a pessoa acabou de digitar: se for a mesma da tentativa
             // anterior, completa o cadastro sozinho, sem erro nenhum visível.
-            const { data: authData, error: authError } = await sb.auth.signInWithPassword({ email, password: senha });
+            const { data: authData, error: authError } = await sbCadastro.auth.signInWithPassword({ email, password: senha });
             if (authError || !authData.user) {
                 mostrarMensagem('Esse e-mail já tem um início de cadastro no TumTu. Se essa não é a senha que você usou da última vez, clique em "Esqueci minha senha" no login pra recuperar o acesso.', 'erro');
                 travarFormulario(false);
@@ -1475,7 +1489,7 @@
             tokenCadastro = authData.session ? authData.session.access_token : SUPABASE_KEY;
             authUserIdNovo = authData.user.id;
         } else if (info.existe_email) {
-            const { data: authData, error: authError } = await sb.auth.signInWithPassword({ email, password: senha });
+            const { data: authData, error: authError } = await sbCadastro.auth.signInWithPassword({ email, password: senha });
             if (authError || !authData.user) {
                 const mensagemErro = pessoaExistente
                     ? 'Senha incorreta. Se não lembra, clique em "Esqueci minha senha" no login.'
@@ -1491,7 +1505,7 @@
             const linhasPessoa = await resPessoa.json();
             pessoaId = linhasPessoa && linhasPessoa[0] ? linhasPessoa[0].id : null;
         } else {
-            const { data: authData, error: authError } = await sb.auth.signUp({ email, password: senha });
+            const { data: authData, error: authError } = await sbCadastro.auth.signUp({ email, password: senha });
             if (authError) {
                 mostrarMensagem('Erro ao criar acesso: ' + authError.message, 'erro');
                 travarFormulario(false);
