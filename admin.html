@@ -3081,10 +3081,25 @@
             const modalDiretoria = document.getElementById('modalAdmin');
             const ritmistaAberto = modalRitmista && modalRitmista.classList.contains('aberto');
             const diretoriaAberta = modalDiretoria && modalDiretoria.style.display !== 'none';
-            if (ritmistaAberto || diretoriaAberta) return;
-            carregarRitmistas(true);
-            diretoriaCarregada = false;
-            carregarDiretoria(true);
+            if (!ritmistaAberto && !diretoriaAberta) {
+                carregarRitmistas(true);
+                diretoriaCarregada = false;
+                carregarDiretoria(true);
+            }
+
+            // Presença (31/ago/2026) -- se a tela de marcar presença de um
+            // evento está aberta, atualiza a lista sozinha também, mesmo
+            // padrão/intervalo de Ritmistas/Diretoria acima. Achado real da
+            // Márcia testando ao vivo: ela escaneava o QR pela carteirinha
+            // (outra sessão) e a tela de gestão não mostrava a mudança até
+            // recarregar a página inteira -- o que também jogava ela de
+            // volta pra tela anterior, perdendo o evento aberto. Pausa
+            // enquanto tem alguma confirmação manual pendente na lista, pra
+            // não sumir o "Confirma?/Sim/Cancelar" no meio do toque dela.
+            const telaPresenca = document.getElementById('presenca-tela-marcar');
+            if (telaPresenca && telaPresenca.style.display === 'block' && presencaEventoAtual && Object.keys(presencaConfirmando).length === 0) {
+                carregarPresencaPessoas();
+            }
         }, 30000);
     }
 
