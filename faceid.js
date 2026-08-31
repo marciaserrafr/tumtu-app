@@ -58,7 +58,7 @@ async function faceIdAtivar(pessoaId, nome) {
         publicKey: {
             challenge,
             rp: { name: 'TumTu' },
-            user: { id: userId, name: 'pessoa-' + pessoaId, displayName: nome || 'Ritmista' },
+            user: { id: userId, name: nome || 'Ritmista TumTu', displayName: nome || 'Ritmista' },
             pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
             authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', requireResidentKey: false },
             timeout: 60000,
