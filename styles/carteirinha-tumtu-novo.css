@@ -779,57 +779,38 @@
   opacity: 1;
 }
 
+/* Barra de ações "slim" (30/ago/2026, pedido dela: menu de ícones tipo
+   Instagram, no lugar dos 2 botões grandes empilhados) -- mesma largura
+   do cartão, ícones de linha (Lucide, licença livre) em vez de emoji.
+   Com 1 ou 2 itens visíveis, o space-around já centraliza sozinho --
+   não precisa mais de uma classe/regra à parte pro caso "só um botão"
+   (existia antes como .botoes-solo, removida). */
 .c-botoes {
   display: flex;
-  gap: 10px;
+  justify-content: space-around;
+  align-items: center;
   width: var(--largura-cartao, 300px);
+  background: var(--cor-fundo-medio);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: 14px;
+  padding: 8px 4px;
 }
 
-/* Quando só tem "Meu Perfil" (ninguém pra trocar), ele NÃO deve esticar
-   de ponta a ponta — vira um botão de tamanho normal, centralizado
-   (pedido da Márcia em 16/jul/2026: "ficou comprido demais, enorme"). */
-.c-botoes.botoes-solo {
-  justify-content: center;
-}
-.c-botoes.botoes-solo .c-btn-meuperfil {
-  flex: none;
-  padding-left: 32px;
-  padding-right: 32px;
-}
-
-/* "Meu Perfil" é a ação principal (a carteirinha é sempre "a minha"),
-   por isso leva o dourado sólido — mesma hierarquia usada no resto do
-   app (destaque real = fundo sólido; secundário = só borda). */
-.c-btn-meuperfil {
+.c-btn-icone {
   flex: 1;
-  padding: 10px;
-  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 2px;
   border: none;
-  background: #D4AF37;
-  color: #12101a;
-  font-size: 12px;
-  font-weight: 700;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  cursor: pointer;
-  letter-spacing: 0.08em;
-}
-
-.c-btn-meuperfil:hover { background: #B8922A; }
-
-/* "Trocar de Bateria" só aparece pra quem tem 2+ vínculos — ação
-   secundária/utilidade, por isso só borda. */
-.c-btn-trocar {
-  flex: 1;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1.5px solid #D4AF37;
-  background: transparent;
+  background: none;
   color: #D4AF37;
-  font-size: 12px;
-  font-weight: 700;
-  font-family: 'Plus Jakarta Sans', sans-serif;
   cursor: pointer;
-  letter-spacing: 0.08em;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-.c-btn-trocar:hover { background: rgba(212, 175, 55, 0.08); }
+.c-btn-icone-svg svg { width: 21px; height: 21px; display: block; }
+.c-btn-icone-lb { font-size: 9px; font-weight: 700; letter-spacing: 0.03em; text-align: center; }
+
+.c-btn-icone:active { opacity: 0.6; }

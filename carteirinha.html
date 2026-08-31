@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=24">
-    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=34">
+    <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=35">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <style>
@@ -242,8 +242,14 @@
     </div>
 
     <div class="c-botoes">
-        <button class="c-btn-meuperfil" id="btnMeuPerfilRodape" style="display:none;" onclick="abrirPerfil();">Meu Perfil</button>
-        <button class="c-btn-trocar" id="btnTrocarBateria" style="display:none;" onclick="trocarBateria();">Trocar de Bateria</button>
+        <button class="c-btn-icone" id="btnMeuPerfilRodape" style="display:none;" onclick="abrirPerfil();">
+            <span class="c-btn-icone-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></span>
+            <span class="c-btn-icone-lb">Perfil</span>
+        </button>
+        <button class="c-btn-icone" id="btnTrocarBateria" style="display:none;" onclick="trocarBateria();">
+            <span class="c-btn-icone-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span>
+            <span class="c-btn-icone-lb">Trocar</span>
+        </button>
     </div>
 
 </div>
@@ -659,15 +665,13 @@
             window.location.href = 'login';
         } else {
             renderMestres(ritmista.bateria_id);
-            document.getElementById('btnMeuPerfilRodape').style.display = 'block';
+            document.getElementById('btnMeuPerfilRodape').style.display = 'flex';
             // "Trocar de Bateria" só aparece pra quem tem 2+ vínculos (totalVinculos
             // vem calculado no login.html, na hora de escolher/entrar direto).
-            // Sem ele, "Meu Perfil" fica sozinho e centralizado (classe
-            // botoes-solo), em vez de esticar de ponta a ponta.
+            // A barra usa space-around, então com 1 ou 2 ícones ela já centraliza
+            // sozinha, sem precisar de uma classe/regra especial pro caso "sozinho".
             if (ritmista.totalVinculos > 1) {
-                document.getElementById('btnTrocarBateria').style.display = 'block';
-            } else {
-                document.querySelector('.c-botoes').classList.add('botoes-solo');
+                document.getElementById('btnTrocarBateria').style.display = 'flex';
             }
             const cacheado = lerConfigCache(ritmista.bateria_id);
             (async () => {

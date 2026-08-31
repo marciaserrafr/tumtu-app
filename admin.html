@@ -184,6 +184,10 @@
             transition: color 0.15s, background 0.15s; white-space: nowrap;
         }
         .aba-btn .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
+        /* Ícones de linha (Lucide, 30/ago/2026) no lugar de emoji -- SVG
+           usa stroke="currentColor", então herda a mesma cor do texto ao
+           lado (dourado quando .ativa, sem precisar de regra própria). */
+        .aba-ic svg, .sa-ic svg { width: 16px; height: 16px; display: block; }
         .aba-btn:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
         /* Fundo neutro (não dourado) -- misturar dourado semitransparente
            com o roxo escuro do menu resultava numa cor acastanhada/"suja"
@@ -1545,6 +1549,7 @@
             }
             .aba-btn { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .aba-btn .aba-ic { font-size: 18px; width: auto; }
+            .aba-ic svg, .sa-ic svg { width: 19px; height: 19px; }
             /* Sem a pílula de fundo (não cabe numa barra horizontal), o
                destaque de "selecionado" tem que estar na COR -- antes só
                tirava o fundo dourado e deixava o texto escuro (#12101a) de
@@ -1609,10 +1614,10 @@
      é Super Admin (perfil==='super_admin'). Mestre/Diretor nunca vê isso.
      ══════════════════════════════════════════════════════════════════ -->
 <div class="sa-sidebar" id="saSidebar" style="display:none">
-    <button type="button" class="sa-sidebar-item ativa" data-sa="dashboard" onclick="trocarSaAba('dashboard',this)"><span class="sa-ic">📊</span><span>Dashboard</span></button>
-    <button type="button" class="sa-sidebar-item" data-sa="escolas" onclick="trocarSaAba('escolas',this)"><span class="sa-ic">🏫</span><span>Escolas</span></button>
-    <button type="button" class="sa-sidebar-item" data-sa="configuracoes-globais" onclick="trocarSaAba('configuracoes-globais',this)"><span class="sa-ic">⚙️</span><span>Configurações</span></button>
-    <button type="button" class="sa-sidebar-item" data-sa="privacidade" onclick="trocarSaAba('privacidade',this)"><span class="sa-ic">🔒</span><span>Privacidade</span></button>
+    <button type="button" class="sa-sidebar-item ativa" data-sa="dashboard" onclick="trocarSaAba('dashboard',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span><span>Dashboard</span></button>
+    <button type="button" class="sa-sidebar-item" data-sa="escolas" onclick="trocarSaAba('escolas',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M18 4.933V21"/><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"/><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"/><path d="M6 4.933V21"/><circle cx="12" cy="9" r="2"/></svg></span><span>Escolas</span></button>
+    <button type="button" class="sa-sidebar-item" data-sa="configuracoes-globais" onclick="trocarSaAba('configuracoes-globais',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg></span><span>Configurações</span></button>
+    <button type="button" class="sa-sidebar-item" data-sa="privacidade" onclick="trocarSaAba('privacidade',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span>Privacidade</span></button>
     <div class="sidebar-assinatura">
         <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
         <span class="sidebar-assinatura-tagline">Sistema de gestão de bateria</span>
@@ -1798,14 +1803,14 @@
      de propósito (pedido dela: "é um padrão sempre o Mais ser por
      último"). -->
 <nav class="nav-abas" id="navAbasEscola" style="display:none">
-    <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)"><span class="aba-ic">📊</span><span>Visão Geral</span></button>
-    <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)"><span class="aba-ic">🥁</span><span>Ritmistas</span></button>
-    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)"><span class="aba-ic">🏆</span><span>Diretoria</span></button>
+    <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span><span>Visão Geral</span></button>
+    <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 8 8"/><path d="m22 2-8 8"/><ellipse cx="12" cy="9" rx="10" ry="5"/><path d="M7 13.4v7.9"/><path d="M12 14v8"/><path d="M17 13.4v7.9"/><path d="M2 9v8a10 5 0 0 0 20 0V9"/></svg></span><span>Ritmistas</span></button>
+    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg></span><span>Diretoria</span></button>
     <!-- "Meu Perfil" saiu do menu -- pedido da Márcia, 21/ago/2026: a
          bolinha de conta no cabeçalho (#headerAvatarWrap) já leva pra lá,
          ter os dois caminhos era redundante e ocupava espaço à toa
          (crítico no rodapé do celular). -->
-    <button class="aba-btn-sa aba-btn" id="btnMais" data-aba="administrativo" onclick="onClickMais(this)" style="display:none"><span class="aba-ic">⋯</span><span>Mais</span><span class="aba-mais-seta" id="maisSeta">›</span></button>
+    <button class="aba-btn-sa aba-btn" id="btnMais" data-aba="administrativo" onclick="onClickMais(this)" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span><span>Mais</span><span class="aba-mais-seta" id="maisSeta">›</span></button>
     <!-- Só no computador: "Mais" abre um submenu ali mesmo na barra lateral
          em vez de navegar pra uma tela própria -- pedido da Márcia,
          20/ago/2026 ("pensei em colocar uma seta e esse menu abrir para
@@ -1819,7 +1824,7 @@
          item da lista, abaixo de "Mais" (pedido dela). No celular sairia
          apertado como 6º item no rodapé -- vira um link no topo, perto
          do cabeçalho (avaliação minha, 20/ago/2026). -->
-    <button id="btnVoltarEscolasNav" type="button" class="nav-abas-voltar" onclick="voltarParaEscolasSA()" style="display:none"><span class="aba-ic">🏫</span><span>Escolas</span></button>
+    <button id="btnVoltarEscolasNav" type="button" class="nav-abas-voltar" onclick="voltarParaEscolasSA()" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M18 4.933V21"/><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"/><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"/><path d="M6 4.933V21"/><circle cx="12" cy="9" r="2"/></svg></span><span>Escolas</span></button>
     <!-- Só pra quem (Mestre/Diretor/Apoio) tem vínculo em mais de uma
          bateria -- achado urgente da Márcia, 25/ago/2026: não existia
          NENHUM caminho de volta pra escolher a outra bateria dentro do
@@ -1829,7 +1834,7 @@
          Diretor/Apoio), por isso reaproveita a mesma posição/estilo sem
          risco de sobrepor. No celular vira flutuante automaticamente, é a
          mesma regra CSS de .nav-abas-voltar (sem CSS novo nenhum). -->
-    <button id="btnTrocarBateriaNav" type="button" class="nav-abas-voltar" onclick="trocarBateriaAdmin()" style="display:none"><span class="aba-ic">🔄</span><span>Trocar de Bateria</span></button>
+    <button id="btnTrocarBateriaNav" type="button" class="nav-abas-voltar" onclick="trocarBateriaAdmin()" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span><span>Trocar de Bateria</span></button>
     <div class="sidebar-assinatura">
         <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
         <span class="sidebar-assinatura-tagline">Sistema de gestão de bateria</span>
