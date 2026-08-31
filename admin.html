@@ -5843,7 +5843,7 @@
             if (itensCat.length === 0) return '';
             return `<div class="secao-titulo">${esc(cat.nome)}</div>` + itensCat.map(it => `
                     <div class="item-card item-card-simples" onclick="abrirEntregasFigurino(${it.id})" style="cursor:pointer;">
-                        <div class="item-info"><div class="item-nome">${esc(it.nome)}</div><div class="item-detalhe">Público: ${esc(it.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(', '))}</div></div>
+                        <div class="item-info"><div class="item-nome">${esc(it.nome)}</div><div class="item-detalhe">Público: ${esc(it.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).concat(it.inclui_extras ? ['Convidados'] : []).join(', '))}</div></div>
                         <span class="config-item-seta">›</span>
                     </div>`).join('');
         }).join('');
