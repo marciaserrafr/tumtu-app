@@ -24,7 +24,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=51"></script>
+    <script src="ficha-perfil.js?v=52"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -8321,6 +8321,17 @@
             // permissões" já mora lá), mesmo raciocínio do Naipe acima.
             { chave: 'ver_permissoes', label: 'Visualizar Permissões', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
             { chave: 'editar_permissoes', label: 'Editar Permissões', dependeDe: 'ver_permissoes', subgrupo: 'Ficha da Diretoria' },
+            // Medida da Diretoria (31/ago/2026, pedido dela: "NINGUÉM MAIS NA
+            // VIDA VAI PODER EDITAR MEDIDA" sem permissão explícita) -- antes
+            // Mestre/Diretor/Apoio editavam a própria Medida sem trava
+            // nenhuma, e não existia NADA pra editar a Medida de outro
+            // Diretor/Apoio/Mestre. Duas capacidades novas e separadas, as
+            // duas nascem desligadas. Não depende de ver_acessos de
+            // propósito (editar a PRÓPRIA medida não tem relação com ver a
+            // lista de outras pessoas). Ritmista continua fora disso --
+            // mecanismo à parte (ritmista_pode_editar_medidas).
+            { chave: 'editar_propria_medida', label: 'Editar a própria Medida', subgrupo: 'Ficha da Diretoria' },
+            { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
         { grupo: 'Lista de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos', dependeDe: 'ver_eventos' }] },

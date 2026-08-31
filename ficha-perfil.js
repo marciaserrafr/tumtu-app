@@ -137,7 +137,14 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil, ehConvidado) {
 
     if (autoedicao) {
         const base = ['foto_url', 'nome', 'apelido', 'genero', 'genero_personalizado', 'celular', 'endereco', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'pais', 'emergencia_nome', 'emergencia_parentesco', 'emergencia_celular'];
-        if (atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') {
+        // Editar a própria Medida (31/ago/2026) virou capacidade própria
+        // (editar_propria_medida) -- pedido dela: "NINGUÉM MAIS NA VIDA VAI
+        // PODER EDITAR MEDIDA" sem permissão explícita, nem o Mestre. Antes
+        // era liberado sem trava nenhuma pra Mestre/Diretor/Apoio. Ritmista
+        // NUNCA passa por aqui pra medidas -- continua no mecanismo à parte
+        // (ritmista_pode_editar_medidas, ver fpAplicarPermissaoRitmistaMedidas),
+        // intocado por essa mudança.
+        if ((atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') && typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_propria_medida')) {
             base.push('medidas');
         }
         // Naipe é atributo só de Diretor -- autoeditado por enquanto (não
@@ -147,13 +154,17 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil, ehConvidado) {
         return new Set(base);
     }
 
-    if ((atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') && alvoPerfil === 'diretor') {
+    if ((atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') && (alvoPerfil === 'diretor' || alvoPerfil === 'mestre' || alvoPerfil === 'apoio')) {
         // Naipe que lidera, editando OUTRO Diretor (30/ago/2026) -- capacidade
         // própria (editar_naipe), agora com trava real no trigger
         // aplicar_matriz_edicao_vinculos. A própria pessoa sempre edita o
         // próprio naipe (ramo de autoedição acima), isso nunca muda.
+        // Medida de outra pessoa da Diretoria (31/ago/2026) -- capacidade
+        // nova (editar_medidas_diretoria), não existia NADA antes pra isso
+        // (editar_medidas_ritmista é só pra alvo Ritmista, ramo abaixo).
         const campos = new Set();
-        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_naipe')) campos.add('naipe');
+        if (alvoPerfil === 'diretor' && typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_naipe')) campos.add('naipe');
+        if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_medidas_diretoria')) campos.add('medidas');
         return campos;
     }
 
