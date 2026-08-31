@@ -5721,12 +5721,12 @@
                                     <input type="checkbox" ${publico.includes(p) ? 'checked' : ''} ${ativo ? '' : 'disabled'} onchange="salvarFigurinoPublico(${f.id}, '${p}', this.checked)">
                                     <span>${LABEL_PUBLICO_FIGURINO[p]}</span>
                                 </label>`).join('')}
+                            <label class="config-instrumento-check">
+                                <input type="checkbox" ${incluiExtras ? 'checked' : ''} ${ativo ? '' : 'disabled'} onchange="salvarFigurinoIncluiExtras(${f.id}, this.checked)">
+                                <span>Convidados</span>
+                            </label>
                         </div>
                     </div>
-                    <label class="config-instrumento-check" style="margin-top:10px;">
-                        <input type="checkbox" ${incluiExtras ? 'checked' : ''} ${ativo ? '' : 'disabled'} onchange="salvarFigurinoIncluiExtras(${f.id}, this.checked)">
-                        <span>Convidado</span>
-                    </label>
                 </div>` : ''}
             </div>`;
     }
