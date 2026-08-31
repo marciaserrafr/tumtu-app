@@ -4404,25 +4404,47 @@
         if (itens.length === 0) { card.style.display = 'none'; return; }
         const perfis = [...new Set(itens.flatMap(i => i.publico))];
         // "Incluir Extras" (25/ago/2026) soma junto o lado certo de Extras
-        // no resumo, mesma lógica de carregarEntregasFigurino.
+        // no resumo, mesma lógica de carregarEntregasFigurino. eh_convidado=
+        // eq.false (31/ago/2026): idem, Convidado Especial nunca some
+        // escondido dentro de Ritmistas/Diretoria.
         const precisaExtras = itens.some(i => i.inclui_extras);
+        const especial = modoConvidadosEspecial();
         const buscas = [
-            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=in.(${perfis.join(',')})&select=id,perfil,instrumento_nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&eh_convidado=eq.false&perfil=in.(${perfis.join(',')})&select=id,perfil,instrumento_nome`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=in.(${itemIds.join(',')})&entregue_em=not.is.null&vinculo_id=not.is.null&select=vinculo_id,figurino_item_id`, { headers: authHeaders }),
         ];
         if (precisaExtras) {
-            buscas.push(
-                fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&select=id,grupo`, { headers: authHeaders }),
-                fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=in.(${itemIds.join(',')})&entregue_em=not.is.null&extra_id=not.is.null&select=extra_id,figurino_item_id`, { headers: authHeaders }),
-            );
+            if (especial) {
+                // Convidado Especial é vínculo de verdade -- entrega dele já
+                // vem na busca de figurino_entregas por vinculo_id acima,
+                // não precisa de busca própria (diferente do Convidado
+                // Simples, que usa extra_id numa tabela separada).
+                buscas.push(fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&eh_convidado=eq.true&select=id,perfil`, { headers: authHeaders }));
+            } else {
+                buscas.push(
+                    fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&select=id,grupo`, { headers: authHeaders }),
+                    fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=in.(${itemIds.join(',')})&entregue_em=not.is.null&extra_id=not.is.null&select=extra_id,figurino_item_id`, { headers: authHeaders }),
+                );
+            }
         }
-        const [resPessoas, resEntregas, resExtras, resExtrasEntregas] = await Promise.all(buscas);
+        const [resPessoas, resEntregas, ...resto] = await Promise.all(buscas);
         const pessoas = resPessoas.ok ? await resPessoas.json() : [];
         const entregas = resEntregas.ok ? await resEntregas.json() : [];
-        const extras = (precisaExtras && resExtras && resExtras.ok) ? await resExtras.json() : [];
-        const extrasEntregas = (precisaExtras && resExtrasEntregas && resExtrasEntregas.ok) ? await resExtrasEntregas.json() : [];
+        let extras = [], extrasEntregas = [];
+        if (precisaExtras && especial) {
+            const [resConvidados] = resto;
+            const convidados = (resConvidados && resConvidados.ok) ? await resConvidados.json() : [];
+            // Normaliza pro mesmo formato {id, grupo} do Convidado Simples,
+            // pra renderizarResumoEntregaFigurino não precisar saber a
+            // diferença (perfil vira grupo).
+            extras = convidados.map(c => ({ id: c.id, grupo: c.perfil }));
+        } else if (precisaExtras) {
+            const [resExtras, resExtrasEntregas] = resto;
+            extras = (resExtras && resExtras.ok) ? await resExtras.json() : [];
+            extrasEntregas = (resExtrasEntregas && resExtrasEntregas.ok) ? await resExtrasEntregas.json() : [];
+        }
         card.style.display = 'block';
-        renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas);
+        renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas, especial);
     }
 
     // Cada peça, dentro do card, é seu próprio acordeão fechado/aberto
@@ -4436,8 +4458,8 @@
         if (vgFigurinoUltimoRender) renderizarResumoEntregaFigurino(...vgFigurinoUltimoRender);
     }
 
-    function renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas) {
-        vgFigurinoUltimoRender = [itens, pessoas, entregas, extras, extrasEntregas];
+    function renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas, especial) {
+        vgFigurinoUltimoRender = [itens, pessoas, entregas, extras, extrasEntregas, especial];
         const div = document.getElementById('vg-figurino');
         if (!div) return;
         const entreguesPorItem = {};
@@ -4445,11 +4467,16 @@
             if (!entreguesPorItem[e.figurino_item_id]) entreguesPorItem[e.figurino_item_id] = new Set();
             entreguesPorItem[e.figurino_item_id].add(e.vinculo_id);
         });
+        // Convidado Especial é vínculo de verdade -- entrega dele já está
+        // em entreguesPorItem acima (mesmo formato de Ritmistas/Diretoria).
+        // extrasEntreguesPorItem só existe pro Convidado Simples (extra_id).
         const extrasEntreguesPorItem = {};
-        (extrasEntregas || []).forEach(e => {
-            if (!extrasEntreguesPorItem[e.figurino_item_id]) extrasEntreguesPorItem[e.figurino_item_id] = new Set();
-            extrasEntreguesPorItem[e.figurino_item_id].add(e.extra_id);
-        });
+        if (!especial) {
+            (extrasEntregas || []).forEach(e => {
+                if (!extrasEntreguesPorItem[e.figurino_item_id]) extrasEntreguesPorItem[e.figurino_item_id] = new Set();
+                extrasEntreguesPorItem[e.figurino_item_id].add(e.extra_id);
+            });
+        }
         const linhaHtml = (nome, entregues, total, ehGrupo) => {
             const faltam = total - entregues;
             return `
@@ -4503,7 +4530,7 @@
                 // antes separava "Convidados - Ritmistas"/"Convidados -
                 // Diretoria" em 2 linhas; agora soma os dois num só total.
                 if (extrasAlvo.length > 0) {
-                    const entreguesExtras = extrasAlvo.filter(e => extrasEntreguesSet.has(e.id)).length;
+                    const entreguesExtras = extrasAlvo.filter(e => especial ? entreguesSet.has(e.id) : extrasEntreguesSet.has(e.id)).length;
                     corpoHtml += linhaHtml('Convidados', entreguesExtras, extrasAlvo.length, true);
                     totalGeral += extrasAlvo.length; entreguesGeral += entreguesExtras;
                 }
@@ -5935,20 +5962,35 @@
         // -- busca todo mundo relevante de uma vez (perfil=in.(...)); qual
         // "lado" (Ritmista/Diretoria) a lista mostra é decidido depois, na
         // renderização, pelo filtro figurinoEntregaLadoAtual.
+        // eh_convidado=eq.false (31/ago/2026): Convidado Especial tem sua
+        // própria conta separada abaixo, nunca some escondido dentro de
+        // Ritmistas/Diretoria (mesmo raciocínio de carregarRitmistas()).
+        const especial = modoConvidadosEspecial();
         const buscas = [
-            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=in.(${item.publico.join(',')})&order=nome&select=id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&eh_convidado=eq.false&perfil=in.(${item.publico.join(',')})&order=nome&select=id,nome,apelido,perfil,instrumento_nome`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/vinculos_medidas?tipo_id=eq.${item.medida_tipo_id}`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}&vinculo_id=not.is.null`, { headers: authHeaders }),
         ];
         const gruposExtras = gruposExtraDoPublico(item.publico);
-        if (item.inclui_extras && gruposExtras.length > 0) {
-            buscas.push(
-                fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&grupo=in.(${gruposExtras.join(',')})&order=nome`, { headers: authHeaders }),
-                fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?tipo_id=eq.${item.medida_tipo_id}`, { headers: authHeaders }),
-                fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}&extra_id=not.is.null`, { headers: authHeaders }),
-            );
+        const usaConvidados = item.inclui_extras && gruposExtras.length > 0;
+        // "Convidados" pode significar 2 coisas bem diferentes por baixo,
+        // dependendo do modo da bateria (mesmo gate de modoConvidadosEspecial
+        // usado na aba Convidados) -- Convidado Especial é um vínculo de
+        // verdade, então reaproveita vinculos_medidas/figurino_entregas.
+        // vinculo_id (já buscados acima) em vez das tabelas extras/
+        // extras_medidas, exclusivas do Convidado Simples.
+        if (usaConvidados) {
+            if (especial) {
+                buscas.push(fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&eh_convidado=eq.true&perfil=in.(${gruposExtras.join(',')})&order=nome&select=id,nome,apelido,perfil`, { headers: authHeaders }));
+            } else {
+                buscas.push(
+                    fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&grupo=in.(${gruposExtras.join(',')})&order=nome`, { headers: authHeaders }),
+                    fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?tipo_id=eq.${item.medida_tipo_id}`, { headers: authHeaders }),
+                    fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=eq.${item.id}&extra_id=not.is.null`, { headers: authHeaders }),
+                );
+            }
         }
-        const [resPessoas, resValores, resEntregas, resExtras, resExtrasValores, resExtrasEntregas] = await Promise.all(buscas);
+        const [resPessoas, resValores, resEntregas, ...resto] = await Promise.all(buscas);
         const pessoas = resPessoas.ok ? await resPessoas.json() : [];
         const valores = resValores.ok ? await resValores.json() : [];
         const entregas = resEntregas.ok ? await resEntregas.json() : [];
@@ -5961,7 +6003,20 @@
             entregue: !!(entregaPorVinculo[p.id] && entregaPorVinculo[p.id].entregue_em),
         }));
         let linhasExtras = [];
-        if (item.inclui_extras && gruposExtras.length > 0) {
+        if (usaConvidados && especial) {
+            const [resConvidados] = resto;
+            const convidados = resConvidados.ok ? await resConvidados.json() : [];
+            // Convidado Especial é vínculo de verdade -- tamanho/entrega já
+            // vieram junto em valorPorVinculo/entregaPorVinculo acima (mesma
+            // tabela de todo mundo, sem busca extra).
+            linhasExtras = convidados.map(c => ({
+                tipo: 'extra', id: c.id, nome: c.nome, apelido: c.apelido, perfil: c.perfil,
+                instrumento_nome: null,
+                tamanho: valorPorVinculo[c.id] || null,
+                entregue: !!(entregaPorVinculo[c.id] && entregaPorVinculo[c.id].entregue_em),
+            }));
+        } else if (usaConvidados) {
+            const [resExtras, resExtrasValores, resExtrasEntregas] = resto;
             const extras = resExtras.ok ? await resExtras.json() : [];
             const valoresExtras = resExtrasValores.ok ? await resExtrasValores.json() : [];
             const entregasExtras = resExtrasEntregas.ok ? await resExtrasEntregas.json() : [];
@@ -6193,7 +6248,11 @@
         const item = figurinoEntregaItemAtual;
         if (!item) return;
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        const coluna = tipo === 'extra' ? 'extra_id' : 'vinculo_id';
+        // Convidado Especial é vínculo de verdade -- grava em vinculo_id
+        // como qualquer outro vínculo, mesmo sendo tipo 'extra' na UI (só o
+        // Convidado Simples, quando essa bateria usa esse modo, usa
+        // extra_id de verdade). Ver modoConvidadosEspecial().
+        const coluna = (tipo === 'extra' && !modoConvidadosEspecial()) ? 'extra_id' : 'vinculo_id';
         if (entregar) {
             await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?on_conflict=${coluna},figurino_item_id`, {
                 method: 'POST',
@@ -6942,28 +7001,45 @@
         const container = document.getElementById('presenca-pessoas-lista');
         container.innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         const perfis = ['ritmista', ...(evento.perfis_diretoria_inclusos || [])];
+        // eh_convidado=eq.false (31/ago/2026): Convidado Especial tem conta
+        // separada abaixo, nunca some escondido dentro de Ritmistas/
+        // Diretoria (mesmo raciocínio de carregarRitmistas()).
+        const especial = modoConvidadosEspecial();
         const buscas = [
-            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&perfil=in.(${perfis.join(',')})&order=nome&select=id,pessoa_id,nome,apelido,perfil,instrumento_nome,qr_token`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&eh_convidado=eq.false&perfil=in.(${perfis.join(',')})&order=nome&select=id,pessoa_id,nome,apelido,perfil,instrumento_nome,qr_token`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${evento.id}&vinculo_id=not.is.null`, { headers: authHeaders }),
         ];
         // Convidados (Extras) -- pedido dela, 29/ago/2026: "na configuração
         // do evento, tem que ter os convidados". Mesmo grupo de Figurino
         // (gruposExtraDoPublico, exclui mestre -- não existe "Convidado do
-        // Mestre").
+        // Mestre"). Igual Figurino, "Convidados" pode significar Convidado
+        // Especial (vínculo de verdade) ou Simples (tabela extras),
+        // dependendo do modo da bateria (modoConvidadosEspecial).
         const gruposExtras = evento.inclui_extras ? gruposExtraDoPublico(perfis) : [];
         if (gruposExtras.length > 0) {
-            buscas.push(
-                fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&grupo=in.(${gruposExtras.join(',')})&order=nome`, { headers: authHeaders }),
-                fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${evento.id}&extra_id=not.is.null`, { headers: authHeaders }),
-            );
+            if (especial) {
+                buscas.push(fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&eh_convidado=eq.true&perfil=in.(${gruposExtras.join(',')})&order=nome&select=id,pessoa_id,nome,apelido,perfil,qr_token`, { headers: authHeaders }));
+            } else {
+                buscas.push(
+                    fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&grupo=in.(${gruposExtras.join(',')})&order=nome`, { headers: authHeaders }),
+                    fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${evento.id}&extra_id=not.is.null`, { headers: authHeaders }),
+                );
+            }
         }
-        const [resPessoas, resPresencas, resExtras, resExtrasPresencas] = await Promise.all(buscas);
+        const [resPessoas, resPresencas, ...resto] = await Promise.all(buscas);
         const pessoas = resPessoas.ok ? await resPessoas.json() : [];
         const presencas = resPresencas.ok ? await resPresencas.json() : [];
         const presentesSet = new Set(presencas.map(p => p.vinculo_id));
         const linhasPessoas = pessoas.map(p => ({ tipo: 'vinculo', id: p.id, pessoa_id: p.pessoa_id, nome: p.nome, apelido: p.apelido, perfil: p.perfil, instrumento_nome: p.instrumento_nome || null, qr_token: p.qr_token, presente: presentesSet.has(p.id) }));
         let linhasExtras = [];
-        if (gruposExtras.length > 0) {
+        if (gruposExtras.length > 0 && especial) {
+            const [resConvidados] = resto;
+            const convidados = resConvidados.ok ? await resConvidados.json() : [];
+            // Convidado Especial é vínculo de verdade -- presença dele já
+            // está em presentesSet acima (mesma tabela/coluna vinculo_id).
+            linhasExtras = convidados.map(c => ({ tipo: 'extra', id: c.id, pessoa_id: c.pessoa_id, nome: c.nome, apelido: c.apelido, perfil: c.perfil, instrumento_nome: null, qr_token: c.qr_token, presente: presentesSet.has(c.id) }));
+        } else if (gruposExtras.length > 0) {
+            const [resExtras, resExtrasPresencas] = resto;
             const extras = resExtras.ok ? await resExtras.json() : [];
             const presencasExtras = resExtrasPresencas.ok ? await resExtrasPresencas.json() : [];
             const presentesExtrasSet = new Set(presencasExtras.map(p => p.extra_id));
@@ -7147,8 +7223,13 @@
         delete presencaConfirmando[`${tipo}-${id}`];
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         const bateriaId = bateriaIdContexto();
-        const conflictCol = tipo === 'vinculo' ? 'vinculo_id' : 'extra_id';
-        const payload = tipo === 'vinculo'
+        // Convidado Especial é vínculo de verdade -- grava em vinculo_id
+        // como qualquer outro vínculo, mesmo sendo tipo 'extra' na UI (só o
+        // Convidado Simples usa extra_id de verdade). Ver
+        // modoConvidadosEspecial().
+        const usaVinculo = tipo === 'vinculo' || modoConvidadosEspecial();
+        const conflictCol = usaVinculo ? 'vinculo_id' : 'extra_id';
+        const payload = usaVinculo
             ? { evento_id: presencaEventoAtual.id, vinculo_id: id, pessoa_id: p.pessoa_id, bateria_id: bateriaId, confirmado_por: u ? u.pessoa_id : null }
             : { evento_id: presencaEventoAtual.id, extra_id: id, bateria_id: bateriaId, confirmado_por: u ? u.pessoa_id : null };
         const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?on_conflict=evento_id,${conflictCol}`, {
@@ -7163,7 +7244,7 @@
     async function desfazerPresenca(tipo, id) {
         const p = presencaPessoasCache.find(x => x.tipo === tipo && x.id === id);
         if (!p || !presencaEventoAtual) return;
-        const col = tipo === 'vinculo' ? 'vinculo_id' : 'extra_id';
+        const col = (tipo === 'vinculo' || modoConvidadosEspecial()) ? 'vinculo_id' : 'extra_id';
         const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${presencaEventoAtual.id}&${col}=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível desfazer.', 'erro'); return; }
         p.presente = false;
