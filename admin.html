@@ -775,6 +775,23 @@
         .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
         .ficha-secao { margin-bottom: 24px; }
         .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        /* Título "pai" de um bloco com sub-blocos dentro (ex: "Meu Perfil"
+           em Permissões → Ritmistas, 01/set/2026) -- precisa se destacar de
+           verdade dos subtítulos (.config-grupo-titulo), que têm o mesmo
+           tamanho de .ficha-secao-titulo e ficavam parecidos demais (achado
+           dela: "fica difícil de entender" / "Meu Perfil está idêntico ao
+           título Ritmistas"). De propósito NÃO copia o estilo de caixa
+           alta/letras espaçadas dos subtítulos -- aquilo é convenção de
+           RÓTULO (mesmo tratamento de "Novo Cadastro", "Lista de
+           Ritmistas"), não de título. Fica com texto normal, grande,
+           escuro (recurso de título de verdade); o tracinho dourado do
+           lado (reaproveitado de .cadastro-cabecalho-tracinho, "Novo
+           cadastro") é o elemento que garante que não fica idêntico ao
+           título "Ritmistas" logo acima -- nem "Ritmistas" nem os
+           subtítulos têm esse tracinho, então ele sozinho já marca "Meu
+           Perfil" como algo à parte. */
+        .ficha-secao-titulo-pai { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 24px; }
+        .ficha-secao-titulo-pai-tracinho { display: inline-block; width: 3px; height: 15px; background: var(--cor-destaque); flex-shrink: 0; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
         /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
            label acima dele aumentados -- pedido dela, 22/ago/2026, "tenho
@@ -1958,49 +1975,56 @@
     <div id="pe-tela-ritmistas" class="config-subtela" style="display:none;">
         <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
         <div class="painel-titulo">Ritmistas</div>
+        <!-- Reorganizado em "Meu Perfil" + sub-blocos por assunto (01/set/2026,
+             pedido dela): antes era um parágrafo explicativo por interruptor,
+             tudo solto -- ela pediu "sem textão, simples e objetivo. A ação já
+             diz o que será permitido", mesmo padrão usado no editor por pessoa
+             de Diretoria (título do grupo + subtítulo por assunto). -->
         <div class="ficha-secao" id="pe-secao-ritmistas">
-            <div style="display:flex;align-items:center;gap:8px;">
-                <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
-                <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista edite as medidas</label>
-            </div>
-            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o ritmista consegue preencher — nunca editar depois de salvo — qualquer campo de Medida que estiver em branco na própria ficha. Útil quando surge uma Categoria de Figurino nova no meio da temporada (ex: um vestido) e as pessoas precisam preencher esse campo sozinhas. Vale pra bateria inteira.</div>
+            <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Meu Perfil</div>
 
-            <!-- Repique de Bossa (26/ago/2026): campo delicado, dois
-                 interruptores separados (ver / marcar), independentes um do
-                 outro -- pedido explícito dela, nascem os dois desligados. -->
-            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+            <div class="config-grupo-titulo">Medidas</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
+                <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
+            </div>
+
+            <!-- Repique de Bossa: campo delicado, dois interruptores separados
+                 (ver / marcar), independentes um do outro -- pedido explícito
+                 dela, nascem os dois desligados (26/ago/2026). -->
+            <div class="config-grupo-titulo">Instrumento</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('ver', this.checked)">
-                <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja o próprio Repique de Bossa</label>
+                <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Repique de Bossa</label>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
                 <input type="checkbox" id="pe-ritmista-marca-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('marcar', this.checked)">
-                <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista marque o próprio Repique de Bossa</label>
+                <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Editar Repique de Bossa</label>
             </div>
-            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Campo sensível, tratado à parte de Instrumento/Medidas: os dois interruptores acima controlam só a própria ficha do ritmista (Meu Perfil), e são independentes. Pra Mestre/Diretor/Apoio verem ou marcarem o Repique de Bossa de um ritmista, a permissão é dada pessoa por pessoa, no grupo de cada cargo — ninguém tem acesso até ser liberado, mesmo quem já edita Ritmistas normalmente.</div>
 
-            <!-- Desfile / Declaração do Responsável (28/ago/2026): só "ver" --
-                 o ritmista nunca marca nenhum dos dois, quem decide é sempre a
-                 Diretoria (pessoa por pessoa, em cada grupo). Pedido dela:
-                 "quero que tenha os dois interruptores. Na hora o adm vai
-                 decidir se o ritmista vai poder ver ou não." -->
-            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+            <!-- Desfile: só "ver" -- o ritmista nunca marca, quem decide é
+                 sempre a Diretoria pessoa por pessoa (28/ago/2026). -->
+            <div class="config-grupo-titulo">Desfile</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-desfile" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('desfile', this.checked)">
-                <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja o próprio Desfile</label>
+                <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Desfile</label>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
-                <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja a própria Declaração do Responsável</label>
-            </div>
-            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca marca nenhum dos dois, só enxerga o valor já definido pela Diretoria. Declaração só aparece de fato pra quem é menor de idade.</div>
 
-            <!-- Observações (28/ago/2026, sessão seguinte): mesmo padrão dos
-                 dois acima -- o ritmista continua NUNCA editando (Observações é
-                 sempre escrita pela Diretoria), só a bateria pode liberar "ver". -->
-            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
-                <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
-                <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja as próprias Observações</label>
+            <!-- Declaração do Responsável: só "ver" -- só aparece de fato pra
+                 quem é menor de idade (28/ago/2026). -->
+            <div class="config-grupo-titulo">Declaração do Responsável</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
+                <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Declaração do Responsável</label>
             </div>
-            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca edita, só a Diretoria escreve. Nasce desligado.</div>
+
+            <!-- Observações: só "ver" -- sempre escrita pela Diretoria
+                 (28/ago/2026, sessão seguinte). -->
+            <div class="config-grupo-titulo">Observações</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
+                <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Observações</label>
+            </div>
         </div>
     </div>
 
@@ -2057,12 +2081,16 @@
     <div id="pe-tela-convidados" class="config-subtela" style="display:none;">
         <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
         <div class="painel-titulo">Convidados</div>
+        <!-- Mesmo modelo de divisão de Ritmistas (01/set/2026, pedido dela:
+             "aplique em todo o Permissões para todas as personas"). -->
         <div class="ficha-secao" id="pe-secao-convidados">
-            <div style="display:flex;align-items:center;gap:8px;">
+            <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Meu Perfil</div>
+
+            <div class="config-grupo-titulo">Medidas</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-convidado-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarConvidadoEditaMedidas(this.checked)">
-                <label for="pe-convidado-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o Convidado edite a própria Medida</label>
+                <label for="pe-convidado-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
             </div>
-            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Convidado não tem acesso de gestão nenhum -- esse é o único caso de exceção possível. Vale pra qualquer tipo de Convidado (Ritmista, Diretor de Bateria ou Apoio) e pra bateria inteira, não é liberado pessoa por pessoa.</div>
         </div>
     </div>
 
@@ -9207,7 +9235,7 @@
                 : (pe.grupoOrigem && PERMISSOES_GRUPOS[pe.grupoOrigem] ? `<div style="margin-bottom:8px;"><span onclick="fecharEditorPermissoesPessoa()" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← ${esc(PERMISSOES_GRUPOS[pe.grupoOrigem].label)}</span></div>` : '')}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
             <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Acesso ao painel</div>
+                <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Acesso ao painel</div>
                 <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                     <input type="checkbox" id="pp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
                     <label for="pp-modo-carteirinha" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
@@ -9215,14 +9243,17 @@
             </div>
             ${gruposCapacidadesVisiveis().map(g => `
                 <div class="ficha-secao">
-                    <div class="ficha-secao-titulo">${esc(g.grupo)}</div>
+                    <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>${esc(g.grupo)}</div>
                     ${g.itens.map((c, idx) => {
                         // Sub-título "onde está mexendo" (Lista/Novo Cadastro/Ficha) a
                         // cada troca de subgrupo -- pedido dela, 30/ago/2026. Reaproveita
                         // .config-grupo-titulo, mesmo estilo já aprovado em Instrumentos
-                        // (Tradicionais/Especiais).
+                        // (Tradicionais/Especiais). Respiro sempre igual (01/set/2026,
+                        // mesmo achado de Ritmistas: "respiro diferente" no primeiro
+                        // subtítulo x os demais) -- usa o margin-top padrão da classe
+                        // pra todo mundo, sem exceção pro primeiro da lista.
                         const trocouSubgrupo = c.subgrupo && c.subgrupo !== (g.itens[idx - 1] || {}).subgrupo;
-                        const subtitulo = trocouSubgrupo ? `<div class="config-grupo-titulo" style="margin-top:${idx === 0 ? '4px' : '18px'};">${esc(c.subgrupo)}</div>` : '';
+                        const subtitulo = trocouSubgrupo ? `<div class="config-grupo-titulo">${esc(c.subgrupo)}</div>` : '';
                         return subtitulo + `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                             <input type="checkbox" id="pp-cap-${c.chave}" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
