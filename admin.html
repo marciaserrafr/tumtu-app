@@ -775,6 +775,13 @@
         .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
         .ficha-secao { margin-bottom: 24px; }
         .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        /* Título "pai" de um bloco com sub-blocos dentro (ex: "Meu Perfil"
+           em Permissões → Ritmistas, 01/set/2026) -- precisa se destacar de
+           verdade dos subtítulos (.config-grupo-titulo), que têm o mesmo
+           tamanho de .ficha-secao-titulo e ficavam parecidos demais (achado
+           dela: "fica difícil de entender"). Maior, peso mais forte, sem
+           caixa alta -- lê como título de verdade, não como mais um rótulo. */
+        .ficha-secao-titulo-pai { font-size: 16px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 4px; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
         /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
            label acima dele aumentados -- pedido dela, 22/ago/2026, "tenho
@@ -1964,7 +1971,7 @@
              diz o que será permitido", mesmo padrão usado no editor por pessoa
              de Diretoria (título do grupo + subtítulo por assunto). -->
         <div class="ficha-secao" id="pe-secao-ritmistas">
-            <div class="ficha-secao-titulo">Meu Perfil</div>
+            <div class="ficha-secao-titulo-pai">Meu Perfil</div>
 
             <div class="config-grupo-titulo" style="margin-top:4px;">Medidas</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
