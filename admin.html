@@ -2411,7 +2411,7 @@
                 <div class="multi-select-trigger" id="tipoConvidadoSelectTrigger" onclick="toggleTipoConvidadoSelect()">
                     <span style="display:flex;align-items:center;gap:6px;">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="4 4 20 4 14 12 14 19 10 21 10 12 4 4"></polygon></svg>
-                        <span id="tipoConvidadoSelectLabel">Todos os tipos</span>
+                        <span id="tipoConvidadoSelectLabel">Todos - Convidados</span>
                     </span>
                     <span id="tipoConvidadoSelectArrow">▼</span>
                 </div>
@@ -2448,7 +2448,6 @@
             </div>
         </div>
 
-        <div id="convidados-especiais-total-geral" style="font-size:13px;color:#888;margin:0 0 16px;"></div>
         <div id="convidados-especiais-lista" class="lista-cards"></div>
     </div>
 </div>
@@ -6495,9 +6494,6 @@
         renderizarLinksCadastroConvidadoEspecial();
         lista = lista || convidadosEspeciaisCache;
 
-        const totalEl = document.getElementById('convidados-especiais-total-geral');
-        if (totalEl) totalEl.textContent = `${convidadosEspeciaisCache.length} convidado(s) no total`;
-
         const container = document.getElementById('convidados-especiais-lista');
         if (!container) return;
         if (convidadosEspeciaisCache.length === 0) { container.innerHTML = '<div class="estado-vazio">Nenhum Convidado cadastrado ainda.</div>'; return; }
@@ -6526,10 +6522,13 @@
                 <div class="card-direita">${direita}</div>
             </div>`;
         };
+        // Contador dourado à direita do título -- mesmo padrão de Diretoria
+        // (tituloSecaoComContador), pedido dela (01/set/2026).
+        const tituloComContador = (rotulo, qtd) => `<div class="secao-titulo" style="display:flex;justify-content:space-between;align-items:center;"><span>${rotulo}</span><span style="color:#D4AF37;font-weight:800;font-size:14px;letter-spacing:normal;">${qtd}</span></div>`;
         container.innerHTML = ['ritmista', 'diretor', 'apoio'].map(perfil => {
             const doGrupo = lista.filter(r => r.perfil === perfil);
             if (doGrupo.length === 0) return '';
-            return `<div class="secao-titulo">${LABEL_PERFIL_CONVIDADO_ESPECIAL[perfil]} (${doGrupo.length})</div>` + doGrupo.map(cardHtml).join('');
+            return tituloComContador(LABEL_PERFIL_CONVIDADO_ESPECIAL[perfil], doGrupo.length) + doGrupo.map(cardHtml).join('');
         }).join('');
     }
 
@@ -7680,9 +7679,11 @@
         { aba: 'extras', label: 'Convidados' },
         { aba: 'figurino', label: 'Entrega de Figurino' },
         { aba: 'presenca', label: 'Lista de Presença' },
-        { aba: 'comercial', label: 'Comercial' },
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
+        // Só o Super Admin enxerga esse item (ver podeVerAba) -- fica por
+        // último de propósito, pedido dela (01/set/2026).
+        { aba: 'comercial', label: 'Comercial' },
     ];
     function itensAdministrativoVisiveis() {
         return ADMINISTRATIVO_ITENS.filter(i => souSuperAdmin || podeVerAba(i.aba));
@@ -9957,7 +9958,7 @@
         const total = document.querySelectorAll('#tipoConvidadoSelectDropdown input[type=checkbox]').length;
         const label = document.getElementById('tipoConvidadoSelectLabel');
         if (filtroTipoConvidadoSelecionados.length === total) {
-            label.textContent = 'Todos os tipos';
+            label.textContent = 'Todos - Convidados';
         } else if (filtroTipoConvidadoSelecionados.length === 0) {
             label.textContent = 'Nenhum tipo';
         } else {
