@@ -8846,18 +8846,33 @@
         // "Meu Perfil" no interruptor de bateria: dado de ficha/perfil de
         // um lado, ação de fila/aprovação do outro. "São muitas!!!" (dela)
         // -- 7 sub-blocos por assunto em vez de 1 subtítulo genérico.
+        // 01/set/2026, pedido dela: mapa COMPLETO de tudo que existe (ou
+        // poderia existir) na ficha de um Ritmista, mesmo sem capacidade
+        // real por trás ainda -- "coloque tudo, independente de ter
+        // funcionalidade ou não criada... pra mapear todo o sistema, senão
+        // eu fico maluca toda hora criando permissão aleatória". Itens com
+        // semFuncionalidade mostram só uma nota (ver renderizarEditorPermissoesPessoa),
+        // sem checkbox -- não existe capacidade nenhuma por trás deles hoje.
         { grupo: 'Perfil do Ritmista', itens: [
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Foto' },
             { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, endereço, contato de emergência e dados do responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Dados Pessoais' },
             { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
             { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
             { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Instrumento' },
+            { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Endereço' },
             { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Medidas' },
-            { chave: 'ver_nao_desfila', label: 'Visualizar Não Desfila', dependeDe: 'ver_ritmistas', subgrupo: 'Desfile' },
-            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila', subgrupo: 'Desfile' },
-            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Declaração do Responsável' },
-            { chave: 'editar_declaracao_responsavel', label: 'Editar Declaração do Responsável', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Declaração do Responsável' },
+            { semFuncionalidade: true, nota: 'Já existe como grupo próprio "Figurino" mais abaixo — não é específico de Ritmista', subgrupo: 'Entrega de Figurinos' },
+            { semFuncionalidade: true, nota: 'Já existe como grupo próprio "Lista de Presença" mais abaixo — não é específico de Ritmista', subgrupo: 'Eventos' },
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Saúde' },
+            { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Contato de Emergência' },
             { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Observações' },
             { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Observações' },
+            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Declaração do Responsável' },
+            { chave: 'editar_declaracao_responsavel', label: 'Editar Declaração do Responsável', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Declaração do Responsável' },
+            { chave: 'ver_nao_desfila', label: 'Visualizar Não Desfila', dependeDe: 'ver_ritmistas', subgrupo: 'Desfile' },
+            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila', subgrupo: 'Desfile' },
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda — fica só no aparelho da pessoa, nunca no servidor', subgrupo: 'FaceId/Digital' },
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Suporte' },
         ] },
         { grupo: 'Diretoria', itens: [
             { chave: 'ver_acessos', label: 'Visualizar lista', subgrupo: 'Lista de Diretoria' },
@@ -8879,12 +8894,18 @@
         // sem ela ter pedido esse grupo especificamente, aplicando o mesmo
         // modelo que ela já aprovou (ver feedback_sempre_sugerir_com_justificativa).
         { grupo: 'Perfil do Diretor', itens: [
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Foto' },
             { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, endereço e contato de emergência', dependeDe: 'ver_acessos', subgrupo: 'Dados Pessoais' },
+            { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Endereço' },
+            { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Medidas' },
             { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Naipe' },
             { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
+            { semFuncionalidade: true, nota: 'Já existe como grupo próprio "Lista de Presença" mais abaixo — não é específico de Diretoria', subgrupo: 'Eventos' },
+            { semFuncionalidade: true, nota: 'Já existe como grupo próprio "Figurino" mais abaixo — não é específico de Diretoria', subgrupo: 'Entrega de Figurinos' },
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Saúde' },
+            { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Contato de Emergência' },
             { chave: 'ver_permissoes', label: 'Visualizar Permissões', dependeDe: 'ver_acessos', subgrupo: 'Permissões' },
             { chave: 'editar_permissoes', label: 'Editar Permissões', dependeDe: 'ver_permissoes', subgrupo: 'Permissões' },
-            { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Medidas' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
         // Bug real, 01/set/2026: dependia de "ver_eventos", que é a
@@ -8924,7 +8945,11 @@
         ] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Visualizar' }] },
     ];
-    const TODAS_CAPACIDADES = GRUPOS_CAPACIDADES.flatMap(g => g.itens.map(i => i.chave));
+    // itens com semFuncionalidade (01/set/2026, pedido dela: "coloque tudo,
+    // independente de ter funcionalidade ou não criada... pra mapear todo o
+    // sistema") não têm capacidade real nenhuma por trás -- filtrados aqui
+    // pra nunca virar chave "undefined" salva em vinculos.capacidades.
+    const TODAS_CAPACIDADES = GRUPOS_CAPACIDADES.flatMap(g => g.itens.filter(i => !i.semFuncionalidade).map(i => i.chave));
     // Mapa chave -> chave "pai" da qual depende (Reforma de Permissões, 28/ago/
     // 2026 -- pedido dela: "se ver ritmistas não estiver marcado, não é nem
     // pra liberar" as ações que dependem disso). Usado só na TELA de Permissões
@@ -9264,6 +9289,15 @@
                         // pra todo mundo, sem exceção pro primeiro da lista.
                         const trocouSubgrupo = c.subgrupo && c.subgrupo !== (g.itens[idx - 1] || {}).subgrupo;
                         const subtitulo = trocouSubgrupo ? `<div class="config-grupo-titulo">${esc(c.subgrupo)}</div>` : '';
+                        // semFuncionalidade (01/set/2026, pedido dela: "coloque tudo,
+                        // independente de ter funcionalidade ou não criada... pra
+                        // mapear todo o sistema, senão eu fico maluca toda hora
+                        // criando permissão aleatória") -- mostra só uma nota, sem
+                        // checkbox nenhum (não existe capacidade real por trás).
+                        if (c.semFuncionalidade) {
+                            return subtitulo + `
+                        <div style="margin-top:6px;font-size:12.5px;color:var(--cor-texto-muted);font-style:italic;">${esc(c.nota || 'Sem funcionalidade ainda')}</div>`;
+                        }
                         return subtitulo + `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                             <input type="checkbox" id="pp-cap-${c.chave}" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
