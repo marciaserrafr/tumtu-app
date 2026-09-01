@@ -5463,17 +5463,23 @@
     async function iniciarConfiguracoesAba() {
         voltarConfigLista();
         aplicarGatingConfiguracoes();
-        if (bibliotecaInstrumentos.length === 0) await carregarBibliotecaInstrumentos();
-        await carregarBateriaInstrumentos();
-        if (bibliotecaMedidas.length === 0) await carregarBibliotecaMedidas();
-        if (bibliotecaMedidaTipos.length === 0) await carregarBibliotecaMedidaTipos();
-        await carregarBateriaMedidas();
-        await carregarBateriaMedidaTipos();
-        if (bibliotecaFigurino.length === 0) await carregarBibliotecaFigurino();
-        await carregarBateriaFigurino();
-        if (bibliotecaEventoTipos.length === 0) await carregarBibliotecaEventoTipos();
-        if (bibliotecaTemporadas.length === 0) await carregarBibliotecaTemporadas();
-        await carregarEventosBateria();
+        // Eram 12 buscas em fila, uma esperando a outra sem necessidade
+        // (nenhuma depende do resultado da outra -- só preenchem caches
+        // separados, usados quando ela clica em cada sub-item) -- varredura
+        // de 01/set/2026 atrás do mesmo padrão de carregamento lento.
+        await Promise.all([
+            bibliotecaInstrumentos.length === 0 ? carregarBibliotecaInstrumentos() : Promise.resolve(),
+            carregarBateriaInstrumentos(),
+            bibliotecaMedidas.length === 0 ? carregarBibliotecaMedidas() : Promise.resolve(),
+            bibliotecaMedidaTipos.length === 0 ? carregarBibliotecaMedidaTipos() : Promise.resolve(),
+            carregarBateriaMedidas(),
+            carregarBateriaMedidaTipos(),
+            bibliotecaFigurino.length === 0 ? carregarBibliotecaFigurino() : Promise.resolve(),
+            carregarBateriaFigurino(),
+            bibliotecaEventoTipos.length === 0 ? carregarBibliotecaEventoTipos() : Promise.resolve(),
+            bibliotecaTemporadas.length === 0 ? carregarBibliotecaTemporadas() : Promise.resolve(),
+            carregarEventosBateria(),
+        ]);
     }
 
     // "Nome usado" mora na MESMA linha do título de cada grupo (Tradicionais/
@@ -5935,18 +5941,20 @@
 
     async function iniciarFigurinoTab() {
         voltarFigurinoLista();
-        // Spinner cobrindo a lista + as 3 buscas em paralelo (antes eram
-        // sequenciais, uma esperando a outra sem necessidade, e a lista
-        // ficava com o conteúdo antigo até tudo terminar) -- achado dela,
-        // 01/set/2026: "não tem cabimento mais esse tipo de comportamento",
-        // varredura no sistema inteiro atrás do mesmo padrão.
-        document.getElementById('figurino-itens-lista').innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        // Tela inteira coberta (mesmo overlay usado ao entrar numa bateria)
+        // até as 3 buscas (agora em paralelo) e a renderização terminarem --
+        // achado dela, 01/set/2026: um spinner só dentro da lista, com
+        // título/botões já visíveis, ainda conta como "revelar pela
+        // metade" ("para mim a tela tem que aparecer montada totalmente").
+        // Confirmado ao vivo: "Mostra o título e depois o card."
+        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
         await Promise.all([
             bibliotecaMedidaTipos.length === 0 ? carregarBibliotecaMedidaTipos() : Promise.resolve(),
             bibliotecaFigurino.length === 0 ? carregarBibliotecaFigurino() : Promise.resolve(),
             carregarBateriaFigurino(),
         ]);
         renderizarFigurinoLista();
+        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
 
     function renderizarFigurinoLista() {
@@ -6441,6 +6449,9 @@
     }
 
     async function iniciarExtrasTab() {
+        // Mesmo ajuste de iniciarConvidadosEspeciaisTab (01/set/2026) --
+        // tela inteira coberta até tudo estar pronto.
+        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
         extraEditando = null;
         renderizarEditorExtra();
         const btnNovo = document.getElementById('extras-btn-novo');
@@ -6449,6 +6460,7 @@
         await carregarFigurinoParaExtras();
         renderizarExtrasLista();
         atualizarTotalizadorExtras();
+        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
 
     // "Convidados" (31/ago/2026, reorganizado a pedido dela em 2 rodadas) --
@@ -6468,15 +6480,20 @@
     }
 
     async function iniciarConvidadosEspeciaisTab() {
+        // Tela inteira coberta até a passada leve (sem foto) terminar --
+        // achado dela, 01/set/2026: título/botões aparecendo antes da
+        // lista já conta como "revelar pela metade". As fotos completam
+        // em segundo plano depois, sem spinner nenhum -- mesma otimização
+        // de Ritmistas/Diretoria (ver carregarConvidadosEspeciais).
+        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
         const be = document.getElementById('btnExportarConvidadosEspeciais');
         if (be) be.style.display = (souSuperAdmin || tenhoCapacidade('exportar_convidados_especiais')) ? '' : 'none';
         const cc = document.getElementById('cadastroConvidadoEspecialCabecalho');
         if (cc) cc.style.display = (souSuperAdmin || tenhoCapacidade('copiar_link_convidados_especiais')) ? '' : 'none';
-        // Mostra a lista na hora, sem foto, e completa em segundo plano --
-        // mesma otimização de Ritmistas/Diretoria (ver carregarConvidadosEspeciais).
         await carregarConvidadosEspeciais(true);
         aplicarFiltrosConvidadosEspeciais();
         atualizarTotalizadorConvidadosEspeciais();
+        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
         carregarConvidadosEspeciais().then(() => {
             aplicarFiltrosConvidadosEspeciais();
             atualizarTotalizadorConvidadosEspeciais();
@@ -7042,15 +7059,18 @@
 
     async function iniciarPresencaTab() {
         voltarPresencaLista();
-        // Mesmo ajuste de iniciarFigurinoTab (01/set/2026) -- spinner
-        // cobrindo a lista + buscas em paralelo em vez de sequenciais.
-        document.getElementById('presenca-eventos-lista').innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        // Mesmo ajuste de iniciarFigurinoTab (01/set/2026) -- tela inteira
+        // coberta até as buscas (em paralelo) e a renderização terminarem.
+        // Confirmado ao vivo: "Aparece o título Lista de Presença e depois
+        // o card do Ensaio Técnico."
+        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
         await Promise.all([
             bibliotecaEventoTipos.length === 0 ? carregarBibliotecaEventoTipos() : Promise.resolve(),
             carregarEventosBateria(),
         ]);
         presencaEventosCache = eventosBateriaCache;
         renderizarPresencaEventosLista();
+        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
 
     function renderizarPresencaEventosLista() {
@@ -7907,7 +7927,7 @@
         document.getElementById('headerBateriaNome').style.display = 'none';
     }
 
-    function trocarSaAba(aba, el) {
+    async function trocarSaAba(aba, el) {
         window.scrollTo(0, 0);
         saAbaAtual = aba;
         salvarEstadoNavegacao('sa-shell', aba);
@@ -7923,16 +7943,22 @@
         // sidebar, position:fixed) ficava presa na altura antiga (mais alta),
         // sobrando um vão branco entre o cabeçalho de verdade e ela.
         ajustarAlturaHeaderAdmin();
-        // "return" aqui não muda nada pra quem chama sem esperar (clique na
-        // barra lateral, por ex.) -- só existe pra quem PRECISA esperar
-        // terminar, como o carregamento inicial do Super Admin (ver
-        // iniciarUsuario()), que usa isso pra saber a hora certa de tirar
-        // o spinner da tela.
-        if (aba === 'dashboard') return carregarDashboard();
-        if (aba === 'escolas') return carregarEscolas();
-        if (aba === 'privacidade') return carregarPrivacidade();
-        if (aba === 'configuracoes-globais') return voltarConfigListaSA();
-        if (aba === 'meu-perfil') return iniciarMeuPerfilSaAba();
+        // Tela inteira coberta até os dados da aba terminarem de carregar
+        // (01/set/2026, mesma varredura) -- clicar na barra lateral
+        // revelava o painel na hora (título, layout), com listas vazias ou
+        // antigas por baixo até a busca terminar. Se o overlay já estava
+        // visível por outro motivo (ex: carregamento inicial do Super
+        // Admin, ver iniciarUsuario()), não mexe nele -- quem já estava
+        // esperando continua esperando, sem conflito de quem tira primeiro.
+        const overlay = document.getElementById('overlayCarregandoEscola');
+        const jaVisivel = overlay.classList.contains('visivel');
+        if (!jaVisivel) overlay.classList.add('visivel');
+        if (aba === 'dashboard') await carregarDashboard();
+        else if (aba === 'escolas') await carregarEscolas();
+        else if (aba === 'privacidade') await carregarPrivacidade();
+        else if (aba === 'configuracoes-globais') voltarConfigListaSA();
+        else if (aba === 'meu-perfil') await iniciarMeuPerfilSaAba();
+        if (!jaVisivel) overlay.classList.remove('visivel');
     }
 
     // Meu Perfil do Super Admin, fora do contexto de uma escola -- mesmo
@@ -9897,14 +9923,19 @@
     function labelPerfilSA(p, genero) { if (p === 'mestre') return genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria'; if (p === 'diretor') return genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria'; if (p === 'apoio') return genero === 'feminino' ? 'Diretora (Apoio)' : 'Diretor (Apoio)'; return p; }
     function histDataHora(iso) { return iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—'; }
     async function carregarHistoricoEscolaSA() {
+        // Tela inteira coberta até a busca terminar (01/set/2026, mesma
+        // varredura) -- o título "Histórico" é fixo no HTML e aparecia na
+        // hora, com a lista vazia/antiga por baixo até a busca terminar.
+        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+        const esconderOverlay = () => document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
         const container = document.getElementById('lista-historico-escola');
         const idsBaterias = bateriasCache.map(b => b.id);
-        if (idsBaterias.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
+        if (idsBaterias.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; esconderOverlay(); return; }
         const url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome,genero),decisor:decidido_por(nome),bateria:bateria_id(nome)&bateria_id=in.(${idsBaterias.join(',')})&order=criado_em.desc&limit=200`;
         const res = await fetch(url, { headers: authHeaders });
-        if (!res.ok) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Não foi possível carregar o histórico.</div>'; return; }
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Não foi possível carregar o histórico.</div>'; esconderOverlay(); return; }
         const eventos = await res.json();
-        if (!eventos.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
+        if (!eventos.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; esconderOverlay(); return; }
         container.innerHTML = eventos.map(ev => `
             <div class="item-card">
                 <div class="item-info">
@@ -9915,18 +9946,23 @@
                     </div>
                 </div>
             </div>`).join('');
+        esconderOverlay();
     }
 
     // ══════════════════════════════════════════════════════════════════
     // PRIVACIDADE (exclusão de dados sob pedido — LGPD)
     // ══════════════════════════════════════════════════════════════════
     let exclusaoLgpdPendente = null;
-    function carregarPrivacidade() {
+    async function carregarPrivacidade() {
         const select = document.getElementById('priv-select-escola');
         select.innerHTML = '<option value="">Selecione a escola...</option>' + escolasCache.map(e => `<option value="${e.id}">${esc(e.nome)}</option>`).join('');
         document.getElementById('priv-resultado-pessoa').innerHTML = '';
         document.getElementById('priv-busca-pessoa').value = '';
-        carregarLogExclusoes();
+        // await (01/set/2026, mesma varredura) -- antes não devolvia a
+        // promise de carregarLogExclusoes(), então quem chamava (trocarSaAba)
+        // achava que essa aba já tinha terminado de carregar sem ter esperado
+        // o log de exclusões de verdade.
+        await carregarLogExclusoes();
     }
     async function buscarPessoaExclusao() {
         const termo = document.getElementById('priv-busca-pessoa').value.trim();
