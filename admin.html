@@ -2,7 +2,7 @@
 <html lang="pt-BR" data-tema="tumtu" style="background:#12101a;">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>TumTu — Painel do Diretor</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#12101a">
@@ -60,7 +60,7 @@
         .header {
             background: var(--cor-fundo-escuro);
             color: white;
-            padding: 16px 24px;
+            padding: calc(16px + env(safe-area-inset-top)) 24px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -811,7 +811,7 @@
 
         /* MOBILE */
         @media (max-width: 600px) {
-            .header { padding: 12px 16px; gap: 8px; }
+            .header { padding: calc(12px + env(safe-area-inset-top)) 16px 12px; gap: 8px; }
             .header-marca { font-size: 18px; }
             .header-badge .hb-escola { font-size: 10px; }
             .header-badge .hb-bateria { font-size: 9px; }
@@ -1516,6 +1516,13 @@
                 flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
                 position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: 100%;
                 background: var(--cor-fundo-escuro); justify-content: space-around; z-index: 200;
+                /* Sem isso, herda overflow-y:auto da versão de computador (onde
+                   faz sentido, é uma barra lateral que pode precisar rolar) --
+                   nessa fileira horizontal de ícones não precisa rolar nada, e
+                   deixar essa "permissão de rolar" sobrando é suspeito de
+                   causar respingo branco do iOS nessa faixa (achado 01/set/2026,
+                   depois da 1ª tentativa dessa correção quebrar o rodapé). */
+                overflow-y: hidden;
             }
             .sa-sidebar-item { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .sa-sidebar-item .sa-ic { font-size: 18px; width: auto; }
@@ -1546,6 +1553,8 @@
                 flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
                 position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: 100%;
                 background: var(--cor-fundo-escuro); justify-content: space-around; z-index: 200;
+                /* Mesmo ajuste de .sa-sidebar acima -- ver comentário lá. */
+                overflow-y: hidden;
             }
             .aba-btn { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .aba-btn .aba-ic { font-size: 18px; width: auto; }
