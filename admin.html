@@ -779,9 +779,16 @@
            em Permissões → Ritmistas, 01/set/2026) -- precisa se destacar de
            verdade dos subtítulos (.config-grupo-titulo), que têm o mesmo
            tamanho de .ficha-secao-titulo e ficavam parecidos demais (achado
-           dela: "fica difícil de entender"). Maior, peso mais forte, sem
-           caixa alta -- lê como título de verdade, não como mais um rótulo. */
-        .ficha-secao-titulo-pai { font-size: 16px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 4px; }
+           dela: "fica difícil de entender" / "Meu Perfil está idêntico ao
+           título Ritmistas"). Maior, peso mais forte, sem caixa alta -- lê
+           como título de verdade, não como mais um rótulo. Tracinho do lado
+           reaproveitado de .cadastro-cabecalho-tracinho ("Novo cadastro"),
+           só que na cor terracota (pedido dela: "temos outras cores... o
+           terracota que poderia ser usado") -- diferencia de Ritmistas
+           (preto) e do tracinho dourado de Novo Cadastro ao mesmo tempo,
+           sem inventar um quarto estilo do zero. */
+        .ficha-secao-titulo-pai { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: var(--cor-terracota); margin-bottom: 24px; }
+        .ficha-secao-titulo-pai-tracinho { display: inline-block; width: 3px; height: 15px; background: var(--cor-terracota); flex-shrink: 0; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
         /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
            label acima dele aumentados -- pedido dela, 22/ago/2026, "tenho
@@ -1971,9 +1978,9 @@
              diz o que será permitido", mesmo padrão usado no editor por pessoa
              de Diretoria (título do grupo + subtítulo por assunto). -->
         <div class="ficha-secao" id="pe-secao-ritmistas">
-            <div class="ficha-secao-titulo-pai">Meu Perfil</div>
+            <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Meu Perfil</div>
 
-            <div class="config-grupo-titulo" style="margin-top:4px;">Medidas</div>
+            <div class="config-grupo-titulo">Medidas</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
                 <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
@@ -1982,7 +1989,7 @@
             <!-- Repique de Bossa: campo delicado, dois interruptores separados
                  (ver / marcar), independentes um do outro -- pedido explícito
                  dela, nascem os dois desligados (26/ago/2026). -->
-            <div class="config-grupo-titulo" style="margin-top:18px;">Instrumento</div>
+            <div class="config-grupo-titulo">Instrumento</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('ver', this.checked)">
                 <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Repique de Bossa</label>
@@ -1994,7 +2001,7 @@
 
             <!-- Desfile: só "ver" -- o ritmista nunca marca, quem decide é
                  sempre a Diretoria pessoa por pessoa (28/ago/2026). -->
-            <div class="config-grupo-titulo" style="margin-top:18px;">Desfile</div>
+            <div class="config-grupo-titulo">Desfile</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-desfile" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('desfile', this.checked)">
                 <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Desfile</label>
@@ -2002,7 +2009,7 @@
 
             <!-- Declaração do Responsável: só "ver" -- só aparece de fato pra
                  quem é menor de idade (28/ago/2026). -->
-            <div class="config-grupo-titulo" style="margin-top:18px;">Declaração do Responsável</div>
+            <div class="config-grupo-titulo">Declaração do Responsável</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
                 <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Declaração do Responsável</label>
@@ -2010,7 +2017,7 @@
 
             <!-- Observações: só "ver" -- sempre escrita pela Diretoria
                  (28/ago/2026, sessão seguinte). -->
-            <div class="config-grupo-titulo" style="margin-top:18px;">Observações</div>
+            <div class="config-grupo-titulo">Observações</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
                 <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Observações</label>
