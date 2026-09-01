@@ -2081,12 +2081,16 @@
     <div id="pe-tela-convidados" class="config-subtela" style="display:none;">
         <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
         <div class="painel-titulo">Convidados</div>
+        <!-- Mesmo modelo de divisão de Ritmistas (01/set/2026, pedido dela:
+             "aplique em todo o Permissões para todas as personas"). -->
         <div class="ficha-secao" id="pe-secao-convidados">
-            <div style="display:flex;align-items:center;gap:8px;">
+            <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Meu Perfil</div>
+
+            <div class="config-grupo-titulo">Medidas</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-convidado-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarConvidadoEditaMedidas(this.checked)">
-                <label for="pe-convidado-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o Convidado edite a própria Medida</label>
+                <label for="pe-convidado-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
             </div>
-            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Convidado não tem acesso de gestão nenhum -- esse é o único caso de exceção possível. Vale pra qualquer tipo de Convidado (Ritmista, Diretor de Bateria ou Apoio) e pra bateria inteira, não é liberado pessoa por pessoa.</div>
         </div>
     </div>
 
@@ -9231,7 +9235,7 @@
                 : (pe.grupoOrigem && PERMISSOES_GRUPOS[pe.grupoOrigem] ? `<div style="margin-bottom:8px;"><span onclick="fecharEditorPermissoesPessoa()" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← ${esc(PERMISSOES_GRUPOS[pe.grupoOrigem].label)}</span></div>` : '')}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
             <div class="ficha-secao">
-                <div class="ficha-secao-titulo">Acesso ao painel</div>
+                <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Acesso ao painel</div>
                 <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                     <input type="checkbox" id="pp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
                     <label for="pp-modo-carteirinha" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
@@ -9239,14 +9243,17 @@
             </div>
             ${gruposCapacidadesVisiveis().map(g => `
                 <div class="ficha-secao">
-                    <div class="ficha-secao-titulo">${esc(g.grupo)}</div>
+                    <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>${esc(g.grupo)}</div>
                     ${g.itens.map((c, idx) => {
                         // Sub-título "onde está mexendo" (Lista/Novo Cadastro/Ficha) a
                         // cada troca de subgrupo -- pedido dela, 30/ago/2026. Reaproveita
                         // .config-grupo-titulo, mesmo estilo já aprovado em Instrumentos
-                        // (Tradicionais/Especiais).
+                        // (Tradicionais/Especiais). Respiro sempre igual (01/set/2026,
+                        // mesmo achado de Ritmistas: "respiro diferente" no primeiro
+                        // subtítulo x os demais) -- usa o margin-top padrão da classe
+                        // pra todo mundo, sem exceção pro primeiro da lista.
                         const trocouSubgrupo = c.subgrupo && c.subgrupo !== (g.itens[idx - 1] || {}).subgrupo;
-                        const subtitulo = trocouSubgrupo ? `<div class="config-grupo-titulo" style="margin-top:${idx === 0 ? '4px' : '18px'};">${esc(c.subgrupo)}</div>` : '';
+                        const subtitulo = trocouSubgrupo ? `<div class="config-grupo-titulo">${esc(c.subgrupo)}</div>` : '';
                         return subtitulo + `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                             <input type="checkbox" id="pp-cap-${c.chave}" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
