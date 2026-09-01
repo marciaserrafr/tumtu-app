@@ -5167,7 +5167,7 @@
         // Extras acima -- achado dela, 01/set/2026: card ficava vazio até
         // visitar a aba Convidados de verdade (carregarConvidadosEspeciais()
         // só rodava lá dentro, nunca no carregamento inicial da tela).
-        if (souSuperAdmin || tenhoCapacidade('ver_convidados_especiais')) cargaInicialMD.push(carregarConvidadosEspeciais(true).then(atualizarTotalizadorConvidadosEspeciais));
+        if (souSuperAdmin || tenhoCapacidade('ver_convidados_especiais')) cargaInicialMD.push(carregarConvidadosEspeciais(true).then(() => { convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais(); }));
         await Promise.all(cargaInicialMD);
         iniciarAutoRefreshRitmistas();
 
@@ -5940,21 +5940,17 @@
     }
 
     async function iniciarFigurinoTab() {
-        voltarFigurinoLista();
-        // Tela inteira coberta (mesmo overlay usado ao entrar numa bateria)
-        // até as 3 buscas (agora em paralelo) e a renderização terminarem --
-        // achado dela, 01/set/2026: um spinner só dentro da lista, com
-        // título/botões já visíveis, ainda conta como "revelar pela
-        // metade" ("para mim a tela tem que aparecer montada totalmente").
-        // Confirmado ao vivo: "Mostra o título e depois o card."
-        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+        // Busca tudo ANTES de trocar a tela visível -- nenhum spinner, nenhum
+        // overlay, nenhuma etapa intermediária (achado dela, 01/set/2026,
+        // depois de 2 tentativas erradas): mesmo modelo de Ritmistas/
+        // Diretoria, a lista só aparece quando já estiver pronta de vez.
         await Promise.all([
             bibliotecaMedidaTipos.length === 0 ? carregarBibliotecaMedidaTipos() : Promise.resolve(),
             bibliotecaFigurino.length === 0 ? carregarBibliotecaFigurino() : Promise.resolve(),
             carregarBateriaFigurino(),
         ]);
+        voltarFigurinoLista();
         renderizarFigurinoLista();
-        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
 
     function renderizarFigurinoLista() {
@@ -5990,18 +5986,18 @@
         // -- só existe escolha de verdade quando cobre os dois (ver
         // renderizarFiltroLadoFigurino).
         figurinoEntregaLadoAtual = item.publico.includes('ritmista') ? 'ritmista' : 'diretoria';
+        // Busca tudo ANTES de trocar a tela visível -- fica na lista de
+        // itens, sem nada "carregando" (nem spinner, nem overlay), até a
+        // tela de entregas estar pronta pra aparecer já montada de uma vez.
+        // Achado dela, 01/set/2026, depois de 2 tentativas erradas (spinner
+        // interno, depois overlay de tela cheia): o modelo certo é o mesmo
+        // de Ritmistas/Diretoria -- nenhuma etapa intermediária visível.
+        await carregarEntregasFigurino();
         document.getElementById('figurino-lista').style.display = 'none';
         document.querySelectorAll('#painel-figurino .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('figurino-tela-entregas').style.display = 'block';
         document.getElementById('figurino-entregas-titulo').textContent = item.nome;
         document.getElementById('figurino-entregas-busca').value = '';
-        // Reserva o espaço do totalizador com um "carregando" desde já
-        // (29/ago/2026, achado dela) -- antes ele nascia vazio e só ganhava
-        // conteúdo no fim de carregarEntregasFigurino(), enquanto o resto
-        // da tela (checkboxes, botão do QR) já aparecia na hora -- dava a
-        // sensação de tela "subindo aos poucos" por partes. Mesmo padrão
-        // já usado noutros lugares do app pra evitar essa pulada.
-        document.getElementById('figurino-entregas-totalizador').innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         renderFigurinoTrilhos();
         // Botão de QR e o risquinho ao lado dele só aparecem junto (30/ago/
         // 2026, mesmo padrão de Presença) -- os interruptores continuam
@@ -6012,7 +6008,6 @@
         if (qrBtnsFigurino) qrBtnsFigurino.style.display = podeEditarFigurino ? 'flex' : 'none';
         const divisor2Figurino = document.getElementById('figurino-divisor-2');
         if (divisor2Figurino) divisor2Figurino.style.display = podeEditarFigurino ? 'block' : 'none';
-        await carregarEntregasFigurino();
     }
 
     // Mesmo padrão de renderPresencaTrilhos -- reflete o estado real
@@ -6088,7 +6083,6 @@
         if (!item) return;
         const bateriaId = bateriaIdContexto();
         const container = document.getElementById('figurino-entregas-lista');
-        container.innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         // Peça pode cobrir vários públicos ao mesmo tempo agora (27/ago/2026)
         // -- busca todo mundo relevante de uma vez (perfil=in.(...)); qual
         // "lado" (Ritmista/Diretoria) a lista mostra é decidido depois, na
@@ -6449,18 +6443,16 @@
     }
 
     async function iniciarExtrasTab() {
-        // Mesmo ajuste de iniciarConvidadosEspeciaisTab (01/set/2026) --
-        // tela inteira coberta até tudo estar pronto.
-        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+        // Busca tudo antes de renderizar -- sem spinner, sem overlay
+        // (01/set/2026, mesma varredura).
+        await carregarExtras();
+        await carregarFigurinoParaExtras();
         extraEditando = null;
         renderizarEditorExtra();
         const btnNovo = document.getElementById('extras-btn-novo');
         if (btnNovo) btnNovo.style.display = tenhoCapacidade('editar_extras') ? '' : 'none';
-        await carregarExtras();
-        await carregarFigurinoParaExtras();
         renderizarExtrasLista();
         atualizarTotalizadorExtras();
-        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
 
     // "Convidados" (31/ago/2026, reorganizado a pedido dela em 2 rodadas) --
@@ -6480,24 +6472,21 @@
     }
 
     async function iniciarConvidadosEspeciaisTab() {
-        // Tela inteira coberta até a passada leve (sem foto) terminar --
-        // achado dela, 01/set/2026: título/botões aparecendo antes da
-        // lista já conta como "revelar pela metade". As fotos completam
-        // em segundo plano depois, sem spinner nenhum -- mesma otimização
-        // de Ritmistas/Diretoria (ver carregarConvidadosEspeciais).
-        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+        // Mesmo modelo de "if (aba === 'diretoria') carregarDiretoria();" --
+        // sem spinner, sem overlay. Na prática isso quase sempre é um
+        // no-op instantâneo: os dados já foram pré-carregados ao entrar na
+        // bateria (ver entrarContextoEscolaSA/iniciarUsuario), então
+        // convidadosEspeciaisCarregados já está true e a trava no início de
+        // carregarConvidadosEspeciais() nem chega a buscar de novo. Achado
+        // dela, 01/set/2026, depois de 2 tentativas erradas (spinner
+        // interno, depois overlay de tela cheia): "tem que ser o mesmo
+        // modelo que existe para ritmistas e diretoria... se as outras não
+        // tem spinner, essa também não pode ter."
         const be = document.getElementById('btnExportarConvidadosEspeciais');
         if (be) be.style.display = (souSuperAdmin || tenhoCapacidade('exportar_convidados_especiais')) ? '' : 'none';
         const cc = document.getElementById('cadastroConvidadoEspecialCabecalho');
         if (cc) cc.style.display = (souSuperAdmin || tenhoCapacidade('copiar_link_convidados_especiais')) ? '' : 'none';
-        await carregarConvidadosEspeciais(true);
-        aplicarFiltrosConvidadosEspeciais();
-        atualizarTotalizadorConvidadosEspeciais();
-        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
-        carregarConvidadosEspeciais().then(() => {
-            aplicarFiltrosConvidadosEspeciais();
-            atualizarTotalizadorConvidadosEspeciais();
-        });
+        await carregarConvidadosEspeciais();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -6514,20 +6503,34 @@
     // especiais, uma só pra tudo -- fila pequena, não precisa do mesmo
     // grau de granularidade de Ritmistas/Diretoria).
     let convidadosEspeciaisCache = [];
+    // Mesma trava de diretoriaCarregada -- clicar na aba de novo (já
+    // carregada) vira um no-op, sem rebuscar. 01/set/2026.
+    let convidadosEspeciaisCarregados = false;
 
     // leve/completo (01/set/2026, mesmo padrão de carregarRitmistas/
     // carregarDiretoria, 25/ago/2026) -- Convidados nunca tinha recebido
     // esse tratamento, então a tela sempre esperava a foto de todo mundo
     // baixar antes de mostrar qualquer coisa. Achado dela: "está com o
     // mesmo problema que já tivemos antes com ritmistas e diretoria".
+    // Estrutura idêntica a carregarDiretoria(), de propósito -- mesmo
+    // ponto de entrada (bootstrap ao entrar na bateria), mesma trava, mesmo
+    // spinner-mini só na lista (e só se a cache estiver mesmo vazia).
     async function carregarConvidadosEspeciais(leve = false) {
+        if (convidadosEspeciaisCarregados) return;
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { convidadosEspeciaisCache = []; return; }
+        const lista = document.getElementById('convidados-especiais-lista');
+        if (lista && !convidadosEspeciaisCache.length) {
+            lista.innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        }
+        if (!bateriaId) { convidadosEspeciaisCache = []; convidadosEspeciaisCarregados = true; return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&eh_convidado=eq.true&order=perfil.asc,nome.asc&select=${select}`, { headers: authHeaders });
         const novos = res.ok ? await res.json() : [];
-        const lista = Array.isArray(novos) ? novos : [];
-        convidadosEspeciaisCache = leve ? reaproveitarFotosCache(lista, convidadosEspeciaisCache) : lista;
+        const novosArr = Array.isArray(novos) ? novos : [];
+        convidadosEspeciaisCache = leve ? reaproveitarFotosCache(novosArr, convidadosEspeciaisCache) : novosArr;
+        aplicarFiltrosConvidadosEspeciais();
+        atualizarTotalizadorConvidadosEspeciais();
+        convidadosEspeciaisCarregados = true;
     }
 
     function renderizarLinksCadastroConvidadoEspecial() {
@@ -7058,19 +7061,15 @@
     }
 
     async function iniciarPresencaTab() {
-        voltarPresencaLista();
-        // Mesmo ajuste de iniciarFigurinoTab (01/set/2026) -- tela inteira
-        // coberta até as buscas (em paralelo) e a renderização terminarem.
-        // Confirmado ao vivo: "Aparece o título Lista de Presença e depois
-        // o card do Ensaio Técnico."
-        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+        // Mesmo ajuste de iniciarFigurinoTab (01/set/2026) -- busca tudo
+        // antes de trocar a tela visível, sem spinner nem overlay.
         await Promise.all([
             bibliotecaEventoTipos.length === 0 ? carregarBibliotecaEventoTipos() : Promise.resolve(),
             carregarEventosBateria(),
         ]);
+        voltarPresencaLista();
         presencaEventosCache = eventosBateriaCache;
         renderizarPresencaEventosLista();
-        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
 
     function renderizarPresencaEventosLista() {
@@ -7130,15 +7129,19 @@
         if (!evento) return;
         presencaEventoAtual = evento;
         presencaLadoAtual = 'ritmista';
+        // Busca tudo ANTES de trocar a tela visível -- fica na lista de
+        // eventos, sem nada "carregando" (nem spinner, nem overlay), até a
+        // tela de marcar presença estar pronta pra aparecer já montada de
+        // uma vez. Achado dela, 01/set/2026, depois de 2 tentativas erradas
+        // (spinner interno, depois overlay de tela cheia): o modelo certo é
+        // o mesmo de Ritmistas/Diretoria -- nenhuma etapa intermediária
+        // visível, nunca.
+        await carregarPresencaPessoas();
         document.getElementById('presenca-lista').style.display = 'none';
         document.querySelectorAll('#painel-presenca .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('presenca-tela-marcar').style.display = 'block';
         document.getElementById('presenca-evento-titulo').textContent = evento.nome;
         document.getElementById('presenca-busca').value = '';
-        // Mesmo ajuste feito em Entrega de Figurino (29/ago/2026, achado
-        // dela): reserva o espaço do totalizador com um "carregando" desde
-        // já, pra não nascer vazio enquanto o resto da tela já aparece.
-        document.getElementById('presenca-totalizador').innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         // Iniciado/Finalizado é dado do EVENTO (editar_eventos) -- diferente
         // de Mostrar QR/Escanear, que é sobre MARCAR presença
         // (marcar_presenca). São capacidades reais diferentes no banco;
@@ -7161,7 +7164,6 @@
         const divisor2 = document.getElementById('pres-divisor-2');
         if (divisor2) divisor2.style.display = (podeEditarEvento && podeMarcarPresenca) ? 'block' : 'none';
         renderPresencaTrilhos();
-        await carregarPresencaPessoas();
     }
 
     // Mesmo rótulo já usado em Figurino/Eventos pro mesmo tipo de perfil de
@@ -7172,8 +7174,6 @@
         const evento = presencaEventoAtual;
         if (!evento) return;
         const bateriaId = bateriaIdContexto();
-        const container = document.getElementById('presenca-pessoas-lista');
-        container.innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         const perfis = ['ritmista', ...(evento.perfis_diretoria_inclusos || [])];
         // eh_convidado=eq.false (31/ago/2026): Convidado Especial tem conta
         // separada abaixo, nunca some escondido dentro de Ritmistas/
@@ -7928,6 +7928,19 @@
     }
 
     async function trocarSaAba(aba, el) {
+        // Busca os dados ANTES de trocar o painel visível -- fica na aba
+        // atual, sem nada "carregando" (nem spinner, nem overlay), até a
+        // aba nova estar pronta pra aparecer já montada de uma vez. Achado
+        // dela, 01/set/2026, depois de 2 tentativas erradas (spinner
+        // interno, depois overlay de tela cheia): mesmo modelo de
+        // Ritmistas/Diretoria, nenhuma etapa intermediária visível. "Meu
+        // Perfil" fica de fora dessa troca de ordem -- usa o motor único de
+        // ficha (fpMontar), que sempre foi montado com o container já
+        // visível, igual em toda outra tela que o usa.
+        if (aba === 'dashboard') await carregarDashboard();
+        else if (aba === 'escolas') await carregarEscolas();
+        else if (aba === 'privacidade') await carregarPrivacidade();
+
         window.scrollTo(0, 0);
         saAbaAtual = aba;
         salvarEstadoNavegacao('sa-shell', aba);
@@ -7943,22 +7956,8 @@
         // sidebar, position:fixed) ficava presa na altura antiga (mais alta),
         // sobrando um vão branco entre o cabeçalho de verdade e ela.
         ajustarAlturaHeaderAdmin();
-        // Tela inteira coberta até os dados da aba terminarem de carregar
-        // (01/set/2026, mesma varredura) -- clicar na barra lateral
-        // revelava o painel na hora (título, layout), com listas vazias ou
-        // antigas por baixo até a busca terminar. Se o overlay já estava
-        // visível por outro motivo (ex: carregamento inicial do Super
-        // Admin, ver iniciarUsuario()), não mexe nele -- quem já estava
-        // esperando continua esperando, sem conflito de quem tira primeiro.
-        const overlay = document.getElementById('overlayCarregandoEscola');
-        const jaVisivel = overlay.classList.contains('visivel');
-        if (!jaVisivel) overlay.classList.add('visivel');
-        if (aba === 'dashboard') await carregarDashboard();
-        else if (aba === 'escolas') await carregarEscolas();
-        else if (aba === 'privacidade') await carregarPrivacidade();
-        else if (aba === 'configuracoes-globais') voltarConfigListaSA();
+        if (aba === 'configuracoes-globais') voltarConfigListaSA();
         else if (aba === 'meu-perfil') await iniciarMeuPerfilSaAba();
-        if (!jaVisivel) overlay.classList.remove('visivel');
     }
 
     // Meu Perfil do Super Admin, fora do contexto de uma escola -- mesmo
@@ -8017,6 +8016,7 @@
 
         bateriaAtualData = bateriasCache[0] || null;
         diretoriaCarregada = false; // troca de escola invalida o cache de Diretoria da escola anterior
+        convidadosEspeciaisCarregados = false; // idem, Convidados (01/set/2026, mesmo raciocínio)
 
         document.getElementById('saSidebar').style.display = 'none';
         document.getElementById('saMain').style.display = 'none';
@@ -8062,7 +8062,7 @@
             carregarRitmistas(true).then(() => { carregarRitmistas(); }),
             carregarDiretoria(true).then(() => { diretoriaCarregada = false; carregarDiretoria(); }), // Super Admin sempre vê o card "Diretoria ativa"
             carregarExtras().then(atualizarTotalizadorExtras), // idem, card "Extras"
-            carregarConvidadosEspeciais(true).then(atualizarTotalizadorConvidadosEspeciais), // idem, card "Convidado Especial" (achado 01/set/2026, mesmo bug do card acima)
+            carregarConvidadosEspeciais(true).then(() => { convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais(); }), // idem, card "Convidado Especial" (achado 01/set/2026, mesmo bug do card acima)
         ]);
         iniciarAutoRefreshRitmistas();
 
@@ -9923,19 +9923,19 @@
     function labelPerfilSA(p, genero) { if (p === 'mestre') return genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria'; if (p === 'diretor') return genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria'; if (p === 'apoio') return genero === 'feminino' ? 'Diretora (Apoio)' : 'Diretor (Apoio)'; return p; }
     function histDataHora(iso) { return iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—'; }
     async function carregarHistoricoEscolaSA() {
-        // Tela inteira coberta até a busca terminar (01/set/2026, mesma
-        // varredura) -- o título "Histórico" é fixo no HTML e aparecia na
-        // hora, com a lista vazia/antiga por baixo até a busca terminar.
-        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
-        const esconderOverlay = () => document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
+        // Busca tudo antes de mexer na lista -- sem spinner, sem overlay
+        // (01/set/2026, mesma varredura). O título "Histórico" é fixo no
+        // HTML e não dá pra adiar (aparece junto com o resto do painel),
+        // mas a lista em si só é tocada quando o resultado final já está
+        // pronto -- nunca fica vazia/"carregando" no meio do caminho.
         const container = document.getElementById('lista-historico-escola');
         const idsBaterias = bateriasCache.map(b => b.id);
-        if (idsBaterias.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; esconderOverlay(); return; }
+        if (idsBaterias.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
         const url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome,genero),decisor:decidido_por(nome),bateria:bateria_id(nome)&bateria_id=in.(${idsBaterias.join(',')})&order=criado_em.desc&limit=200`;
         const res = await fetch(url, { headers: authHeaders });
-        if (!res.ok) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Não foi possível carregar o histórico.</div>'; esconderOverlay(); return; }
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Não foi possível carregar o histórico.</div>'; return; }
         const eventos = await res.json();
-        if (!eventos.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; esconderOverlay(); return; }
+        if (!eventos.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
         container.innerHTML = eventos.map(ev => `
             <div class="item-card">
                 <div class="item-info">
@@ -9946,7 +9946,6 @@
                     </div>
                 </div>
             </div>`).join('');
-        esconderOverlay();
     }
 
     // ══════════════════════════════════════════════════════════════════
