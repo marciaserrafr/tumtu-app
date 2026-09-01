@@ -1986,7 +1986,7 @@
             <div class="config-grupo-titulo">Medidas</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
-                <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
+                <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
             </div>
 
             <!-- Repique de Bossa: campo delicado, dois interruptores separados
@@ -1995,11 +1995,11 @@
             <div class="config-grupo-titulo">Instrumento</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('ver', this.checked)">
-                <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Repique de Bossa</label>
+                <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Repique de Bossa</label>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
                 <input type="checkbox" id="pe-ritmista-marca-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('marcar', this.checked)">
-                <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Editar Repique de Bossa</label>
+                <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Editar Repique de Bossa</label>
             </div>
 
             <!-- Desfile: só "ver" -- o ritmista nunca marca, quem decide é
@@ -2007,7 +2007,7 @@
             <div class="config-grupo-titulo">Desfile</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-desfile" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('desfile', this.checked)">
-                <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Desfile</label>
+                <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Desfile</label>
             </div>
 
             <!-- Declaração do Responsável: só "ver" -- só aparece de fato pra
@@ -2015,7 +2015,7 @@
             <div class="config-grupo-titulo">Declaração do Responsável</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
-                <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Declaração do Responsável</label>
+                <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Declaração do Responsável</label>
             </div>
 
             <!-- Observações: só "ver" -- sempre escrita pela Diretoria
@@ -2023,7 +2023,7 @@
             <div class="config-grupo-titulo">Observações</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
-                <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Observações</label>
+                <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Observações</label>
             </div>
         </div>
     </div>
@@ -2089,7 +2089,7 @@
             <div class="config-grupo-titulo">Medidas</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-convidado-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarConvidadoEditaMedidas(this.checked)">
-                <label for="pe-convidado-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
+                <label for="pe-convidado-edita-medidas" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
             </div>
         </div>
     </div>
@@ -8823,22 +8823,31 @@
             { chave: 'ver_novo_cadastro_ritmistas', label: 'Visualizar Novo Cadastro', dependeDe: 'ver_ritmistas', subgrupo: 'Novo Cadastro' },
             { chave: 'criar_cadastro_ritmistas', label: 'Criar Novo Cadastro', dependeDe: 'ver_novo_cadastro_ritmistas', subgrupo: 'Novo Cadastro' },
             { chave: 'copiar_link_cadastro_ritmistas', label: 'Copiar Link de Cadastro', dependeDe: 'ver_novo_cadastro_ritmistas', subgrupo: 'Novo Cadastro' },
-            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, endereço, contato de emergência e dados do responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'aprovar_ritmistas', label: 'Aprovar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'rejeitar_ritmistas', label: 'Rejeitar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'suspender_ritmistas', label: 'Suspender', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'desligar_ritmistas', label: 'Desligar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'reativar_ritmistas', label: 'Reativar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'ver_nao_desfila', label: 'Visualizar Não Desfila', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'aprovar_ritmistas', label: 'Aprovar', dependeDe: 'ver_ritmistas', subgrupo: 'Status' },
+            { chave: 'rejeitar_ritmistas', label: 'Rejeitar', dependeDe: 'ver_ritmistas', subgrupo: 'Status' },
+            { chave: 'suspender_ritmistas', label: 'Suspender', dependeDe: 'ver_ritmistas', subgrupo: 'Status' },
+            { chave: 'desligar_ritmistas', label: 'Desligar', dependeDe: 'ver_ritmistas', subgrupo: 'Status' },
+            { chave: 'reativar_ritmistas', label: 'Reativar', dependeDe: 'ver_ritmistas', subgrupo: 'Status' },
+        ] },
+        // "Perfil do Ritmista" (01/set/2026, pedido dela) -- os 16 itens que
+        // ficavam empilhados num único subtítulo "Ficha do Ritmista" (dentro
+        // do grupo "Ritmistas") ganharam grupo PRÓPRIO, separado do que é
+        // lista/fila (que ficou em "Ritmistas" acima) -- mesmo raciocínio de
+        // "Meu Perfil" no interruptor de bateria: dado de ficha/perfil de
+        // um lado, ação de fila/aprovação do outro. "São muitas!!!" (dela)
+        // -- 7 sub-blocos por assunto em vez de 1 subtítulo genérico.
+        { grupo: 'Perfil do Ritmista', itens: [
+            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, endereço, contato de emergência e dados do responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Dados sensíveis' },
+            { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
+            { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
+            { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Instrumento' },
+            { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Medidas' },
+            { chave: 'ver_nao_desfila', label: 'Visualizar Não Desfila', dependeDe: 'ver_ritmistas', subgrupo: 'Desfile' },
+            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila', subgrupo: 'Desfile' },
+            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas', subgrupo: 'Declaração do Responsável' },
+            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Declaração do Responsável' },
+            { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Observações' },
+            { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Observações' },
         ] },
         { grupo: 'Diretoria', itens: [
             { chave: 'ver_acessos', label: 'Visualizar lista (nome, apelido, cargo)', subgrupo: 'Lista de Diretoria' },
@@ -8846,35 +8855,27 @@
             { chave: 'ver_novo_cadastro_diretoria', label: 'Visualizar Novo Cadastro', dependeDe: 'ver_acessos', subgrupo: 'Novo Cadastro' },
             { chave: 'criar_cadastro_diretoria', label: 'Criar Novo Cadastro', dependeDe: 'ver_novo_cadastro_diretoria', subgrupo: 'Novo Cadastro' },
             { chave: 'copiar_link_cadastro_diretoria', label: 'Copiar Link de Cadastro', dependeDe: 'ver_novo_cadastro_diretoria', subgrupo: 'Novo Cadastro' },
-            { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, endereço e contato de emergência', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
-            { chave: 'aprovar_acessos', label: 'Aprovar', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
-            { chave: 'rejeitar_acessos', label: 'Rejeitar', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
-            { chave: 'suspender_acessos', label: 'Suspender', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
-            { chave: 'desligar_acessos', label: 'Desligar', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
-            { chave: 'reativar_acessos', label: 'Reativar', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
-            // Naipe (30/ago/2026): morava em "Ritmistas" sem fazer sentido --
-            // Naipe é um dado só de Diretor de Bateria, nunca de Ritmista.
-            // Também nunca teve trava real nenhuma (achado dela) -- corrigido
-            // junto no trigger aplicar_matriz_edicao_vinculos.
-            { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
-            { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Ficha da Diretoria' },
-            // Permissões (30/ago/2026): saiu do bloco solto "Permissões" pra
-            // cá -- ver/editar as permissões de alguém é uma ação que
-            // acontece de dentro da ficha dessa pessoa (o botão "Editar
-            // permissões" já mora lá), mesmo raciocínio do Naipe acima.
-            { chave: 'ver_permissoes', label: 'Visualizar Permissões', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
-            { chave: 'editar_permissoes', label: 'Editar Permissões', dependeDe: 'ver_permissoes', subgrupo: 'Ficha da Diretoria' },
-            // Medida da Diretoria (31/ago/2026, pedido dela: "NINGUÉM MAIS NA
-            // VIDA VAI PODER EDITAR MEDIDA" sem permissão explícita) -- antes
-            // Mestre/Diretor/Apoio editavam a própria Medida sem trava
-            // nenhuma, e não existia NADA pra editar a Medida de outro
-            // Diretor/Apoio/Mestre. Duas capacidades novas e separadas, as
-            // duas nascem desligadas. Não depende de ver_acessos de
-            // propósito (editar a PRÓPRIA medida não tem relação com ver a
-            // lista de outras pessoas). Ritmista continua fora disso --
-            // mecanismo à parte (ritmista_pode_editar_medidas).
-            { chave: 'editar_propria_medida', label: 'Editar a própria Medida', subgrupo: 'Ficha da Diretoria' },
-            { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
+            { chave: 'aprovar_acessos', label: 'Aprovar', dependeDe: 'ver_acessos', subgrupo: 'Status' },
+            { chave: 'rejeitar_acessos', label: 'Rejeitar', dependeDe: 'ver_acessos', subgrupo: 'Status' },
+            { chave: 'suspender_acessos', label: 'Suspender', dependeDe: 'ver_acessos', subgrupo: 'Status' },
+            { chave: 'desligar_acessos', label: 'Desligar', dependeDe: 'ver_acessos', subgrupo: 'Status' },
+            { chave: 'reativar_acessos', label: 'Reativar', dependeDe: 'ver_acessos', subgrupo: 'Status' },
+        ] },
+        // "Perfil do Diretor" (01/set/2026) -- mesmo raciocínio de "Perfil do
+        // Ritmista" logo abaixo: dado de ficha/perfil separado de ação de
+        // fila/aprovação (que ficou em "Diretoria" acima). "Ficha da
+        // Diretoria" tinha 11 itens empilhados num subtítulo só, mesmo
+        // problema que ela apontou em Ritmistas -- proposta própria minha,
+        // sem ela ter pedido esse grupo especificamente, aplicando o mesmo
+        // modelo que ela já aprovou (ver feedback_sempre_sugerir_com_justificativa).
+        { grupo: 'Perfil do Diretor', itens: [
+            { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, endereço e contato de emergência', dependeDe: 'ver_acessos', subgrupo: 'Dados sensíveis' },
+            { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Naipe' },
+            { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
+            { chave: 'ver_permissoes', label: 'Visualizar Permissões', dependeDe: 'ver_acessos', subgrupo: 'Permissões' },
+            { chave: 'editar_permissoes', label: 'Editar Permissões', dependeDe: 'ver_permissoes', subgrupo: 'Permissões' },
+            { chave: 'editar_propria_medida', label: 'Editar a própria Medida', subgrupo: 'Medidas' },
+            { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Medidas' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
         // Bug real, 01/set/2026: dependia de "ver_eventos", que é a
@@ -9235,10 +9236,10 @@
                 : (pe.grupoOrigem && PERMISSOES_GRUPOS[pe.grupoOrigem] ? `<div style="margin-bottom:8px;"><span onclick="fecharEditorPermissoesPessoa()" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← ${esc(PERMISSOES_GRUPOS[pe.grupoOrigem].label)}</span></div>` : '')}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
             <div class="ficha-secao">
-                <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Acesso ao painel</div>
+                <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Acesso ao TumTu</div>
                 <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                     <input type="checkbox" id="pp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
-                    <label for="pp-modo-carteirinha" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
+                    <label for="pp-modo-carteirinha" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
                 </div>
             </div>
             ${gruposCapacidadesVisiveis().map(g => `
@@ -9257,13 +9258,13 @@
                         return subtitulo + `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                             <input type="checkbox" id="pp-cap-${c.chave}" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
-                            <label for="pp-cap-${c.chave}" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">${c.label}</label>
+                            <label for="pp-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">${c.label}</label>
                         </div>`;
                     }).join('')}
                     ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' && pe.temNaipe ? `
                         <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;">
                             <input type="checkbox" id="pp-restrito-naipe" onchange="aplicarDependenciasPermissoes()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.restritoAoNaipe ? 'checked' : ''}>
-                            <label for="pp-restrito-naipe" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Restrito ao próprio naipe — só vê/aprova/edita Ritmistas do naipe que lidera</label>
+                            <label for="pp-restrito-naipe" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Restrito ao próprio naipe — só vê/aprova/edita Ritmistas do naipe que lidera</label>
                         </div>` : ''}
                     ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' && !pe.temNaipe ? `
                         <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;font-size:13px;color:var(--cor-texto-muted);">Essa pessoa ainda não declarou um Naipe (Ficha → Naipe que lidera) — sem isso, não tem como restringir o acesso a um naipe específico.</div>` : ''}
