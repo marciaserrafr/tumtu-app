@@ -8802,15 +8802,30 @@
             { chave: 'desligar_ritmistas', label: 'Desligar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
             { chave: 'reativar_ritmistas', label: 'Reativar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
             { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'ver_nao_desfila', label: 'Visualizar Não Desfila', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-            { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Ficha do Ritmista' },
+        ] },
+        // "Meu Perfil" (01/set/2026, pedido dela) -- os itens de ficha que
+        // antes ficavam todos empilhados sob um único subtítulo genérico
+        // "Ficha do Ritmista" (14 checkboxes em fileira, sem separação
+        // nenhuma) ganharam bloco PRÓPRIO, com um subtítulo curto pra cada
+        // assunto (Medidas/Instrumento/Desfile/Declaração do Responsável/
+        // Observações) -- mesmo mecanismo de subgrupo que Diretoria já usa,
+        // só que mais fino aqui. Rótulos simplificados, sem repetir o nome
+        // do assunto já dito no subtítulo ("ação já diz o que será
+        // permitido, sem textão"). `ver_ritmistas` continua sendo pré-
+        // requisito de tudo aqui (sem ver a lista, não tem como abrir a
+        // ficha de ninguém pra editar nada) -- diferente do bug corrigido
+        // em "Marcar presença", essa dependência é real, não cruzada com
+        // outra tela.
+        { grupo: 'Meu Perfil', itens: [
+            { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Medidas' },
+            { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
+            { chave: 'editar_repique_bossa', label: 'Editar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Instrumento' },
+            { chave: 'ver_nao_desfila', label: 'Visualizar Desfile', dependeDe: 'ver_ritmistas', subgrupo: 'Desfile' },
+            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila', subgrupo: 'Desfile' },
+            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Declaração do Responsável' },
+            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Declaração do Responsável' },
+            { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Observações' },
+            { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Observações' },
         ] },
         { grupo: 'Diretoria', itens: [
             { chave: 'ver_acessos', label: 'Visualizar lista (nome, apelido, cargo)', subgrupo: 'Lista de Diretoria' },
