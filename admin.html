@@ -1390,7 +1390,7 @@
         .badge-tag-demo { font-size: 10px; font-weight: 800; letter-spacing: 0.04em; color: #8a6d1a; background: #fdf1cf; padding: 3px 9px; border-radius: 999px; }
 
         /* Dashboard (agregado, todas as escolas) */
-        .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+        .kpi-row { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin-bottom: 22px; }
         .kpi { background: white; border: 1px solid var(--cor-borda); border-radius: 14px; padding: 16px 18px; }
         .kpi .n { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--cor-texto-principal); }
         .kpi .l { font-size: 12px; color: var(--cor-texto-secundario); font-weight: 600; margin-top: 2px; }
@@ -1398,20 +1398,57 @@
         .kpi.atencao .n { color: var(--cor-terracota); }
         .kpi.atencao { border-color: var(--cor-terracota-clara); }
         .dash-secao-titulo { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #5a5770; margin-top: 4px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .dash-secao-hint { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--cor-texto-muted); }
         .atencao-box { background: white; border: 1px solid var(--cor-borda); border-left: 4px solid var(--cor-terracota); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
-        .atencao-titulo { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--cor-terracota); margin-bottom: 10px; }
+        .atencao-titulo { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--cor-terracota); margin-bottom: 4px; }
+        .atencao-sub { font-size: 12px; color: var(--cor-texto-muted); margin-bottom: 10px; }
         .atencao-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 13.5px; color: var(--cor-texto-principal); border-bottom: 1px solid var(--cor-borda); cursor: pointer; }
         .atencao-item:last-child { border-bottom: none; }
         .atencao-item .seta { color: var(--cor-terracota); font-weight: 700; white-space: nowrap; }
         .baterias-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .bateria-card { background: white; border: 1px solid var(--cor-borda); border-radius: 14px; padding: 16px 18px; cursor: pointer; transition: border-color 0.15s; }
         .bateria-card:hover { border-color: var(--cor-borda-forte); }
+        .bc-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
         .bc-nome { font-size: 14.5px; font-weight: 700; color: var(--cor-texto-principal); margin-bottom: 2px; }
-        .bc-escola { font-size: 12px; color: var(--cor-texto-muted); margin-bottom: 12px; }
+        .bc-escola { font-size: 12px; color: var(--cor-texto-muted); }
         .bc-stats { display: flex; gap: 16px; }
         .bc-stat .n { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--cor-texto-principal); }
         .bc-stat .n.aviso { color: var(--cor-terracota); }
         .bc-stat .l { font-size: 11px; color: var(--cor-texto-muted); font-weight: 600; text-transform: uppercase; }
+        .bc-divisor { height: 1px; background: var(--cor-borda); margin: 12px 0; }
+        .bc-subgrid { display: flex; gap: 20px; }
+        .bc-substat .n { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--cor-texto-principal); }
+        .bc-substat .l { font-size: 10px; color: var(--cor-texto-secundario); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; margin-top: 1px; }
+        .bc-outros { font-size: 11.5px; color: var(--cor-texto-muted); margin-top: 10px; }
+        .bc-outros b { color: var(--cor-texto-secundario); font-weight: 700; }
+        .bc-modulos { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+        .bc-modulo-pill { font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #e8f5e9; color: #2e7d32; }
+
+        .dash-demo-box { display: flex; padding: 12px 18px; background: white; border: 1px solid var(--cor-borda); border-radius: 14px; margin-top: 12px; margin-bottom: 24px; font-size: 12.5px; color: var(--cor-texto-muted); justify-content: space-between; }
+        .dash-demo-box b { color: var(--cor-texto-secundario); font-variant-numeric: tabular-nums; }
+
+        .aniv-grid { display: grid; grid-template-columns: repeat(auto-fill, 240px); gap: 12px; margin-bottom: 24px; }
+        .aniv-card { background: white; border: 1px solid var(--cor-borda); border-radius: 14px; padding: 16px 18px; }
+        .aniv-tag { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.04em; padding: 3px 9px; border-radius: 999px; margin-bottom: 9px; }
+        .aniv-tag.hoje { color: #8a6d1a; background: #fdf1cf; }
+        .aniv-tag.amanha { color: #5a5770; background: #e8e6f0; }
+        .aniv-nome { font-size: 12.5px; line-height: 1.5; }
+        .aniv-nome b { font-weight: 700; }
+        .aniv-apelido { color: var(--cor-destaque); font-weight: 400; font-style: italic; }
+        .aniv-meta { font-size: 11px; color: var(--cor-texto-muted); margin-top: 2px; }
+        .aniv-bateria { font-size: 11px; font-weight: 600; color: var(--cor-texto-muted); margin-top: 3px; }
+
+        .atividade-card { background: white; border: 1px solid var(--cor-borda); border-radius: 14px; padding: 4px 20px; margin-bottom: 10px; }
+        .atividade-item { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f2f1f7; }
+        .atividade-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .ativ-ponto { width: 7px; height: 7px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+        .ativ-ponto.ok { background: #2e7d32; }
+        .ativ-ponto.rej { background: #757575; }
+        .ativ-ponto.warn { background: var(--cor-terracota); }
+        .ativ-texto { font-size: 12.5px; line-height: 1.5; }
+        .ativ-texto b { font-weight: 700; }
+        .ativ-meta { font-size: 11px; color: var(--cor-texto-muted); margin-top: 2px; }
+        .dash-link { display: block; text-align: center; font-size: 12px; font-weight: 700; color: var(--cor-texto-secundario); margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--cor-borda); margin-bottom: 24px; }
 
         /* Formulários inline (Nova Escola, Dados da Escola, Dados da Bateria) */
         .card-form { margin-bottom: 14px; }
@@ -1527,6 +1564,7 @@
                mesma necessidade sem disputar espaço com os ícones. */
             .sidebar-assinatura { display: none; }
             .kpi-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .aniv-grid { grid-template-columns: 1fr; }
             .baterias-grid { grid-template-columns: 1fr; }
             .form-grid { grid-template-columns: 1fr; }
             .form-grid .campo-full { grid-column: 1; }
@@ -1636,8 +1674,11 @@
         <div class="config-sub-desc" style="margin:0 0 20px;">Visão geral de todas as escolas e ritmistas.</div>
         <div class="kpi-row" id="dashboard-kpis"></div>
         <div id="dashboard-atencao"></div>
-        <div class="dash-secao-titulo">Baterias</div>
+        <div id="dashboard-aniversariantes"></div>
+        <div class="dash-secao-titulo">Baterias <span class="dash-secao-hint">— toque no card pra abrir a Visão Geral daquela bateria</span></div>
         <div class="baterias-grid" id="dashboard-lista-baterias"></div>
+        <div id="dashboard-escolas-demo"></div>
+        <div id="dashboard-atividade"></div>
     </div>
 
     <!-- ESCOLAS -->
@@ -3267,16 +3308,15 @@
     // -- e busca as fotos de verdade logo em seguida, silenciosamente,
     // completando os cards assim que chegam. Zero risco: não mexe em
     // nenhum dado, só na ORDEM de quando cada coisa aparece na tela.
-    function carregarRitmistasComFotos() {
-        return carregarRitmistas(true).then(() => carregarRitmistas());
-    }
-    function carregarDiretoriaComFotos() {
-        return carregarDiretoria(true).then(() => { diretoriaCarregada = false; return carregarDiretoria(); });
-    }
+    // (01/set/2026: o disparo dessa dupla leve->completa agora mora direto
+    // nos dois lugares que entram na Visão Geral -- entrarContextoEscolaSA e
+    // iniciarUsuario -- porque cada um precisa esperar só a passada "leve"
+    // antes de tirar o spinner, e um wrapper só com .then() não deixava
+    // esperar uma etapa sem esperar a outra também.)
 
     async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); carregarResumoEntregaFigurino(); carregarResumoEventosAtivos(); return; }
+        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]); return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
         // eh_convidado=eq.false (31/ago/2026): Convidado Especial nunca entra
         // na lista normal de Ritmistas -- tem fila e contagens 100% próprias
@@ -3304,8 +3344,11 @@
         renderizarVisaoGeral();
         renderizarContagemInstrumentos();
         renderizarControleMenores();
-        carregarResumoEntregaFigurino();
-        carregarResumoEventosAtivos();
+        // await (01/set/2026, achado da Márcia: "a tela fica montando em
+        // tempo real... dá impressão de sistema amador") -- antes disparava
+        // sem esperar, então os cards de Figurino/Presença na Visão Geral
+        // sempre apareciam alguns instantes depois do resto da tela.
+        await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]);
     }
 
     function toggleStatusSelect() {
@@ -5103,21 +5146,30 @@
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'flex';
         ajustarAlturaNavMobile();
-        carregarRitmistasComFotos();
-        iniciarAutoRefreshRitmistas();
+        // Espera a primeira leva de cada card terminar (ritmistas/diretoria
+        // sem foto, extras, convidados) antes de tirar o spinner -- achado
+        // da Márcia, 01/set/2026: a tela "montava em tempo real", cada card
+        // estalando na hora que a própria busca terminava, dando impressão
+        // de sistema amador. As fotos continuam chegando em segundo plano
+        // depois, sem bloquear nada -- mesma otimização de sempre
+        // (carregarRitmistasComFotos/carregarDiretoriaComFotos), só que
+        // agora dá pra esperar só a primeira passada de cada uma.
+        const cargaInicialMD = [carregarRitmistas(true).then(() => { carregarRitmistas(); })];
         // Card "Diretoria ativa" na Visão Geral (novo, 21/ago/2026) --
         // reaproveita a mesma carregarDiretoria() da aba Diretoria (fica em
         // cache pra quando ela clicar lá, sem buscar de novo). Só dispara
         // pra quem tem ver_acessos -- sem a capacidade, RLS devolveria vazio
         // e o card mostraria "0" de forma enganosa em vez de ficar escondido.
-        if (souSuperAdmin || tenhoCapacidade('ver_acessos')) carregarDiretoriaComFotos();
+        if (souSuperAdmin || tenhoCapacidade('ver_acessos')) cargaInicialMD.push(carregarDiretoria(true).then(() => { diretoriaCarregada = false; carregarDiretoria(); }));
         // Card "Extras" na Visão Geral, mesmo padrão do card de Diretoria acima.
-        if (souSuperAdmin || tenhoCapacidade('ver_extras')) carregarExtras().then(atualizarTotalizadorExtras);
+        if (souSuperAdmin || tenhoCapacidade('ver_extras')) cargaInicialMD.push(carregarExtras().then(atualizarTotalizadorExtras));
         // Card "Convidado Especial" na Visão Geral, mesmo padrão do card de
         // Extras acima -- achado dela, 01/set/2026: card ficava vazio até
         // visitar a aba Convidados de verdade (carregarConvidadosEspeciais()
         // só rodava lá dentro, nunca no carregamento inicial da tela).
-        if (souSuperAdmin || tenhoCapacidade('ver_convidados_especiais')) carregarConvidadosEspeciais().then(atualizarTotalizadorConvidadosEspeciais);
+        if (souSuperAdmin || tenhoCapacidade('ver_convidados_especiais')) cargaInicialMD.push(carregarConvidadosEspeciais().then(atualizarTotalizadorConvidadosEspeciais));
+        await Promise.all(cargaInicialMD);
+        iniciarAutoRefreshRitmistas();
 
         // Volta pra mesma aba de antes de atualizar a página (mesmo achado
         // da Márcia, 20/ago/2026, aplicado aqui também) -- "visao" já é o
@@ -7946,11 +7998,21 @@
         renderizarComercialTab();
 
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
-        carregarRitmistasComFotos();
+        // Espera a primeira leva de cada card terminar (ritmistas/diretoria
+        // sem foto, extras, convidados) antes de tirar o spinner -- achado
+        // da Márcia, 01/set/2026: a tela "montava em tempo real", cada card
+        // estalando na hora que a própria busca terminava, dando impressão
+        // de sistema amador. As fotos continuam chegando em segundo plano
+        // depois, sem bloquear nada -- mesma otimização de sempre
+        // (carregarRitmistasComFotos/carregarDiretoriaComFotos), só que
+        // agora dá pra esperar só a primeira passada de cada uma.
+        await Promise.all([
+            carregarRitmistas(true).then(() => { carregarRitmistas(); }),
+            carregarDiretoria(true).then(() => { diretoriaCarregada = false; carregarDiretoria(); }), // Super Admin sempre vê o card "Diretoria ativa"
+            carregarExtras().then(atualizarTotalizadorExtras), // idem, card "Extras"
+            carregarConvidadosEspeciais().then(atualizarTotalizadorConvidadosEspeciais), // idem, card "Convidado Especial" (achado 01/set/2026, mesmo bug do card acima)
+        ]);
         iniciarAutoRefreshRitmistas();
-        carregarDiretoriaComFotos(); // Super Admin sempre vê o card "Diretoria ativa"
-        carregarExtras().then(atualizarTotalizadorExtras); // idem, card "Extras"
-        carregarConvidadosEspeciais().then(atualizarTotalizadorConvidadosEspeciais); // idem, card "Convidado Especial" (achado 01/set/2026, mesmo bug do card acima)
 
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
@@ -7987,15 +8049,28 @@
     async function carregarDashboard() {
         const kpisEl = document.getElementById('dashboard-kpis');
         const atencaoEl = document.getElementById('dashboard-atencao');
+        const anivEl = document.getElementById('dashboard-aniversariantes');
         const container = document.getElementById('dashboard-lista-baterias');
-        const [resBaterias, resEscolas, resVinculos] = await Promise.all([
-            fetch(`${SUPABASE_URL}/rest/v1/baterias?select=id,nome,escola_id&order=nome`, { headers: authHeaders }),
-            fetch(`${SUPABASE_URL}/rest/v1/escolas?select=id,nome,temporada_atual,tipo`, { headers: authHeaders }),
-            fetch(`${SUPABASE_URL}/rest/v1/vinculos?select=bateria_id,status`, { headers: authHeaders })
+        const demoEl = document.getElementById('dashboard-escolas-demo');
+        const ativEl = document.getElementById('dashboard-atividade');
+        const [resBaterias, resEscolas, resVinculos, resAniv, resEventosAtivos, resFigurinoAtivo] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/baterias?select=id,nome,escola_id,logo_url&order=nome`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/escolas?select=id,nome,temporada_atual,tipo,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/vinculos?select=bateria_id,status,perfil,eh_convidado`, { headers: authHeaders }),
+            // Aniversariantes de hoje/amanhã (pedido dela, 01/set/2026: mês
+            // inteiro é inviável -- só na Imperatriz são 15-16/mês) -- mesmo
+            // filtro de renderizarVisaoGeral (eh_convidado=false, só quem
+            // está ativo agora), só que agregado em todas as baterias.
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?status=eq.aprovado&eh_convidado=eq.false&select=nome,apelido,nascimento,genero,perfil,instrumento_nome,bateria_id`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/eventos?iniciado=eq.true&finalizado=eq.false&select=id,bateria_id`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?ativo=eq.true&mostra_visao_geral=eq.true&entrega_finalizada=eq.false&select=id,bateria_id`, { headers: authHeaders }),
         ]);
         const todasEscolas = await resEscolas.json();
         const todasBaterias = await resBaterias.json();
         const vinculos = await resVinculos.json();
+        const pessoasAniv = resAniv.ok ? await resAniv.json() : [];
+        const eventosAtivos = resEventosAtivos.ok ? await resEventosAtivos.json() : [];
+        const figurinoAtivo = resFigurinoAtivo.ok ? await resFigurinoAtivo.json() : [];
         const escolaPorId = Object.fromEntries((todasEscolas || []).map(e => [e.id, e]));
 
         // Dashboard geral conta só escola real -- escola DEMO nunca soma nos
@@ -8007,6 +8082,9 @@
         const baterias = (todasBaterias || []).filter(b => idsEscolasReais.has(b.escola_id));
         const idsBateriasReais = new Set(baterias.map(b => b.id));
         const vinculosReais = vinculos.filter(v => idsBateriasReais.has(v.bateria_id));
+        const bateriaPorId = Object.fromEntries(baterias.map(b => [b.id, b]));
+        const idsBateriasComEvento = new Set(eventosAtivos.filter(e => idsBateriasReais.has(e.bateria_id)).map(e => e.bateria_id));
+        const idsBateriasComFigurino = new Set(figurinoAtivo.filter(f => idsBateriasReais.has(f.bateria_id)).map(f => f.bateria_id));
 
         const totalAtivos = vinculosReais.filter(v => v.status === 'aprovado').length;
         const totalPendentes = vinculosReais.filter(v => v.status === 'pendente').length;
@@ -8014,38 +8092,129 @@
             <div class="kpi"><div class="n">${escolasReais.length}</div><div class="l">Escolas</div></div>
             <div class="kpi"><div class="n">${baterias.length}</div><div class="l">Baterias</div></div>
             <div class="kpi ok"><div class="n">${totalAtivos}</div><div class="l">Pessoas ativas</div></div>
-            <div class="kpi${totalPendentes > 0 ? ' atencao' : ''}"><div class="n">${totalPendentes}</div><div class="l">Pendências</div></div>
-            ${escolasDemoCount > 0 ? `<div class="kpi" style="opacity:0.55;"><div class="n">${escolasDemoCount}</div><div class="l">Escolas DEMO (fora da contagem)</div></div>` : ''}`;
+            <div class="kpi"><div class="n">${vinculosReais.length}</div><div class="l">Total no cadastro</div></div>
+            <div class="kpi${totalPendentes > 0 ? ' atencao' : ''}"><div class="n">${totalPendentes}</div><div class="l">Pendências</div></div>`;
 
-        const pendentesPorBateria = baterias
-            .map(b => ({ bateria: b, escola: escolaPorId[b.escola_id], pendentes: vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'pendente').length }))
+        // "Precisa de você" só considera Mestre pendente -- é o único caso em
+        // que ninguém além do Super Admin pode aprovar (Diretor/Ritmista já
+        // são trabalho do Mestre/Diretor de cada bateria). Achado dela,
+        // 01/set/2026: a versão antiga contava qualquer pendência, o que não
+        // representava de verdade o que precisava da atenção dela.
+        const mestresPendentes = baterias
+            .map(b => ({ bateria: b, escola: escolaPorId[b.escola_id], pendentes: vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'pendente' && v.perfil === 'mestre').length }))
             .filter(x => x.pendentes > 0);
-        atencaoEl.innerHTML = pendentesPorBateria.length === 0 ? '' : `
+        atencaoEl.innerHTML = mestresPendentes.length === 0 ? '' : `
             <div class="atencao-box">
                 <div class="atencao-titulo">Precisa de você</div>
-                ${pendentesPorBateria.map(x => `
+                <div class="atencao-sub">Só pendência de Mestre aparece aqui</div>
+                ${mestresPendentes.map(x => `
                     <div class="atencao-item" onclick="irParaAcessosDaBateria(${x.bateria.escola_id})">
-                        <span>${x.pendentes} pendente${x.pendentes === 1 ? '' : 's'} — ${esc(x.escola?.nome) || ''} (${esc(x.bateria.nome)})</span>
+                        <span>Novo Mestre pendente — ${esc(x.escola?.nome) || ''} (${esc(x.bateria.nome)})</span>
                         <span class="seta">Revisar ›</span>
                     </div>`).join('')}
+            </div>`;
+
+        // Aniversariantes de hoje/amanhã, juntando todas as baterias.
+        const hoje = new Date();
+        const amanha = new Date(hoje); amanha.setDate(amanha.getDate() + 1);
+        const diaMesBate = (nascStr, ref) => {
+            const n = new Date(nascStr + 'T00:00:00');
+            return n.getDate() === ref.getDate() && n.getMonth() === ref.getMonth();
+        };
+        const aniversariantes = pessoasAniv
+            .filter(r => r.nascimento && idsBateriasReais.has(r.bateria_id))
+            .map(r => ({ ...r, quando: diaMesBate(r.nascimento, hoje) ? 'hoje' : (diaMesBate(r.nascimento, amanha) ? 'amanha' : null) }))
+            .filter(r => r.quando)
+            .sort((a, b) => (a.quando === 'hoje' ? 0 : 1) - (b.quando === 'hoje' ? 0 : 1));
+        anivEl.innerHTML = aniversariantes.length === 0 ? '' : `
+            <div class="dash-secao-titulo">🎂 Aniversariantes de hoje e amanhã</div>
+            <div class="aniv-grid">
+                ${aniversariantes.map(r => {
+                    const cargoAniv = r.perfil === 'mestre' ? (r.genero === 'feminino' ? 'Mestra' : 'Mestre')
+                        : r.perfil === 'diretor' ? (r.genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria')
+                        : r.perfil === 'apoio' ? (r.genero === 'feminino' ? 'Diretora (Apoio)' : 'Diretor (Apoio)') : 'Ritmista';
+                    const detalhe = (r.perfil === 'ritmista' && r.instrumento_nome) ? `${cargoAniv} · ${r.instrumento_nome}` : cargoAniv;
+                    return `<div class="aniv-card">
+                        <span class="aniv-tag ${r.quando}">${r.quando === 'hoje' ? 'HOJE' : 'AMANHÃ'}</span>
+                        <div class="aniv-nome"><b>${esc(r.nome)}</b>${r.apelido ? ` <span class="aniv-apelido">${esc(r.apelido)}</span>` : ''}</div>
+                        <div class="aniv-meta">${calcularIdade(r.nascimento)} anos · ${esc(detalhe)}</div>
+                        <div class="aniv-bateria">${esc(bateriaPorId[r.bateria_id]?.nome) || ''}</div>
+                    </div>`;
+                }).join('')}
             </div>`;
 
         container.innerHTML = baterias.length === 0
             ? `<div class="estado-vazio"><div class="estado-vazio-icone">📊</div>Nenhuma bateria real cadastrada ainda.</div>`
             : baterias.map(b => {
-                const pendentes = vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'pendente').length;
-                const ativos = vinculosReais.filter(v => v.bateria_id === b.id && v.status === 'aprovado').length;
+                const vinculosBateria = vinculosReais.filter(v => v.bateria_id === b.id);
+                const pendentes = vinculosBateria.filter(v => v.status === 'pendente').length;
+                const ativosBateria = vinculosBateria.filter(v => v.status === 'aprovado');
+                const ativos = ativosBateria.length;
+                const nConvidados = ativosBateria.filter(v => v.eh_convidado).length;
+                const nDiretoria = ativosBateria.filter(v => !v.eh_convidado && ['mestre', 'diretor', 'apoio'].includes(v.perfil)).length;
+                const nRitmistas = ativos - nConvidados - nDiretoria;
+                const nRejeitados = vinculosBateria.filter(v => v.status === 'rejeitado').length;
+                const nSuspensos = vinculosBateria.filter(v => v.status === 'suspenso').length;
+                const nDesligados = vinculosBateria.filter(v => v.status === 'desligado').length;
                 const escola = escolaPorId[b.escola_id];
                 const temporada = escola?.temporada_atual;
-                return `<div class="bateria-card" onclick="irParaAcessosDaBateria(${b.escola_id})">
-                    <div class="bc-nome">${esc(b.nome)}</div>
-                    <div class="bc-escola">${esc(escola?.nome) || ''}${temporada ? ` · ${esc(temporada)}` : ''}</div>
+                return `<div class="bateria-card" onclick="entrarContextoEscolaSA(${b.escola_id})">
+                    <div class="bc-topo">
+                        <div class="escola-logo-circulo" style="box-shadow:0 0 0 2px ${corBordaLogoEscola(escola || {})};">${b.logo_url ? `<img src="${b.logo_url}">` : esc((b.nome || '?')[0].toUpperCase())}</div>
+                        <div>
+                            <div class="bc-nome">${esc(b.nome)}</div>
+                            <div class="bc-escola">${esc(escola?.nome) || ''}${temporada ? ` · ${esc(temporada)}` : ''}</div>
+                        </div>
+                    </div>
                     <div class="bc-stats">
                         <div class="bc-stat"><div class="n">${ativos}</div><div class="l">Ativos</div></div>
                         <div class="bc-stat"><div class="n${pendentes > 0 ? ' aviso' : ''}">${pendentes}</div><div class="l">Pendentes</div></div>
                     </div>
+                    <div class="bc-divisor"></div>
+                    <div class="bc-subgrid">
+                        <div class="bc-substat"><div class="n">${nRitmistas}</div><div class="l">Ritmistas</div></div>
+                        <div class="bc-substat"><div class="n">${nDiretoria}</div><div class="l">Diretoria</div></div>
+                        <div class="bc-substat"><div class="n">${nConvidados}</div><div class="l">Convidados</div></div>
+                    </div>
+                    ${(nRejeitados + nSuspensos + nDesligados) > 0 ? `<div class="bc-outros"><b>${nRejeitados}</b> rejeitados · <b>${nSuspensos}</b> suspensos · <b>${nDesligados}</b> desligados</div>` : ''}
+                    ${(idsBateriasComEvento.has(b.id) || idsBateriasComFigurino.has(b.id)) ? `<div class="bc-modulos">
+                        ${idsBateriasComEvento.has(b.id) ? `<span class="bc-modulo-pill">🎪 Evento aberto</span>` : ''}
+                        ${idsBateriasComFigurino.has(b.id) ? `<span class="bc-modulo-pill">👕 Entrega de figurino aberta</span>` : ''}
+                    </div>` : ''}
                 </div>`;
             }).join('');
+
+        demoEl.innerHTML = escolasDemoCount === 0 ? '' : `
+            <div class="dash-demo-box">Escolas DEMO (fora da contagem acima) <b>${escolasDemoCount}</b></div>`;
+
+        // Atividade recente, juntando todas as baterias -- mesmo dado do
+        // Histórico por escola (vinculos_historico_status), só que aqui sem
+        // precisar entrar em cada uma pra saber o que aconteceu.
+        if (baterias.length > 0) {
+            const resHist = await fetch(`${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,criado_em,pessoa:pessoa_id(nome,genero),decisor:decidido_por(nome),bateria:bateria_id(nome)&bateria_id=in.(${baterias.map(b => b.id).join(',')})&order=criado_em.desc&limit=4`, { headers: authHeaders });
+            const historico = resHist.ok ? await resHist.json() : [];
+            ativEl.innerHTML = historico.length === 0 ? '' : `
+                <div class="dash-secao-titulo">Atividade recente</div>
+                <div class="atividade-card">
+                    ${historico.map(ev => {
+                        const aprovado = ev.status_novo === 'aprovado';
+                        const rejeitado = ev.status_novo === 'rejeitado';
+                        const acaoLabel = aprovado ? `${histPerfilLabel(ev.perfil, ev.pessoa?.genero)} aprovado`
+                            : rejeitado ? 'cadastro rejeitado'
+                            : `${histStatusLabel(ev.status_anterior)} → ${histStatusLabel(ev.status_novo)}`;
+                        return `<div class="atividade-item">
+                            <div class="ativ-ponto ${aprovado ? 'ok' : (rejeitado ? 'rej' : 'warn')}"></div>
+                            <div>
+                                <div class="ativ-texto"><b>${esc(ev.pessoa?.nome) || '—'}</b> · ${esc(acaoLabel)}</div>
+                                <div class="ativ-meta">por ${esc(ev.decisor?.nome) || '—'} · ${esc(ev.bateria?.nome) || '—'} · ${histDataHora(ev.criado_em)}</div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+                <div class="dash-link" style="cursor:default;">Histórico completo dentro de cada bateria, aba Histórico</div>`;
+        } else {
+            ativEl.innerHTML = '';
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════
