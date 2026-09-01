@@ -1958,49 +1958,56 @@
     <div id="pe-tela-ritmistas" class="config-subtela" style="display:none;">
         <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
         <div class="painel-titulo">Ritmistas</div>
+        <!-- Reorganizado em "Meu Perfil" + sub-blocos por assunto (01/set/2026,
+             pedido dela): antes era um parágrafo explicativo por interruptor,
+             tudo solto -- ela pediu "sem textão, simples e objetivo. A ação já
+             diz o que será permitido", mesmo padrão usado no editor por pessoa
+             de Diretoria (título do grupo + subtítulo por assunto). -->
         <div class="ficha-secao" id="pe-secao-ritmistas">
-            <div style="display:flex;align-items:center;gap:8px;">
-                <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
-                <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista edite as medidas</label>
-            </div>
-            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Enquanto ligado, o ritmista consegue preencher — nunca editar depois de salvo — qualquer campo de Medida que estiver em branco na própria ficha. Útil quando surge uma Categoria de Figurino nova no meio da temporada (ex: um vestido) e as pessoas precisam preencher esse campo sozinhas. Vale pra bateria inteira.</div>
+            <div class="ficha-secao-titulo">Meu Perfil</div>
 
-            <!-- Repique de Bossa (26/ago/2026): campo delicado, dois
-                 interruptores separados (ver / marcar), independentes um do
-                 outro -- pedido explícito dela, nascem os dois desligados. -->
-            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+            <div class="config-grupo-titulo" style="margin-top:4px;">Medidas</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
+                <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
+            </div>
+
+            <!-- Repique de Bossa: campo delicado, dois interruptores separados
+                 (ver / marcar), independentes um do outro -- pedido explícito
+                 dela, nascem os dois desligados (26/ago/2026). -->
+            <div class="config-grupo-titulo" style="margin-top:18px;">Instrumento</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('ver', this.checked)">
-                <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja o próprio Repique de Bossa</label>
+                <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Repique de Bossa</label>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
                 <input type="checkbox" id="pe-ritmista-marca-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('marcar', this.checked)">
-                <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista marque o próprio Repique de Bossa</label>
+                <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Editar Repique de Bossa</label>
             </div>
-            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Campo sensível, tratado à parte de Instrumento/Medidas: os dois interruptores acima controlam só a própria ficha do ritmista (Meu Perfil), e são independentes. Pra Mestre/Diretor/Apoio verem ou marcarem o Repique de Bossa de um ritmista, a permissão é dada pessoa por pessoa, no grupo de cada cargo — ninguém tem acesso até ser liberado, mesmo quem já edita Ritmistas normalmente.</div>
 
-            <!-- Desfile / Declaração do Responsável (28/ago/2026): só "ver" --
-                 o ritmista nunca marca nenhum dos dois, quem decide é sempre a
-                 Diretoria (pessoa por pessoa, em cada grupo). Pedido dela:
-                 "quero que tenha os dois interruptores. Na hora o adm vai
-                 decidir se o ritmista vai poder ver ou não." -->
-            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+            <!-- Desfile: só "ver" -- o ritmista nunca marca, quem decide é
+                 sempre a Diretoria pessoa por pessoa (28/ago/2026). -->
+            <div class="config-grupo-titulo" style="margin-top:18px;">Desfile</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-desfile" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('desfile', this.checked)">
-                <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja o próprio Desfile</label>
+                <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Desfile</label>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
-                <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja a própria Declaração do Responsável</label>
-            </div>
-            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca marca nenhum dos dois, só enxerga o valor já definido pela Diretoria. Declaração só aparece de fato pra quem é menor de idade.</div>
 
-            <!-- Observações (28/ago/2026, sessão seguinte): mesmo padrão dos
-                 dois acima -- o ritmista continua NUNCA editando (Observações é
-                 sempre escrita pela Diretoria), só a bateria pode liberar "ver". -->
-            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
-                <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
-                <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o ritmista veja as próprias Observações</label>
+            <!-- Declaração do Responsável: só "ver" -- só aparece de fato pra
+                 quem é menor de idade (28/ago/2026). -->
+            <div class="config-grupo-titulo" style="margin-top:18px;">Declaração do Responsável</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
+                <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Declaração do Responsável</label>
             </div>
-            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Só "ver" — o ritmista nunca edita, só a Diretoria escreve. Nasce desligado.</div>
+
+            <!-- Observações: só "ver" -- sempre escrita pela Diretoria
+                 (28/ago/2026, sessão seguinte). -->
+            <div class="config-grupo-titulo" style="margin-top:18px;">Observações</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
+                <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Observações</label>
+            </div>
         </div>
     </div>
 
@@ -8802,30 +8809,15 @@
             { chave: 'desligar_ritmistas', label: 'Desligar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
             { chave: 'reativar_ritmistas', label: 'Reativar', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
             { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
-        ] },
-        // "Meu Perfil" (01/set/2026, pedido dela) -- os itens de ficha que
-        // antes ficavam todos empilhados sob um único subtítulo genérico
-        // "Ficha do Ritmista" (14 checkboxes em fileira, sem separação
-        // nenhuma) ganharam bloco PRÓPRIO, com um subtítulo curto pra cada
-        // assunto (Medidas/Instrumento/Desfile/Declaração do Responsável/
-        // Observações) -- mesmo mecanismo de subgrupo que Diretoria já usa,
-        // só que mais fino aqui. Rótulos simplificados, sem repetir o nome
-        // do assunto já dito no subtítulo ("ação já diz o que será
-        // permitido, sem textão"). `ver_ritmistas` continua sendo pré-
-        // requisito de tudo aqui (sem ver a lista, não tem como abrir a
-        // ficha de ninguém pra editar nada) -- diferente do bug corrigido
-        // em "Marcar presença", essa dependência é real, não cruzada com
-        // outra tela.
-        { grupo: 'Meu Perfil', itens: [
-            { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Medidas' },
-            { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
-            { chave: 'editar_repique_bossa', label: 'Editar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Instrumento' },
-            { chave: 'ver_nao_desfila', label: 'Visualizar Desfile', dependeDe: 'ver_ritmistas', subgrupo: 'Desfile' },
-            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila', subgrupo: 'Desfile' },
-            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Declaração do Responsável' },
-            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Declaração do Responsável' },
-            { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Observações' },
-            { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Observações' },
+            { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'ver_nao_desfila', label: 'Visualizar Não Desfila', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Ficha do Ritmista' },
+            { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Ficha do Ritmista' },
         ] },
         { grupo: 'Diretoria', itens: [
             { chave: 'ver_acessos', label: 'Visualizar lista (nome, apelido, cargo)', subgrupo: 'Lista de Diretoria' },
