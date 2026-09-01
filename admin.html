@@ -5133,6 +5133,11 @@
         if (souSuperAdmin || tenhoCapacidade('ver_acessos')) carregarDiretoriaComFotos();
         // Card "Extras" na Visão Geral, mesmo padrão do card de Diretoria acima.
         if (souSuperAdmin || tenhoCapacidade('ver_extras')) carregarExtras().then(atualizarTotalizadorExtras);
+        // Card "Convidado Especial" na Visão Geral, mesmo padrão do card de
+        // Extras acima -- achado dela, 01/set/2026: card ficava vazio até
+        // visitar a aba Convidados de verdade (carregarConvidadosEspeciais()
+        // só rodava lá dentro, nunca no carregamento inicial da tela).
+        if (souSuperAdmin || tenhoCapacidade('ver_convidados_especiais')) carregarConvidadosEspeciais().then(atualizarTotalizadorConvidadosEspeciais);
 
         // Volta pra mesma aba de antes de atualizar a página (mesmo achado
         // da Márcia, 20/ago/2026, aplicado aqui também) -- "visao" já é o
@@ -7969,6 +7974,7 @@
         iniciarAutoRefreshRitmistas();
         carregarDiretoriaComFotos(); // Super Admin sempre vê o card "Diretoria ativa"
         carregarExtras().then(atualizarTotalizadorExtras); // idem, card "Extras"
+        carregarConvidadosEspeciais().then(atualizarTotalizadorConvidadosEspeciais); // idem, card "Convidado Especial" (achado 01/set/2026, mesmo bug do card acima)
 
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
