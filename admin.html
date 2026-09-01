@@ -2,7 +2,7 @@
 <html lang="pt-BR" data-tema="tumtu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TumTu — Painel do Diretor</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#12101a">
@@ -60,12 +60,7 @@
         .header {
             background: var(--cor-fundo-escuro);
             color: white;
-            /* padding-top soma env(safe-area-inset-top) -- sem isso, no celular
-               (iPhone com notch) a faixa da hora/bateria ficava branca, fora da
-               cor do cabeçalho (achado dela, 01/set/2026). Precisa de
-               viewport-fit=cover na tag <meta viewport> pra esse env() resolver
-               pra um valor de verdade em vez de sempre 0. */
-            padding: calc(16px + env(safe-area-inset-top)) 24px 16px;
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -816,7 +811,7 @@
 
         /* MOBILE */
         @media (max-width: 600px) {
-            .header { padding: calc(12px + env(safe-area-inset-top)) 16px 12px; gap: 8px; }
+            .header { padding: 12px 16px; gap: 8px; }
             .header-marca { font-size: 18px; }
             .header-badge .hb-escola { font-size: 10px; }
             .header-badge .hb-bateria { font-size: 9px; }
