@@ -5167,7 +5167,7 @@
         // Extras acima -- achado dela, 01/set/2026: card ficava vazio até
         // visitar a aba Convidados de verdade (carregarConvidadosEspeciais()
         // só rodava lá dentro, nunca no carregamento inicial da tela).
-        if (souSuperAdmin || tenhoCapacidade('ver_convidados_especiais')) cargaInicialMD.push(carregarConvidadosEspeciais().then(atualizarTotalizadorConvidadosEspeciais));
+        if (souSuperAdmin || tenhoCapacidade('ver_convidados_especiais')) cargaInicialMD.push(carregarConvidadosEspeciais(true).then(atualizarTotalizadorConvidadosEspeciais));
         await Promise.all(cargaInicialMD);
         iniciarAutoRefreshRitmistas();
 
@@ -5935,9 +5935,17 @@
 
     async function iniciarFigurinoTab() {
         voltarFigurinoLista();
-        if (bibliotecaMedidaTipos.length === 0) await carregarBibliotecaMedidaTipos();
-        if (bibliotecaFigurino.length === 0) await carregarBibliotecaFigurino();
-        await carregarBateriaFigurino();
+        // Spinner cobrindo a lista + as 3 buscas em paralelo (antes eram
+        // sequenciais, uma esperando a outra sem necessidade, e a lista
+        // ficava com o conteúdo antigo até tudo terminar) -- achado dela,
+        // 01/set/2026: "não tem cabimento mais esse tipo de comportamento",
+        // varredura no sistema inteiro atrás do mesmo padrão.
+        document.getElementById('figurino-itens-lista').innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        await Promise.all([
+            bibliotecaMedidaTipos.length === 0 ? carregarBibliotecaMedidaTipos() : Promise.resolve(),
+            bibliotecaFigurino.length === 0 ? carregarBibliotecaFigurino() : Promise.resolve(),
+            carregarBateriaFigurino(),
+        ]);
         renderizarFigurinoLista();
     }
 
@@ -6464,9 +6472,15 @@
         if (be) be.style.display = (souSuperAdmin || tenhoCapacidade('exportar_convidados_especiais')) ? '' : 'none';
         const cc = document.getElementById('cadastroConvidadoEspecialCabecalho');
         if (cc) cc.style.display = (souSuperAdmin || tenhoCapacidade('copiar_link_convidados_especiais')) ? '' : 'none';
-        await carregarConvidadosEspeciais();
+        // Mostra a lista na hora, sem foto, e completa em segundo plano --
+        // mesma otimização de Ritmistas/Diretoria (ver carregarConvidadosEspeciais).
+        await carregarConvidadosEspeciais(true);
         aplicarFiltrosConvidadosEspeciais();
         atualizarTotalizadorConvidadosEspeciais();
+        carregarConvidadosEspeciais().then(() => {
+            aplicarFiltrosConvidadosEspeciais();
+            atualizarTotalizadorConvidadosEspeciais();
+        });
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -6484,12 +6498,19 @@
     // grau de granularidade de Ritmistas/Diretoria).
     let convidadosEspeciaisCache = [];
 
-    async function carregarConvidadosEspeciais() {
+    // leve/completo (01/set/2026, mesmo padrão de carregarRitmistas/
+    // carregarDiretoria, 25/ago/2026) -- Convidados nunca tinha recebido
+    // esse tratamento, então a tela sempre esperava a foto de todo mundo
+    // baixar antes de mostrar qualquer coisa. Achado dela: "está com o
+    // mesmo problema que já tivemos antes com ritmistas e diretoria".
+    async function carregarConvidadosEspeciais(leve = false) {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { convidadosEspeciaisCache = []; return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&eh_convidado=eq.true&order=perfil.asc,nome.asc`, { headers: authHeaders });
+        const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&eh_convidado=eq.true&order=perfil.asc,nome.asc&select=${select}`, { headers: authHeaders });
         const novos = res.ok ? await res.json() : [];
-        convidadosEspeciaisCache = Array.isArray(novos) ? novos : [];
+        const lista = Array.isArray(novos) ? novos : [];
+        convidadosEspeciaisCache = leve ? reaproveitarFotosCache(lista, convidadosEspeciaisCache) : lista;
     }
 
     function renderizarLinksCadastroConvidadoEspecial() {
@@ -7021,8 +7042,13 @@
 
     async function iniciarPresencaTab() {
         voltarPresencaLista();
-        if (bibliotecaEventoTipos.length === 0) await carregarBibliotecaEventoTipos();
-        await carregarEventosBateria();
+        // Mesmo ajuste de iniciarFigurinoTab (01/set/2026) -- spinner
+        // cobrindo a lista + buscas em paralelo em vez de sequenciais.
+        document.getElementById('presenca-eventos-lista').innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
+        await Promise.all([
+            bibliotecaEventoTipos.length === 0 ? carregarBibliotecaEventoTipos() : Promise.resolve(),
+            carregarEventosBateria(),
+        ]);
         presencaEventosCache = eventosBateriaCache;
         renderizarPresencaEventosLista();
     }
@@ -8010,7 +8036,7 @@
             carregarRitmistas(true).then(() => { carregarRitmistas(); }),
             carregarDiretoria(true).then(() => { diretoriaCarregada = false; carregarDiretoria(); }), // Super Admin sempre vê o card "Diretoria ativa"
             carregarExtras().then(atualizarTotalizadorExtras), // idem, card "Extras"
-            carregarConvidadosEspeciais().then(atualizarTotalizadorConvidadosEspeciais), // idem, card "Convidado Especial" (achado 01/set/2026, mesmo bug do card acima)
+            carregarConvidadosEspeciais(true).then(atualizarTotalizadorConvidadosEspeciais), // idem, card "Convidado Especial" (achado 01/set/2026, mesmo bug do card acima)
         ]);
         iniciarAutoRefreshRitmistas();
 
