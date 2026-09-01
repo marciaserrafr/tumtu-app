@@ -8849,7 +8849,13 @@
             { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Ficha da Diretoria' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
-        { grupo: 'Lista de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos', dependeDe: 'ver_eventos' }] },
+        // Bug real, 01/set/2026: dependia de "ver_eventos", que é a
+        // permissão de CONFIGURAÇÕES (catálogo de tipos de evento) -- nada
+        // a ver com marcar presença de verdade. Travava o checkbox pra
+        // qualquer Diretor que não tivesse acesso a Configurações, mesmo
+        // sendo exatamente quem deveria poder marcar presença. Capacidade
+        // solta, sem depender de nada -- mesmo padrão de ver_carteirinha_outros.
+        { grupo: 'Lista de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
         // Convidados (25/ago/2026, reorganizado 31/ago/2026): por trás são 2
         // modelos -- Simples (extras, sem login) e Especial (vinculos, com
         // login/carteirinha) -- mas cada bateria só usa UM por vez (escolhido
