@@ -463,13 +463,13 @@ body.tela-auth-escura .info-campo-texto,
 body.tela-auth-escura {
   background: #12101a;
   min-height: 100vh;
-  min-height: 100svh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px;
   padding-top: max(15vh, 90px);
-  padding-top: max(15svh, 90px);
+  padding-top: max(15dvh, 90px);
 }
 body.tela-auth-escura .auth-container {
   background: transparent;
