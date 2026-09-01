@@ -6464,11 +6464,11 @@
     function modoConvidadosEspecial() {
         return !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
     }
-    function iniciarConvidadosAba() {
+    async function iniciarConvidadosAba() {
         const especial = modoConvidadosEspecial();
         document.getElementById('convidados-simples-conteudo').style.display = especial ? 'none' : '';
         document.getElementById('convidados-especiais-conteudo').style.display = especial ? '' : 'none';
-        if (especial) iniciarConvidadosEspeciaisTab(); else iniciarExtrasTab();
+        if (especial) await iniciarConvidadosEspeciaisTab(); else await iniciarExtrasTab();
     }
 
     async function iniciarConvidadosEspeciaisTab() {
@@ -10536,7 +10536,7 @@
     }
 
     // ── TROCAR ABA (atualizado) ───────────────────────────────────────────────
-    function trocarAba(aba, btn) {
+    async function trocarAba(aba, btn) {
         // Reforço na tela (a segurança de verdade é o RLS -- mesmo se alguém
         // forçar isso via console, os dados não carregam) -- evita cair numa
         // aba vazia/quebrada que a pessoa não tem capacidade pra ver.
@@ -10547,6 +10547,22 @@
         fecharScannerPresenca();
         fecharQrEvento();
         fecharQrFigurino();
+
+        // Busca os dados ANTES de revelar o painel novo -- só pras abas que
+        // fazem busca de verdade (Figurino/Presença/Histórico/Convidados).
+        // Fica no painel atual, sem nada "carregando", até a aba nova
+        // estar pronta pra aparecer já montada. Achado dela, 01/set/2026,
+        // reportado de novo mesmo depois da 1ª correção (que só reordenou
+        // por DENTRO dessas funções, sem perceber que o título de cada
+        // painel é HTML fixo, revelado por ESTA função antes delas rodarem)
+        // -- "Entrega de Figurino continua mostrando o título e depois o
+        // card". NÃO mexe nas outras abas (Diretoria em especial) -- ver
+        // aviso de 27/ago/2026 logo abaixo, área de risco já documentada.
+        if (aba === 'figurino') await iniciarFigurinoTab();
+        else if (aba === 'presenca') await iniciarPresencaTab();
+        else if (aba === 'historico') await carregarHistoricoEscolaSA();
+        else if (aba === 'extras') await iniciarConvidadosAba();
+
         window.scrollTo(0, 0);
         document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
         document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
@@ -10580,11 +10596,7 @@
         if (aba === 'dados-escola') renderizarDadosEscolaTab(false);
         if (aba === 'dados-bateria') renderizarDadosBateriaTab(false);
         if (aba === 'comercial') renderizarComercialTab();
-        if (aba === 'figurino') iniciarFigurinoTab();
-        if (aba === 'extras') iniciarConvidadosAba();
-        if (aba === 'presenca') iniciarPresencaTab();
         if (aba === 'permissoes') { permissoesPessoaEditando = null; voltarPermissoesLista(); renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
-        if (aba === 'historico') carregarHistoricoEscolaSA();
         if (aba === 'administrativo') renderizarAdministrativoLista();
     }
 </script>
