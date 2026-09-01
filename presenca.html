@@ -137,7 +137,7 @@
 
         const [resPessoa, resEvento] = await Promise.all([
             fetch(`${SUPABASE_URL}/rest/v1/pessoas?auth_user_id=eq.${session.user.id}&select=id,nome`, { headers: hdrs }),
-            fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoId}&select=id,nome,data,bateria_id,perfis_diretoria_inclusos`, { headers: hdrs }),
+            fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoId}&select=id,nome,data,bateria_id,perfis_diretoria_inclusos,iniciado,finalizado`, { headers: hdrs }),
         ]);
         const pessoas = resPessoa.ok ? await resPessoa.json() : [];
         const eventos = resEvento.ok ? await resEvento.json() : [];
@@ -166,6 +166,11 @@
         const elegivel = vinculo.perfil === 'ritmista' || (evento.perfis_diretoria_inclusos || []).includes(vinculo.perfil);
         if (!elegivel) {
             div.innerHTML = `<div class="secao">${evento.nome}</div>${dataFormatada ? `<div class="data-evento">${dataFormatada}</div>` : ''}<div class="erro">Esse evento não inclui o seu cargo.</div>`;
+            return;
+        }
+
+        if (!evento.iniciado || evento.finalizado) {
+            div.innerHTML = `<div class="secao">${evento.nome}</div>${dataFormatada ? `<div class="data-evento">${dataFormatada}</div>` : ''}<div class="erro">Esse evento não está ativo no momento.</div>`;
             return;
         }
 
