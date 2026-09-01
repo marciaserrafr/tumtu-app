@@ -143,8 +143,10 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil, ehConvidado) {
         // era liberado sem trava nenhuma pra Mestre/Diretor/Apoio. Ritmista
         // NUNCA passa por aqui pra medidas -- continua no mecanismo à parte
         // (ritmista_pode_editar_medidas, ver fpAplicarPermissaoRitmistaMedidas),
-        // intocado por essa mudança.
-        if ((atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') && typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_propria_medida')) {
+        // intocado por essa mudança. Convidado (01/set/2026) também nunca
+        // passa por aqui -- vira genérico da bateria inteira, sem depender
+        // de capacidade por pessoa (ver fpAplicarPermissaoConvidadoMedidas).
+        if (!ehConvidado && (atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio') && typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_propria_medida')) {
             base.push('medidas');
         }
         // Naipe é atributo só de Diretor -- autoeditado por enquanto (não
@@ -606,6 +608,10 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     // (Ritmista nunca vê Medidas como editável). Fire-and-forget, roda
     // depois do resto da tela já estar pronta.
     fpAplicarPermissaoRitmistaMedidas(alvo);
+    // Convidado (01/set/2026) -- mesma ideia, mas genérica pra bateria
+    // inteira e pra qualquer tipo de Convidado (Ritmista/Diretor/Apoio),
+    // ver fpAplicarPermissaoConvidadoMedidas.
+    fpAplicarPermissaoConvidadoMedidas(alvo);
 
     // Repique de Bossa (26/ago/2026): campo delicado, começa sempre
     // escondido -- só aparece depois de fpAplicarPermissaoRepiqueBossa
@@ -904,7 +910,11 @@ async function fpRenderizarEventos(alvo) {
 // se der certo, libera o botão "Editar" que antes ficava escondido pro
 // Ritmista.
 async function fpAplicarPermissaoRitmistaMedidas(alvo) {
-    if (!fpEstado.autoedicao || alvo.perfil !== 'ritmista' || !alvo.bateria_id || !alvo.vinculo_id) return;
+    // eh_convidado (01/set/2026): Convidado-Ritmista sai daqui e passa a
+    // depender só do interruptor genérico de Convidados (ver
+    // fpAplicarPermissaoConvidadoMedidas) -- antes ficava sem querer preso
+    // ao mesmo interruptor do Ritmista de verdade.
+    if (!fpEstado.autoedicao || alvo.perfil !== 'ritmista' || alvo.eh_convidado === true || !alvo.bateria_id || !alvo.vinculo_id) return;
     const authHeaders = await fpAuthHeaders();
     const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${alvo.bateria_id}&select=ritmista_pode_editar_medidas`, { headers: authHeaders });
     const bateriaRows = resBateria.ok ? await resBateria.json() : [];
@@ -918,6 +928,24 @@ async function fpAplicarPermissaoRitmistaMedidas(alvo) {
     if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
     fpEstado.editaveis.add('medidas');
     fpEstado.medidasRestritoAoVazio = true;
+    if (fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
+}
+
+// Convidado (01/set/2026, corrigido -- antes era capacidade por pessoa,
+// achado dela: tinha que ser genérico pra bateria inteira, igual Ritmistas,
+// nunca uma lista de gente em Permissões). Vale pra qualquer tipo de
+// Convidado (Ritmista, Diretor de Bateria ou Apoio) -- ao contrário de
+// fpAplicarPermissaoRitmistaMedidas, não exige campo em branco: sempre foi
+// assim pra Mestre/Diretor/Apoio de verdade também (editar_propria_medida),
+// então Convidado segue o mesmo comportamento.
+async function fpAplicarPermissaoConvidadoMedidas(alvo) {
+    if (!fpEstado.autoedicao || alvo.eh_convidado !== true || !alvo.bateria_id) return;
+    const authHeaders = await fpAuthHeaders();
+    const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${alvo.bateria_id}&select=convidado_pode_editar_medida`, { headers: authHeaders });
+    const bateriaRows = resBateria.ok ? await resBateria.json() : [];
+    if (!(bateriaRows[0] && bateriaRows[0].convidado_pode_editar_medida)) return;
+    if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
+    fpEstado.editaveis.add('medidas');
     if (fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
 }
 

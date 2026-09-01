@@ -24,7 +24,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=54"></script>
+    <script src="ficha-perfil.js?v=55"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1903,16 +1903,13 @@
         <div class="config-item" onclick="abrirPermissoesGrupo('diretor-naipe')"><span>Diretor de Bateria - Naipe</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('diretor')"><span>Diretor de Bateria</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('apoio')"><span>Diretor (Apoio)</span><span class="config-item-seta">›</span></div>
-        <!-- Convidados (31/ago/2026, separado por cargo -- pedido dela,
-             mesmo padrão de Mestre/Diretor/Apoio acima) -- grupos próprios,
-             NUNCA reaproveitam permissoesPessoaCache (que exclui Convidado de
-             propósito, ver carregarPermissoesEscola) -- usam
-             convidadosEspeciaisCache e um editor restrito (só "Editar a
-             própria Medida"), pra nunca correr o risco de ligar por engano
-             uma capacidade de gestão de verdade num Convidado. -->
-        <div class="config-item" onclick="abrirPermissoesGrupo('convidados-ritmista')"><span>Convidado - Ritmista</span><span class="config-item-seta">›</span></div>
-        <div class="config-item" onclick="abrirPermissoesGrupo('convidados-diretor')"><span>Convidado - Diretor de Bateria</span><span class="config-item-seta">›</span></div>
-        <div class="config-item" onclick="abrirPermissoesGrupo('convidados-apoio')"><span>Convidado - Diretor (Apoio)</span><span class="config-item-seta">›</span></div>
+        <!-- Convidados (01/set/2026, corrigido -- achado dela: veio genérico
+             de mais no dia 31/ago, listando pessoa por pessoa igual
+             Mestre/Diretor/Apoio; o certo é genérico pra bateria inteira,
+             mesmo padrão de Ritmistas acima, SEM lista de gente -- qualquer
+             tipo de Convidado (Ritmista/Diretor/Apoio) segue o mesmo
+             interruptor único. -->
+        <div class="config-item" onclick="abrirPermissoesGrupo('convidados')"><span>Convidados</span><span class="config-item-seta">›</span></div>
     </div>
 
     <!-- Sub-tela: Ritmistas -- interruptor da bateria inteira, não é
@@ -2011,37 +2008,21 @@
         <div id="pe-perfis-lista-apoio" class="lista-cards"></div>
     </div>
 
-    <div id="pe-tela-convidados-ritmista" class="config-subtela" style="display:none;">
+    <!-- Sub-tela: Convidados (01/set/2026, corrigido -- interruptor da
+         bateria inteira, mesmo padrão de Ritmistas acima, sem lista de
+         gente. Vale pra qualquer tipo de Convidado (Ritmista/Diretor de
+         Bateria/Apoio) ao mesmo tempo -- não existe distinção por cargo
+         aqui, de propósito. -->
+    <div id="pe-tela-convidados" class="config-subtela" style="display:none;">
         <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
-        <div class="painel-titulo">Convidado - Ritmista</div>
-        <div class="config-sub-desc" style="margin-bottom:16px;">Convidado não tem acesso de gestão nenhum -- o único caso de exceção possível aqui é liberar que ele edite a própria Medida.</div>
-        <div style="margin-bottom:20px;">
-            <input type="text" id="pe-busca-convidados-ritmista" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesGrupo('convidados-ritmista')"
-                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        <div class="painel-titulo">Convidados</div>
+        <div class="ficha-secao" id="pe-secao-convidados">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <input type="checkbox" id="pe-convidado-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarConvidadoEditaMedidas(this.checked)">
+                <label for="pe-convidado-edita-medidas" style="margin:0;font-size:13px;font-weight:700;color:var(--cor-texto-principal);cursor:pointer;">Permitir que o Convidado edite a própria Medida</label>
+            </div>
+            <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Convidado não tem acesso de gestão nenhum -- esse é o único caso de exceção possível. Vale pra qualquer tipo de Convidado (Ritmista, Diretor de Bateria ou Apoio) e pra bateria inteira, não é liberado pessoa por pessoa.</div>
         </div>
-        <div id="pe-perfis-lista-convidados-ritmista" class="lista-cards"></div>
-    </div>
-
-    <div id="pe-tela-convidados-diretor" class="config-subtela" style="display:none;">
-        <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
-        <div class="painel-titulo">Convidado - Diretor de Bateria</div>
-        <div class="config-sub-desc" style="margin-bottom:16px;">Convidado não tem acesso de gestão nenhum -- o único caso de exceção possível aqui é liberar que ele edite a própria Medida.</div>
-        <div style="margin-bottom:20px;">
-            <input type="text" id="pe-busca-convidados-diretor" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesGrupo('convidados-diretor')"
-                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
-        </div>
-        <div id="pe-perfis-lista-convidados-diretor" class="lista-cards"></div>
-    </div>
-
-    <div id="pe-tela-convidados-apoio" class="config-subtela" style="display:none;">
-        <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
-        <div class="painel-titulo">Convidado - Diretor (Apoio)</div>
-        <div class="config-sub-desc" style="margin-bottom:16px;">Convidado não tem acesso de gestão nenhum -- o único caso de exceção possível aqui é liberar que ele edite a própria Medida.</div>
-        <div style="margin-bottom:20px;">
-            <input type="text" id="pe-busca-convidados-apoio" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesGrupo('convidados-apoio')"
-                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
-        </div>
-        <div id="pe-perfis-lista-convidados-apoio" class="lista-cards"></div>
     </div>
 
     <!-- Editor por pessoa -- toma conta da tela inteira, por cima de
@@ -2364,7 +2345,6 @@
 <div class="painel" id="painel-extras">
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Convidados</div>
-    <p class="config-sub-desc" id="convidados-desc"></p>
 
     <!-- Conteúdo do Modelo Simples -->
     <div id="convidados-simples-conteudo">
@@ -6419,10 +6399,6 @@
         const especial = modoConvidadosEspecial();
         document.getElementById('convidados-simples-conteudo').style.display = especial ? 'none' : '';
         document.getElementById('convidados-especiais-conteudo').style.display = especial ? '' : 'none';
-        const desc = document.getElementById('convidados-desc');
-        if (desc) desc.textContent = especial
-            ? 'Pessoas que não compõem a bateria oficial, mas têm acesso (login) e carteirinha própria -- ficam de fora da contagem de Ritmistas e Diretoria.'
-            : 'Pessoas que não compõem a bateria, mas podem ser convidadas para os eventos em que necessitam os figurinos adequados. Cada Convidado é associado ao grupo de Ritmistas ou de Diretoria, pra definir qual figurino ele vai receber.';
         if (especial) iniciarConvidadosEspeciaisTab(); else iniciarExtrasTab();
     }
 
@@ -8717,16 +8693,9 @@
         'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && Array.isArray(p.naipe) && p.naipe.length > 0 },
         diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !(Array.isArray(p.naipe) && p.naipe.length > 0) },
         apoio: { label: 'Diretor (Apoio)', filtro: p => p.perfil === 'apoio' },
-        // Convidados (31/ago/2026, separado por cargo a pedido dela -- mesmo
-        // padrão de Mestre/Diretor/Apoio acima) -- `fonte: 'convidados'`
-        // marca que a lista vem de convidadosEspeciaisCache, NUNCA de
-        // permissoesPessoaCache (que exclui Convidado de propósito, ver
-        // carregarPermissoesEscola). Editor restrito, ver
-        // renderizarEditorPermissoesPessoa -- só "Editar a própria Medida",
-        // mesmo pros 3 sub-grupos.
-        'convidados-ritmista': { label: 'Convidado - Ritmista', fonte: 'convidados', filtro: p => p.perfil === 'ritmista' },
-        'convidados-diretor': { label: 'Convidado - Diretor de Bateria', fonte: 'convidados', filtro: p => p.perfil === 'diretor' },
-        'convidados-apoio': { label: 'Convidado - Diretor (Apoio)', fonte: 'convidados', filtro: p => p.perfil === 'apoio' },
+        // "Convidados" (01/set/2026) não entra aqui de propósito -- mesmo
+        // caso de "Ritmistas": interruptor da bateria inteira, sem lista de
+        // gente, então não precisa de filtro/fonte nenhum.
     };
 
     // Usado na lista de Permissões (linha por pessoa, precisa ser curto --
@@ -8827,6 +8796,12 @@
             chkVeObservacoes.disabled = !podeEditarPermissoes;
             chkVeObservacoes.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
         }
+        const chkConvidadoMedidas = document.getElementById('pe-convidado-edita-medidas');
+        if (chkConvidadoMedidas) {
+            chkConvidadoMedidas.checked = !!(bateriaAtualData && bateriaAtualData.convidado_pode_editar_medida);
+            chkConvidadoMedidas.disabled = !podeEditarPermissoes;
+            chkConvidadoMedidas.style.cursor = podeEditarPermissoes ? 'pointer' : 'not-allowed';
+        }
         if (!bateriaId) {
             permissoesPessoaCache = [];
             if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
@@ -8851,10 +8826,6 @@
         document.querySelectorAll('#painel-permissoes .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('pe-tela-' + grupoId).style.display = 'block';
         permissoesGrupoAtual = grupoId;
-        // Convidados (31/ago/2026): recarrega sempre, é uma aba separada da
-        // tela de Convidados de verdade -- não pode confiar que já foi
-        // carregada nesta sessão. Vale pros 3 sub-grupos (fonte: 'convidados').
-        if (PERMISSOES_GRUPOS[grupoId] && PERMISSOES_GRUPOS[grupoId].fonte === 'convidados') await carregarConvidadosEspeciais();
         if (PERMISSOES_GRUPOS[grupoId]) renderizarListaPermissoesGrupo(grupoId);
     }
     function voltarPermissoesLista() {
@@ -8872,6 +8843,23 @@
             const idx = bateriasCache.findIndex(x => x.id === id);
             if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
             mostrarToast(ligado ? 'Ritmistas podem preencher medidas em branco.' : 'Edição de medidas pelo ritmista desligada.');
+        } else {
+            mostrarToast('Erro ao atualizar.', 'erro');
+        }
+    }
+    // Convidados (01/set/2026) -- mesmo padrão de salvarRitmistaEditaMedidas,
+    // só que vale pra qualquer tipo de Convidado (Ritmista/Diretor/Apoio) de
+    // uma vez, nunca pessoa por pessoa.
+    async function salvarConvidadoEditaMedidas(ligado) {
+        const id = bateriaAtualData ? bateriaAtualData.id : null;
+        if (!id) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ convidado_pode_editar_medida: ligado }) });
+        if (res.ok) {
+            const dados = await res.json();
+            bateriaAtualData = dados[0];
+            const idx = bateriasCache.findIndex(x => x.id === id);
+            if (idx >= 0) bateriasCache[idx] = bateriaAtualData;
+            mostrarToast(ligado ? 'Convidados podem editar a própria Medida.' : 'Edição de Medida pelo Convidado desligada.');
         } else {
             mostrarToast('Erro ao atualizar.', 'erro');
         }
@@ -8952,12 +8940,7 @@
     // esse grupo (grupoOrigem) em vez da lista de nível 1 -- reorganização
     // de 29/ago/2026.
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
-        // Convidados (31/ago/2026): só encontrado aqui se vier de fato de
-        // convidadosEspeciaisCache -- nunca de permissoesPessoaCache (que já
-        // exclui eh_convidado de propósito). Essa segunda busca só acha
-        // alguém se o id realmente for de um Convidado carregado de verdade,
-        // não abre brecha nenhuma nova.
-        const p = permissoesPessoaCache.find(x => x.id === vinculoId) || convidadosEspeciaisCache.find(x => x.id === vinculoId);
+        const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
         permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
         // O editor toma conta da tela inteira, por cima da sub-tela do
@@ -8985,33 +8968,6 @@
         if (!editor) return;
         if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
-        // Convidados (31/ago/2026, 3 sub-grupos por cargo): editor SEMPRE
-        // restrito, nunca o genérico abaixo -- "CONVIDADO NÃO PODE NADA DE
-        // PERMISSÃO PARA MEXER EM NADA DE NGM" (regra dela). O único caso de
-        // exceção possível é editar a própria Medida. Nunca mostra
-        // Ritmistas/Diretoria/Figurino/etc, mesmo que essas capacidades
-        // existam no catálogo geral -- é fisicamente impossível ligar
-        // qualquer coisa além dessa por aqui, nos 3 sub-grupos.
-        const metaOrigem = PERMISSOES_GRUPOS[pe.grupoOrigem];
-        if (metaOrigem && metaOrigem.fonte === 'convidados') {
-            editor.innerHTML = `<div class="card-form">
-                <div style="margin-bottom:8px;"><span onclick="fecharEditorPermissoesPessoa()" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← ${esc(metaOrigem.label)}</span></div>
-                <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
-                <div class="ficha-secao">
-                    <div class="ficha-secao-titulo">Medida</div>
-                    <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                        <input type="checkbox" id="pp-cap-editar_propria_medida" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades.editar_propria_medida ? 'checked' : ''}>
-                        <label for="pp-cap-editar_propria_medida" style="margin:0;font-size:15px;font-weight:500;color:#333;cursor:pointer;">Pode editar a própria Medida</label>
-                    </div>
-                    <div style="font-size:13px;color:var(--cor-texto-muted);margin-top:4px;">Único caso de exceção possível pra um Convidado -- nenhuma outra permissão pode ser concedida por essa tela.</div>
-                </div>
-                <div class="form-rodape">
-                    <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button></div>
-                    <button class="btn-ficha" onclick="fecharEditorPermissoesPessoa()">Cancelar</button>
-                </div>
-            </div>`;
-            return;
-        }
         editor.innerHTML = `<div class="card-form">
             ${pe.veioDaFicha
                 ? `<div style="margin-bottom:8px;"><span onclick="abrirFichaAdmin(${pe.id})" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Voltar para a ficha</span></div>`
