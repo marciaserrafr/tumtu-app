@@ -8861,8 +8861,8 @@
             { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Instrumento' },
             { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Endereço' },
             { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Medidas' },
-            { semFuncionalidade: true, nota: 'Já existe como grupo próprio "Figurino" mais abaixo — não é específico de Ritmista', subgrupo: 'Entrega de Figurinos' },
-            { semFuncionalidade: true, nota: 'Já existe como grupo próprio "Lista de Presença" mais abaixo — não é específico de Ritmista', subgrupo: 'Eventos' },
+            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Figurino" mais abaixo, que é sobre marcar entrega na tela dedicada)', subgrupo: 'Entrega de Figurinos' },
+            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Lista de Presença" mais abaixo, que é sobre marcar presença na tela dedicada)', subgrupo: 'Eventos' },
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Saúde' },
             { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Contato de Emergência' },
             { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Observações' },
@@ -8900,8 +8900,8 @@
             { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Medidas' },
             { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Naipe' },
             { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
-            { semFuncionalidade: true, nota: 'Já existe como grupo próprio "Lista de Presença" mais abaixo — não é específico de Diretoria', subgrupo: 'Eventos' },
-            { semFuncionalidade: true, nota: 'Já existe como grupo próprio "Figurino" mais abaixo — não é específico de Diretoria', subgrupo: 'Entrega de Figurinos' },
+            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Lista de Presença" mais abaixo, que é sobre marcar presença na tela dedicada)', subgrupo: 'Eventos' },
+            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Figurino" mais abaixo, que é sobre marcar entrega na tela dedicada)', subgrupo: 'Entrega de Figurinos' },
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Saúde' },
             { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Contato de Emergência' },
             { chave: 'ver_permissoes', label: 'Visualizar Permissões', dependeDe: 'ver_acessos', subgrupo: 'Permissões' },
@@ -8928,7 +8928,31 @@
             { chave: 'aprovar_convidados_especiais', label: 'Aprovar, rejeitar, suspender, desligar e reativar', dependeDe: 'ver_convidados_especiais', subgrupo: 'Lista' },
             { chave: 'exportar_convidados_especiais', label: 'Exportar pra Excel', dependeDe: 'ver_convidados_especiais', subgrupo: 'Lista' },
             { chave: 'copiar_link_convidados_especiais', label: 'Copiar Link de Cadastro', dependeDe: 'ver_convidados_especiais', subgrupo: 'Novo Cadastro' },
-            { chave: 'editar_convidados_especiais', label: 'Editar ficha (instrumento, medidas)', dependeDe: 'ver_convidados_especiais', subgrupo: 'Ficha' },
+        ] },
+        // "Perfil do Convidado" (01/set/2026) -- mesmo mapa completo de
+        // Perfil do Ritmista/Diretor, pedido dela: "Essa ficha do perfil...
+        // vai servir para TODAS AS PERSONAS, Tanto ritmista, diretores,
+        // mestres, convidados, TODOS." Convidado Especial reaproveita o
+        // mesmo motor de ficha de Ritmista/Diretoria (conforme o cargo),
+        // mas hoje só existe UMA capacidade real sobre a ficha dele
+        // (editar_convidados_especiais, que já bundlava instrumento+medidas
+        // antes desse mapa existir) -- todo o resto é sem funcionalidade
+        // própria ainda, igual boa parte de Perfil do Ritmista/Diretor.
+        { grupo: 'Perfil do Convidado', modoConvidados: 'especial', itens: [
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Foto' },
+            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — quem vê a lista já vê esses dados', subgrupo: 'Dados Pessoais' },
+            { chave: 'editar_convidados_especiais', label: 'Editar ficha (instrumento, medidas)', dependeDe: 'ver_convidados_especiais', subgrupo: 'Instrumento' },
+            { semFuncionalidade: true, nota: 'Hoje incluso em "Instrumento" acima (Editar ficha: instrumento, medidas) — sem interruptor próprio ainda', subgrupo: 'Endereço' },
+            { semFuncionalidade: true, nota: 'Hoje incluso em "Instrumento" acima (Editar ficha: instrumento, medidas) — sem interruptor próprio ainda', subgrupo: 'Medidas' },
+            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Figurino" mais abaixo, que é sobre marcar entrega na tela dedicada)', subgrupo: 'Entrega de Figurinos' },
+            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Lista de Presença" mais abaixo, que é sobre marcar presença na tela dedicada)', subgrupo: 'Eventos' },
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Saúde' },
+            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — quem vê a lista já vê esses dados', subgrupo: 'Contato de Emergência' },
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Observações' },
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Declaração do Responsável' },
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Desfile' },
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda — fica só no aparelho da pessoa, nunca no servidor', subgrupo: 'FaceId/Digital' },
+            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Suporte' },
         ] },
         { grupo: 'Carteirinha', itens: [{ chave: 'ver_carteirinha_outros', label: 'Visualizar a carteirinha de outra pessoa' }] },
         { grupo: 'Configurações', itens: [
