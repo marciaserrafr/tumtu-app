@@ -8807,6 +8807,16 @@
     // Admin sempre bypassa (tenhoCapacidade()). Migração de quem já tinha
     // permissão configurada: ver seção 62 da documentação técnica.
     const GRUPOS_CAPACIDADES = [
+        // "Meu Perfil" (01/set/2026, pedido dela: "tem que ter o item Meu
+        // Perfil, pq o mestre e diretor poderá fazer coisas no seu próprio
+        // perfil") -- separado de "Perfil do Diretor" (que é sobre o que
+        // essa pessoa pode fazer com a ficha de OUTRA pessoa da Diretoria).
+        // Hoje só existe uma capacidade de verdade sobre a própria ficha
+        // (editar_propria_medida, movida de dentro de "Perfil do Diretor" pra
+        // cá) -- mas o grupo já nasce pronto pra receber outras no futuro.
+        { grupo: 'Meu Perfil', itens: [
+            { chave: 'editar_propria_medida', label: 'Editar a própria Medida', subgrupo: 'Medidas' },
+        ] },
         { grupo: 'Visão Geral', itens: [{ chave: 'ver_visao_geral', label: 'Visualizar' }] },
         { grupo: 'Dados da Escola', itens: [{ chave: 'ver_dados_escola', label: 'Visualizar' }, { chave: 'editar_dados_escola', label: 'Editar', dependeDe: 'ver_dados_escola' }] },
         { grupo: 'Dados da Bateria', itens: [{ chave: 'ver_dados_bateria', label: 'Visualizar' }, { chave: 'editar_dados_bateria', label: 'Editar', dependeDe: 'ver_dados_bateria' }] },
@@ -8818,7 +8828,7 @@
         // desenha um título menor a cada troca) -- não muda chave, dependência
         // nem trava real nenhuma.
         { grupo: 'Ritmistas', itens: [
-            { chave: 'ver_ritmistas', label: 'Visualizar lista (nome, apelido, instrumento, status)', subgrupo: 'Lista de Ritmistas' },
+            { chave: 'ver_ritmistas', label: 'Visualizar lista', subgrupo: 'Lista de Ritmistas' },
             { chave: 'exportar_ritmistas', label: 'Exportar pra Excel', dependeDe: 'ver_ritmistas', subgrupo: 'Lista de Ritmistas' },
             { chave: 'ver_novo_cadastro_ritmistas', label: 'Visualizar Novo Cadastro', dependeDe: 'ver_ritmistas', subgrupo: 'Novo Cadastro' },
             { chave: 'criar_cadastro_ritmistas', label: 'Criar Novo Cadastro', dependeDe: 'ver_novo_cadastro_ritmistas', subgrupo: 'Novo Cadastro' },
@@ -8837,20 +8847,20 @@
         // um lado, ação de fila/aprovação do outro. "São muitas!!!" (dela)
         // -- 7 sub-blocos por assunto em vez de 1 subtítulo genérico.
         { grupo: 'Perfil do Ritmista', itens: [
-            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, endereço, contato de emergência e dados do responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Dados sensíveis' },
+            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, endereço, contato de emergência e dados do responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Dados Pessoais' },
             { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
             { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
             { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Instrumento' },
             { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Medidas' },
             { chave: 'ver_nao_desfila', label: 'Visualizar Não Desfila', dependeDe: 'ver_ritmistas', subgrupo: 'Desfile' },
             { chave: 'editar_nao_desfila', label: 'Marcar Não Desfila', dependeDe: 'ver_nao_desfila', subgrupo: 'Desfile' },
-            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável (menores)', dependeDe: 'ver_ritmistas', subgrupo: 'Declaração do Responsável' },
-            { chave: 'editar_declaracao_responsavel', label: 'Marcar Declaração do Responsável (menores)', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Declaração do Responsável' },
+            { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Declaração do Responsável' },
+            { chave: 'editar_declaracao_responsavel', label: 'Editar Declaração do Responsável', dependeDe: 'ver_declaracao_responsavel', subgrupo: 'Declaração do Responsável' },
             { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Observações' },
             { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Observações' },
         ] },
         { grupo: 'Diretoria', itens: [
-            { chave: 'ver_acessos', label: 'Visualizar lista (nome, apelido, cargo)', subgrupo: 'Lista de Diretoria' },
+            { chave: 'ver_acessos', label: 'Visualizar lista', subgrupo: 'Lista de Diretoria' },
             { chave: 'exportar_diretoria', label: 'Exportar pra Excel', dependeDe: 'ver_acessos', subgrupo: 'Lista de Diretoria' },
             { chave: 'ver_novo_cadastro_diretoria', label: 'Visualizar Novo Cadastro', dependeDe: 'ver_acessos', subgrupo: 'Novo Cadastro' },
             { chave: 'criar_cadastro_diretoria', label: 'Criar Novo Cadastro', dependeDe: 'ver_novo_cadastro_diretoria', subgrupo: 'Novo Cadastro' },
@@ -8869,12 +8879,11 @@
         // sem ela ter pedido esse grupo especificamente, aplicando o mesmo
         // modelo que ela já aprovou (ver feedback_sempre_sugerir_com_justificativa).
         { grupo: 'Perfil do Diretor', itens: [
-            { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, endereço e contato de emergência', dependeDe: 'ver_acessos', subgrupo: 'Dados sensíveis' },
+            { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, endereço e contato de emergência', dependeDe: 'ver_acessos', subgrupo: 'Dados Pessoais' },
             { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Naipe' },
             { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
             { chave: 'ver_permissoes', label: 'Visualizar Permissões', dependeDe: 'ver_acessos', subgrupo: 'Permissões' },
             { chave: 'editar_permissoes', label: 'Editar Permissões', dependeDe: 'ver_permissoes', subgrupo: 'Permissões' },
-            { chave: 'editar_propria_medida', label: 'Editar a própria Medida', subgrupo: 'Medidas' },
             { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Medidas' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
