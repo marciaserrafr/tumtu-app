@@ -780,15 +780,18 @@
            verdade dos subtítulos (.config-grupo-titulo), que têm o mesmo
            tamanho de .ficha-secao-titulo e ficavam parecidos demais (achado
            dela: "fica difícil de entender" / "Meu Perfil está idêntico ao
-           título Ritmistas"). Maior, peso mais forte, sem caixa alta -- lê
-           como título de verdade, não como mais um rótulo. Tracinho do lado
-           reaproveitado de .cadastro-cabecalho-tracinho ("Novo cadastro"),
-           só que na cor terracota (pedido dela: "temos outras cores... o
-           terracota que poderia ser usado") -- diferencia de Ritmistas
-           (preto) e do tracinho dourado de Novo Cadastro ao mesmo tempo,
-           sem inventar um quarto estilo do zero. */
-        .ficha-secao-titulo-pai { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: var(--cor-terracota); margin-bottom: 24px; }
-        .ficha-secao-titulo-pai-tracinho { display: inline-block; width: 3px; height: 15px; background: var(--cor-terracota); flex-shrink: 0; }
+           título Ritmistas"). De propósito NÃO copia o estilo de caixa
+           alta/letras espaçadas dos subtítulos -- aquilo é convenção de
+           RÓTULO (mesmo tratamento de "Novo Cadastro", "Lista de
+           Ritmistas"), não de título. Fica com texto normal, grande,
+           escuro (recurso de título de verdade); o tracinho dourado do
+           lado (reaproveitado de .cadastro-cabecalho-tracinho, "Novo
+           cadastro") é o elemento que garante que não fica idêntico ao
+           título "Ritmistas" logo acima -- nem "Ritmistas" nem os
+           subtítulos têm esse tracinho, então ele sozinho já marca "Meu
+           Perfil" como algo à parte. */
+        .ficha-secao-titulo-pai { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 24px; }
+        .ficha-secao-titulo-pai-tracinho { display: inline-block; width: 3px; height: 15px; background: var(--cor-destaque); flex-shrink: 0; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
         /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
            label acima dele aumentados -- pedido dela, 22/ago/2026, "tenho
