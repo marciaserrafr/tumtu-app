@@ -397,3 +397,28 @@ Pedido dela, com print: Exportar, "Novo cadastro" recolhido, busca, filtro por T
 No meio da sessão ela disse "tem uns bugs que somem as coisas e depois elas reaparecem, eu tô pirando real" — investigação não achou nada de errado com os dados dela (o achado real foi o Figurino/Presença acima, que é sobre contagem/rótulo, não sobre dado sumindo/reaparecendo de verdade). Vale ficar atenta a esse tipo de relato solto — pode ser ansiedade sem causa técnica nova, ou pode ser sintoma real de outra coisa ainda não identificada; perguntar detalhes concretos (tela, quando, se F5 resolve) antes de investigar ou de tentar tranquilizar.
 
 **Estado do branch ao fechar a sessão**: `preview/convidado-especial` e `preview/figurino-publico-por-bateria` e `preview/figurino-rotulo-convidado` todos mesclados em `main`, tudo publicado em produção. Nenhum bloqueio conhecido restante que dependa do banco.
+
+## Sessão seguinte (01/set/2026): bug da Presença sem evento ativo corrigido; Convidados ganha padrão visual/estrutural de Ritmistas-Diretoria
+
+Sessão sem `gh` nem ferramentas MCP da Vercel disponíveis (mesma limitação já registrada em sessões anteriores) — ela escolheu publicar direto em cada correção pontual, e deixou a mudança maior (permissão de Convidados) parada num branch, pra fechar com o banco numa próxima sessão.
+
+### Bug real: botão "Presença" da carteirinha aparecia sem evento ativo
+
+Ela reportou o bug direto. Investigação achou a causa: `verificarPresencaPendente` (carteirinha.html) e a confirmação por QR (tanto a câmera embutida na carteirinha quanto a tela avulsa `presenca.html`) checavam só se existia **algum** evento cadastrado na bateria — nunca olhavam os interruptores "Evento Iniciado"/"Evento Finalizado" que a Diretoria liga em Configurações → Eventos. Esse é o mesmo critério de "evento ativo" (`iniciado=true`, `finalizado=false`) já usado no card "Eventos Ativos" da Visão Geral (`admin.html`) — só nunca tinha sido replicado nesses 3 lugares. Corrigido acrescentando o mesmo filtro nas 3 pontas, publicado direto na `main` (ela escolheu pular o link de teste avulso, pela limitação de ferramentas da sessão) — commit `b2278ea`.
+
+### Convidados ganha o mesmo padrão visual de Ritmistas/Diretoria (contador dourado, filtro "Todos - X") + Comercial vai pro fim do menu
+
+Três pedidos pontuais na mesma leva, publicados juntos direto na `main` (commit `da12640`):
+- Contador solto "X convidado(s) no total" removido; cada seção (Ritmista/Diretor de Bateria/Apoio) passou a mostrar o número em dourado à direita do título, mesmo formato já usado em Diretoria (`tituloSecaoComContador`).
+- Filtro "Tipo de Convidado" passou a nascer marcado como "Todos - Convidados", espelhando "Todos - Diretoria".
+- "Comercial" (item exclusivo de Super Admin no menu "Mais") movido pro final da lista `ADMINISTRATIVO_ITENS`, depois de Histórico.
+
+Também removido, a pedido dela, o texto explicativo longo da tela de Convidados ("Pessoas que não compõem a bateria...").
+
+### Achado real: estrutura de permissão de Convidados tinha saído errada em 31/ago
+
+Ela percebeu que o único Convidado real cadastrado aparecia em Permissões dentro de uma lista pessoa-por-pessoa ("Convidado - Ritmista"/"Diretor de Bateria"/"Apoio", 3 grupos, mesmo padrão de Mestre/Diretor/Apoio) — reação forte: "Não é para ter todos os convidados inseridos ali. Deus me livre. O que eu colocar ali de permissão, será para todos." A estrutura certa, que ela já tinha pedido em 31/ago mas saiu errada, é a mesma de "Ritmistas": um interruptor só, sem lista de gente, valendo pra bateria inteira e pra **qualquer tipo** de Convidado ao mesmo tempo (Ritmista/Diretor de Bateria/Apoio juntos, não 3 grupos separados).
+
+Corrigido em `admin.html` (3 grupos → 1 grupo "Convidados", editor restrito removido, `salvarConvidadoEditaMedidas` novo) e em `ficha-perfil.js` (`fpCamposEditaveis` para de usar a capacidade por pessoa `editar_propria_medida` quando `ehConvidado`; nova `fpAplicarPermissaoConvidadoMedidas`, mesmo espírito de `fpAplicarPermissaoRitmistaMedidas`). **Efeito colateral avisado e aceito por ela**: Convidado-Ritmista, que antes caía sem querer no interruptor de Ritmistas de verdade (`ritmista_pode_editar_medidas`) pra editar a própria Medida, foi desacoplado disso — passa a depender só do interruptor novo e único de Convidados, junto com Diretor/Apoio.
+
+**Trabalho parado, não publicado**: fica no branch `preview/convidados-permissao-generica` (commit `402ea0f`), fora da `main`. Falta rodar no banco a coluna `baterias.convidado_pode_editar_medida` **e** adicioná-la no trigger `aplicar_matriz_edicao_baterias()` (mesma trava que já protege `ritmista_pode_editar_medidas` — ver seção 68.3 da documentação técnica) — sem isso o interruptor ficaria bonito na tela sem proteção de verdade no banco. Sem ferramenta de banco disponível nesta sessão; combinado com ela retomar isso numa próxima sessão, começando por ler o corpo atual da função (`select pg_get_functiondef('public.aplicar_matriz_edicao_baterias'::regproc);`) antes de gerar o `CREATE OR REPLACE` final, pra não arriscar reescrever de memória e apagar alguma trava existente.
