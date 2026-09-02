@@ -8821,6 +8821,10 @@
     // Admin sempre bypassa (tenhoCapacidade()). Migração de quem já tinha
     // permissão configurada: ver seção 62 da documentação técnica.
     const GRUPOS_CAPACIDADES = [
+        // Carteirinha (02/set/2026, pedido dela) -- logo abaixo de "Acesso ao
+        // TumTu" (a seção fixa renderizada antes deste array), por ser
+        // conceitualmente parecida: acesso/visualização de alto nível.
+        { grupo: 'Carteirinha', itens: [{ chave: 'ver_carteirinha_outros', label: 'Visualizar a carteirinha de outra pessoa' }] },
         // "Meu Perfil" (01/set/2026, pedido dela: "tem que ter o item Meu
         // Perfil, pq o mestre e diretor poderá fazer coisas no seu próprio
         // perfil") -- separado de "Perfil do Diretor" (que é sobre o que
@@ -8829,7 +8833,7 @@
         // (editar_propria_medida, movida de dentro de "Perfil do Diretor" pra
         // cá) -- mas o grupo já nasce pronto pra receber outras no futuro.
         { grupo: 'Meu Perfil', itens: [
-            { chave: 'editar_propria_medida', label: 'Editar a própria Medida', subgrupo: 'Medidas' },
+            { chave: 'editar_propria_medida', label: 'Editar Medidas', subgrupo: 'Medidas' },
         ] },
         { grupo: 'Visão Geral', itens: [{ chave: 'ver_visao_geral', label: 'Visualizar' }] },
         { grupo: 'Dados da Escola', itens: [{ chave: 'ver_dados_escola', label: 'Visualizar' }, { chave: 'editar_dados_escola', label: 'Editar', dependeDe: 'ver_dados_escola' }] },
@@ -8869,15 +8873,15 @@
         // sem checkbox -- não existe capacidade nenhuma por trás deles hoje.
         { grupo: 'Perfil do Ritmista', itens: [
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Foto' },
-            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, documento e dados do responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Dados Pessoais' },
+            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar Dados Pessoais', dependeDe: 'ver_ritmistas', subgrupo: 'Dados Pessoais' },
             { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
             { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
             { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Instrumento' },
             { chave: 'ver_endereco_ritmista', label: 'Visualizar Endereço', dependeDe: 'ver_ritmistas', subgrupo: 'Endereço' },
             { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Medidas' },
-            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Figurino" mais abaixo, que é sobre marcar entrega na tela dedicada)', subgrupo: 'Entrega de Figurinos' },
-            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Lista de Presença" mais abaixo, que é sobre marcar presença na tela dedicada)', subgrupo: 'Eventos' },
-            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Saúde' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Entrega de Figurinos' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Eventos' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Saúde' },
             { chave: 'ver_contato_emergencia_ritmista', label: 'Visualizar Contato de Emergência', dependeDe: 'ver_ritmistas', subgrupo: 'Contato de Emergência' },
             { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Observações' },
             { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Observações' },
@@ -8909,14 +8913,14 @@
         // modelo que ela já aprovou (ver feedback_sempre_sugerir_com_justificativa).
         { grupo: 'Perfil do Diretor', itens: [
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Foto' },
-            { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, documento e dados do responsável', dependeDe: 'ver_acessos', subgrupo: 'Dados Pessoais' },
+            { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar Dados Pessoais', dependeDe: 'ver_acessos', subgrupo: 'Dados Pessoais' },
             { chave: 'ver_endereco_acessos', label: 'Visualizar Endereço', dependeDe: 'ver_acessos', subgrupo: 'Endereço' },
             { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Medidas' },
             { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Naipe' },
             { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
-            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Lista de Presença" mais abaixo, que é sobre marcar presença na tela dedicada)', subgrupo: 'Eventos' },
-            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Figurino" mais abaixo, que é sobre marcar entrega na tela dedicada)', subgrupo: 'Entrega de Figurinos' },
-            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Saúde' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Eventos' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Entrega de Figurinos' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Saúde' },
             { chave: 'ver_contato_emergencia_acessos', label: 'Visualizar Contato de Emergência', dependeDe: 'ver_acessos', subgrupo: 'Contato de Emergência' },
             { chave: 'ver_permissoes', label: 'Visualizar Permissões', dependeDe: 'ver_acessos', subgrupo: 'Permissões' },
             { chave: 'editar_permissoes', label: 'Editar Permissões', dependeDe: 'ver_permissoes', subgrupo: 'Permissões' },
@@ -8958,17 +8962,16 @@
             { chave: 'editar_convidados_especiais', label: 'Editar ficha (instrumento, medidas)', dependeDe: 'ver_convidados_especiais', subgrupo: 'Instrumento' },
             { semFuncionalidade: true, nota: 'Hoje incluso em "Instrumento" acima (Editar ficha: instrumento, medidas) — sem interruptor próprio ainda', subgrupo: 'Endereço' },
             { semFuncionalidade: true, nota: 'Hoje incluso em "Instrumento" acima (Editar ficha: instrumento, medidas) — sem interruptor próprio ainda', subgrupo: 'Medidas' },
-            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Figurino" mais abaixo, que é sobre marcar entrega na tela dedicada)', subgrupo: 'Entrega de Figurinos' },
-            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Lista de Presença" mais abaixo, que é sobre marcar presença na tela dedicada)', subgrupo: 'Eventos' },
-            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Saúde' },
-            { semFuncionalidade: true, nota: 'Sem permissão própria ainda — quem vê a lista já vê esses dados', subgrupo: 'Contato de Emergência' },
-            { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Observações' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Entrega de Figurinos' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Eventos' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Saúde' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Contato de Emergência' },
+            { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Observações' },
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Declaração do Responsável' },
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Desfile' },
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda — fica só no aparelho da pessoa, nunca no servidor', subgrupo: 'FaceId/Digital' },
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Suporte' },
         ] },
-        { grupo: 'Carteirinha', itens: [{ chave: 'ver_carteirinha_outros', label: 'Visualizar a carteirinha de outra pessoa' }] },
         { grupo: 'Configurações', itens: [
             { chave: 'ver_instrumentos', label: 'Visualizar Instrumentos da bateria' },
             { chave: 'editar_instrumentos', label: 'Editar Instrumentos da bateria', dependeDe: 'ver_instrumentos' },
