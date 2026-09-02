@@ -502,22 +502,33 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         if (el) el.style.display = ehMenorHoje ? '' : 'none';
     });
 
-    // Dados sensíveis (Reforma de Permissões, 27-28/ago/2026): CPF, documento,
-    // endereço, contato de emergência e dados do responsável só aparecem pra
-    // quem tem a capacidade "ver dados sensíveis" -- a própria pessoa e o
-    // Super Admin sempre veem os próprios/de qualquer um. Some a linha
-    // inteira (nunca mostra "restrito" no lugar do dado).
-    const capacidadeSensiveis = alvo.perfil === 'ritmista' ? 'ver_dados_sensiveis_ritmistas' : 'ver_dados_sensiveis_acessos';
-    const podeVerSensiveis = autoedicao || meuPerfil === 'super_admin' || (typeof tenhoCapacidade === 'function' && tenhoCapacidade(capacidadeSensiveis));
-    if (!podeVerSensiveis) {
-        ['fp-cpf', 'fp-bloco-documento', 'fp-endereco', 'fp-numero', 'fp-complemento', 'fp-bairro', 'fp-cidade', 'fp-estado', 'fp-pais',
-         'fp-emergencia-nome', 'fp-emergencia-parentesco', 'fp-emergencia-celular',
-         'fp-bloco-responsavel-nome', 'fp-bloco-responsavel-cpf', 'fp-bloco-responsavel-celular'].forEach(id => {
-            const el = fpEl(id);
-            if (!el) return;
-            const bloco = el.classList.contains('ficha-campo') ? el : el.closest('.ficha-campo');
-            if (bloco) bloco.style.display = 'none';
-        });
+    // Dados sensíveis (Reforma de Permissões, 27-28/ago/2026, dividida em 3
+    // capacidades separadas em 02/set/2026 -- antes CPF/documento/endereço/
+    // contato de emergência/dados do responsável eram uma capacidade só;
+    // pedido dela: "Em Dados Pessoais, seria somente os dados Pessoais...
+    // Em Endereço, separaria para ver o Endereço. Contato de Emergência
+    // seria para ver o Contato de Emergência"). A própria pessoa e o Super
+    // Admin sempre veem os próprios/de qualquer um. Some a linha inteira
+    // (nunca mostra "restrito" no lugar do dado).
+    const ehRitmista = alvo.perfil === 'ritmista';
+    const podeVer = (chave) => autoedicao || meuPerfil === 'super_admin' || (typeof tenhoCapacidade === 'function' && tenhoCapacidade(chave));
+    const podeVerDadosPessoais = podeVer(ehRitmista ? 'ver_dados_sensiveis_ritmistas' : 'ver_dados_sensiveis_acessos');
+    const podeVerEndereco = podeVer(ehRitmista ? 'ver_endereco_ritmista' : 'ver_endereco_acessos');
+    const podeVerContatoEmergencia = podeVer(ehRitmista ? 'ver_contato_emergencia_ritmista' : 'ver_contato_emergencia_acessos');
+    const fpEsconder = (ids) => ids.forEach(id => {
+        const el = fpEl(id);
+        if (!el) return;
+        const bloco = el.classList.contains('ficha-campo') ? el : el.closest('.ficha-campo');
+        if (bloco) bloco.style.display = 'none';
+    });
+    if (!podeVerDadosPessoais) {
+        fpEsconder(['fp-cpf', 'fp-bloco-documento', 'fp-bloco-responsavel-nome', 'fp-bloco-responsavel-cpf', 'fp-bloco-responsavel-celular']);
+    }
+    if (!podeVerEndereco) {
+        fpEsconder(['fp-endereco', 'fp-numero', 'fp-complemento', 'fp-bairro', 'fp-cidade', 'fp-estado', 'fp-pais']);
+    }
+    if (!podeVerContatoEmergencia) {
+        fpEsconder(['fp-emergencia-nome', 'fp-emergencia-parentesco', 'fp-emergencia-celular']);
     }
 
     // Observações (28/ago/2026): campo livre exclusivo da Diretoria pra

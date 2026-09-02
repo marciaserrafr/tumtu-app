@@ -24,7 +24,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=55"></script>
+    <script src="ficha-perfil.js?v=56"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -8855,16 +8855,16 @@
         // sem checkbox -- não existe capacidade nenhuma por trás deles hoje.
         { grupo: 'Perfil do Ritmista', itens: [
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Foto' },
-            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, endereço, contato de emergência e dados do responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Dados Pessoais' },
+            { chave: 'ver_dados_sensiveis_ritmistas', label: 'Visualizar CPF, documento e dados do responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Dados Pessoais' },
             { chave: 'editar_instrumento_ritmista', label: 'Editar instrumento', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
             { chave: 'ver_repique_bossa', label: 'Visualizar Repique de Bossa', dependeDe: 'ver_ritmistas', subgrupo: 'Instrumento' },
             { chave: 'editar_repique_bossa', label: 'Marcar Repique de Bossa', dependeDe: 'ver_repique_bossa', subgrupo: 'Instrumento' },
-            { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Endereço' },
+            { chave: 'ver_endereco_ritmista', label: 'Visualizar Endereço', dependeDe: 'ver_ritmistas', subgrupo: 'Endereço' },
             { chave: 'editar_medidas_ritmista', label: 'Editar medidas', dependeDe: 'ver_ritmistas', subgrupo: 'Medidas' },
             { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Figurino" mais abaixo, que é sobre marcar entrega na tela dedicada)', subgrupo: 'Entrega de Figurinos' },
             { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Lista de Presença" mais abaixo, que é sobre marcar presença na tela dedicada)', subgrupo: 'Eventos' },
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Saúde' },
-            { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Contato de Emergência' },
+            { chave: 'ver_contato_emergencia_ritmista', label: 'Visualizar Contato de Emergência', dependeDe: 'ver_ritmistas', subgrupo: 'Contato de Emergência' },
             { chave: 'ver_observacoes', label: 'Visualizar Observações', dependeDe: 'ver_ritmistas', subgrupo: 'Observações' },
             { chave: 'editar_observacoes', label: 'Editar Observações', dependeDe: 'ver_observacoes', subgrupo: 'Observações' },
             { chave: 'ver_declaracao_responsavel', label: 'Visualizar Declaração do Responsável', dependeDe: 'ver_ritmistas', subgrupo: 'Declaração do Responsável' },
@@ -8895,15 +8895,15 @@
         // modelo que ela já aprovou (ver feedback_sempre_sugerir_com_justificativa).
         { grupo: 'Perfil do Diretor', itens: [
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Foto' },
-            { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, endereço e contato de emergência', dependeDe: 'ver_acessos', subgrupo: 'Dados Pessoais' },
-            { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Endereço' },
+            { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar CPF, documento e dados do responsável', dependeDe: 'ver_acessos', subgrupo: 'Dados Pessoais' },
+            { chave: 'ver_endereco_acessos', label: 'Visualizar Endereço', dependeDe: 'ver_acessos', subgrupo: 'Endereço' },
             { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Medidas' },
             { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Naipe' },
             { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
             { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Lista de Presença" mais abaixo, que é sobre marcar presença na tela dedicada)', subgrupo: 'Eventos' },
             { semFuncionalidade: true, nota: 'Sem permissão própria ainda — hoje aparece pra qualquer um que já vê a ficha (diferente do grupo "Figurino" mais abaixo, que é sobre marcar entrega na tela dedicada)', subgrupo: 'Entrega de Figurinos' },
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Saúde' },
-            { semFuncionalidade: true, nota: 'Hoje incluso em "Dados Pessoais" acima — sem interruptor próprio ainda', subgrupo: 'Contato de Emergência' },
+            { chave: 'ver_contato_emergencia_acessos', label: 'Visualizar Contato de Emergência', dependeDe: 'ver_acessos', subgrupo: 'Contato de Emergência' },
             { chave: 'ver_permissoes', label: 'Visualizar Permissões', dependeDe: 'ver_acessos', subgrupo: 'Permissões' },
             { chave: 'editar_permissoes', label: 'Editar Permissões', dependeDe: 'ver_permissoes', subgrupo: 'Permissões' },
         ] },
