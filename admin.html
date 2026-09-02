@@ -8111,11 +8111,16 @@
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
 
-    function voltarParaEscolasSA() {
+    async function voltarParaEscolasSA() {
         window.scrollTo(0, 0);
         escolaSelecionadaId = null; escolaAtualData = null; bateriaAtualData = null;
+        // Busca os dados do Dashboard ANTES de revelar a casca do Super
+        // Admin -- mesma regra de "tela sempre completa" de 01/set/2026.
+        // trocarSaAba() já faz isso sozinho (busca -> só depois troca o
+        // painel ativo), mas até então #saMain segue escondido (mostrarShellSA
+        // só é chamado depois) -- então nada disso aparece até estar pronto.
+        await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
         mostrarShellSA();
-        trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
     }
 
     // Atalho do Dashboard: "X pendentes" de uma bateria já abre direto em Diretoria.
