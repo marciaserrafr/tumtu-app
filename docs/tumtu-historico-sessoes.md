@@ -574,3 +574,19 @@ Por que a ordem nunca é pulada: a trava de acesso (ver abaixo) é real tanto pr
 - O "painel de comunicação" que ela mencionou no meio da conversa (área nova, pensada originalmente pra hospedar a revisão de dados) **deixou de ser dependência** — a revisão acontece direto no Meu Perfil existente, com um botão condicional simples. O painel de comunicação continua como ideia separada, pra mais pra frente (ver também `project_area-do-ritmista-futura` na memória de longo prazo).
 - Convidados: decisão de construir junto (não depois) — mas ela mesma pediu pra não aprofundar detalhes de Convidados agora ("primeiro eu faria o processo do ritmista funcionar... depois a gente vê como faria para convidados").
 - Selo "Diretor Adm" — ideia futura dela, ainda não criado, pensado como referência pra ajudar a fechar detalhes de permissão mais pra frente.
+
+### Achado no caminho: Rejeitado nunca é avisado (gap real, separado da Temporada)
+
+Discutindo o retorno de Rejeitados, ela apontou: "Rejeitado fica sem vínculo, mas eu acho que ele deveria sim receber algum aviso. Hoje ele só fica sabendo se tentar entrar." Confirmado no código (`admin.html`, `atualizarStatus`): só `status === 'aprovado'` dispara e-mail (`notificarAprovacao` → Edge Function `notificar-aprovacao`) — `rejeitado` nunca teve equivalente. Gap real, existente hoje, independente de a Lógica de Temporada avançar ou não.
+
+Rascunho de texto proposto (mesmo tom/formato do e-mail de aprovação já existente — wordmark TumTu + linha dourada, escola/bateria em negrito, direto e respeitoso), ainda **não aprovado por ela**:
+
+> **Assunto:** Seu cadastro no TumTu — {Escola}
+>
+> Olá, {Nome}.
+>
+> Seu cadastro como **{Cargo}** na **{Escola} — {Bateria}** não foi aprovado desta vez.
+>
+> Se quiser entender melhor ou tiver alguma dúvida, fale diretamente com a Diretoria da bateria.
+
+Nota técnica: hoje Rejeitar não tem campo de motivo (diferente de Suspender/Desligar, que já pedem um motivo em modal próprio) — o texto acima não pode citar razão nenhuma enquanto isso não existir. Decisão dela: **item separado, importante, mas não pra tratar agora** — "coloque no nosso rol de pendências a serem tratadas e essa é uma importante." Falta: aprovar o texto final e criar a Edge Function (precisa da ferramenta de acesso ao Supabase, indisponível nesta sessão).
