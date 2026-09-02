@@ -790,8 +790,18 @@
            título "Ritmistas" logo acima -- nem "Ritmistas" nem os
            subtítulos têm esse tracinho, então ele sozinho já marca "Meu
            Perfil" como algo à parte. */
-        .ficha-secao-titulo-pai { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 24px; }
+        .ficha-secao-titulo-pai { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--cor-texto-principal); cursor: pointer; user-select: none; }
         .ficha-secao-titulo-pai-tracinho { display: inline-block; width: 3px; height: 15px; background: var(--cor-destaque); flex-shrink: 0; }
+        /* Setinha sutil de abrir/fechar cada título-pai (02/set/2026, pedido
+           dela: "Permissões está ficando extenso... algo mais simples, mais
+           sutil", sem virar caixinha) -- gira 90° quando o grupo está aberto,
+           sem borda/fundo nenhum. Corpo nasce fechado; o respiro de 24px que
+           antes era margin-bottom do título virou margin-top do corpo, pra
+           não duplicar quando fechado (a separação entre seções já vem de
+           .ficha-secao margin-bottom). */
+        .ficha-secao-seta { margin-left: auto; font-size: 11px; color: var(--cor-texto-muted); transition: transform 0.15s ease; flex-shrink: 0; }
+        .ficha-secao-seta.aberto { transform: rotate(90deg); }
+        .ficha-secao-corpo { margin-top: 24px; }
         .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
         /* Valores de campo (o dado de verdade, ex: nome da escola, CPF) e a
            label acima dele aumentados -- pedido dela, 22/ago/2026, "tenho
@@ -1981,7 +1991,8 @@
              diz o que será permitido", mesmo padrão usado no editor por pessoa
              de Diretoria (título do grupo + subtítulo por assunto). -->
         <div class="ficha-secao" id="pe-secao-ritmistas">
-            <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Meu Perfil</div>
+            <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>Meu Perfil<span class="ficha-secao-seta">▸</span></div>
+            <div class="ficha-secao-corpo" style="display:none;">
 
             <div class="config-grupo-titulo">Medidas</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
@@ -2024,6 +2035,7 @@
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
                 <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Observações</label>
+            </div>
             </div>
         </div>
     </div>
@@ -2084,12 +2096,14 @@
         <!-- Mesmo modelo de divisão de Ritmistas (01/set/2026, pedido dela:
              "aplique em todo o Permissões para todas as personas"). -->
         <div class="ficha-secao" id="pe-secao-convidados">
-            <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Meu Perfil</div>
+            <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>Meu Perfil<span class="ficha-secao-seta">▸</span></div>
+            <div class="ficha-secao-corpo" style="display:none;">
 
             <div class="config-grupo-titulo">Medidas</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                 <input type="checkbox" id="pe-convidado-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarConvidadoEditaMedidas(this.checked)">
                 <label for="pe-convidado-edita-medidas" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
+            </div>
             </div>
         </div>
     </div>
@@ -9273,6 +9287,18 @@
         const editor = document.getElementById('pe-editor');
         if (editor) editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    // Setinha de abrir/fechar cada título-pai de Permissões (02/set/2026) --
+    // corpo (o irmão logo depois do título) nasce escondido, clicar no
+    // título alterna. Mesma função serve pro editor por pessoa e pras telas
+    // de "Meu Perfil" (Ritmistas/Convidados).
+    function togglePermissaoSecao(tituloEl) {
+        const corpo = tituloEl.nextElementSibling;
+        if (!corpo) return;
+        const seta = tituloEl.querySelector('.ficha-secao-seta');
+        const abrir = corpo.style.display === 'none';
+        corpo.style.display = abrir ? '' : 'none';
+        if (seta) seta.classList.toggle('aberto', abrir);
+    }
     // Atalho "Editar permissões" de dentro da ficha (item 4, 22/ago/2026) --
     // fecha a ficha, navega pra aba Permissões e já abre o editor dessa
     // pessoa, reaproveitando o mesmo abrirEditorPermissoesPessoa de sempre.
@@ -9294,15 +9320,18 @@
                 : (pe.grupoOrigem && PERMISSOES_GRUPOS[pe.grupoOrigem] ? `<div style="margin-bottom:8px;"><span onclick="fecharEditorPermissoesPessoa()" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← ${esc(PERMISSOES_GRUPOS[pe.grupoOrigem].label)}</span></div>` : '')}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
             <div class="ficha-secao">
-                <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>Acesso ao TumTu</div>
+                <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>Acesso ao TumTu<span class="ficha-secao-seta">▸</span></div>
+                <div class="ficha-secao-corpo" style="display:none;">
                 <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
                     <input type="checkbox" id="pp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
                     <label for="pp-modo-carteirinha" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
                 </div>
+                </div>
             </div>
             ${gruposCapacidadesVisiveis().map(g => `
                 <div class="ficha-secao">
-                    <div class="ficha-secao-titulo-pai"><span class="ficha-secao-titulo-pai-tracinho"></span>${esc(g.grupo)}</div>
+                    <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>${esc(g.grupo)}<span class="ficha-secao-seta">▸</span></div>
+                    <div class="ficha-secao-corpo" style="display:none;">
                     ${g.itens.map((c, idx) => {
                         // Sub-título "onde está mexendo" (Lista/Novo Cadastro/Ficha) a
                         // cada troca de subgrupo -- pedido dela, 30/ago/2026. Reaproveita
@@ -9335,6 +9364,7 @@
                         </div>` : ''}
                     ${g.grupo === 'Ritmistas' && pe.perfil === 'diretor' && !pe.temNaipe ? `
                         <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;font-size:13px;color:var(--cor-texto-muted);">Essa pessoa ainda não declarou um Naipe (Ficha → Naipe que lidera) — sem isso, não tem como restringir o acesso a um naipe específico.</div>` : ''}
+                    </div>
                 </div>`).join('')}
             <div class="form-rodape">
                 <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button></div>
