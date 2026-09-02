@@ -591,6 +591,25 @@ Rascunho de texto proposto (mesmo tom/formato do e-mail de aprovação já exist
 
 Nota técnica: hoje Rejeitar não tem campo de motivo (diferente de Suspender/Desligar, que já pedem um motivo em modal próprio) — o texto acima não pode citar razão nenhuma enquanto isso não existir. Decisão dela nesse momento: **item separado, importante, mas não pra tratar agora** — "coloque no nosso rol de pendências a serem tratadas e essa é uma importante." Falta: aprovar o texto final e criar a Edge Function (precisa da ferramenta de acesso ao Supabase, indisponível nesta sessão).
 
-**Revertido na sequência, mesma sessão — decisão final: não construir esse e-mail.** Ela parou pra pensar melhor: "quando uma pessoa é cortada de uma bateria, é um assunto muito delicado. Normalmente ou a pessoa é avisada pelo diretor, ou ela é retirada do grupo do whatsapp... eu fico imaginando a pessoa já chateada recebendo um e-mail que foi cortada. Mas o meu sistema não tem nada a ver com isso, né? Vai funcionar igual o whatsapp que simplesmente trava a pessoa e diz que vc foi retirado do grupo." Verificado no código (`login.html`) antes de responder: **já existe exatamente esse comportamento hoje**, pros 3 status (Rejeitado, Suspenso, Desligado) — cada um mostra uma mensagem clara e direta quando a pessoa tenta entrar ("Seu cadastro não foi aprovado. Entre em contato com a diretoria." / "Seu acesso está suspenso..." / "Você foi desligado desta bateria...") e sempre aponta pra falar com um humano (Diretoria), nunca deixando a pessoa num beco sem saída. Ou seja: o sistema já se comporta do jeito que ela descreveu (avisa só quando a pessoa procura, nunca empurra a notícia) — só faltava mesmo o e-mail proativo, que ela decidiu que não quer. **Pendência removida do `CLAUDE.md`** — não é mais item em aberto, foi uma decisão consciente, não esquecimento. Rascunho de texto acima preservado aqui só como registro histórico, caso ela mude de ideia no futuro.
+**Questionado na sequência, mesma sessão — ela ponderou o lado emocional do assunto.** "Quando uma pessoa é cortada de uma bateria, é um assunto muito delicado. Normalmente ou a pessoa é avisada pelo diretor, ou ela é retirada do grupo do whatsapp... eu fico imaginando a pessoa já chateada recebendo um e-mail que foi cortada. Mas o meu sistema não tem nada a ver com isso, né? Vai funcionar igual o whatsapp que simplesmente trava a pessoa e diz que vc foi retirado do grupo." Verificado no código (`login.html`) antes de responder: já existe hoje uma mensagem clara pros 3 status quando a pessoa tenta entrar ("Seu cadastro não foi aprovado. Entre em contato com a diretoria." / "Seu acesso está suspenso..." / "Você foi desligado desta bateria..."), sempre apontando pra falar com um humano (Diretoria) — nunca um beco sem saída.
 
-**Virou princípio geral, confirmado por ela**: "Então faremos para todos os status, correto? Exceto o não desfila, pq ele é uma condição e não um status, correto." — todo status que restringe acesso (Pendente, Suspenso, Rejeitado, Desligado) segue esse mesmo padrão passivo (mensagem clara só quando a pessoa tenta entrar, nunca e-mail proativo). Aprovado continua sendo a única exceção, por ser notícia boa (já tem e-mail hoje, isso não muda). Não Desfila fica fora da regra inteira porque não é um status de acesso — por baixo continua `status='aprovado'`, ninguém fica travado, não existe "notícia ruim" pra avisar.
+**Correção dela logo depois — nem todos os status são iguais nessa lógica.** "O único e-mail que vamos fazer é o Rejeitado, correto? Pq ele mandou um pedido e não teve resposta. Esse eu acho que merece. Até pq eu acho que essa pessoa que vai ser rejeitada possivelmente agiu de má fé. Diretor nenhum vai passar um link para alguém que não vá aprovar. Essa pessoa pode ter pegado o link com alguém para dar uma de esperto e tentar ter a carteirinha da bateria." Distinção real: Suspenso/Desligado já estavam DENTRO da comunidade (o Diretor conhece a pessoa, existe grupo de WhatsApp) — sempre vai ter canal humano avisando, e a mensagem do `login.html` já cobre quem tentar entrar mesmo assim. Rejeitado pode nunca ter tido vínculo social nenhum com a bateria (conseguiu o link por fora, possivelmente de má fé) — nesse caso o app é o ÚNICO canal que existe; silêncio nunca seria resolvido por ninguém.
+
+Ela completou: **"E acho que o reativado tb poderia ter. Ser reativado é maneiro."** — notícia boa, mesma lógica do Aprovado (que já tem e-mail).
+
+**Regra final:**
+- **Aprovado** e **Reativado** → e-mail (Aprovado já existe; Reativado é novo — notícia boa merece ser comemorada).
+- **Rejeitado** → e-mail novo — único canal que essa pessoa pode ter com a bateria.
+- **Suspenso** e **Desligado** → sem e-mail — canal humano (Diretor/WhatsApp) já resolve, e `login.html` cobre quem tentar entrar mesmo assim.
+- **Pendente** → sem e-mail (nada aconteceu ainda).
+- **Não Desfila** → fora da conversa, não é status de acesso (por baixo continua `status='aprovado'`, ninguém fica travado).
+
+Rascunho do e-mail de Reativado (mesmo tom do de Aprovado), ainda **não aprovado por ela**:
+
+> **Assunto:** Seu acesso foi reativado — {Escola}
+>
+> Olá, {Nome}.
+>
+> Seu acesso como **{Cargo}** na **{Escola} — {Bateria}** foi reativado. Você já pode entrar normalmente no TumTu.
+
+**Falta pra fechar os dois e-mails**: aprovação final dela dos dois textos, e a ferramenta de acesso ao Supabase (indisponível nesta sessão) pra criar/estender a(s) Edge Function(s).
