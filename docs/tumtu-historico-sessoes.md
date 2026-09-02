@@ -571,6 +571,21 @@ Por que a ordem nunca é pulada: a trava de acesso (ver abaixo) é real tanto pr
 
 **Declaração do Responsável (menores) volta a ficar pendente na renovação.** Adição dela, sessão seguinte: "na renovação, a marcação da declaração do menor de idade tem que voltar a ficar pendente, ok?" — faz sentido, é um documento de consentimento que deveria ser reafirmado a cada temporada, não carregar como "já entregue" de um ano pro outro (o responsável pode ter mudado, o menor pode ter feito 18 anos durante o ano). Reaproveita a mesma marcação que já existe hoje (capacidades `ver_declaracao_responsavel`/`editar_declaracao_responsavel`, card "Declaração do Responsável (Menores)" na Visão Geral) — só precisa resetar pra pendente como parte do processo de renovação, pra quem ainda for menor na virada de temporada.
 
+### Nova aba "Temporadas" — resumo agregado por temporada + relatório de faltosos em Presença
+
+Ela trouxe um pedido novo: "eu falei que tudo tem que virar um certo resumo. Quantos ritmistas tiveram, Diretores, os status, como se fosse uma fotografia da visão geral de 2027." Depois de conversar, ela restringiu o escopo real: "a única coisa que eu acho que preciso mesmo é a questão da presença... um relatório por evento, dos faltosos. Quantos são, quantos vieram, quantos faltaram e quem faltou."
+
+**Decisão importante sobre retenção de dado, dela**: "prefiro guardar só o número agregado, não o detalhe por pessoa... não quero mesmo ver histórico da pessoa para sempre. Acho isso desnecessário. Isso não é nota de escola ou faculdade." Ou seja: nome de quem faltou é útil ENQUANTO a temporada está rolando (pro Diretor agir), mas não deveria virar um registro pessoal permanente, ano após ano.
+
+**Estrutura aprovada, 3 camadas** (sugestão minha, ela: "Adorei. pode registrar isso."):
+1. **Lista de Temporadas** (2025, 2026, 2027...) — fotografia agregada, só números: quantos Ritmistas/Diretoria por status final, total de eventos realizados, taxa média de presença. Sem nome de pessoa nenhum nessa camada.
+2. Clica numa temporada → **lista dos eventos daquela temporada**, cada um com o resumo rápido (total, veio, faltou).
+3. Clica num evento → **quem faltou, nome por nome** — o detalhe fino, útil pro Diretor agir na hora.
+
+**A camada 3 (nomes) se apaga na virada de temporada** — mesmo gatilho que já dispara toda a cascata de Renovação (um só momento cuidando de tudo, sem cronômetro separado). Depois da virada, só sobra o número agregado (camadas 1 e 2); o detalhe de quem especificamente faltou em cada evento não persiste.
+
+**Escopo explicitamente reduzido por ela**: a "fotografia" ampla (Figurino, outros domínios) fica de fora por enquanto — só Presença/frequência de eventos importa de verdade agora. Onde a nova área mora na tela ainda não foi decidido (cogitado dentro de "Histórico", mas esse hoje é especificamente sobre status de pessoa — aprovar/suspender/desligar —, não eventos; provavelmente vira aba própria).
+
 **Em aberto, pra retomar quando ela quiser:**
 - Nada implementado ainda — puro desenho, validado passo a passo com ela nesta conversa.
 - O "painel de comunicação" que ela mencionou no meio da conversa (área nova, pensada originalmente pra hospedar a revisão de dados) **deixou de ser dependência** — a revisão acontece direto no Meu Perfil existente, com um botão condicional simples. O painel de comunicação continua como ideia separada, pra mais pra frente (ver também `project_area-do-ritmista-futura` na memória de longo prazo).
