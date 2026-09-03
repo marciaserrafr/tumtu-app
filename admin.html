@@ -12,6 +12,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="TumTu">
     <script src="pwa-register.js" defer></script>
+    <!-- Vercel Web Analytics (02/set/2026) -- contagem de acesso gratuita,
+         sem cookie. Só passa a contar de verdade depois de ligada no
+         painel da própria Vercel (Project Settings -> Analytics). -->
+    <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+    <script defer src="/_vercel/insights/script.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=24">
@@ -188,7 +193,22 @@
             font-size: 13.5px; font-weight: 600; text-align: left; color: rgba(255,255,255,0.7);
             transition: color 0.15s, background 0.15s; white-space: nowrap;
         }
-        .aba-btn .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
+        .aba-btn .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; position: relative; }
+        /* Bolinha de aviso em cima do ícone do menu (Ritmistas/Diretoria/
+           "Mais", quando há Convidados pendentes escondido lá dentro) --
+           02/set/2026, mesmo padrão de "número novo" já usado no resto do
+           app, só que sobre o ícone em vez de ao lado do texto. */
+        .aba-badge {
+            position: absolute; top: -5px; right: -8px;
+            background: #d64545; color: #fff; font-size: 9px; font-weight: 700;
+            min-width: 14px; height: 14px; border-radius: 7px; line-height: 14px;
+            text-align: center; padding: 0 3px; box-sizing: border-box;
+        }
+        .config-item-badge {
+            background: #d64545; color: #fff; font-size: 11px; font-weight: 700;
+            min-width: 18px; height: 18px; border-radius: 9px; line-height: 18px;
+            text-align: center; padding: 0 5px; box-sizing: border-box; margin-left: 8px;
+        }
         /* Ícones de linha (Lucide, 30/ago/2026) no lugar de emoji -- SVG
            usa stroke="currentColor", então herda a mesma cor do texto ao
            lado (dourado quando .ativa, sem precisar de regra própria). */
@@ -1703,11 +1723,11 @@
     <!-- DASHBOARD -->
     <div class="sa-painel ativo" id="sa-painel-dashboard">
         <div class="painel-titulo">Dashboard</div>
-        <div class="config-sub-desc" style="margin:0 0 20px;">Visão geral de todas as escolas e ritmistas.</div>
+        <div class="config-sub-desc" style="margin:0 0 20px;">Visão geral de todas as escolas e baterias.</div>
         <div class="kpi-row" id="dashboard-kpis"></div>
         <div id="dashboard-atencao"></div>
         <div id="dashboard-aniversariantes"></div>
-        <div class="dash-secao-titulo">Baterias <span class="dash-secao-hint">— toque no card pra abrir a Visão Geral daquela bateria</span></div>
+        <div class="dash-secao-titulo">Baterias</div>
         <div class="baterias-grid" id="dashboard-lista-baterias"></div>
         <div id="dashboard-escolas-demo"></div>
         <div id="dashboard-atividade"></div>
@@ -1716,7 +1736,7 @@
     <!-- ESCOLAS -->
     <div class="sa-painel" id="sa-painel-escolas">
         <div class="painel-titulo">Escolas</div>
-        <div class="config-sub-desc" style="margin:0 0 16px;">Selecione uma escola para gerenciar seu cadastro, bateria e acessos.</div>
+        <div class="config-sub-desc" style="margin:0 0 16px;">Gestão de escolas — cadastro, bateria e acessos de cada uma.</div>
         <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaEscolaSA()">+ Nova Escola</button>
         <div id="lista-escolas" class="lista-cards">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
@@ -1766,7 +1786,7 @@
     <div class="sa-painel" id="sa-painel-configuracoes-globais">
         <div id="sa-config-lista">
             <div class="painel-titulo">Configurações</div>
-            <div class="config-sub-desc" style="margin:0 0 16px;">Ajustes que valem para todas as escolas.</div>
+            <div class="config-sub-desc" style="margin:0 0 16px;">Configure o que vale para todas as escolas.</div>
             <div class="config-item" onclick="abrirConfigTelaSA('instrumentos')"><span>Instrumentos</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Categoria de Figurino</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('figurino')"><span>Figurino</span><span class="config-item-seta">›</span></div>
@@ -1777,7 +1797,7 @@
         <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Instrumentos</div>
-            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada categoria pode ter mais de um nome possível (nomenclatura); cada bateria escolhe qual usar em "Configurações → Instrumentos" no painel dela.</p>
+            <p class="config-sub-desc">Categorias e nomenclaturas de instrumento, usadas por todas as baterias.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaCategoria()">+ Nova Categoria</button>
             <div id="sa-categoria-editor" style="display:none;"></div>
             <div id="sa-categorias-lista" class="lista-cards"></div>
@@ -1786,7 +1806,7 @@
         <div id="sa-config-tela-medidas" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Categoria de Figurino</div>
-            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada categoria (Camisa, Fantasia...) já nasce com sua própria escala de tamanhos (Medida); cada bateria escolhe quais categorias e tamanhos usar em "Configurações → Categoria de Figurino" no painel dela.</p>
+            <p class="config-sub-desc">Categorias de Figurino e suas escalas de tamanho, usadas por todas as baterias.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoMedidaTipo()">+ Nova Categoria de Figurino</button>
             <div id="sa-medida-tipo-editor" style="display:none;"></div>
             <div id="sa-medida-tipos-lista" class="lista-cards"></div>
@@ -1795,7 +1815,7 @@
         <div id="sa-config-tela-figurino" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Figurino</div>
-            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada peça (ex: Camisa da Final) é ligada a uma Categoria de Figurino só pra usar o tamanho dela, e pode cobrir um ou mais públicos ao mesmo tempo. Cada bateria escolhe quais peças usa em "Configurações → Figurino" no painel dela — nasce tudo desligado.</p>
+            <p class="config-sub-desc">Peças de Figurino, usadas por todas as baterias.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoFigurinoMestre()">+ Novo Figurino</button>
             <div id="sa-figurino-editor" style="display:none;"></div>
             <div id="sa-figurino-lista" class="lista-cards"></div>
@@ -1804,7 +1824,7 @@
         <div id="sa-config-tela-eventos" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Tipos de Evento</div>
-            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Ex: Ensaio, Ensaio Técnico, Apresentação, Reunião. Cada bateria escolhe o tipo ao criar um Evento próprio, em "Configurações → Eventos" no painel dela. Faz parte do módulo de Presença via QR.</p>
+            <p class="config-sub-desc">Tipos de Evento, usados por todas as baterias.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoEventoTipo()">+ Novo Tipo de Evento</button>
             <div id="sa-evento-tipo-editor" style="display:none;"></div>
             <div id="sa-evento-tipos-lista" class="lista-cards"></div>
@@ -1813,7 +1833,7 @@
         <div id="sa-config-tela-temporadas" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Temporadas</div>
-            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Ex: Carnaval 2026, Carnaval 2027. Usada como rótulo opcional em Eventos, pra manter tudo padronizado (evita gente digitando "Carnaval 2026" de jeitos diferentes).</p>
+            <p class="config-sub-desc">Temporadas, usadas por todas as baterias.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaTemporada()">+ Nova Temporada</button>
             <div id="sa-temporada-editor" style="display:none;"></div>
             <div id="sa-temporadas-lista" class="lista-cards"></div>
@@ -1823,10 +1843,10 @@
     <!-- PRIVACIDADE (LGPD) -->
     <div class="sa-painel" id="sa-painel-privacidade">
         <div class="painel-titulo">Privacidade</div>
-        <div class="config-sub-desc" style="margin:0 0 20px;">Exclusão de dados sob pedido (LGPD) — ações sem volta, com prova registrada abaixo.</div>
+        <div class="config-sub-desc" style="margin:0 0 20px;">Exclusão de dados sob pedido (LGPD) — ação sem volta.</div>
 
         <div class="ficha-secao-titulo">Excluir dados de uma pessoa</div>
-        <div class="config-sub-desc" style="margin:0 0 10px;">Busca por nome, CPF ou e-mail — encontra até quem não tem vínculo com nenhuma bateria hoje.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Localizar uma pessoa pra excluir os dados dela.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <input type="text" id="priv-busca-pessoa" class="fc-input" style="display:block;flex:1;min-width:220px;" placeholder="Nome, CPF ou e-mail..." onkeydown="if(event.key==='Enter'){event.preventDefault();buscarPessoaExclusao();}">
             <button class="btn-novo" style="margin:0;" onclick="buscarPessoaExclusao()">Buscar</button>
@@ -1834,7 +1854,7 @@
         <div id="priv-resultado-pessoa" class="lista-cards" style="margin-top:12px;"></div>
 
         <div class="ficha-secao-titulo" style="margin-top:24px;">Excluir uma escola inteira</div>
-        <div class="config-sub-desc" style="margin:0 0 10px;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Apaga a escola, as baterias e os vínculos ligados a elas — fichas pessoais sem vínculo em lugar nenhum são preservadas.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <select id="priv-select-escola" class="fc-input" style="display:block;flex:1;min-width:220px;">
                 <option value="">Selecione a escola...</option>
@@ -1843,7 +1863,7 @@
         </div>
 
         <div class="ficha-secao-titulo" style="margin-top:24px;">Histórico de exclusões (prova)</div>
-        <div class="config-sub-desc" style="margin:0 0 10px;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Registro imutável — nem o Super Admin consegue editar ou apagar um item aqui depois de criado.</div>
         <div id="priv-lista-log" class="lista-cards">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
         </div>
@@ -1877,13 +1897,13 @@
      último"). -->
 <nav class="nav-abas" id="navAbasEscola" style="display:none">
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span><span>Visão Geral</span></button>
-    <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 8 8"/><path d="m22 2-8 8"/><ellipse cx="12" cy="9" rx="10" ry="5"/><path d="M7 13.4v7.9"/><path d="M12 14v8"/><path d="M17 13.4v7.9"/><path d="M2 9v8a10 5 0 0 0 20 0V9"/></svg></span><span>Ritmistas</span></button>
-    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg></span><span>Diretoria</span></button>
+    <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 8 8"/><path d="m22 2-8 8"/><ellipse cx="12" cy="9" rx="10" ry="5"/><path d="M7 13.4v7.9"/><path d="M12 14v8"/><path d="M17 13.4v7.9"/><path d="M2 9v8a10 5 0 0 0 20 0V9"/></svg><span class="aba-badge" id="abaBadgeRitmistas" style="display:none"></span></span><span>Ritmistas</span></button>
+    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg><span class="aba-badge" id="abaBadgeDiretoria" style="display:none"></span></span><span>Diretoria</span></button>
     <!-- "Meu Perfil" saiu do menu -- pedido da Márcia, 21/ago/2026: a
          bolinha de conta no cabeçalho (#headerAvatarWrap) já leva pra lá,
          ter os dois caminhos era redundante e ocupava espaço à toa
          (crítico no rodapé do celular). -->
-    <button class="aba-btn-sa aba-btn" id="btnMais" data-aba="administrativo" onclick="onClickMais(this)" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span><span>Mais</span><span class="aba-mais-seta" id="maisSeta">›</span></button>
+    <button class="aba-btn-sa aba-btn" id="btnMais" data-aba="administrativo" onclick="onClickMais(this)" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg><span class="aba-badge" id="abaBadgeMais" style="display:none"></span></span><span>Mais</span><span class="aba-mais-seta" id="maisSeta">›</span></button>
     <!-- Só no computador: "Mais" abre um submenu ali mesmo na barra lateral
          em vez de navegar pra uma tela própria -- pedido da Márcia,
          20/ago/2026 ("pensei em colocar uma seta e esse menu abrir para
@@ -3277,6 +3297,56 @@
         if (titulo) titulo.style.display = 'block';
     }
 
+    // Bolinhas de aviso no menu (Ritmistas/Diretoria/"Mais") + selo no
+    // ícone do app na tela inicial (02/set/2026, pedido dela: "quando tem
+    // algo pendente" pro Diretor perceber sem precisar entrar em cada
+    // lista pra descobrir). As 3 funções de contagem abaixo respeitam a
+    // mesma capacidade/gate já usado nos cards da Visão Geral -- ninguém
+    // vê número de uma lista que não teria acesso de entrar.
+    function pendentesRitmistasCount() {
+        return (souSuperAdmin || tenhoCapacidade('ver_ritmistas')) ? (todosRitmistas || []).filter(r => r.status === 'pendente').length : 0;
+    }
+    function pendentesDiretoriaCount() {
+        return (souSuperAdmin || tenhoCapacidade('ver_acessos')) ? (listaDiretoriaAtual || []).filter(a => a.status === 'pendente').length : 0;
+    }
+    function pendentesConvidadosEspeciaisCount() {
+        const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
+        if (!habilitado || !(souSuperAdmin || tenhoCapacidade('ver_convidados_especiais'))) return 0;
+        return (convidadosEspeciaisCache || []).filter(r => r.status === 'pendente').length;
+    }
+    function aplicarBadgeIcone(id, n) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = n > 99 ? '99+' : String(n);
+        el.style.display = n > 0 ? '' : 'none';
+    }
+    // Selo no ícone do app na tela inicial (fora do app) -- Badging API,
+    // melhor esforço: suporte inconsistente no iPhone (é PWA, não app
+    // nativo -- ver CLAUDE.md), sempre funciona no Android. Nunca trava
+    // nem avisa erro se o navegador não suportar -- decisão dela,
+    // 02/set/2026: "se funcionar é um viva, se não funcionar não é pra
+    // se chatear".
+    function atualizarBadgeIconeApp(total) {
+        try {
+            if (total > 0 && 'setAppBadge' in navigator) navigator.setAppBadge(total).catch(() => {});
+            else if ('clearAppBadge' in navigator) navigator.clearAppBadge().catch(() => {});
+        } catch (e) { /* silencioso de propósito */ }
+    }
+    function atualizarBadgesNav() {
+        const rit = pendentesRitmistasCount();
+        const dir = pendentesDiretoriaCount();
+        const conv = pendentesConvidadosEspeciaisCount();
+        aplicarBadgeIcone('abaBadgeRitmistas', rit);
+        aplicarBadgeIcone('abaBadgeDiretoria', dir);
+        aplicarBadgeIcone('abaBadgeMais', conv);
+        // Se o submenu de "Mais" já estiver aberto (computador), atualiza o
+        // número ali também -- só a lista/tela própria de "Mais" no celular
+        // não precisa disso (ela já busca o número fresco toda vez que abre).
+        const submenu = document.getElementById('abaMaisSubmenu');
+        if (submenu && submenu.classList.contains('aberto')) renderizarMaisSubmenu();
+        atualizarBadgeIconeApp(rit + dir + conv);
+    }
+
     function bateriaIdContexto() {
         if (souSuperAdmin) return bateriaAtualData ? bateriaAtualData.id : null;
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
@@ -3363,7 +3433,7 @@
 
     async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]); return; }
+        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); atualizarBadgesNav(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]); return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
         // eh_convidado=eq.false (31/ago/2026): Convidado Especial nunca entra
         // na lista normal de Ritmistas -- tem fila e contagens 100% próprias
@@ -3388,6 +3458,7 @@
         todosRitmistas = leve ? reaproveitarFotosCache(novos, todosRitmistas) : novos;
         aplicarFiltros();
         atualizarTotalizadores();
+        atualizarBadgesNav();
         renderizarVisaoGeral();
         renderizarContagemInstrumentos();
         renderizarControleMenores();
@@ -6577,6 +6648,7 @@
         convidadosEspeciaisCache = leve ? reaproveitarFotosCache(novosArr, convidadosEspeciaisCache) : novosArr;
         aplicarFiltrosConvidadosEspeciais();
         atualizarTotalizadorConvidadosEspeciais();
+        atualizarBadgesNav();
         convidadosEspeciaisCarregados = true;
     }
 
@@ -6654,7 +6726,7 @@
     }
 
     function recarregarConvidadosEspeciais() {
-        return carregarConvidadosEspeciais().then(() => { aplicarFiltrosConvidadosEspeciais(); atualizarTotalizadorConvidadosEspeciais(); });
+        return carregarConvidadosEspeciais().then(() => { aplicarFiltrosConvidadosEspeciais(); atualizarTotalizadorConvidadosEspeciais(); atualizarBadgesNav(); });
     }
 
     // Ficha de Convidado Especial reaproveita os DOIS modais que já existem
@@ -7820,9 +7892,10 @@
         const abaAdmBtn = document.querySelector('.aba-btn[data-aba="administrativo"]');
         const itens = itensAdministrativoVisiveis();
         if (!itens.length) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Nenhum módulo disponível pra você aqui.</div>'; return; }
+        const pendConv = pendentesConvidadosEspeciaisCount();
         div.innerHTML = itens.map(i => `
             <div class="config-item" onclick="trocarAba('${i.aba}', document.querySelector('.aba-btn[data-aba=administrativo]'))">
-                <span>${i.label}</span>
+                <span>${i.label}${i.aba === 'extras' && pendConv > 0 ? `<span class="config-item-badge">${pendConv}</span>` : ''}</span>
                 <span class="config-item-seta">›</span>
             </div>`).join('');
         if (abaAdmBtn) abaAdmBtn.classList.add('ativa');
@@ -7843,8 +7916,9 @@
     function renderizarMaisSubmenu() {
         const div = document.getElementById('abaMaisSubmenu');
         const itens = itensAdministrativoVisiveis();
+        const pendConv = pendentesConvidadosEspeciaisCount();
         div.innerHTML = itens.length
-            ? itens.map(i => `<button type="button" class="aba-sub-btn" onclick="clicarSubMais('${i.aba}', this)">${i.label}</button>`).join('')
+            ? itens.map(i => `<button type="button" class="aba-sub-btn" onclick="clicarSubMais('${i.aba}', this)">${i.label}${i.aba === 'extras' && pendConv > 0 ? `<span class="config-item-badge">${pendConv}</span>` : ''}</button>`).join('')
             : '<div style="padding:8px 10px;font-size:12px;color:rgba(255,255,255,0.45);">Nenhum módulo disponível.</div>';
     }
     function clicarSubMais(aba, el) {
@@ -8791,6 +8865,7 @@
             mostrarToast(ligado ? 'Convidado Especial ligado.' : 'Convidado Especial desligado.');
             if (typeof renderizarConvidadosEspeciais === 'function') renderizarConvidadosEspeciais();
             if (typeof atualizarTotalizadorConvidadosEspeciais === 'function') atualizarTotalizadorConvidadosEspeciais();
+            if (typeof atualizarBadgesNav === 'function') atualizarBadgesNav();
         } else {
             mostrarToast('Erro ao atualizar.', 'erro');
         }
@@ -10386,6 +10461,7 @@
         listaDiretoriaAtual = leve ? reaproveitarFotosCache(novosAdmins, listaDiretoriaAtual) : novosAdmins;
         aplicarFiltrosDiretoria();
         atualizarTotalizadoresDiretoria();
+        atualizarBadgesNav();
         // Aniversariantes do mês (Visão Geral) inclui Diretoria -- essa busca
         // roda em paralelo com carregarRitmistas(), então precisa re-render
         // aqui pra não ficar faltando gente até a próxima troca de aba.
