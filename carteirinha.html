@@ -309,7 +309,7 @@
 
 <div class="c-toast" id="cToast"></div>
 
-<script src="ficha-perfil.js?v=58" defer></script>
+<script src="ficha-perfil.js?v=59" defer></script>
 <script src="faceid.js?v=2" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
 <script>
@@ -786,6 +786,7 @@
     }
 
     function fecharPerfil() {
+        if (typeof fpPodeDescartar === 'function' && !fpPodeDescartar()) return;
         document.getElementById('modalPerfilOverlay').style.display = 'none';
     }
 

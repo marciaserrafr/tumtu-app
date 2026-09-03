@@ -29,7 +29,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=58"></script>
+    <script src="ficha-perfil.js?v=59"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -4142,6 +4142,7 @@
     }
 
     function fecharModal(id) {
+        if (typeof fpPodeDescartar === 'function' && !fpPodeDescartar()) return;
         document.getElementById(id).classList.remove('aberto');
     }
 
@@ -4896,9 +4897,16 @@
         }).join('');
     }
 
-    // Fechar modal clicando fora
+    // Fechar modal clicando fora -- se for a ficha de perfil com edição
+    // não salva, confirma antes (03/set/2026, pedido dela). Um único
+    // fpEstado global cobre qualquer modal, já que só uma ficha fica
+    // aberta/em edição por vez.
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('aberto'); });
+        overlay.addEventListener('click', e => {
+            if (e.target !== overlay) return;
+            if (typeof fpPodeDescartar === 'function' && !fpPodeDescartar()) return;
+            overlay.classList.remove('aberto');
+        });
     });
 
     async function sair() {

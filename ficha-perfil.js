@@ -315,6 +315,14 @@ function fpEhMenorIdade(nascimentoISO) {
     return idade < FP_IDADE_MAIOR;
 }
 
+// Confirma antes de descartar edição não salva (03/set/2026, pedido dela).
+// true = pode fechar/cancelar sem perguntar (nada mudou, ou a pessoa
+// confirmou que quer descartar mesmo). false = ficar onde está.
+function fpPodeDescartar() {
+    if (!fpEstado.sujo) return true;
+    return confirm('Você tem alterações não salvas. Quer mesmo sair sem salvar?');
+}
+
 // Aviso de dado próprio incompleto ao logar (03/set/2026, pedido dela
 // depois de achar erros reais no banco). Escopo de propósito: só os 2
 // campos que a própria pessoa já consegue editar hoje (celular,
@@ -467,10 +475,23 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     opcoes = opcoes || {};
     const autoedicao = alvo.pessoa_id === minhaPessoaId;
     const editaveis = fpCamposEditaveis(meuPerfil, autoedicao, alvo.perfil, alvo.eh_convidado === true);
-    fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, medidasRestritoAoVazio: false, aoSalvar: opcoes.aoSalvar || null };
+    fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, medidasRestritoAoVazio: false, aoSalvar: opcoes.aoSalvar || null, sujo: false };
     fpFotoBase64 = null;
     fpFotoPosX = alvo.foto_pos_x ?? 50;
     fpFotoPosY = alvo.foto_pos_y ?? 50;
+
+    // Marca "alterações não salvas" (03/set/2026, pedido dela: "se ela
+    // quiser fechar antes de salvar, pergunte") -- delegado no container
+    // inteiro, então cobre qualquer campo de edição atual ou futuro sem
+    // precisar listar cada um. Anexado só uma vez por container (ele é
+    // reaproveitado entre pessoas diferentes, fpIniciar roda de novo a
+    // cada abertura).
+    if (fpEstado.container && !fpEstado.container.dataset.fpSujoAnexado) {
+        fpEstado.container.dataset.fpSujoAnexado = '1';
+        const marcarSujo = () => { fpEstado.sujo = true; };
+        fpEstado.container.addEventListener('input', marcarSujo);
+        fpEstado.container.addEventListener('change', marcarSujo);
+    }
 
     const cargo = fpCargoLabel(alvo.perfil, alvo.genero);
     fpEl('fp-titulo').textContent = alvo.nome || '—';
@@ -1218,6 +1239,8 @@ async function fpAtivarEdicao() {
 }
 
 function fpCancelarEdicao() {
+    if (!fpPodeDescartar()) return;
+    fpEstado.sujo = false;
     FP_CAMPOS.forEach(({ id, col }) => {
         const strong = fpEl(id);
         const input = fpEl(id + '-edit');
@@ -1634,6 +1657,10 @@ async function fpSalvar() {
         mensagem.className = 'fp-mensagem sucesso';
         mensagem.textContent = 'Dados atualizados com sucesso!';
         mensagem.style.display = 'block';
+        // Salvou com sucesso -- não é mais "não salvo", senão a chamada
+        // interna de fpCancelarEdicao() logo abaixo perguntaria à toa se
+        // quer descartar o que acabou de salvar.
+        fpEstado.sujo = false;
         fpCancelarEdicao();
         fpIniciar(novosDados, fpEstado.meuPerfil, fpEstado.minhaPessoaId, { aoSalvar: fpEstado.aoSalvar });
         if (fpEstado.aoSalvar) fpEstado.aoSalvar(novosDados);
