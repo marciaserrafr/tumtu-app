@@ -10,3 +10,8 @@ docs/Conhecendo Design Assistant/
 
 .vercel
 .env*
+
+# Configuração local do Claude Code (por máquina/sessão) — .claude/settings.json
+# (compartilhado, com as permissões do projeto) continua versionado
+.claude/settings.local.json
+.claude/scratch/
