@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "mcp__claude_ai_Supabase__list_tables",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "Bash(npx skills *)",
+      "Read(//c/Users/Márcia Serra/Projetos/Tumtu/**)",
+      "Bash(timeout 30 \"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless=new --disable-gpu --no-sandbox --screenshot=\"/c/Users/MRCIAS~1/AppData/Local/Temp/claude/C--Users-M-rcia-Serra-Projetos-Tumtu/00124912-eecb-43bc-8f51-a5d14fe3aa72/scratchpad/divisor.png\" --window-size=1400,900 \"http://localhost:8765/preview-carteirinha.html\")",
+      "Bash(python -c ' *)",
+      "Bash(rm -f _preview_final.html _final_frente.png _final_verso.png)",
+      "Bash(pkill -f \"http.server 8743\")",
+      "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless=new --disable-gpu --no-sandbox --force-device-scale-factor=1 --virtual-time-budget=2000 --window-size=390,260 --screenshot=\"C:\\\\Users\\\\Márcia Serra\\\\Projetos\\\\Tumtu\\\\_shot_debug9.png\" \"http://localhost:8743/_debug_width.html\")",
+      "Bash(ls -la \"/c/Users/Márcia Serra/[InsureMO]\" 2>&1 | head -100)",
+      "Read(//c/Users/Márcia Serra/**)",
+      "Bash(imo auth *)",
+      "Bash(cd \"/c/Users/Márcia Serra/[InsureMO]/Claude\" && imo auth login --env mc --tenant-code mo-staff --profile portal:mo-staff 2>&1)",
+      "Bash(cd \"/c/Users/Márcia Serra/[InsureMO]/Claude\" && imo auth login --help 2>&1)",
+      "Bash(cd \"/c/Users/Márcia Serra/[InsureMO]/Claude\" && imo auth login --tenant-code mo-staff --force --timeout 180 2>&1)",
+      "Bash(cd \"/c/Users/Márcia Serra/[InsureMO]/Claude\" && imo auth prepare --env mc --json 2>&1)",
+      "Bash(cd \"/c/Users/Márcia Serra/[InsureMO]/Claude\" && ls .claude/skills/insuremo-dataio/scripts/dd/ 2>&1)",
+      "Bash(python .claude/skills/insuremo-dataio/scripts/dd/api.py --help)",
+      "Bash(python .claude/skills/insuremo-dataio/scripts/dd/api.py field-objects --help)",
+      "Bash(cd \"/c/Users/Márcia Serra/[InsureMO]/Claude\" && sed -n '1,80p' .claude/skills/insuremo-dataio/scripts/common/client.py 2>&1)",
+      "Bash(cd \"/c/Users/Márcia Serra/[InsureMO]/Claude\" && sed -n '90,240p' .claude/skills/insuremo-dataio/scripts/common/client.py 2>&1)",
+      "Bash(export GATEWAY_DOMAIN=\"https://portal-gw.insuremo.com\")",
+      "Bash(export BEARER_TOKEN=\"w4LiWd9itrD7V-yEih-iKg\")",
+      "Bash(python .claude/skills/insuremo-dataio/scripts/dd/api.py field-objects --field-name LeaderEndorsementNo)",
+      "Bash(curl *)",
+      "mcp__claude_ai_Supabase__deploy_edge_function"
+    ]
+  }
+}

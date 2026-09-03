@@ -1,0 +1,5 @@
+Gente, novidade no TumTu: agora dá pra ativar o Face ID (ou digital) pra abrir o app! 🔒
+
+Não é obrigatório, mas é uma boa ideia pra quem se preocupa com privacidade — sem isso, qualquer pessoa que pegar seu celular destravado consegue ver seus dados pessoais direto (CPF, endereço, contato de emergência...), tanto na carteirinha quanto em "Meu Perfil". Com o Face ID ativado, o app passa a pedir seu rosto (ou digital) toda vez que abrir, antes de mostrar qualquer coisa.
+
+Quem quiser ativar: entra no TumTu → Meu Perfil → liga o interruptor "Face ID / Digital". É rapidinho, e dá pra desligar quando quiser.
