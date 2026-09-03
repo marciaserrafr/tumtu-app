@@ -782,6 +782,15 @@
     // é outro (cogitou 16) -- só trocar esse valor quando ela confirmar.
     const IDADE_MAIOR = 18;
 
+    function apenasDigitos(valor) {
+        return (valor || '').replace(/\D/g, '');
+    }
+
+    // Idade máxima plausível pro alerta de nascimento digitado errado
+    // (03/set/2026, pedido da Márcia depois de achar um cadastro real com
+    // ano "0199" -- typo óbvio que passava batido antes).
+    const IDADE_MAXIMA = 100;
+
     function verificarMenorIdade() {
         const iso = dataParaISO(document.getElementById('nascimento').value);
         const bloco = document.getElementById('bloco-responsavel');
@@ -1357,6 +1366,65 @@
             document.getElementById('politica_aceita').scrollIntoView({ behavior: 'smooth', block: 'center' });
             travarFormulario(false);
             return;
+        }
+
+        // Data de nascimento implausível (03/set/2026) -- pega typo de ano
+        // (achado real: "0199" em vez de "1999") sem travar ninguém de
+        // verdade. Data em branco/inválida já foi barrada antes.
+        const isoNascimentoFinal = dataParaISO(document.getElementById('nascimento').value);
+        if (isoNascimentoFinal) {
+            const dataNascimentoFinal = new Date(isoNascimentoFinal + 'T00:00:00');
+            if (dataNascimentoFinal > new Date()) {
+                mostrarErroCampo(campoNascimentoFinal, 'Essa data de nascimento está no futuro — confira e corrija.');
+                campoNascimentoFinal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                travarFormulario(false);
+                return;
+            }
+            const limiteIdadeMaxima = new Date();
+            limiteIdadeMaxima.setFullYear(limiteIdadeMaxima.getFullYear() - IDADE_MAXIMA);
+            if (dataNascimentoFinal < limiteIdadeMaxima) {
+                mostrarErroCampo(campoNascimentoFinal, 'Essa data indica mais de 100 anos de idade — confira se foi digitada certa.');
+                campoNascimentoFinal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                travarFormulario(false);
+                return;
+            }
+        }
+
+        // CPF (pessoa e responsável) incompleto -- achado real, 03/set/2026
+        // ("110.932.175-2", 10 números). "Não tenho CPF"/menor de idade já
+        // controlam se o campo aparece; aqui só valida quando tem valor.
+        if (cpf && apenasDigitos(cpf).length !== 11) {
+            mostrarErroCampo(document.getElementById('cpf'), 'CPF incompleto — confira se digitou os 11 números.');
+            document.getElementById('cpf').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            travarFormulario(false);
+            return;
+        }
+        const campoCpfResp = document.getElementById('responsavel_cpf');
+        if (campoCpfResp.value.trim() && apenasDigitos(campoCpfResp.value).length !== 11) {
+            mostrarErroCampo(campoCpfResp, 'CPF incompleto — confira se digitou os 11 números.');
+            campoCpfResp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            travarFormulario(false);
+            return;
+        }
+
+        // Celular (pessoa, responsável e emergência) incompleto -- achados
+        // reais, 03/set/2026 (vários com 10 dígitos em vez de 11). Só pra
+        // quem é Brasileira -- pedido dela: número de fora do Brasil não
+        // segue esse padrão, fica livre pra quem marcar Estrangeira.
+        if (document.getElementById('nacionalidade_tipo').value !== 'Estrangeira') {
+            const camposCelular = [
+                document.getElementById('celular'),
+                document.getElementById('responsavel_celular'),
+                document.getElementById('emergencia_celular'),
+            ];
+            for (const campoCelular of camposCelular) {
+                if (campoCelular.value.trim() && apenasDigitos(campoCelular.value).length !== 11) {
+                    mostrarErroCampo(campoCelular, 'Celular incompleto — confira se digitou os 11 números, com DDD.');
+                    campoCelular.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    travarFormulario(false);
+                    return;
+                }
+            }
         }
 
         const dados = {

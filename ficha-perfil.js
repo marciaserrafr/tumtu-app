@@ -298,6 +298,12 @@ function fpISOparaData(iso) {
 // comum, mesmo critério já usado em outras funções pequenas repetidas
 // deste arquivo.
 const FP_IDADE_MAIOR = 18;
+// Idade máxima plausível pro alerta de nascimento digitado errado (mesma
+// regra e mesmo motivo de cadastro.html, 03/set/2026).
+const FP_IDADE_MAXIMA = 100;
+function fpApenasDigitos(valor) {
+    return (valor || '').replace(/\D/g, '');
+}
 function fpEhMenorIdade(nascimentoISO) {
     if (!nascimentoISO) return false;
     const nascimento = new Date(nascimentoISO + 'T00:00:00');
@@ -1392,6 +1398,72 @@ async function fpSalvar() {
         }
         camposInvalidos.forEach(input => input.classList.add('campo-invalido'));
         return;
+    }
+
+    // Nascimento implausível (03/set/2026, mesma regra de cadastro.html) --
+    // futuro ou mais de 100 anos atrás. nascimentoAtualISO já reflete o
+    // valor que está sendo salvo agora (calculado no laço acima).
+    if (nascimentoAtualISO) {
+        const dataNascimentoAtual = new Date(nascimentoAtualISO + 'T00:00:00');
+        const campoNascimentoEdit = fpEl('fp-nascimento-edit');
+        const fpMostrarErroTexto = (texto) => {
+            const msg = fpEl('fp-mensagem');
+            if (msg) {
+                msg.className = 'fp-mensagem erro';
+                msg.textContent = texto;
+                msg.style.display = 'block';
+            }
+            if (campoNascimentoEdit) { campoNascimentoEdit.classList.add('campo-invalido'); campoNascimentoEdit.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        };
+        if (dataNascimentoAtual > new Date()) {
+            fpMostrarErroTexto('Essa data de nascimento está no futuro — confira e corrija.');
+            return;
+        }
+        const fpLimiteIdadeMaxima = new Date();
+        fpLimiteIdadeMaxima.setFullYear(fpLimiteIdadeMaxima.getFullYear() - FP_IDADE_MAXIMA);
+        if (dataNascimentoAtual < fpLimiteIdadeMaxima) {
+            fpMostrarErroTexto('Essa data indica mais de 100 anos de idade — confira se foi digitada certa.');
+            return;
+        }
+    }
+
+    // CPF (pessoa e responsável) incompleto -- achado real, 03/set/2026.
+    // Só valida quando o campo tem valor (obrigatoriedade já foi checada
+    // acima, com a exceção de Documento).
+    const fpCamposCpf = [fpEl('fp-cpf-edit'), fpEl('fp-responsavel-cpf-edit')].filter(Boolean);
+    for (const campoCpf of fpCamposCpf) {
+        if (campoCpf.value.trim() && fpApenasDigitos(campoCpf.value).length !== 11) {
+            const msg = fpEl('fp-mensagem');
+            if (msg) {
+                msg.className = 'fp-mensagem erro';
+                msg.textContent = 'CPF incompleto — confira se digitou os 11 números.';
+                msg.style.display = 'block';
+            }
+            campoCpf.classList.add('campo-invalido');
+            campoCpf.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+    }
+
+    // Celular (pessoa, responsável e emergência) incompleto -- achados
+    // reais, 03/set/2026. Só pra quem é Brasileira -- pedido dela: número
+    // de fora do Brasil não segue esse padrão, fica livre pra Estrangeira.
+    const fpNacionalidadeAtual = payloadPessoa.hasOwnProperty('nacionalidade') ? payloadPessoa.nacionalidade : fpEstado.alvo.nacionalidade;
+    if (fpNacionalidadeAtual === 'Brasileira' || !fpNacionalidadeAtual) {
+        const fpCamposCelular = [fpEl('fp-celular-edit'), fpEl('fp-responsavel-celular-edit'), fpEl('fp-emergencia-celular-edit')].filter(Boolean);
+        for (const campoCelular of fpCamposCelular) {
+            if (campoCelular.value.trim() && fpApenasDigitos(campoCelular.value).length !== 11) {
+                const msg = fpEl('fp-mensagem');
+                if (msg) {
+                    msg.className = 'fp-mensagem erro';
+                    msg.textContent = 'Celular incompleto — confira se digitou os 11 números, com DDD.';
+                    msg.style.display = 'block';
+                }
+                campoCelular.classList.add('campo-invalido');
+                campoCelular.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+        }
     }
     if (fpEstado.editaveis.has('repique_bossa')) {
         payloadVinculo.repique_bossa = fpEl('fp-repique-bossa-edit').checked;
