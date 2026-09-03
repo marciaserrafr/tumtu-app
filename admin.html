@@ -57,12 +57,7 @@
            agora) -- mantém o mesmo benefício de não "pular" de largura,
            só que no lugar certo. */
         html { scrollbar-gutter: auto; }
-        /* Fundo escuro por trás do spinner de carregamento (03/set/2026) --
-           mesma cor que carteirinha.html já usa, que nunca pisca branco.
-           Painéis/cards continuam claros por cima (cor própria deles),
-           só a área ATRÁS deles (visível brevemente no primeiro instante,
-           antes do cabeçalho/spinner escuro aparecer) muda. */
-        body { background: var(--cor-fundo-escuro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--cor-fundo-claro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
         .container { flex: 1; }
         .conteudo-rolavel { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; display: flex; flex-direction: column; }
 
