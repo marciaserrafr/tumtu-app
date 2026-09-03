@@ -76,15 +76,7 @@
            agora) -- mantém o mesmo benefício de não "pular" de largura,
            só que no lugar certo. */
         html { scrollbar-gutter: auto; }
-        /* Fundo ESCURO de propósito (03/set/2026, não var(--cor-fundo-claro))
-           -- o conteúdo visível (painéis, cards) já pinta sua própria cor
-           clara por cima disso, então nada muda no uso normal. A diferença
-           só aparece nas bordas/entalhe do iPhone: qualquer pedacinho que a
-           barra de status/rodapé não cubra 100% mostra ESSA cor por trás --
-           antes vazava um branco visível ali (achado dela em foto real),
-           agora vaza escuro, imperceptível. Ataca a causa (base clara) em
-           vez de tentar cobrir cada borda uma de cada vez. */
-        body { background: var(--cor-fundo-escuro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--cor-fundo-claro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
         .container { flex: 1; }
         .conteudo-rolavel { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; display: flex; flex-direction: column; }
 
