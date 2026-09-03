@@ -29,7 +29,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=57"></script>
+    <script src="ficha-perfil.js?v=58"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1555,6 +1555,15 @@
         .toast.erro { border-left: 4px solid #ef4444; }
         .toast.visivel { display: flex; }
 
+        /* Aviso de dado próprio incompleto (03/set/2026) -- faixa clicável,
+           sempre visível (não é toast, não some sozinho) até a pessoa
+           corrigir o dado. */
+        .aviso-dados-proprios {
+            background: var(--cor-aviso-fundo); color: var(--cor-aviso);
+            padding: 10px 24px; font-size: 13px; font-weight: 600;
+            cursor: pointer; flex-shrink: 0;
+        }
+
         /* Spinner dourado único do sistema (login.html/carteirinha.html) --
            pedido da Márcia, 19/ago/2026. Cobre a tela inteira até os dados
            estarem 100% prontos -- nunca revela a tela pela metade. Usado
@@ -1691,6 +1700,13 @@
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
 </div>
+
+<!-- Aviso de dado próprio incompleto (03/set/2026) -- ver
+     fpRenderizarAvisoDadosProprios em ficha-perfil.js. display:none por
+     padrão (só aparece se houver problema de verdade), preenchido
+     ANTES do spinner sumir -- nunca aparece "pulando" depois da tela
+     já montada (mesma regra de sempre). -->
+<div id="avisoDadosProprios" class="aviso-dados-proprios" style="display:none" onclick="trocarAba('meu-perfil', null)"></div>
 
 <div class="conteudo-rolavel">
 
@@ -5292,6 +5308,7 @@
             trocarAba(estadoSalvoMD.aba, document.querySelector(`.aba-btn[data-aba="${estadoSalvoMD.aba}"]`));
         }
 
+        if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(usuario, 'avisoDadosProprios');
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
     }
 

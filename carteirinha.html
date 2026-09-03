@@ -115,6 +115,15 @@
         .c-toast.erro { border-left-color: #ef4444; }
         .c-toast.visivel { display: block; }
 
+        /* Aviso de dado próprio incompleto (03/set/2026) -- faixa clicável,
+           sempre visível (não é toast, não some sozinho) até a pessoa
+           corrigir o dado. */
+        .aviso-dados-proprios {
+            background: #fff3cd; color: #856404;
+            padding: 10px 24px; font-size: 13px; font-weight: 600;
+            cursor: pointer; text-align: center;
+        }
+
         /* Carregando de verdade — cobre a tela inteira até a carteirinha estar
            100% pronta (nome/cargo + foto decodificada + cor da escola aplicada),
            pra nunca aparecer nada pela metade (pedido explícito da Márcia,
@@ -154,6 +163,10 @@
         </div>
     </div>
 </div>
+
+<!-- Aviso de dado próprio incompleto (03/set/2026) -- ver
+     fpRenderizarAvisoDadosProprios em ficha-perfil.js. -->
+<div id="avisoDadosProprios" class="aviso-dados-proprios" style="display:none" onclick="abrirPerfil()"></div>
 
 <div class="carteirinha-scene">
 
@@ -296,7 +309,7 @@
 
 <div class="c-toast" id="cToast"></div>
 
-<script src="ficha-perfil.js?v=57" defer></script>
+<script src="ficha-perfil.js?v=58" defer></script>
 <script src="faceid.js?v=2" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
 <script>
@@ -720,6 +733,7 @@
                     // ainda faltava). Atualiza o cache por trás, sem segurar a tela.
                     aplicarConfigEscola(cacheado);
                     aplicarLogosEscola(cacheado);
+                    if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(ritmista, 'avisoDadosProprios');
                     esconderCarregandoCarteirinha();
                     const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                     aplicarConfigEscola(cfg);
@@ -733,6 +747,7 @@
                     // já resolvido antes, 15/jul/2026).
                     const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                     aplicarConfigEscola(cfg);
+                    if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(ritmista, 'avisoDadosProprios');
                     esconderCarregandoCarteirinha();
                     carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(logos => {
                         aplicarLogosEscola(logos);

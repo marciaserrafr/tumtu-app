@@ -315,6 +315,42 @@ function fpEhMenorIdade(nascimentoISO) {
     return idade < FP_IDADE_MAIOR;
 }
 
+// Aviso de dado próprio incompleto ao logar (03/set/2026, pedido dela
+// depois de achar erros reais no banco). Escopo de propósito: só os 2
+// campos que a própria pessoa já consegue editar hoje (celular,
+// emergencia_celular) -- CPF/nascimento/CPF do responsável continuam
+// travados pra autoedição (CPF é a âncora de identidade do sistema),
+// destravar esses fica pra uma mudança de banco separada, mais cuidadosa.
+function fpProblemasDadosProprios(pessoa) {
+    if (!pessoa) return [];
+    const problemas = [];
+    const ehBrasileira = pessoa.nacionalidade === 'Brasileira' || !pessoa.nacionalidade;
+    if (ehBrasileira) {
+        if (pessoa.celular && fpApenasDigitos(pessoa.celular).length !== 11) {
+            problemas.push({ campo: 'celular', rotulo: 'Celular' });
+        }
+        if (pessoa.emergencia_celular && fpApenasDigitos(pessoa.emergencia_celular).length !== 11) {
+            problemas.push({ campo: 'emergencia_celular', rotulo: 'Celular de emergência' });
+        }
+    }
+    return problemas;
+}
+
+// Insere (ou remove, se não houver problema) o aviso dentro do elemento
+// indicado -- cada tela (admin.html/carteirinha.html) já tem seu próprio
+// container fixo pra isso, só chama essa função depois que os dados da
+// pessoa terminam de carregar (nunca antes -- mesma regra de "tela sempre
+// completa" do resto do app).
+function fpRenderizarAvisoDadosProprios(pessoa, elId) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const problemas = fpProblemasDadosProprios(pessoa);
+    if (problemas.length === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    const lista = problemas.map(p => p.rotulo).join(' e ');
+    el.innerHTML = `⚠️ ${lista} incompleto no seu perfil — toque em "Editar" no seu perfil pra corrigir.`;
+    el.style.display = 'block';
+}
+
 // Declaração do Responsável / Desfile (28/ago/2026) -- clique instantâneo
 // de propósito (pedido dela: "adorava" o interruptor, e ele não precisa do
 // fluxo Editar/Salvar já que é uma marcação isolada). Diferente da versão
@@ -1158,6 +1194,27 @@ async function fpAtivarEdicao() {
     // flutuante sem necessidade (achado da Márcia, 15/ago/2026).
     const acoesExtra = fpEl('fp-acoes-extra');
     if (acoesExtra) acoesExtra.style.display = 'none';
+
+    // Realça de cara o campo com dado incompleto (03/set/2026) -- só na
+    // própria autoedição, sem esperar uma tentativa de Salvar. Mesmo texto
+    // de erro do fpSalvar, mesma classe visual (.campo-invalido).
+    if (fpEstado.autoedicao) {
+        const problemas = fpProblemasDadosProprios(fpEstado.alvo);
+        if (problemas.length > 0) {
+            const msg = fpEl('fp-mensagem');
+            if (msg) {
+                msg.className = 'fp-mensagem erro';
+                msg.textContent = problemas.map(p => p.rotulo).join(' e ') + ' incompleto — confira se digitou os 11 números, com DDD.';
+                msg.style.display = 'block';
+            }
+            let primeiroCampo = null;
+            problemas.forEach(p => {
+                const campo = fpEl('fp-' + p.campo.replace(/_/g, '-') + '-edit');
+                if (campo) { campo.classList.add('campo-invalido'); if (!primeiroCampo) primeiroCampo = campo; }
+            });
+            if (primeiroCampo) primeiroCampo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
 }
 
 function fpCancelarEdicao() {
