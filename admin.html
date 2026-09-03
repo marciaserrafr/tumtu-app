@@ -1716,7 +1716,7 @@
     <!-- ESCOLAS -->
     <div class="sa-painel" id="sa-painel-escolas">
         <div class="painel-titulo">Escolas</div>
-        <div class="config-sub-desc" style="margin:0 0 16px;">Selecione uma escola para gerenciar seu cadastro, bateria e acessos.</div>
+        <div class="config-sub-desc" style="margin:0 0 16px;">Gestão de escolas — cadastro, bateria e acessos de cada uma.</div>
         <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaEscolaSA()">+ Nova Escola</button>
         <div id="lista-escolas" class="lista-cards">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
@@ -1777,7 +1777,7 @@
         <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Instrumentos</div>
-            <p class="config-sub-desc">Cada categoria pode ter mais de um nome possível — cada bateria escolhe qual usar.</p>
+            <p class="config-sub-desc">Categorias e nomenclaturas de instrumento, usadas por todas as baterias.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaCategoria()">+ Nova Categoria</button>
             <div id="sa-categoria-editor" style="display:none;"></div>
             <div id="sa-categorias-lista" class="lista-cards"></div>
@@ -1786,7 +1786,7 @@
         <div id="sa-config-tela-medidas" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Categoria de Figurino</div>
-            <p class="config-sub-desc">Cada categoria (Camisa, Fantasia...) tem sua própria escala de tamanhos — cada bateria escolhe quais usar.</p>
+            <p class="config-sub-desc">Categorias de Figurino e suas escalas de tamanho, usadas por todas as baterias.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoMedidaTipo()">+ Nova Categoria de Figurino</button>
             <div id="sa-medida-tipo-editor" style="display:none;"></div>
             <div id="sa-medida-tipos-lista" class="lista-cards"></div>
@@ -1795,7 +1795,7 @@
         <div id="sa-config-tela-figurino" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Figurino</div>
-            <p class="config-sub-desc">Cada peça usa o tamanho da Categoria ligada a ela, e pode cobrir mais de um público — cada bateria escolhe quais usar.</p>
+            <p class="config-sub-desc">Peças de Figurino, usadas por todas as baterias.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoFigurinoMestre()">+ Novo Figurino</button>
             <div id="sa-figurino-editor" style="display:none;"></div>
             <div id="sa-figurino-lista" class="lista-cards"></div>
@@ -1804,7 +1804,7 @@
         <div id="sa-config-tela-eventos" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Tipos de Evento</div>
-            <p class="config-sub-desc">Ex: Ensaio, Ensaio Técnico, Apresentação, Reunião — usado ao criar um Evento.</p>
+            <p class="config-sub-desc">Tipos de Evento, usados por todas as baterias.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoEventoTipo()">+ Novo Tipo de Evento</button>
             <div id="sa-evento-tipo-editor" style="display:none;"></div>
             <div id="sa-evento-tipos-lista" class="lista-cards"></div>
@@ -1813,7 +1813,7 @@
         <div id="sa-config-tela-temporadas" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Temporadas</div>
-            <p class="config-sub-desc">Ex: Carnaval 2026, Carnaval 2027 — rótulo opcional em Eventos, pra manter tudo padronizado.</p>
+            <p class="config-sub-desc">Temporadas, usadas por todas as baterias.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaTemporada()">+ Nova Temporada</button>
             <div id="sa-temporada-editor" style="display:none;"></div>
             <div id="sa-temporadas-lista" class="lista-cards"></div>
@@ -1823,10 +1823,10 @@
     <!-- PRIVACIDADE (LGPD) -->
     <div class="sa-painel" id="sa-painel-privacidade">
         <div class="painel-titulo">Privacidade</div>
-        <div class="config-sub-desc" style="margin:0 0 20px;">Exclusão de dados sob pedido (LGPD) — ações sem volta, com prova registrada abaixo.</div>
+        <div class="config-sub-desc" style="margin:0 0 20px;">Exclusão de dados sob pedido (LGPD) — ação sem volta.</div>
 
         <div class="ficha-secao-titulo">Excluir dados de uma pessoa</div>
-        <div class="config-sub-desc" style="margin:0 0 10px;">Busca por nome, CPF ou e-mail — encontra até quem não tem vínculo com nenhuma bateria hoje.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Localizar uma pessoa pra excluir os dados dela.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <input type="text" id="priv-busca-pessoa" class="fc-input" style="display:block;flex:1;min-width:220px;" placeholder="Nome, CPF ou e-mail..." onkeydown="if(event.key==='Enter'){event.preventDefault();buscarPessoaExclusao();}">
             <button class="btn-novo" style="margin:0;" onclick="buscarPessoaExclusao()">Buscar</button>
@@ -1834,7 +1834,7 @@
         <div id="priv-resultado-pessoa" class="lista-cards" style="margin-top:12px;"></div>
 
         <div class="ficha-secao-titulo" style="margin-top:24px;">Excluir uma escola inteira</div>
-        <div class="config-sub-desc" style="margin:0 0 10px;">Apaga a escola, as baterias e todos os vínculos ligados a elas. Fichas pessoais de quem ficar sem vínculo em nenhum lugar são preservadas.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Apaga a escola, as baterias e os vínculos ligados a elas — fichas pessoais sem vínculo em lugar nenhum são preservadas.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <select id="priv-select-escola" class="fc-input" style="display:block;flex:1;min-width:220px;">
                 <option value="">Selecione a escola...</option>
@@ -1843,7 +1843,7 @@
         </div>
 
         <div class="ficha-secao-titulo" style="margin-top:24px;">Histórico de exclusões (prova)</div>
-        <div class="config-sub-desc" style="margin:0 0 10px;">Registro imutável — ninguém, nem Super Admin, consegue editar ou apagar um item daqui depois de criado.</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Registro imutável — nem o Super Admin consegue editar ou apagar um item aqui depois de criado.</div>
         <div id="priv-lista-log" class="lista-cards">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
         </div>
