@@ -2,14 +2,27 @@
 <html lang="pt-BR" data-tema="tumtu" style="background:#12101a;">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>TumTu — Painel do Diretor</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#12101a">
     <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <!-- Imagem de abertura pro iPhone (splash screen), 03/set/2026 -- mostra escuro no instante entre tocar o ícone e o nosso código rodar,
+         no lugar do branco padrão do iOS. -->
+    <link rel="apple-touch-startup-image" href="icons/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash-1320x2868.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TumTu">
     <script src="pwa-register.js" defer></script>
     <!-- Vercel Web Analytics (02/set/2026) -- contagem de acesso gratuita,
@@ -19,7 +32,7 @@
     <script defer src="/_vercel/insights/script.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=24">
+    <link rel="stylesheet" href="styles/components.css?v=25">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Leitor de QR pra Presença (29/ago/2026) -- lê o mesmo QR que já
          existe na carteirinha (qr_token), direto pela câmera do celular,
@@ -57,15 +70,24 @@
            agora) -- mantém o mesmo benefício de não "pular" de largura,
            só que no lugar certo. */
         html { scrollbar-gutter: auto; }
-        body { background: var(--cor-fundo-claro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* Fundo escuro (03/set/2026) -- rede de segurança, não a correção
+           principal: painéis/cards têm cor própria por cima, isso só
+           aparece se algum canto da tela (notch, home indicator) não for
+           coberto 100% por um elemento nosso -- nesse caso vaza escuro
+           (imperceptível) em vez de branco. */
+        body { background: var(--cor-fundo-escuro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
         .container { flex: 1; }
         .conteudo-rolavel { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; display: flex; flex-direction: column; }
 
         /* HEADER */
+        /* padding-top soma env(safe-area-inset-top) -- com viewport-fit=cover
+           +status-bar-style=black-translucent (03/set/2026), o conteúdo
+           passa a desenhar por baixo do notch/status bar; sem esse respiro,
+           o cabeçalho começaria alguns pixels curto da borda de verdade. */
         .header {
             background: var(--cor-fundo-escuro);
             color: white;
-            padding: 16px 24px;
+            padding: calc(16px + env(safe-area-inset-top)) 24px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -858,7 +880,7 @@
 
         /* MOBILE */
         @media (max-width: 600px) {
-            .header { padding: 12px 16px; gap: 8px; }
+            .header { padding: calc(12px + env(safe-area-inset-top)) 16px 12px; gap: 8px; }
             .header-marca { font-size: 18px; }
             .header-badge .hb-escola { font-size: 10px; }
             .header-badge .hb-bateria { font-size: 9px; }
@@ -1565,12 +1587,16 @@
            que o app é claro), mas pediu de volta o escuro pra ficar igual
            nos 3 lugares: "não gostei" do claro depois de ver ao vivo.
            Decisão final, não reabrir sem ela pedir de novo. */
+        /* Visível por padrão (03/set/2026), não escondido -- mesmo truque
+           que login.html/carteirinha.html já usam (nascem visíveis no
+           HTML, antes de qualquer JS rodar). JS só ESCONDE (".oculta")
+           quando os dados chegam, nunca precisa mostrar. */
         #overlayCarregandoEscola {
-            display: none; position: fixed; inset: 0; z-index: 3000;
+            display: flex; position: fixed; inset: 0; z-index: 3000;
             background: var(--cor-fundo-escuro, #12101a);
             align-items: center; justify-content: center;
         }
-        #overlayCarregandoEscola.visivel { display: flex; }
+        #overlayCarregandoEscola.oculta { display: none; }
         #overlayCarregandoEscola .spinner {
             width: 56px; height: 56px;
             animation: tt-girar 1.1s linear infinite;
@@ -5159,7 +5185,7 @@
             // rede) antes de preencher de verdade. Achado da Márcia,
             // 19/ago/2026: "aparece Bateria escrito e depois é que muda
             // pro dashboard".
-            document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+            document.getElementById('overlayCarregandoEscola').classList.remove('oculta');
             mostrarShellSA();
             // Volta pro mesmo lugar de antes de atualizar a página -- achado
             // da Márcia, 20/ago/2026: "sempre que eu atualizo a página, ela
@@ -5179,7 +5205,7 @@
             } else {
                 await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
             }
-            document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
+            document.getElementById('overlayCarregandoEscola').classList.add('oculta');
             return;
         }
 
@@ -5199,7 +5225,7 @@
         // cor da escola no final -- achado da Márcia, 19/ago/2026, "isso é
         // perceptível sim". Quando o cache já existe (caso comum), o
         // overlay só pisca rápido, sem custo perceptível.
-        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+        document.getElementById('overlayCarregandoEscola').classList.remove('oculta');
 
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
         renderizarAvatarHeader({ nome: usuario.nome || 'Admin', foto_url: usuario.foto_url });
@@ -5292,7 +5318,7 @@
             trocarAba(estadoSalvoMD.aba, document.querySelector(`.aba-btn[data-aba="${estadoSalvoMD.aba}"]`));
         }
 
-        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
+        document.getElementById('overlayCarregandoEscola').classList.add('oculta');
     }
 
     // Preenche configEscola.nomeEscola/nomeBateria com dado real -- antes desse
@@ -8112,7 +8138,7 @@
         // e só depois de vários pedidos ao banco virava a cor da escola
         // (achado da Márcia, 19/ago/2026). Só sai da tela quando o tema já
         // está aplicado, igual ao login.html/carteirinha.html já fazem.
-        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+        document.getElementById('overlayCarregandoEscola').classList.remove('oculta');
 
         // 25/ago/2026: paraleliza os pedidos ao banco que não dependem um
         // do outro -- antes eram 5 pedidos em fila, cada um esperando o
@@ -8182,7 +8208,7 @@
         ]);
         iniciarAutoRefreshRitmistas();
 
-        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
+        document.getElementById('overlayCarregandoEscola').classList.add('oculta');
     }
 
     async function voltarParaEscolasSA() {
