@@ -1703,11 +1703,11 @@
     <!-- DASHBOARD -->
     <div class="sa-painel ativo" id="sa-painel-dashboard">
         <div class="painel-titulo">Dashboard</div>
-        <div class="config-sub-desc" style="margin:0 0 20px;">Visão geral de todas as escolas e ritmistas.</div>
+        <div class="config-sub-desc" style="margin:0 0 20px;">Visão geral de todas as escolas e baterias.</div>
         <div class="kpi-row" id="dashboard-kpis"></div>
         <div id="dashboard-atencao"></div>
         <div id="dashboard-aniversariantes"></div>
-        <div class="dash-secao-titulo">Baterias <span class="dash-secao-hint">— toque no card pra abrir a Visão Geral daquela bateria</span></div>
+        <div class="dash-secao-titulo">Baterias</div>
         <div class="baterias-grid" id="dashboard-lista-baterias"></div>
         <div id="dashboard-escolas-demo"></div>
         <div id="dashboard-atividade"></div>
@@ -1766,7 +1766,7 @@
     <div class="sa-painel" id="sa-painel-configuracoes-globais">
         <div id="sa-config-lista">
             <div class="painel-titulo">Configurações</div>
-            <div class="config-sub-desc" style="margin:0 0 16px;">Ajustes que valem para todas as escolas.</div>
+            <div class="config-sub-desc" style="margin:0 0 16px;">Configure o que vale para todas as escolas.</div>
             <div class="config-item" onclick="abrirConfigTelaSA('instrumentos')"><span>Instrumentos</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('medidas')"><span>Categoria de Figurino</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('figurino')"><span>Figurino</span><span class="config-item-seta">›</span></div>
@@ -1777,7 +1777,7 @@
         <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Instrumentos</div>
-            <p class="config-sub-desc">Biblioteca mestre — vale para todas as escolas. Cada categoria pode ter mais de um nome possível (nomenclatura); cada bateria escolhe qual usar em "Configurações → Instrumentos" no painel dela.</p>
+            <p class="config-sub-desc">Cada categoria pode ter mais de um nome possível — cada bateria escolhe qual usar.</p>
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaCategoria()">+ Nova Categoria</button>
             <div id="sa-categoria-editor" style="display:none;"></div>
             <div id="sa-categorias-lista" class="lista-cards"></div>
