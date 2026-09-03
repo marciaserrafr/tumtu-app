@@ -188,7 +188,22 @@
             font-size: 13.5px; font-weight: 600; text-align: left; color: rgba(255,255,255,0.7);
             transition: color 0.15s, background 0.15s; white-space: nowrap;
         }
-        .aba-btn .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
+        .aba-btn .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; position: relative; }
+        /* Bolinha de aviso em cima do ícone do menu (Ritmistas/Diretoria/
+           "Mais", quando há Convidados pendentes escondido lá dentro) --
+           02/set/2026, mesmo padrão de "número novo" já usado no resto do
+           app, só que sobre o ícone em vez de ao lado do texto. */
+        .aba-badge {
+            position: absolute; top: -5px; right: -8px;
+            background: #d64545; color: #fff; font-size: 9px; font-weight: 700;
+            min-width: 14px; height: 14px; border-radius: 7px; line-height: 14px;
+            text-align: center; padding: 0 3px; box-sizing: border-box;
+        }
+        .config-item-badge {
+            background: #d64545; color: #fff; font-size: 11px; font-weight: 700;
+            min-width: 18px; height: 18px; border-radius: 9px; line-height: 18px;
+            text-align: center; padding: 0 5px; box-sizing: border-box; margin-left: 8px;
+        }
         /* Ícones de linha (Lucide, 30/ago/2026) no lugar de emoji -- SVG
            usa stroke="currentColor", então herda a mesma cor do texto ao
            lado (dourado quando .ativa, sem precisar de regra própria). */
@@ -1877,13 +1892,13 @@
      último"). -->
 <nav class="nav-abas" id="navAbasEscola" style="display:none">
     <button class="aba-btn ativa" data-aba="visao" onclick="trocarAba('visao', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span><span>Visão Geral</span></button>
-    <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 8 8"/><path d="m22 2-8 8"/><ellipse cx="12" cy="9" rx="10" ry="5"/><path d="M7 13.4v7.9"/><path d="M12 14v8"/><path d="M17 13.4v7.9"/><path d="M2 9v8a10 5 0 0 0 20 0V9"/></svg></span><span>Ritmistas</span></button>
-    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg></span><span>Diretoria</span></button>
+    <button class="aba-btn" data-aba="ritmistas" onclick="trocarAba('ritmistas', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 8 8"/><path d="m22 2-8 8"/><ellipse cx="12" cy="9" rx="10" ry="5"/><path d="M7 13.4v7.9"/><path d="M12 14v8"/><path d="M17 13.4v7.9"/><path d="M2 9v8a10 5 0 0 0 20 0V9"/></svg><span class="aba-badge" id="abaBadgeRitmistas" style="display:none"></span></span><span>Ritmistas</span></button>
+    <button class="aba-btn" data-aba="diretoria" onclick="trocarAba('diretoria', this)"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg><span class="aba-badge" id="abaBadgeDiretoria" style="display:none"></span></span><span>Diretoria</span></button>
     <!-- "Meu Perfil" saiu do menu -- pedido da Márcia, 21/ago/2026: a
          bolinha de conta no cabeçalho (#headerAvatarWrap) já leva pra lá,
          ter os dois caminhos era redundante e ocupava espaço à toa
          (crítico no rodapé do celular). -->
-    <button class="aba-btn-sa aba-btn" id="btnMais" data-aba="administrativo" onclick="onClickMais(this)" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span><span>Mais</span><span class="aba-mais-seta" id="maisSeta">›</span></button>
+    <button class="aba-btn-sa aba-btn" id="btnMais" data-aba="administrativo" onclick="onClickMais(this)" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg><span class="aba-badge" id="abaBadgeMais" style="display:none"></span></span><span>Mais</span><span class="aba-mais-seta" id="maisSeta">›</span></button>
     <!-- Só no computador: "Mais" abre um submenu ali mesmo na barra lateral
          em vez de navegar pra uma tela própria -- pedido da Márcia,
          20/ago/2026 ("pensei em colocar uma seta e esse menu abrir para
@@ -3277,6 +3292,56 @@
         if (titulo) titulo.style.display = 'block';
     }
 
+    // Bolinhas de aviso no menu (Ritmistas/Diretoria/"Mais") + selo no
+    // ícone do app na tela inicial (02/set/2026, pedido dela: "quando tem
+    // algo pendente" pro Diretor perceber sem precisar entrar em cada
+    // lista pra descobrir). As 3 funções de contagem abaixo respeitam a
+    // mesma capacidade/gate já usado nos cards da Visão Geral -- ninguém
+    // vê número de uma lista que não teria acesso de entrar.
+    function pendentesRitmistasCount() {
+        return (souSuperAdmin || tenhoCapacidade('ver_ritmistas')) ? (todosRitmistas || []).filter(r => r.status === 'pendente').length : 0;
+    }
+    function pendentesDiretoriaCount() {
+        return (souSuperAdmin || tenhoCapacidade('ver_acessos')) ? (listaDiretoriaAtual || []).filter(a => a.status === 'pendente').length : 0;
+    }
+    function pendentesConvidadosEspeciaisCount() {
+        const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
+        if (!habilitado || !(souSuperAdmin || tenhoCapacidade('ver_convidados_especiais'))) return 0;
+        return (convidadosEspeciaisCache || []).filter(r => r.status === 'pendente').length;
+    }
+    function aplicarBadgeIcone(id, n) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = n > 99 ? '99+' : String(n);
+        el.style.display = n > 0 ? '' : 'none';
+    }
+    // Selo no ícone do app na tela inicial (fora do app) -- Badging API,
+    // melhor esforço: suporte inconsistente no iPhone (é PWA, não app
+    // nativo -- ver CLAUDE.md), sempre funciona no Android. Nunca trava
+    // nem avisa erro se o navegador não suportar -- decisão dela,
+    // 02/set/2026: "se funcionar é um viva, se não funcionar não é pra
+    // se chatear".
+    function atualizarBadgeIconeApp(total) {
+        try {
+            if (total > 0 && 'setAppBadge' in navigator) navigator.setAppBadge(total).catch(() => {});
+            else if ('clearAppBadge' in navigator) navigator.clearAppBadge().catch(() => {});
+        } catch (e) { /* silencioso de propósito */ }
+    }
+    function atualizarBadgesNav() {
+        const rit = pendentesRitmistasCount();
+        const dir = pendentesDiretoriaCount();
+        const conv = pendentesConvidadosEspeciaisCount();
+        aplicarBadgeIcone('abaBadgeRitmistas', rit);
+        aplicarBadgeIcone('abaBadgeDiretoria', dir);
+        aplicarBadgeIcone('abaBadgeMais', conv);
+        // Se o submenu de "Mais" já estiver aberto (computador), atualiza o
+        // número ali também -- só a lista/tela própria de "Mais" no celular
+        // não precisa disso (ela já busca o número fresco toda vez que abre).
+        const submenu = document.getElementById('abaMaisSubmenu');
+        if (submenu && submenu.classList.contains('aberto')) renderizarMaisSubmenu();
+        atualizarBadgeIconeApp(rit + dir + conv);
+    }
+
     function bateriaIdContexto() {
         if (souSuperAdmin) return bateriaAtualData ? bateriaAtualData.id : null;
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
@@ -3363,7 +3428,7 @@
 
     async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]); return; }
+        if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); atualizarBadgesNav(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]); return; }
         const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
         // eh_convidado=eq.false (31/ago/2026): Convidado Especial nunca entra
         // na lista normal de Ritmistas -- tem fila e contagens 100% próprias
@@ -3388,6 +3453,7 @@
         todosRitmistas = leve ? reaproveitarFotosCache(novos, todosRitmistas) : novos;
         aplicarFiltros();
         atualizarTotalizadores();
+        atualizarBadgesNav();
         renderizarVisaoGeral();
         renderizarContagemInstrumentos();
         renderizarControleMenores();
@@ -6577,6 +6643,7 @@
         convidadosEspeciaisCache = leve ? reaproveitarFotosCache(novosArr, convidadosEspeciaisCache) : novosArr;
         aplicarFiltrosConvidadosEspeciais();
         atualizarTotalizadorConvidadosEspeciais();
+        atualizarBadgesNav();
         convidadosEspeciaisCarregados = true;
     }
 
@@ -6654,7 +6721,7 @@
     }
 
     function recarregarConvidadosEspeciais() {
-        return carregarConvidadosEspeciais().then(() => { aplicarFiltrosConvidadosEspeciais(); atualizarTotalizadorConvidadosEspeciais(); });
+        return carregarConvidadosEspeciais().then(() => { aplicarFiltrosConvidadosEspeciais(); atualizarTotalizadorConvidadosEspeciais(); atualizarBadgesNav(); });
     }
 
     // Ficha de Convidado Especial reaproveita os DOIS modais que já existem
@@ -7820,9 +7887,10 @@
         const abaAdmBtn = document.querySelector('.aba-btn[data-aba="administrativo"]');
         const itens = itensAdministrativoVisiveis();
         if (!itens.length) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Nenhum módulo disponível pra você aqui.</div>'; return; }
+        const pendConv = pendentesConvidadosEspeciaisCount();
         div.innerHTML = itens.map(i => `
             <div class="config-item" onclick="trocarAba('${i.aba}', document.querySelector('.aba-btn[data-aba=administrativo]'))">
-                <span>${i.label}</span>
+                <span>${i.label}${i.aba === 'extras' && pendConv > 0 ? `<span class="config-item-badge">${pendConv}</span>` : ''}</span>
                 <span class="config-item-seta">›</span>
             </div>`).join('');
         if (abaAdmBtn) abaAdmBtn.classList.add('ativa');
@@ -7843,8 +7911,9 @@
     function renderizarMaisSubmenu() {
         const div = document.getElementById('abaMaisSubmenu');
         const itens = itensAdministrativoVisiveis();
+        const pendConv = pendentesConvidadosEspeciaisCount();
         div.innerHTML = itens.length
-            ? itens.map(i => `<button type="button" class="aba-sub-btn" onclick="clicarSubMais('${i.aba}', this)">${i.label}</button>`).join('')
+            ? itens.map(i => `<button type="button" class="aba-sub-btn" onclick="clicarSubMais('${i.aba}', this)">${i.label}${i.aba === 'extras' && pendConv > 0 ? `<span class="config-item-badge">${pendConv}</span>` : ''}</button>`).join('')
             : '<div style="padding:8px 10px;font-size:12px;color:rgba(255,255,255,0.45);">Nenhum módulo disponível.</div>';
     }
     function clicarSubMais(aba, el) {
@@ -8791,6 +8860,7 @@
             mostrarToast(ligado ? 'Convidado Especial ligado.' : 'Convidado Especial desligado.');
             if (typeof renderizarConvidadosEspeciais === 'function') renderizarConvidadosEspeciais();
             if (typeof atualizarTotalizadorConvidadosEspeciais === 'function') atualizarTotalizadorConvidadosEspeciais();
+            if (typeof atualizarBadgesNav === 'function') atualizarBadgesNav();
         } else {
             mostrarToast('Erro ao atualizar.', 'erro');
         }
@@ -10386,6 +10456,7 @@
         listaDiretoriaAtual = leve ? reaproveitarFotosCache(novosAdmins, listaDiretoriaAtual) : novosAdmins;
         aplicarFiltrosDiretoria();
         atualizarTotalizadoresDiretoria();
+        atualizarBadgesNav();
         // Aniversariantes do mês (Visão Geral) inclui Diretoria -- essa busca
         // roda em paralelo com carregarRitmistas(), então precisa re-render
         // aqui pra não ficar faltando gente até a próxima troca de aba.
