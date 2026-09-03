@@ -1508,19 +1508,32 @@ async function fpSalvar() {
     }
 
     // CPF (pessoa e responsável) incompleto -- achado real, 03/set/2026.
-    // Só valida quando o campo tem valor (obrigatoriedade já foi checada
-    // acima, com a exceção de Documento).
-    const fpCamposCpf = [fpEl('fp-cpf-edit'), fpEl('fp-responsavel-cpf-edit')].filter(Boolean);
-    for (const campoCpf of fpCamposCpf) {
-        if (campoCpf.value.trim() && fpApenasDigitos(campoCpf.value).length !== 11) {
+    // Lê o valor ATUAL (dado salvo, não o campo de digitação) quando o
+    // campo está travado pra edição (autoedição não edita CPF -- ele nunca
+    // chega a ser preenchido no input, ficaria sempre vazio e a checagem
+    // nunca disparava -- bug real achado testando com ela, 03/set/2026).
+    // Só quando o campo É editável é que o valor do input manda, porque aí
+    // reflete o que está prestes a ser salvo.
+    const fpCpfAtual = fpEstado.editaveis.has('cpf') && fpEl('fp-cpf-edit')
+        ? fpEl('fp-cpf-edit').value.trim()
+        : (fpEstado.alvo.cpf || '');
+    const fpResponsavelCpfAtual = fpEstado.editaveis.has('responsavel_cpf') && fpEl('fp-responsavel-cpf-edit')
+        ? fpEl('fp-responsavel-cpf-edit').value.trim()
+        : (fpEstado.alvo.responsavel_cpf || '');
+    const fpCamposCpf = [
+        { valor: fpCpfAtual, el: fpEl('fp-cpf-edit') || fpEl('fp-cpf') },
+        { valor: fpResponsavelCpfAtual, el: fpEl('fp-responsavel-cpf-edit') || fpEl('fp-responsavel-cpf') },
+    ].filter(c => c.el);
+    for (const { valor, el } of fpCamposCpf) {
+        if (valor && fpApenasDigitos(valor).length !== 11) {
             const msg = fpEl('fp-mensagem');
             if (msg) {
                 msg.className = 'fp-mensagem erro';
                 msg.textContent = 'CPF incompleto — confira se digitou os 11 números.';
                 msg.style.display = 'block';
             }
-            campoCpf.classList.add('campo-invalido');
-            campoCpf.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('campo-invalido');
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
     }
@@ -1530,17 +1543,30 @@ async function fpSalvar() {
     // de fora do Brasil não segue esse padrão, fica livre pra Estrangeira.
     const fpNacionalidadeAtual = payloadPessoa.hasOwnProperty('nacionalidade') ? payloadPessoa.nacionalidade : fpEstado.alvo.nacionalidade;
     if (fpNacionalidadeAtual === 'Brasileira' || !fpNacionalidadeAtual) {
-        const fpCamposCelular = [fpEl('fp-celular-edit'), fpEl('fp-responsavel-celular-edit'), fpEl('fp-emergencia-celular-edit')].filter(Boolean);
-        for (const campoCelular of fpCamposCelular) {
-            if (campoCelular.value.trim() && fpApenasDigitos(campoCelular.value).length !== 11) {
+        // Mesmo cuidado do CPF acima: responsavel_celular é travado pra
+        // quem não é Super Admin (edição própria inclusa) -- lê o dado
+        // salvo nesse caso, não o campo de digitação (que ficaria vazio).
+        const fpCelularAtual = fpEstado.editaveis.has('celular') && fpEl('fp-celular-edit')
+            ? fpEl('fp-celular-edit').value.trim() : (fpEstado.alvo.celular || '');
+        const fpResponsavelCelularAtual = fpEstado.editaveis.has('responsavel_celular') && fpEl('fp-responsavel-celular-edit')
+            ? fpEl('fp-responsavel-celular-edit').value.trim() : (fpEstado.alvo.responsavel_celular || '');
+        const fpEmergenciaCelularAtual = fpEstado.editaveis.has('emergencia_celular') && fpEl('fp-emergencia-celular-edit')
+            ? fpEl('fp-emergencia-celular-edit').value.trim() : (fpEstado.alvo.emergencia_celular || '');
+        const fpCamposCelular = [
+            { valor: fpCelularAtual, el: fpEl('fp-celular-edit') || fpEl('fp-celular') },
+            { valor: fpResponsavelCelularAtual, el: fpEl('fp-responsavel-celular-edit') || fpEl('fp-responsavel-celular') },
+            { valor: fpEmergenciaCelularAtual, el: fpEl('fp-emergencia-celular-edit') || fpEl('fp-emergencia-celular') },
+        ].filter(c => c.el);
+        for (const { valor, el } of fpCamposCelular) {
+            if (valor && fpApenasDigitos(valor).length !== 11) {
                 const msg = fpEl('fp-mensagem');
                 if (msg) {
                     msg.className = 'fp-mensagem erro';
                     msg.textContent = 'Celular incompleto — confira se digitou os 11 números, com DDD.';
                     msg.style.display = 'block';
                 }
-                campoCelular.classList.add('campo-invalido');
-                campoCelular.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('campo-invalido');
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
         }
