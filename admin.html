@@ -19,7 +19,7 @@
     <script defer src="/_vercel/insights/script.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=25">
+    <link rel="stylesheet" href="styles/components.css?v=26">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Leitor de QR pra Presença (29/ago/2026) -- lê o mesmo QR que já
          existe na carteirinha (qr_token), direto pela câmera do celular,
@@ -1364,6 +1364,16 @@
             padding: 16px 12px; position: fixed; top: var(--altura-header-admin, 68px);
             left: 0; bottom: 0; width: 210px; overflow-y: auto; z-index: 90;
         }
+        /* Barra de rolagem fina e discreta, na cor do próprio menu -- no
+           lugar da barra padrão do sistema (cinza clara, grossa), que
+           destoava do resto do app (achado dela, 03/set/2026, print real
+           no notebook). Vale pros dois menus laterais (Super Admin e o de
+           dentro de uma bateria), mesma estrutura. */
+        .sa-sidebar, .nav-abas { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; }
+        .sa-sidebar::-webkit-scrollbar, .nav-abas::-webkit-scrollbar { width: 6px; }
+        .sa-sidebar::-webkit-scrollbar-track, .nav-abas::-webkit-scrollbar-track { background: transparent; }
+        .sa-sidebar::-webkit-scrollbar-thumb, .nav-abas::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 10px; }
+        .sa-sidebar::-webkit-scrollbar-thumb:hover, .nav-abas::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
         .sa-sidebar-item {
             display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
             font-size: 13.5px; font-weight: 600; text-align: left; color: rgba(255,255,255,0.7);

@@ -196,15 +196,24 @@
    fonte está pequena demais", testando o Meu Perfil da carteirinha). */
 .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #D4AF37; padding-bottom: 3px; }
 .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
-.ficha-campo { font-size: 14px; color: #333; }
+/* min-width:0 é o ajuste que resolve de raiz (03/set/2026, achado dela:
+   "e se alguém digitar um e-mail gigante?") -- por padrão, um item de
+   grid nunca fica mais estreito que o maior texto sem espaço pra quebrar
+   lá dentro (min-width:auto do CSS Grid), então um e-mail comprido de
+   verdade empurra a própria coluna pra largura maior, espremendo a
+   coluna vizinha (ex: o CPF do lado). Com min-width:0 a coluna pode
+   encolher até o tamanho combinado (1fr), e quem sobra sem espaço
+   quebra a própria linha (ver overflow-wrap abaixo) em vez de empurrar
+   o layout inteiro. */
+.ficha-campo { font-size: 14px; color: #333; min-width: 0; }
 .ficha-campo span { display: block; font-size: 12px; color: #999; margin-bottom: 2px; }
-.ficha-campo strong { font-size: 15px; color: #0f172a; }
+.ficha-campo strong { font-size: 15px; color: #0f172a; overflow-wrap: break-word; }
 .ficha-campo.full { grid-column: 1 / -1; }
-/* CPF (próprio e do responsável) quebrava no meio do número em coluna
-   estreita/celular -- o navegador trata o "-" como ponto de quebra de
-   linha válido por padrão (achado real dela, 03/set/2026, print de uma
-   ficha de menor de idade). Trava numa linha só -- o valor tem tamanho
-   fixo (14 caracteres), nunca chega a estourar a largura da coluna. */
+/* CPF (próprio e do responsável) continua numa linha só de propósito --
+   tamanho sempre fixo (14 caracteres), nunca precisa quebrar; travar
+   evita o "-" sendo tratado como ponto de quebra válido (achado real
+   dela, print de uma ficha de menor de idade). Já não força mais a
+   coluna a crescer (isso quem resolve é o min-width:0 acima). */
 #fp-cpf, #fp-responsavel-cpf { white-space: nowrap; }
 /* Entrega de Figurinos/Eventos (30/ago/2026): voltou a ser rótulo em cima,
    valor embaixo, igual Medidas -- achado dela: com texto mais longo
