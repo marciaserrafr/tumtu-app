@@ -6921,7 +6921,7 @@
         opcoes.forEach(o => {
             const publico = Array.isArray(o.publico) ? o.publico : ['ritmista', 'mestre', 'diretor', 'apoio', 'extra'];
             if (!publico.includes('extra')) return;
-            if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { tipoId: Number(o.tipo_id), nome: o.tipo_nome, tamanhos: [] };
+            if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { tipoId: Number(o.tipo_id), nome: o.tipo_nome, tamanhos: [], publico };
             porTipo[o.tipo_id].tamanhos.push(o.nome_exibicao);
         });
         extraMedidaTiposAtivos = Object.values(porTipo);
@@ -6979,7 +6979,7 @@
                     <option value="">Selecione</option>
                     ${extraOpcoesInstrumento.map(o => `<option value="${o.id}" ${String(ee.bateria_instrumento_id) === String(o.id) ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}
                 </select></div>` : ''}
-                ${extraMedidaTiposAtivos.map(t => `
+                ${extraMedidaTiposAtivos.filter(t => t.publico.includes(ee.grupo)).map(t => `
                     <div class="campo"><label>Tamanho: ${esc(t.nome)}</label><select id="extra-edit-medida-${t.tipoId}">
                         <option value="">Selecione</option>
                         ${t.tamanhos.map(nome => `<option value="${esc(nome)}" ${ee.medidas[t.tipoId] === nome ? 'selected' : ''}>${esc(nome)}</option>`).join('')}
