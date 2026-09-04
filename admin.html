@@ -9201,7 +9201,21 @@
     // Naipe e Diretor sem naipe são o MESMO cargo pra fins de permissão, só
     // divididos ali por causa da restrição de naipe (que "Aplicar a todos"
     // nunca mexe, ver aplicarPermissoesATodos).
-    const LABEL_PERFIL_PLURAL = { mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretores (Apoio)' };
+    // 04/set/2026, achado grave dela (aplicou sem querer permissão de
+    // Diretor de Naipe em Diretores comuns via "Aplicar a todos"): dentro
+    // de perfil='diretor' existem 3 níveis bem diferentes (comum/naipe/
+    // admin) -- "mesmo perfil" tem que respeitar isso, nunca tratar os 3
+    // como um grupo só. Mesma prioridade de PERMISSOES_GRUPOS ("admin
+    // manda mais").
+    function cargoChaveDiretoria(p) {
+        if (p.perfil !== 'diretor') return p.perfil;
+        const ehAdmin = p.eh_admin_bateria !== undefined ? p.eh_admin_bateria : p.ehAdminBateria;
+        const temNaipe = p.temNaipe !== undefined ? p.temNaipe : (Array.isArray(p.naipe) && p.naipe.length > 0);
+        if (ehAdmin) return 'diretor_admin';
+        if (temNaipe) return 'diretor_naipe';
+        return 'diretor';
+    }
+    const LABEL_PERFIL_PLURAL = { mestre: 'Mestres', diretor_admin: 'Diretores Admin', diretor_naipe: 'Diretores de Naipe', diretor: 'Diretores de Bateria', apoio: 'Diretores (Apoio)' };
 
     // Usado na lista de Permissões (linha por pessoa, precisa ser curto --
     // só a contagem, não cabe o detalhe todo numa lista de várias pessoas).
@@ -9447,7 +9461,7 @@
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, ehAdminBateria: !!p.eh_admin_bateria, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
         // O editor toma conta da tela inteira, por cima da sub-tela do
         // grupo (ou da lista, se veio da ficha) -- nunca os dois visíveis
         // ao mesmo tempo.
@@ -9484,7 +9498,8 @@
     // LABEL_PERFIL_PLURAL). Usado por "Copiar de" e "Aplicar a todos"
     // (03/set/2026, pedido dela).
     function permissoesPessoasMesmoPerfil(pe) {
-        return permissoesPessoaCache.filter(x => x.perfil === pe.perfil && x.id !== pe.id);
+        const chave = cargoChaveDiretoria(pe);
+        return permissoesPessoaCache.filter(x => x.id !== pe.id && cargoChaveDiretoria(x) === chave);
     }
     function renderizarEditorPermissoesPessoa() {
         const pe = permissoesPessoaEditando;
@@ -9493,7 +9508,7 @@
         if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
         const outrosMesmoPerfil = permissoesPessoasMesmoPerfil(pe);
-        const pluralPerfil = LABEL_PERFIL_PLURAL[pe.perfil] || 'outras pessoas desse cargo';
+        const pluralPerfil = LABEL_PERFIL_PLURAL[cargoChaveDiretoria(pe)] || 'outras pessoas desse cargo';
         const blocoCopiarDe = outrosMesmoPerfil.length === 0 ? '' : `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:#f7f6fb;border-radius:10px;">
                 <label for="pp-copiar-de" style="margin:0;font-size:13px;color:var(--cor-texto-secundario);white-space:nowrap;">Copiar permissão de</label>
                 <select id="pp-copiar-de" style="flex:1;min-width:140px;padding:6px 10px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-family:inherit;">
@@ -9685,7 +9700,7 @@
         });
         const modoCarteirinhaEl = document.getElementById('pp-modo-carteirinha');
         const modo_carteirinha_individual = modoCarteirinhaEl ? modoCarteirinhaEl.checked : !!pe.modoCarteirinhaIndividual;
-        const plural = LABEL_PERFIL_PLURAL[pe.perfil] || 'pessoas desse cargo';
+        const plural = LABEL_PERFIL_PLURAL[cargoChaveDiretoria(pe)] || 'pessoas desse cargo';
         const confirmou = await tumtuConfirmar(`Aplicar essa mesma permissão (o que está marcado acima) para os outros ${outros.length} ${plural}? Isso substitui o que cada um já tinha configurado -- a restrição por Naipe de cada um não muda.`, { textoConfirmar: 'Aplicar a todos' });
         if (!confirmou) return;
         const idsAlvo = [pe.id, ...outros.map(o => o.id)];
