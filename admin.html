@@ -29,7 +29,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=63"></script>
+    <script src="ficha-perfil.js?v=64"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1316,6 +1316,11 @@
            Ritmistas (.card-ritmista e companhia), pedido da Márcia,
            20/ago/2026: "quero que o padrão visual seja o mesmo". */
         .dir-badge-cargo { background: #e8e6f0; color: #5a5770; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        /* Admin desta bateria (04/set/2026) -- soma ao selo de cargo, nunca
+           substitui (Diretor de Bateria + Admin juntos). Cor sólida escura
+           de propósito -- é a única cor "forte" já usada em selo/botão no
+           app (Ativar, cabeçalho), pra se destacar dos selos neutros/suaves. */
+        .dir-badge-admin { background: #12101a; color: #ffffff; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
         /* Modal ficha de admin (Diretoria) */
         .modal-admin-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000;
@@ -1813,6 +1818,7 @@
             <div class="config-item" onclick="abrirConfigTelaSA('figurino')"><span>Figurino</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('eventos')"><span>Tipos de Evento</span><span class="config-item-seta">›</span></div>
             <div class="config-item" onclick="abrirConfigTelaSA('temporadas')"><span>Temporadas</span><span class="config-item-seta">›</span></div>
+            <div class="config-item" onclick="abrirConfigTelaSA('permissoes-padrao')"><span>Permissões Padrão</span><span class="config-item-seta">›</span></div>
         </div>
 
         <div id="sa-config-tela-instrumentos" class="config-subtela" style="display:none;">
@@ -1858,6 +1864,14 @@
             <button class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaTemporada()">+ Nova Temporada</button>
             <div id="sa-temporada-editor" style="display:none;"></div>
             <div id="sa-temporadas-lista" class="lista-cards"></div>
+        </div>
+
+        <div id="sa-config-tela-permissoes-padrao" class="config-subtela" style="display:none;">
+            <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
+            <div class="painel-titulo">Permissões Padrão</div>
+            <p class="config-sub-desc">Permissão com que Mestre, Diretor Admin, Diretor de Bateria e Diretor (Apoio) já nascem ao serem aprovados pela primeira vez, em qualquer bateria. Depois disso, cada um pode ser ajustado na mão em Permissões, normalmente.</p>
+            <div id="sa-permissoes-padrao-editor" style="display:none;"></div>
+            <div id="sa-permissoes-padrao-lista" class="lista-cards"></div>
         </div>
     </div>
 
@@ -2014,6 +2028,7 @@
         <div class="config-sub-desc" style="margin-bottom:16px;">Escolha um grupo pra ver ou editar o que cada pessoa pode fazer. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
         <div class="config-item" onclick="abrirPermissoesGrupo('ritmistas')"><span>Ritmistas</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('mestre')"><span>Mestre</span><span class="config-item-seta">›</span></div>
+        <div class="config-item" onclick="abrirPermissoesGrupo('diretor-admin')"><span>Diretor Admin</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('diretor-naipe')"><span>Diretor de Bateria - Naipe</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('diretor')"><span>Diretor de Bateria</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('apoio')"><span>Diretor (Apoio)</span><span class="config-item-seta">›</span></div>
@@ -2099,6 +2114,16 @@
                 style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
         </div>
         <div id="pe-perfis-lista-mestre" class="lista-cards"></div>
+    </div>
+
+    <div id="pe-tela-diretor-admin" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
+        <div class="painel-titulo">Diretor Admin</div>
+        <div style="margin-bottom:20px;">
+            <input type="text" id="pe-busca-diretor-admin" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesGrupo('diretor-admin')"
+                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        </div>
+        <div id="pe-perfis-lista-diretor-admin" class="lista-cards"></div>
     </div>
 
     <div id="pe-tela-diretor-naipe" class="config-subtela" style="display:none;">
@@ -3056,7 +3081,7 @@
              arquivo baixado -- em branco, funciona exatamente como antes. -->
         <div class="exp-secao">
             <div class="exp-secao-titulo">Título do relatório (opcional)</div>
-            <input type="text" id="exportTituloCustom" class="fc-input" placeholder="Ex: Camisas da Final" style="width:100%;box-sizing:border-box;">
+            <input type="text" id="exportTituloCustom" class="fc-input" placeholder="Ex: Camisas da Final" style="width:100%;box-sizing:border-box;display:block;">
         </div>
         <!-- Filtro de status/instrumento embutido no próprio modal -- só
              pra Ritmistas (Diretoria não tem instrumento). Antes dependia
@@ -3428,7 +3453,7 @@
     // atualização de fundo fica sem foto até a próxima vez que a tela abrir
     // de verdade. Conserto definitivo (fotos pequenas de verdade) fica pra
     // depois, com mais calma -- isso aqui é só a mitigação imediata.
-    const COLUNAS_RITMISTAS_SEM_FOTO = 'id,vinculo_id,pessoa_id,created_at,nome,cpf,nascimento,endereco,numero,complemento,bairro,cidade,estado,celular,apelido,email,status,tamanho_camisa,tamanho_fantasia,tamanho_sapato,declaracao_responsavel,motivo_status,motivo_instrumento,membro_desde,perfil,emergencia_nome,emergencia_parentesco,emergencia_celular,bateria_id,tipo_sanguineo,pais,nacionalidade,tamanho_calca,estrangeiro,tipo_documento,numero_documento,cadastro_completo,nivel_acesso,aprovado_por,auth_user_id,consentimento_confirmado,bateria_instrumento_id,instrumento_nome,instrumento_grupo,genero,genero_personalizado,nivel_acesso_id,foto_pos_x,foto_pos_y,capacidades,modo_carteirinha_individual,naipe,repique_bossa,restrito_ao_naipe,nao_desfila,observacoes,qr_token,responsavel_nome,responsavel_cpf,responsavel_celular';
+    const COLUNAS_RITMISTAS_SEM_FOTO = 'id,vinculo_id,pessoa_id,created_at,nome,cpf,nascimento,endereco,numero,complemento,bairro,cidade,estado,celular,apelido,email,status,tamanho_camisa,tamanho_fantasia,tamanho_sapato,declaracao_responsavel,motivo_status,motivo_instrumento,membro_desde,perfil,emergencia_nome,emergencia_parentesco,emergencia_celular,bateria_id,tipo_sanguineo,pais,nacionalidade,tamanho_calca,estrangeiro,tipo_documento,numero_documento,cadastro_completo,nivel_acesso,aprovado_por,auth_user_id,consentimento_confirmado,bateria_instrumento_id,instrumento_nome,instrumento_grupo,genero,genero_personalizado,nivel_acesso_id,foto_pos_x,foto_pos_y,capacidades,modo_carteirinha_individual,naipe,repique_bossa,restrito_ao_naipe,nao_desfila,observacoes,qr_token,responsavel_nome,responsavel_cpf,responsavel_celular,eh_admin_bateria';
 
     function reaproveitarFotosCache(listaNova, listaAntiga) {
         const fotosPorId = {};
@@ -9044,6 +9069,8 @@
             { chave: 'ver_dados_sensiveis_acessos', label: 'Visualizar Dados Pessoais', dependeDe: 'ver_acessos', subgrupo: 'Dados Pessoais' },
             { chave: 'ver_endereco_acessos', label: 'Visualizar Endereço', dependeDe: 'ver_acessos', subgrupo: 'Endereço' },
             { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Medidas' },
+            { chave: 'ver_admin_bateria', label: 'Visualizar Admin da Bateria', dependeDe: 'ver_acessos', subgrupo: 'Admin da Bateria' },
+            { chave: 'editar_admin_bateria', label: 'Editar Admin da Bateria', dependeDe: 'ver_admin_bateria', subgrupo: 'Admin da Bateria' },
             { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Naipe' },
             { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
             { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Eventos' },
@@ -9155,8 +9182,14 @@
     let permissoesGrupoAtual = null;
     const PERMISSOES_GRUPOS = {
         mestre: { label: 'Mestre', filtro: p => p.perfil === 'mestre' },
-        'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && Array.isArray(p.naipe) && p.naipe.length > 0 },
-        diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !(Array.isArray(p.naipe) && p.naipe.length > 0) },
+        // "Admin manda mais" (04/set/2026, confirmado por ela: na Imperatriz
+        // tem Diretor que é Naipe E Admin ao mesmo tempo) -- quem é Admin
+        // aparece só aqui, mesmo que também tenha Naipe declarado. O campo
+        // `naipe` continua salvo/editável na ficha normalmente, só não
+        // decide mais o agrupamento pra quem também é Admin.
+        'diretor-admin': { label: 'Diretor Admin', filtro: p => p.perfil === 'diretor' && p.eh_admin_bateria },
+        'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && !p.eh_admin_bateria && Array.isArray(p.naipe) && p.naipe.length > 0 },
+        diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !p.eh_admin_bateria && !(Array.isArray(p.naipe) && p.naipe.length > 0) },
         apoio: { label: 'Diretor (Apoio)', filtro: p => p.perfil === 'apoio' },
         // "Convidados" (01/set/2026) não entra aqui de propósito -- mesmo
         // caso de "Ritmistas": interruptor da bateria inteira, sem lista de
@@ -9287,7 +9320,7 @@
         // lista -- ele já nunca acessa o painel (modo_carteirinha_individual
         // sempre true pra esse grupo), mas capacidades nunca deviam nem
         // existir na ficha dele, muito menos serem ligáveis por essa tela.
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe,naipe`, { headers: authHeaders });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe,naipe,eh_admin_bateria`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
     }
@@ -9375,7 +9408,7 @@
         const detalhe = permissoesResumoTexto(p);
         return `<div class="item-card">
             <div class="item-info">
-                <div class="item-nome">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}</div>
+                <div class="item-nome">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}${p.eh_admin_bateria ? ' <span class="dir-badge-admin">Admin</span>' : ''}</div>
                 <div class="item-detalhe">${detalhe}</div>
             </div>
             <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditorPermissoesPessoa(${p.id})">Editar</button></div>
@@ -9674,6 +9707,138 @@
         }
     }
 
+    // ── Configurações globais → Permissões Padrão (04/set/2026, pedido
+    // dela: "nunca mais terei trabalho de lembrar disso, que tenho que
+    // colocar permissão para as pessoas assim que elas caem no cadastro").
+    // Molde de capacidades por cargo (Mestre/Diretor Admin/Diretor/Apoio),
+    // global (não por bateria) -- aplicado automaticamente na 1a aprovação
+    // de cada pessoa em QUALQUER bateria (trigger trg_permissoes_padrao_vinculos
+    // no banco, não código daqui). Reaproveita o MESMO editor de checkboxes
+    // já usado pra pessoa (GRUPOS_CAPACIDADES/togglePermissaoSecao/
+    // esc/mostrarToast) -- só troca onde lê e onde salva. Usa
+    // GRUPOS_CAPACIDADES direto (não gruposCapacidadesVisiveis, que filtra
+    // pelo modo de Convidados da bateria ATUAL carregada) -- molde global
+    // não tem "bateria atual", então mostra os dois modelos de Convidados
+    // possíveis, já que baterias diferentes podem usar modelos diferentes.
+    let permissoesPadraoCache = [];
+    let permissaoPadraoEditando = null;
+    const LABEL_PERMISSAO_PADRAO = { mestre: 'Mestre', diretor_admin: 'Diretor Admin', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
+    async function carregarPermissoesPadrao() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/permissoes_padrao`, { headers: authHeaders });
+        permissoesPadraoCache = res.ok ? await res.json() : [];
+    }
+    function renderizarPermissoesPadraoLista() {
+        const ordem = ['mestre', 'diretor_admin', 'diretor', 'apoio'];
+        const container = document.getElementById('sa-permissoes-padrao-lista');
+        if (!container) return;
+        container.innerHTML = ordem.map(cargo => {
+            const p = permissoesPadraoCache.find(x => x.cargo === cargo) || { cargo, capacidades: {} };
+            const ligadas = TODAS_CAPACIDADES.filter(c => p.capacidades && p.capacidades[c]).length;
+            const detalhe = ligadas === 0 ? 'Nenhuma permissão marcada ainda' : `${ligadas} permissão(ões) marcada(s)`;
+            return `<div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${LABEL_PERMISSAO_PADRAO[cargo]}</div>
+                    <div class="item-detalhe">${detalhe}</div>
+                </div>
+                <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditorPermissaoPadrao('${cargo}')">Editar</button></div>
+            </div>`;
+        }).join('');
+    }
+    function abrirEditorPermissaoPadrao(cargo) {
+        const p = permissoesPadraoCache.find(x => x.cargo === cargo) || { cargo, capacidades: {}, modo_carteirinha_individual: false };
+        permissaoPadraoEditando = { cargo, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual };
+        const lista = document.getElementById('sa-permissoes-padrao-lista');
+        if (lista) lista.style.display = 'none';
+        renderizarEditorPermissaoPadrao();
+        const editor = document.getElementById('sa-permissoes-padrao-editor');
+        if (editor) editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function fecharEditorPermissaoPadrao() {
+        permissaoPadraoEditando = null;
+        const editor = document.getElementById('sa-permissoes-padrao-editor');
+        if (editor) { editor.style.display = 'none'; editor.innerHTML = ''; }
+        const lista = document.getElementById('sa-permissoes-padrao-lista');
+        if (lista) lista.style.display = '';
+    }
+    function renderizarEditorPermissaoPadrao() {
+        const pe = permissaoPadraoEditando;
+        const editor = document.getElementById('sa-permissoes-padrao-editor');
+        if (!editor) return;
+        if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">Molde: ${LABEL_PERMISSAO_PADRAO[pe.cargo]}</div>
+            <div class="ficha-secao">
+                <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>Acesso ao TumTu<span class="ficha-secao-seta">▸</span></div>
+                <div class="ficha-secao-corpo" style="display:none;">
+                <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                    <input type="checkbox" id="ppp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
+                    <label for="ppp-modo-carteirinha" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
+                </div>
+                </div>
+            </div>
+            ${GRUPOS_CAPACIDADES.map(g => `
+                <div class="ficha-secao">
+                    <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>${esc(g.grupo)}<span class="ficha-secao-seta">▸</span></div>
+                    <div class="ficha-secao-corpo" style="display:none;">
+                    ${g.itens.map((c, idx) => {
+                        const trocouSubgrupo = c.subgrupo && c.subgrupo !== (g.itens[idx - 1] || {}).subgrupo;
+                        const subtitulo = trocouSubgrupo ? `<div class="config-grupo-titulo">${esc(c.subgrupo)}</div>` : '';
+                        if (c.semFuncionalidade) {
+                            return subtitulo + `
+                        <div style="margin-top:6px;font-size:12.5px;color:var(--cor-texto-muted);font-style:italic;">${esc(c.nota || 'Sem funcionalidade ainda')}</div>`;
+                        }
+                        return subtitulo + `
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                            <input type="checkbox" id="ppp-cap-${c.chave}" onchange="aplicarDependenciasPermissaoPadrao()" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.capacidades[c.chave] ? 'checked' : ''}>
+                            <label for="ppp-cap-${c.chave}" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">${c.label}</label>
+                        </div>`;
+                    }).join('')}
+                    </div>
+                </div>`).join('')}
+            <div class="form-rodape">
+                <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissaoPadrao()">Salvar</button></div>
+                <button class="btn-ficha" onclick="fecharEditorPermissaoPadrao()">Cancelar</button>
+            </div>
+        </div>`;
+        aplicarDependenciasPermissaoPadrao();
+    }
+    function aplicarDependenciasPermissaoPadrao() {
+        let mudou = true;
+        while (mudou) {
+            mudou = false;
+            Object.keys(DEPENDE_DE).forEach(chave => {
+                const el = document.getElementById('ppp-cap-' + chave);
+                const pai = document.getElementById('ppp-cap-' + DEPENDE_DE[chave]);
+                if (!el || !pai) return;
+                const travar = !pai.checked;
+                if (el.disabled !== travar) { el.disabled = travar; mudou = true; }
+                if (travar && el.checked) { el.checked = false; mudou = true; }
+            });
+        }
+    }
+    async function salvarPermissaoPadrao() {
+        const pe = permissaoPadraoEditando;
+        if (!pe) return;
+        const capacidades = {};
+        TODAS_CAPACIDADES.forEach(c => {
+            const el = document.getElementById('ppp-cap-' + c);
+            capacidades[c] = el ? el.checked : !!(pe.capacidades && pe.capacidades[c]);
+        });
+        const modoCarteirinhaEl = document.getElementById('ppp-modo-carteirinha');
+        const modo_carteirinha_individual = modoCarteirinhaEl ? modoCarteirinhaEl.checked : !!pe.modoCarteirinhaIndividual;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/permissoes_padrao?cargo=eq.${pe.cargo}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual }) });
+        if (res.ok) {
+            mostrarToast('Permissão padrão atualizada!');
+            fecharEditorPermissaoPadrao();
+            await carregarPermissoesPadrao();
+            renderizarPermissoesPadraoLista();
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
+    }
+
     // ── Configurações globais → Instrumentos (biblioteca mestre) ─────────
     let categoriasCache = [];
     let categoriaEditando = null;
@@ -9690,6 +9855,7 @@
         }
         if (nome === 'eventos') { fecharEditorEventoTipo(); carregarEventoTiposSA().then(renderizarEventoTiposListaSA); }
         if (nome === 'temporadas') { fecharEditorTemporada(); carregarTemporadasSA().then(renderizarTemporadasListaSA); }
+        if (nome === 'permissoes-padrao') { fecharEditorPermissaoPadrao(); carregarPermissoesPadrao().then(renderizarPermissoesPadraoLista); }
     }
     function voltarConfigListaSA() {
         document.querySelectorAll('#sa-painel-configuracoes-globais .config-subtela').forEach(el => el.style.display = 'none');
@@ -10749,6 +10915,7 @@
                     </div>
                     <div class="card-linha2">
                         <span class="dir-badge-cargo">${cargo}</span>
+                        ${a.eh_admin_bateria ? `<span class="dir-badge-admin">Admin</span>` : ''}
                         ${seloNaipe ? `<span class="pill-instrumento">🥁 ${seloNaipe}</span>` : ''}
                     </div>
                 </div>
