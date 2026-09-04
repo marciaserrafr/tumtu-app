@@ -9149,6 +9149,13 @@
         // caso de "Ritmistas": interruptor da bateria inteira, sem lista de
         // gente, então não precisa de filtro/fonte nenhum.
     };
+    // Plural pro botão "Aplicar a todos" (03/set/2026, pedido dela: "tá me
+    // dando um trabalho danado marcar tudo igualzinho para todos"). Mesmo
+    // agrupamento de PERMISSOES_GRUPOS, mas por perfil puro -- Diretor de
+    // Naipe e Diretor sem naipe são o MESMO cargo pra fins de permissão, só
+    // divididos ali por causa da restrição de naipe (que "Aplicar a todos"
+    // nunca mexe, ver aplicarPermissoesATodos).
+    const LABEL_PERFIL_PLURAL = { mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretores (Apoio)' };
 
     // Usado na lista de Permissões (linha por pessoa, precisa ser curto --
     // só a contagem, não cabe o detalhe todo numa lista de várias pessoas).
@@ -9426,17 +9433,35 @@
         await carregarPermissoesEscola();
         abrirEditorPermissoesPessoa(vinculoId, true);
     }
+    // Mesmo cargo (mestre/diretor/apoio), qualquer bateria -- Diretor de
+    // Naipe e Diretor sem naipe contam como o mesmo cargo aqui (ver
+    // LABEL_PERFIL_PLURAL). Usado por "Copiar de" e "Aplicar a todos"
+    // (03/set/2026, pedido dela).
+    function permissoesPessoasMesmoPerfil(pe) {
+        return permissoesPessoaCache.filter(x => x.perfil === pe.perfil && x.id !== pe.id);
+    }
     function renderizarEditorPermissoesPessoa() {
         const pe = permissoesPessoaEditando;
         const editor = document.getElementById('pe-editor');
         if (!editor) return;
         if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
+        const outrosMesmoPerfil = permissoesPessoasMesmoPerfil(pe);
+        const pluralPerfil = LABEL_PERFIL_PLURAL[pe.perfil] || 'outras pessoas desse cargo';
+        const blocoCopiarDe = outrosMesmoPerfil.length === 0 ? '' : `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:#f7f6fb;border-radius:10px;">
+                <label for="pp-copiar-de" style="margin:0;font-size:13px;color:var(--cor-texto-secundario);white-space:nowrap;">Copiar permissão de</label>
+                <select id="pp-copiar-de" style="flex:1;min-width:140px;padding:6px 10px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-family:inherit;">
+                    <option value="">Selecione...</option>
+                    ${outrosMesmoPerfil.map(o => `<option value="${o.id}">${esc(o.nome)}</option>`).join('')}
+                </select>
+                <button class="btn-ficha" onclick="copiarPermissoesDe()">Copiar</button>
+            </div>`;
         editor.innerHTML = `<div class="card-form">
             ${pe.veioDaFicha
                 ? `<div style="margin-bottom:8px;"><span onclick="abrirFichaAdmin(${pe.id})" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Voltar para a ficha</span></div>`
                 : (pe.grupoOrigem && PERMISSOES_GRUPOS[pe.grupoOrigem] ? `<div style="margin-bottom:8px;"><span onclick="fecharEditorPermissoesPessoa()" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← ${esc(PERMISSOES_GRUPOS[pe.grupoOrigem].label)}</span></div>` : '')}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
+            ${blocoCopiarDe}
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>Acesso ao TumTu<span class="ficha-secao-seta">▸</span></div>
                 <div class="ficha-secao-corpo" style="display:none;">
@@ -9485,7 +9510,10 @@
                     </div>
                 </div>`).join('')}
             <div class="form-rodape">
-                <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button></div>
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button>
+                    ${outrosMesmoPerfil.length > 0 ? `<button class="btn-ficha" onclick="aplicarPermissoesATodos()">Aplicar a todos os ${esc(pluralPerfil)}</button>` : ''}
+                </div>
                 <button class="btn-ficha" onclick="fecharEditorPermissoesPessoa()">Cancelar</button>
             </div>
         </div>`;
@@ -9567,6 +9595,70 @@
             else voltarPermissoesLista();
         }
         else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
+    }
+    // "Copiar permissão de [Fulano]" (03/set/2026, pedido dela: "tá me
+    // dando um trabalho danado marcar tudo igualzinho para todos"). Só
+    // preenche os checkboxes na tela com o que Fulano já tem hoje -- não
+    // grava nada sozinho, ela ainda precisa clicar em Salvar (dá pra
+    // conferir/ajustar antes). Restrito ao naipe só copia se ESSA pessoa
+    // (não a de origem) tiver naipe declarado -- senão o checkbox nem
+    // existe na tela pra ela marcar.
+    function copiarPermissoesDe() {
+        const pe = permissoesPessoaEditando;
+        if (!pe) return;
+        const sel = document.getElementById('pp-copiar-de');
+        const origemId = sel && sel.value ? Number(sel.value) : null;
+        if (!origemId) return;
+        const origem = permissoesPessoaCache.find(x => x.id === origemId);
+        if (!origem) return;
+        pe.capacidades = { ...(origem.capacidades || {}) };
+        pe.modoCarteirinhaIndividual = !!origem.modo_carteirinha_individual;
+        if (pe.temNaipe) pe.restritoAoNaipe = !!origem.restrito_ao_naipe;
+        renderizarEditorPermissoesPessoa();
+        mostrarToast(`Permissão de ${origem.nome} copiada pra tela -- confira e clique em Salvar.`);
+    }
+    // "Aplicar a todos os [cargo]" (03/set/2026, mesmo pedido) -- grava de
+    // uma vez só (sem passar por Salvar) a permissão que está marcada AGORA
+    // na tela pra essa pessoa E pra todo mundo do mesmo cargo nesta bateria,
+    // numa única chamada (id=in.(...), PostgREST atualiza todas as linhas
+    // que baterem no filtro). De propósito, NÃO inclui restrito_ao_naipe --
+    // é um interruptor pessoal (cada Diretor de Naipe restringe a SI mesmo),
+    // replicar às cegas podia ligar a restrição em alguém sem considerar se
+    // isso faz sentido pro naipe dele. Pede confirmação antes (mesmo modal
+    // personalizado usado em excluirX) porque sobrescreve o que os outros
+    // já tinham configurado.
+    async function aplicarPermissoesATodos() {
+        const pe = permissoesPessoaEditando;
+        if (!pe) return;
+        const outros = permissoesPessoasMesmoPerfil(pe);
+        if (outros.length === 0) return;
+        const capacidades = {};
+        TODAS_CAPACIDADES.forEach(c => {
+            const el = document.getElementById('pp-cap-' + c);
+            capacidades[c] = el ? el.checked : !!(pe.capacidades && pe.capacidades[c]);
+        });
+        const modoCarteirinhaEl = document.getElementById('pp-modo-carteirinha');
+        const modo_carteirinha_individual = modoCarteirinhaEl ? modoCarteirinhaEl.checked : !!pe.modoCarteirinhaIndividual;
+        const plural = LABEL_PERFIL_PLURAL[pe.perfil] || 'pessoas desse cargo';
+        const confirmou = await tumtuConfirmar(`Aplicar essa mesma permissão (o que está marcado acima) para os outros ${outros.length} ${plural}? Isso substitui o que cada um já tinha configurado -- a restrição por Naipe de cada um não muda.`, { textoConfirmar: 'Aplicar a todos' });
+        if (!confirmou) return;
+        const idsAlvo = [pe.id, ...outros.map(o => o.id)];
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=in.(${idsAlvo.join(',')})`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual }) });
+        if (res.ok) {
+            mostrarToast(`Permissão aplicada a ${idsAlvo.length} ${plural}.`);
+            const grupoOrigem = pe.grupoOrigem;
+            const veioDaFicha = pe.veioDaFicha;
+            const id = pe.id;
+            permissoesPessoaEditando = null;
+            await carregarPermissoesEscola();
+            renderizarEditorPermissoesPessoa();
+            if (veioDaFicha) abrirFichaAdmin(id);
+            else if (grupoOrigem) abrirPermissoesGrupo(grupoOrigem);
+            else voltarPermissoesLista();
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
     }
 
     // ── Configurações globais → Instrumentos (biblioteca mestre) ─────────
