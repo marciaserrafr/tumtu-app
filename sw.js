@@ -15,7 +15,7 @@ const APP_SHELL = [
   './figurino',
   './redefinir-senha',
   './politica-privacidade',
-  './ficha-perfil.js?v=65',
+  './ficha-perfil.js?v=66',
   './ficha-perfil.partial.html?v=34',
   './faceid.js?v=2',
   './config-escola.js?v=4',

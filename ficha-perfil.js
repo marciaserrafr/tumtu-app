@@ -1456,9 +1456,19 @@ async function fpAbrirSeletorFoto() {
 // (object-fit + object-position), que dá pra arrastar depois.
 function fpPreviewFoto(input) {
     if (!input.files || !input.files[0]) return;
+    // Mesma correção de cadastro.html (04/set/2026, suporte real): sem isso,
+    // uma foto que o navegador não consiga ler (HEIC de iPhone, arquivo
+    // corrompido) falhava em silêncio -- a pessoa escolhia a foto, nada
+    // acontecia na tela, sem nenhum aviso do motivo.
     const reader = new FileReader();
+    reader.onerror = function () {
+        if (typeof mostrarToast === 'function') mostrarToast('Não consegui ler esse arquivo — tente escolher a foto de novo ou tire uma nova.', 'erro');
+    };
     reader.onload = function (e) {
         const img = new Image();
+        img.onerror = function () {
+            if (typeof mostrarToast === 'function') mostrarToast('Essa foto não pôde ser aberta (formato não reconhecido) — tente outra foto ou tire uma nova.', 'erro');
+        };
         img.onload = function () {
             const MAX = 1000;
             const escala = Math.min(1, MAX / Math.max(img.width, img.height));
