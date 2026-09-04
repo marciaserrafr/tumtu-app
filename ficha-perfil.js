@@ -348,14 +348,17 @@ function fpProblemasDadosProprios(pessoa) {
 // indicado -- cada tela (admin.html/carteirinha.html) já tem seu próprio
 // container fixo pra isso, só chama essa função depois que os dados da
 // pessoa terminam de carregar (nunca antes -- mesma regra de "tela sempre
-// completa" do resto do app).
+// completa" do resto do app). Cobre TODOS os campos (03/set/2026, pedido
+// dela: "todo usuário que tiver com algum erro, quando logar vai ser
+// apresentada uma mensagem de alerta") -- não só celular/emergência, que
+// era o escopo (errado) da primeira versão. fpProblemasFicha é a mesma
+// checagem usada dentro da ficha (ver fpIniciar).
 function fpRenderizarAvisoDadosProprios(pessoa, elId) {
     const el = document.getElementById(elId);
     if (!el) return;
-    const problemas = fpProblemasDadosProprios(pessoa);
+    const problemas = (typeof fpProblemasFicha === 'function') ? fpProblemasFicha(pessoa) : [];
     if (problemas.length === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
-    const lista = problemas.map(p => p.rotulo).join(' e ');
-    el.innerHTML = `⚠️ ${lista} incompleto no seu perfil — toque em "Editar" no seu perfil pra corrigir.`;
+    el.innerHTML = `⚠️ ${problemas.join(' — ')}. Toque em "Editar" no seu perfil -- se não conseguir corrigir sozinho, fale com a Diretoria.`;
     el.style.display = 'block';
 }
 
@@ -738,6 +741,47 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     fpEl('fp-btn-editar').style.display = editaveis.size > 0 ? 'inline-flex' : 'none';
     fpEl('fp-btn-salvar').style.display = 'none';
     fpEl('fp-btn-cancelar').style.display = 'none';
+
+    // Aviso de dado incompleto visível assim que a ficha ABRE (03/set/2026,
+    // pedido dela: "eu não quero ter que ficar editando" -- antes só
+    // aparecia se alguém tentasse Salvar). Cobre TODOS os campos (CPF,
+    // nascimento, celular, celular de emergência, CPF/celular do
+    // responsável), não só os que a própria pessoa consegue editar --
+    // quem está vendo (Super Admin, Diretoria) só precisa olhar a ficha,
+    // sem precisar clicar em Editar/Salvar antes.
+    const fpProblemasView = fpProblemasFicha(alvo);
+    if (fpProblemasView.length > 0) {
+        mensagem.className = 'fp-mensagem erro';
+        mensagem.textContent = '⚠️ ' + fpProblemasView.join(' — ');
+        mensagem.style.display = 'block';
+    }
+}
+
+// Junta todos os problemas de dado incompleto de UMA pessoa (CPF,
+// nascimento, celular, celular de emergência, CPF/celular do responsável)
+// -- usado tanto no aviso ao abrir a ficha (visão de qualquer um) quanto
+// no aviso de login (fpRenderizarAvisoDadosProprios, só celular/emergência,
+// os 2 que a própria pessoa consegue corrigir sozinha).
+function fpProblemasFicha(p) {
+    if (!p) return [];
+    const msgs = [];
+    if (p.cpf && fpApenasDigitos(p.cpf).length !== 11) msgs.push('CPF incompleto (confira os 11 números)');
+    if (p.nascimento) {
+        const d = new Date(p.nascimento + 'T00:00:00');
+        if (d > new Date()) msgs.push('Nascimento no futuro');
+        else {
+            const limite = new Date(); limite.setFullYear(limite.getFullYear() - FP_IDADE_MAXIMA);
+            if (d < limite) msgs.push('Nascimento indica mais de 100 anos');
+        }
+    }
+    const ehBrasileira = p.nacionalidade === 'Brasileira' || !p.nacionalidade;
+    if (ehBrasileira) {
+        if (p.celular && fpApenasDigitos(p.celular).length !== 11) msgs.push('Celular incompleto (confira os 11 números)');
+        if (p.emergencia_celular && fpApenasDigitos(p.emergencia_celular).length !== 11) msgs.push('Celular de emergência incompleto');
+        if (p.responsavel_celular && fpApenasDigitos(p.responsavel_celular).length !== 11) msgs.push('Celular do responsável incompleto');
+    }
+    if (p.responsavel_cpf && fpApenasDigitos(p.responsavel_cpf).length !== 11) msgs.push('CPF do responsável incompleto');
+    return msgs;
 }
 
 async function fpCarregarOpcoesInstrumento(bateriaId) {
