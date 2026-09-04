@@ -200,6 +200,12 @@
 .ficha-campo span { display: block; font-size: 12px; color: #999; margin-bottom: 2px; }
 .ficha-campo strong { font-size: 15px; color: #0f172a; }
 .ficha-campo.full { grid-column: 1 / -1; }
+/* CPF (próprio e do responsável) quebrava no meio do número em coluna
+   estreita/celular -- o navegador trata o "-" como ponto de quebra de
+   linha válido por padrão (achado real dela, 03/set/2026, print de uma
+   ficha de menor de idade). Trava numa linha só -- o valor tem tamanho
+   fixo (14 caracteres), nunca chega a estourar a largura da coluna. */
+#fp-cpf, #fp-responsavel-cpf { white-space: nowrap; }
 /* Entrega de Figurinos/Eventos (30/ago/2026): voltou a ser rótulo em cima,
    valor embaixo, igual Medidas -- achado dela: com texto mais longo
    ("Não entregue"), a versão lado a lado (usada de 26 a 30/ago) ficava
