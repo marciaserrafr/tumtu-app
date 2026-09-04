@@ -417,7 +417,12 @@ function fpRenderizarAvisoDadosProprios(pessoa, elId) {
     if (!el) return;
     const problemas = (typeof fpProblemasFicha === 'function') ? fpProblemasFicha(pessoa) : [];
     if (problemas.length === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
-    el.innerHTML = `⚠️ ${problemas.join(' — ')}. Toque em "Editar" no seu perfil -- se não conseguir corrigir sozinho, fale com a Diretoria.`;
+    // "Fale com a Diretoria" não faz sentido pra quem já É Diretoria
+    // (achado dela, 04/set/2026, olhando o aviso do Mestre Lolo) -- Mestre/
+    // Diretor/Apoio caem no suporte em vez disso.
+    const ehDiretoria = pessoa && ['mestre', 'diretor', 'apoio'].includes(pessoa.perfil);
+    const contato = ehDiretoria ? 'fale com o suporte' : 'fale com a Diretoria';
+    el.innerHTML = `⚠️ ${problemas.join(' — ')}. Toque em "Editar" no seu perfil -- se não conseguir corrigir sozinho, ${contato}.`;
     el.style.display = 'block';
 }
 
