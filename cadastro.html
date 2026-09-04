@@ -1158,10 +1158,14 @@
 
         const cargo = params.get('cargo');
         const bateriaId = params.get('bateria_id');
-        // Convidado "sem carteirinha" (04/set/2026, decisão dela): único jeito
-        // de cadastrar esse tipo de Convidado é por aqui, nunca por link -- ver
-        // project_unificacao_convidado_especial_desenho na memória.
-        const ehConvidadoSemCarteirinha = params.get('convidado_especial') === '1';
+        // Convidado (04/set/2026) -- cadastro manual existe nos dois modelos
+        // (com/sem carteirinha, decisão dela: "eu quero que tenha isso nos
+        // dois modelos"). O que muda é só o formulário: bateria "com
+        // carteirinha" continua pedindo tudo (a pessoa vai logar de verdade);
+        // "sem carteirinha" reduz pra nome + tamanho de figurino. Isso é
+        // decidido pelo modelo REAL da bateria (buscado abaixo), não por um
+        // parâmetro solto na URL, pra nunca ficar dessincronizado.
+        const ehConvidado = params.get('convidado_especial') === '1';
         const usuarioLogado = JSON.parse(localStorage.getItem('ritmista') || 'null');
 
         const { data: sessionDataManual } = await sb.auth.getSession();
@@ -1170,13 +1174,13 @@
 
         let autorizado = !!usuarioLogado && (
             usuarioLogado.perfil === 'super_admin' ||
-            (!ehConvidadoSemCarteirinha && cargo === 'ritmista' && (usuarioLogado.perfil === 'mestre' || usuarioLogado.perfil === 'diretor' || usuarioLogado.perfil === 'apoio'))
+            (!ehConvidado && cargo === 'ritmista' && (usuarioLogado.perfil === 'mestre' || usuarioLogado.perfil === 'diretor' || usuarioLogado.perfil === 'apoio'))
         );
         // Convidado não depende do perfil de quem cadastra, e sim de uma
         // capacidade granular (criar_cadastro_convidados_especiais) -- mesmo
         // conceito de tenhoCapacidade() em admin.html, só que direto via REST
         // (esta tela não carrega minhasCapacidades).
-        if (!autorizado && ehConvidadoSemCarteirinha && usuarioLogado && usuarioLogado.pessoa_id && bateriaId) {
+        if (!autorizado && ehConvidado && usuarioLogado && usuarioLogado.pessoa_id && bateriaId) {
             const resCap = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?pessoa_id=eq.${usuarioLogado.pessoa_id}&bateria_id=eq.${bateriaId}&status=eq.aprovado&select=capacidades`, { headers });
             const linhasCap = resCap.ok ? await resCap.json() : [];
             autorizado = linhasCap.some(v => v.capacidades && v.capacidades.criar_cadastro_convidados_especiais === true);
@@ -1190,15 +1194,16 @@
             return;
         }
 
-        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome`, { headers });
+        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome,convidado_tem_carteirinha`, { headers });
         const baterias = await resBat.json();
+        const ehConvidadoSemCarteirinha = ehConvidado && !(baterias[0] && baterias[0].convidado_tem_carteirinha);
 
-        modoManualAtual = { cargo, bateriaId: Number(bateriaId), criadoPorId: usuarioLogado.id, ehConvidadoSemCarteirinha };
+        modoManualAtual = { cargo, bateriaId: Number(bateriaId), criadoPorId: usuarioLogado.id, ehConvidado, ehConvidadoSemCarteirinha };
         atualizarCampoInstrumento(cargo);
         await carregarOpcoesInstrumento(Number(bateriaId));
-        await carregarOpcoesMedidas(Number(bateriaId), cargo, ehConvidadoSemCarteirinha);
+        await carregarOpcoesMedidas(Number(bateriaId), cargo, ehConvidado);
         const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor de Bateria' : cargo === 'apoio' ? 'Diretor (Apoio)' : 'Ritmista';
-        document.getElementById('convite-cargo').textContent = ehConvidadoSemCarteirinha ? `Convidado – ${cargoLabel}` : cargoLabel;
+        document.getElementById('convite-cargo').textContent = ehConvidado ? `Convidado – ${cargoLabel}` : cargoLabel;
         document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
         document.getElementById('convite-banner').style.display = 'block';
         document.getElementById('bloco-consentimento').style.display = 'block';
@@ -1567,7 +1572,7 @@
             }
             dados.senha = senha;
             dados.consentimento_confirmado = true;
-            dados.eh_convidado = modoManualAtual.ehConvidadoSemCarteirinha === true;
+            dados.eh_convidado = modoManualAtual.ehConvidado === true;
             const resFn = await fetch(`${SUPABASE_URL}/functions/v1/admin-create-user`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },

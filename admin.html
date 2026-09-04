@@ -2523,11 +2523,11 @@
             <span class="config-item-seta" id="cadastroConvidadoEspecialSeta">›</span>
         </div>
         <div id="cadastroConvidadoEspecialConteudo" style="display:none;margin-top:12px;">
-            <!-- Bateria "com carteirinha": autocadastro por link (mesmo
-                 padrão de Ritmista/Diretoria). Bateria "sem carteirinha"
-                 (04/set/2026, decisão dela): só cadastro manual, direto aqui
-                 -- nunca por link. Só um dos dois blocos aparece por vez,
-                 decidido em renderizarLinksCadastroConvidadoEspecial(). -->
+            <!-- Cadastro manual ("+ Cadastrar Convidado") existe nos dois
+                 modelos (com/sem carteirinha) -- pedido dela, 04/set/2026.
+                 Link de autocadastro só existe pra bateria "com carteirinha"
+                 (mesmo padrão de Ritmista/Diretoria: botão E link juntos).
+                 Ver renderizarLinksCadastroConvidadoEspecial(). -->
             <div id="botoesCadastroConvidadoEspecial" style="display:none;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
                 <button class="btn-novo" id="btnCadastrarConvidadoRitmista" onclick="irParaCadastroManualConvidado('ritmista')">+ Cadastrar Convidado Ritmista</button>
                 <button class="btn-novo" id="btnCadastrarConvidadoDiretor" onclick="irParaCadastroManualConvidado('diretor')">+ Cadastrar Convidado Diretor de Bateria</button>
@@ -6684,8 +6684,7 @@
         const be = document.getElementById('btnExportarConvidadosEspeciais');
         if (be) be.style.display = (souSuperAdmin || tenhoCapacidade('exportar_convidados_especiais')) ? '' : 'none';
         const cc = document.getElementById('cadastroConvidadoEspecialCabecalho');
-        const capNovoCadastro = modoConvidadosEspecial() ? 'copiar_link_convidados_especiais' : 'criar_cadastro_convidados_especiais';
-        if (cc) cc.style.display = (souSuperAdmin || tenhoCapacidade(capNovoCadastro)) ? '' : 'none';
+        if (cc) cc.style.display = (souSuperAdmin || tenhoCapacidade('criar_cadastro_convidados_especiais') || tenhoCapacidade('copiar_link_convidados_especiais')) ? '' : 'none';
         await carregarConvidadosEspeciais();
     }
 
@@ -6739,21 +6738,21 @@
         const botoes = document.getElementById('botoesCadastroConvidadoEspecial');
         if (!div) return;
         const habilitado = modoConvidadosEspecial();
-        if (!habilitado) {
-            // Sem carteirinha: só cadastro manual, nunca por link.
-            div.innerHTML = '';
-            if (botoes) {
-                botoes.style.display = 'flex';
-                const podeCriar = souSuperAdmin || tenhoCapacidade('criar_cadastro_convidados_especiais');
-                botoes.querySelectorAll('button').forEach(b => {
-                    b.disabled = !podeCriar;
-                    b.style.opacity = podeCriar ? '1' : '0.5';
-                    b.style.cursor = podeCriar ? 'pointer' : 'not-allowed';
-                });
-            }
-            return;
+        // Cadastro manual ("+ Cadastrar Convidado") existe nos dois modelos
+        // (com/sem carteirinha, pedido dela: "eu quero que tenha isso nos
+        // dois modelos") -- igual Ritmistas/Diretoria, que já têm botão E
+        // link juntos. Só o link de autocadastro é exclusivo de quem tem
+        // carteirinha (sem carteirinha nunca teve link).
+        if (botoes) {
+            botoes.style.display = 'flex';
+            const podeCriar = souSuperAdmin || tenhoCapacidade('criar_cadastro_convidados_especiais');
+            botoes.querySelectorAll('button').forEach(b => {
+                b.disabled = !podeCriar;
+                b.style.opacity = podeCriar ? '1' : '0.5';
+                b.style.cursor = podeCriar ? 'pointer' : 'not-allowed';
+            });
         }
-        if (botoes) botoes.style.display = 'none';
+        if (!habilitado) { div.innerHTML = ''; return; }
         const codigo = codigoConviteBateria || bateriaIdContexto();
         if (!codigo) { div.innerHTML = ''; return; }
         const podeCopiar = souSuperAdmin || tenhoCapacidade('copiar_link_convidados_especiais');
