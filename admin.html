@@ -29,7 +29,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=63"></script>
+    <script src="ficha-perfil.js?v=64"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -2028,6 +2028,7 @@
         <div class="config-sub-desc" style="margin-bottom:16px;">Escolha um grupo pra ver ou editar o que cada pessoa pode fazer. Isolado da ficha de Diretoria de propósito — ter acesso à Diretoria não dá acesso a esta tela.</div>
         <div class="config-item" onclick="abrirPermissoesGrupo('ritmistas')"><span>Ritmistas</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('mestre')"><span>Mestre</span><span class="config-item-seta">›</span></div>
+        <div class="config-item" onclick="abrirPermissoesGrupo('diretor-admin')"><span>Diretor Admin</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('diretor-naipe')"><span>Diretor de Bateria - Naipe</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('diretor')"><span>Diretor de Bateria</span><span class="config-item-seta">›</span></div>
         <div class="config-item" onclick="abrirPermissoesGrupo('apoio')"><span>Diretor (Apoio)</span><span class="config-item-seta">›</span></div>
@@ -2113,6 +2114,16 @@
                 style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
         </div>
         <div id="pe-perfis-lista-mestre" class="lista-cards"></div>
+    </div>
+
+    <div id="pe-tela-diretor-admin" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarPermissoesLista()">← Permissões</button>
+        <div class="painel-titulo">Diretor Admin</div>
+        <div style="margin-bottom:20px;">
+            <input type="text" id="pe-busca-diretor-admin" placeholder="Buscar por nome ou apelido..." oninput="renderizarListaPermissoesGrupo('diretor-admin')"
+                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        </div>
+        <div id="pe-perfis-lista-diretor-admin" class="lista-cards"></div>
     </div>
 
     <div id="pe-tela-diretor-naipe" class="config-subtela" style="display:none;">
@@ -9060,6 +9071,8 @@
             { chave: 'editar_medidas_diretoria', label: 'Editar Medida de outra pessoa da Diretoria', dependeDe: 'ver_acessos', subgrupo: 'Medidas' },
             { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Naipe' },
             { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
+            { chave: 'ver_admin_bateria', label: 'Visualizar Admin da Bateria', dependeDe: 'ver_acessos', subgrupo: 'Admin da Bateria' },
+            { chave: 'editar_admin_bateria', label: 'Editar Admin da Bateria', dependeDe: 'ver_admin_bateria', subgrupo: 'Admin da Bateria' },
             { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Eventos' },
             { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Entrega de Figurinos' },
             { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Saúde' },
@@ -9169,8 +9182,14 @@
     let permissoesGrupoAtual = null;
     const PERMISSOES_GRUPOS = {
         mestre: { label: 'Mestre', filtro: p => p.perfil === 'mestre' },
-        'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && Array.isArray(p.naipe) && p.naipe.length > 0 },
-        diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !(Array.isArray(p.naipe) && p.naipe.length > 0) },
+        // "Admin manda mais" (04/set/2026, confirmado por ela: na Imperatriz
+        // tem Diretor que é Naipe E Admin ao mesmo tempo) -- quem é Admin
+        // aparece só aqui, mesmo que também tenha Naipe declarado. O campo
+        // `naipe` continua salvo/editável na ficha normalmente, só não
+        // decide mais o agrupamento pra quem também é Admin.
+        'diretor-admin': { label: 'Diretor Admin', filtro: p => p.perfil === 'diretor' && p.eh_admin_bateria },
+        'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && !p.eh_admin_bateria && Array.isArray(p.naipe) && p.naipe.length > 0 },
+        diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !p.eh_admin_bateria && !(Array.isArray(p.naipe) && p.naipe.length > 0) },
         apoio: { label: 'Diretor (Apoio)', filtro: p => p.perfil === 'apoio' },
         // "Convidados" (01/set/2026) não entra aqui de propósito -- mesmo
         // caso de "Ritmistas": interruptor da bateria inteira, sem lista de
@@ -9428,7 +9447,7 @@
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, ehAdminBateria: !!p.eh_admin_bateria, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
         // O editor toma conta da tela inteira, por cima da sub-tela do
         // grupo (ou da lista, se veio da ficha) -- nunca os dois visíveis
         // ao mesmo tempo.
@@ -9496,11 +9515,6 @@
                     <input type="checkbox" id="pp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
                     <label for="pp-modo-carteirinha" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
                 </div>
-                ${pe.perfil === 'diretor' ? `
-                <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;">
-                    <input type="checkbox" id="pp-admin-bateria" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.ehAdminBateria ? 'checked' : ''}>
-                    <label for="pp-admin-bateria" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Admin desta bateria — já nasce com a Permissão Padrão de Diretor Admin ao ser aprovado (Configurações → Permissões Padrão)</label>
-                </div>` : ''}
                 </div>
             </div>
             ${gruposCapacidadesVisiveis().map(g => `
@@ -9615,12 +9629,7 @@
         // salva false (nunca ficou disponível pra marcar mesmo).
         const restritoNaipeEl = document.getElementById('pp-restrito-naipe');
         const restrito_ao_naipe = restritoNaipeEl ? restritoNaipeEl.checked : false;
-        // "Admin desta bateria" (04/set/2026) só existe na tela pra Diretor
-        // de Bateria (ver renderizarEditorPermissoesPessoa) -- mesmo padrão
-        // de "Restrito ao naipe" logo acima.
-        const adminBateriaEl = document.getElementById('pp-admin-bateria');
-        const eh_admin_bateria = adminBateriaEl ? adminBateriaEl.checked : false;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual, restrito_ao_naipe, eh_admin_bateria }) });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual, restrito_ao_naipe }) });
         if (res.ok) {
             mostrarToast('Permissões atualizadas!');
             const grupoOrigem = pe.grupoOrigem;

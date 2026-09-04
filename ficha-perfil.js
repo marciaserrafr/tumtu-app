@@ -84,6 +84,7 @@ let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: nu
 const FP_CAMPO_TABELA = {
     membro_desde: 'vinculos', bateria_instrumento_id: 'vinculos',
     naipe: 'vinculos', repique_bossa: 'vinculos', observacoes: 'vinculos',
+    eh_admin_bateria: 'vinculos',
 };
 
 // Naipe (Diretor) guarda os instrumentos marcados como array de nomes --
@@ -124,7 +125,7 @@ function fpEl(id) {
 // etc.). Autoedição e Super Admin não mudam -- ramos abaixo, inalterados.
 function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil, ehConvidado) {
     if (atorPerfil === 'super_admin') {
-        return new Set(FP_CAMPOS.map(c => c.col).concat(['foto_url', 'bateria_instrumento_id', 'naipe', 'repique_bossa', 'medidas']));
+        return new Set(FP_CAMPOS.map(c => c.col).concat(['foto_url', 'bateria_instrumento_id', 'naipe', 'repique_bossa', 'medidas', 'eh_admin_bateria']));
     }
 
     if (!autoedicao && ehConvidado && (atorPerfil === 'diretor' || atorPerfil === 'mestre' || atorPerfil === 'apoio')) {
@@ -167,6 +168,10 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil, ehConvidado) {
         const campos = new Set();
         if (alvoPerfil === 'diretor' && typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_naipe')) campos.add('naipe');
         if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_medidas_diretoria')) campos.add('medidas');
+        // "Admin desta bateria" (04/set/2026) -- mesmo padrão de Naipe logo
+        // acima: capacidade própria (editar_admin_bateria), nunca autoeditado
+        // (ninguém se marca Admin sozinho).
+        if (alvoPerfil === 'diretor' && typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_admin_bateria')) campos.add('eh_admin_bateria');
         return campos;
     }
 
@@ -196,7 +201,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil, ehConvidado) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=32');
+        const res = await fetch('ficha-perfil.partial.html?v=33');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -770,6 +775,18 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         secaoNaipe.style.display = podeVerNaipe ? '' : 'none';
         if (podeVerNaipe) fpEl('fp-naipe').textContent = fpResolverSeloNaipe(alvo.naipe) || '—';
     }
+
+    // "Admin desta bateria" (04/set/2026) -- mesmo padrão de Naipe logo
+    // acima, capacidades próprias (ver_admin_bateria/editar_admin_bateria).
+    const secaoAdminBateria = fpEl('fp-secao-admin-bateria');
+    if (secaoAdminBateria) {
+        const podeVerAdminBateria = alvo.perfil === 'diretor' && alvo.eh_convidado !== true && (
+            fpEstado.autoedicao || fpEstado.meuPerfil === 'super_admin' ||
+            (typeof tenhoCapacidade === 'function' && (tenhoCapacidade('ver_admin_bateria') || tenhoCapacidade('editar_admin_bateria')))
+        );
+        secaoAdminBateria.style.display = podeVerAdminBateria ? '' : 'none';
+        if (podeVerAdminBateria) fpEl('fp-admin-bateria').textContent = alvo.eh_admin_bateria ? 'Sim' : 'Não';
+    }
     // Escondida por padrão mesmo em autoedição — só aparece dentro do modo
     // "Editar" (ver fpAtivarEdicao/fpCancelarEdicao), pra ter o mesmo
     // comportamento do resto da ficha (achado 21/jul/2026: antes ficava
@@ -1251,6 +1268,12 @@ async function fpAtivarEdicao() {
         fpEl('fp-repique-bossa-edit').closest('label').style.display = 'flex';
     }
 
+    if (fpEstado.editaveis.has('eh_admin_bateria')) {
+        fpEl('fp-admin-bateria-edit').checked = !!fpEstado.alvo.eh_admin_bateria;
+        fpEl('fp-admin-bateria').style.display = 'none';
+        fpEl('fp-admin-bateria-edit').closest('label').style.display = 'flex';
+    }
+
     if (fpEstado.editaveis.has('naipe')) {
         const container = fpEl('fp-naipe-edit');
         const opcoesInstrumento = await fpCarregarOpcoesInstrumento(fpEstado.alvo.bateria_id);
@@ -1360,6 +1383,10 @@ async function fpCancelarEdicao() {
     if (fpEstado.editaveis.has('repique_bossa')) {
         fpEl('fp-repique-bossa').style.display = '';
         fpEl('fp-repique-bossa-edit').closest('label').style.display = 'none';
+    }
+    if (fpEstado.editaveis.has('eh_admin_bateria')) {
+        fpEl('fp-admin-bateria').style.display = '';
+        fpEl('fp-admin-bateria-edit').closest('label').style.display = 'none';
     }
     if (fpEstado.editaveis.has('naipe')) {
         fpEl('fp-naipe').style.display = '';
@@ -1680,6 +1707,9 @@ async function fpSalvar() {
     }
     if (fpEstado.editaveis.has('repique_bossa')) {
         payloadVinculo.repique_bossa = fpEl('fp-repique-bossa-edit').checked;
+    }
+    if (fpEstado.editaveis.has('eh_admin_bateria')) {
+        payloadVinculo.eh_admin_bateria = fpEl('fp-admin-bateria-edit').checked;
     }
     if (fpEstado.editaveis.has('naipe')) {
         payloadVinculo.naipe = Array.from(fpEstado.container.querySelectorAll('.fp-naipe-check:checked')).map(el => el.value);
