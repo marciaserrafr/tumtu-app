@@ -6634,7 +6634,11 @@
         const div = document.getElementById('linksCadastroConvidadoEspecial');
         const botoes = document.getElementById('botoesCadastroConvidadoEspecial');
         if (!div) return;
-        const habilitado = modoConvidadosEspecial();
+        // Usa o campo real da bateria, não modoConvidadosEspecial() -- essa
+        // função ficou fixa em `true` (unificação de modelo de dados), mas
+        // aqui a pergunta é outra: essa bateria específica tem carteirinha
+        // (logo, link de autocadastro) ou não?
+        const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
         // Cadastro manual ("+ Cadastrar Convidado") existe nos dois modelos
         // (com/sem carteirinha, pedido dela: "eu quero que tenha isso nos
         // dois modelos") -- igual Ritmistas/Diretoria, que já têm botão E
