@@ -19,7 +19,7 @@
     <script defer src="/_vercel/insights/script.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=28">
+    <link rel="stylesheet" href="styles/components.css?v=29">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Leitor de QR pra Presença (29/ago/2026) -- lê o mesmo QR que já
          existe na carteirinha (qr_token), direto pela câmera do celular,
@@ -29,7 +29,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=62"></script>
+    <script src="ficha-perfil.js?v=63"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -4065,8 +4065,8 @@
         const porGrupo = formatoMarcado === 'por-instrumento' || formatoMarcado === 'por-cargo';
 
         const marcados = Array.from(document.querySelectorAll('.export-campo-check:checked')).map(c => c.value);
-        if (marcados.length === 0) { alert('Marque pelo menos um campo para exportar.'); return; }
-        if (lista.length === 0) { alert('Não há registros para exportar com os filtros marcados.'); return; }
+        if (marcados.length === 0) { mostrarToast('Marque pelo menos um campo para exportar.', 'erro'); return; }
+        if (lista.length === 0) { mostrarToast('Não há registros para exportar com os filtros marcados.', 'erro'); return; }
 
         const todosCampos = campos.flatMap(g => g.campos);
         const marcadosMedida = marcados.some(c => c.startsWith('medida_'));
@@ -4077,7 +4077,7 @@
         try {
             await carregarSheetJS();
         } catch (e) {
-            alert('Não foi possível exportar agora — verifique sua conexão com a internet e tente de novo.');
+            mostrarToast('Não foi possível exportar agora — verifique sua conexão com a internet e tente de novo.', 'erro');
             return;
         }
 
@@ -4151,8 +4151,8 @@
         atualizarStatus(acaoAtualId, 'desligado', motivo, acaoAtualRecarregar);
     }
 
-    function fecharModal(id) {
-        if (typeof fpPodeDescartar === 'function' && !fpPodeDescartar()) return;
+    async function fecharModal(id) {
+        if (typeof fpPodeDescartar === 'function' && !(await fpPodeDescartar())) return;
         document.getElementById(id).classList.remove('aberto');
     }
 
@@ -4912,9 +4912,9 @@
     // fpEstado global cobre qualquer modal, já que só uma ficha fica
     // aberta/em edição por vez.
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', e => {
+        overlay.addEventListener('click', async e => {
             if (e.target !== overlay) return;
-            if (typeof fpPodeDescartar === 'function' && !fpPodeDescartar()) return;
+            if (typeof fpPodeDescartar === 'function' && !(await fpPodeDescartar())) return;
             overlay.classList.remove('aberto');
         });
     });
@@ -4934,12 +4934,12 @@
 
     function irParaCadastroManualRitmista() {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { alert('Bateria não encontrada para este usuário.'); return; }
+        if (!bateriaId) { mostrarToast('Bateria não encontrada para este usuário.', 'erro'); return; }
         window.location.href = `cadastro?modo=manual&cargo=ritmista&bateria_id=${bateriaId}`;
     }
     function irParaCadastroManualDiretoria(cargo) {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { alert('Bateria não encontrada para este usuário.'); return; }
+        if (!bateriaId) { mostrarToast('Bateria não encontrada para este usuário.', 'erro'); return; }
         window.location.href = `cadastro?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}`;
     }
 
@@ -7009,7 +7009,7 @@
         finally { salvandoExtra = false; }
     }
     async function excluirExtra(id) {
-        if (!confirm('Excluir este Convidado? Isso apaga também o tamanho e a entrega de figurino registrada pra ele.')) return;
+        if (!(await tumtuConfirmar('Excluir este Convidado? Isso apaga também o tamanho e a entrega de figurino registrada pra ele.', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
         mostrarToast('Convidado excluído.');
@@ -7167,7 +7167,7 @@
         finally { salvandoEvento = false; }
     }
     async function excluirEvento(id) {
-        if (!confirm('Excluir este evento? Isso apaga também todas as presenças já registradas nele.')) return;
+        if (!(await tumtuConfirmar('Excluir este evento? Isso apaga também todas as presenças já registradas nele.', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
         mostrarToast('Evento excluído.');
@@ -9712,7 +9712,7 @@
         finally { salvandoCategoria = false; }
     }
     async function excluirCategoria(id) {
-        if (!confirm('Excluir esta categoria? Isso remove também suas nomenclaturas. Se alguma bateria já usa esse instrumento, prefira marcar como "Inativa".')) return;
+        if (!(await tumtuConfirmar('Excluir esta categoria? Isso remove também suas nomenclaturas. Se alguma bateria já usa esse instrumento, prefira marcar como "Inativa".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
         mostrarToast('Categoria excluída.'); categoriaEditando = null; await carregarCategorias(); renderizarEditorCategoria(); renderizarCategoriasLista();
@@ -9870,7 +9870,7 @@
         finally { salvandoMedidaTipo = false; }
     }
     async function excluirMedidaTipoSA(id) {
-        if (!confirm('Excluir esta categoria de figurino? Isso remove também sua escala de Medida. Se alguma bateria já usa, prefira marcar como "Inativo".')) return;
+        if (!(await tumtuConfirmar('Excluir esta categoria de figurino? Isso remove também sua escala de Medida. Se alguma bateria já usa, prefira marcar como "Inativo".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
         mostrarToast('Categoria de figurino excluída.'); medidaTipoEditando = null; await carregarMedidaTiposSA(); renderizarEditorMedidaTipo(); renderizarMedidaTiposListaSA();
@@ -9974,7 +9974,7 @@
         } finally { salvandoFigurinoMestre = false; }
     }
     async function excluirFigurinoMestre(id) {
-        if (!confirm('Excluir este Figurino? Isso remove também o controle de entrega já registrado em toda bateria que usa ele. Se preferir manter o histórico, marque como "Inativo".')) return;
+        if (!(await tumtuConfirmar('Excluir este Figurino? Isso remove também o controle de entrega já registrado em toda bateria que usa ele. Se preferir manter o histórico, marque como "Inativo".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
         mostrarToast('Figurino excluído.');
@@ -10067,7 +10067,7 @@
         finally { salvandoEventoTipo = false; }
     }
     async function excluirEventoTipoSA(id) {
-        if (!confirm('Excluir este tipo de evento? Se alguma bateria já tem Eventos criados com ele, prefira marcar como "Inativo".')) return;
+        if (!(await tumtuConfirmar('Excluir este tipo de evento? Se alguma bateria já tem Eventos criados com ele, prefira marcar como "Inativo".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
         mostrarToast('Tipo de evento excluído.'); eventoTipoEditando = null; await carregarEventoTiposSA(); renderizarEditorEventoTipo(); renderizarEventoTiposListaSA();
@@ -10155,7 +10155,7 @@
         finally { salvandoTemporada = false; }
     }
     async function excluirTemporadaSA(id) {
-        if (!confirm('Excluir esta temporada? Se algum evento já usa ela, prefira marcar como "Inativa".')) return;
+        if (!(await tumtuConfirmar('Excluir esta temporada? Se algum evento já usa ela, prefira marcar como "Inativa".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
         mostrarToast('Temporada excluída.'); temporadaEditando = null; await carregarTemporadasSA(); renderizarEditorTemporada(); renderizarTemporadasListaSA();
