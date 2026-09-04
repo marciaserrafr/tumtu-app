@@ -680,3 +680,38 @@ Retomando o item "textos de ajuda longos" da lista de pendências antigas, ela f
 6. **Regra aplicada a TODO o Super Admin** ("reveja todos os textos do super admin e refaça"): além dos 5 já revisados, cobertos Escolas ("Selecione uma escola..." → "Gestão de escolas — cadastro, bateria e acessos de cada uma.") e os 3 textos de Privacidade (LGPD) — mantendo a informação de consequência nesses últimos por serem ações irreversíveis (exceção da regra), só cortando o excesso.
 
 Publicado em 4 commits diretos na `main` (`9910273`, `40148ef`, `1afa099`, `85013d1`) — mudança só de texto, baixo risco, autorizada por ela a cada rodada ("pode colocar em produção"). **Escopo ainda restrito ao Super Admin** — os textos das telas por bateria (Instrumentos/Vagas/Figurino dentro de uma escola específica) não foram revisados com essa régua ainda, ela não pediu isso.
+
+## Sessão de 03-04/set/2026 — confirmação personalizada, Permissões (copiar/aplicar/padrão), Admin da Bateria, e-mails de Rejeitado/Reativado
+
+Sessão longa, várias frentes pequenas e uma feature grande no fim. Tudo publicado na `main`, testado e aprovado por ela em cada etapa.
+
+### Confirmação/toast personalizados (commit `2f04e7c`)
+
+Ela reportou que o popup de "Você tem alterações não salvas" era o `confirm()` nativo do navegador — "tudo do TumTu é personalizado". Auditoria da categoria inteira (não só o caso apontado) achou mais 7 `confirm()` (Excluir X? no Super Admin) e 5 `alert()` (exportar Excel, cadastro manual sem bateria). Criado `tumtuConfirmar(mensagem, opcoes)` em `ficha-perfil.js` — modal próprio (Promise<boolean>), mesma linguagem visual do `modal-sa` já aprovado, reaproveitando `.btn-ficha`/`.btn-ficha-danger` (movido pra `components.css` pra ficar disponível em `carteirinha.html` também). `alert()`s viraram `mostrarToast()`.
+
+### Permissões: "Copiar de" e "Aplicar a todos" (commit `90edd3d`)
+
+Pedido dela: "tá me dando um trabalho danado marcar tudo igualzinho para todos". No editor de permissão de uma pessoa (Mestre/Diretor/Apoio): **"Copiar permissão de [Fulano]"** (só preenche a tela, precisa Salvar) e **"Aplicar a todos os [cargo]"** (grava direto em todo mundo do mesmo cargo na bateria, com confirmação via `tumtuConfirmar`, nunca mexe em Restrito ao Naipe).
+
+### E-mails de Rejeitado e Reativado (commit `677769e`)
+
+Textos já tinham sido fechados em 02/set (ver seção anterior). Edge Function `notificar-aprovacao` ganhou parâmetro `tipo`. **Achado no caminho**: a checagem de permissão original só considerava a capacidade "Aprovar" — Ritmistas/Diretoria têm capacidade separada por ação (aprovar_*/rejeitar_*/reativar_*), Convidado Especial usa uma única (`aprovar_convidados_especiais`); corrigido pra checar a certa por tipo, senão o e-mail falhava calado pra quem só tinha "Rejeitar" sem "Aprovar".
+
+**Achado real, mesmo commit**: testando o e-mail de Rejeitado, ela não conseguia editar o e-mail de um Ritmista/Diretor Pendente pra testar (botão "Editar" nem aparecia) — pediu pra criar o e-mail dele direto no banco (Digão, Jacarezinho, e-mail dela mesma pra receber o teste). Investigado a fundo: não era bug de permissão (matriz de capacidades e trigger do banco já liberavam tudo pra Super Admin) — era uma regra ANTIGA, de antes do motor único de ficha ("Só edita dados de ritmista ativo/suspenso"), que escondia o botão Editar via manipulação de DOM direta, sem nunca ter aberto exceção pro Super Admin, em 4 lugares (Ritmistas/Diretoria/Convidados×2). Corrigido: os 4 `if` ganharam `&& !souSuperAdmin`.
+
+### Permissões Padrão por cargo + "Admin da Bateria" (commits `f2cf953` e `6880d43`)
+
+Pedido dela: "nunca mais terei trabalho de lembrar disso, que tenho que colocar permissão para as pessoas assim que elas caem no cadastro". Desenhado ao vivo com ela, com uma correção de rumo no meio:
+
+- **Super Admin → Configurações → Permissões Padrão**: 4 moldes globais (Mestre/Diretor Admin/Diretor de Bateria/Diretor Apoio), tabela nova `permissoes_padrao`. Aplicado automaticamente na 1ª aprovação de cada pessoa (trigger `trg_permissoes_padrao_vinculos`, só se `capacidades` ainda estiver vazio — nunca sobrescreve quem já foi configurado na mão). **Confirmado com ela**: configurar os moldes não afeta ninguém já aprovado hoje (Rocinha/Imperatriz inclusas) — o gatilho só roda na transição Pendente→Aprovado, que já aconteceu pra quem já está ativo.
+- **"Admin desta bateria"**: 1ª tentativa — checkbox instantâneo dentro da ficha (`#fp-extra-conteudo`), sem passar por Editar/Salvar. **Rejeitado por ela**: o checkbox tinha caído visualmente dentro de "Contato de Emergência" (sem relação nenhuma) e podia ser marcado com um clique só. 2ª tentativa — movido pro editor de Permissões (mesmo padrão de "Restrito ao naipe"). **Ela reconsiderou de novo**, comparando com "Naipe que lidera": "é o que vai determinar os diferentes tipos de diretores de bateria" — Admin não é uma permissão solta, é um TIPO/atributo do Diretor, igual Naipe. 3ª versão (final): campo de ficha de verdade, mesmo mecanismo de Naipe/Repique de Bossa, com capacidades PRÓPRIAS `ver_admin_bateria`/`editar_admin_bateria` (pedido dela — não reaproveitar `editar_permissoes`), nunca autoeditável.
+- Novo grupo em Permissões, "Diretor Admin" (mesmo padrão de "Diretor de Bateria - Naipe" — agrupamento automático). **"Admin manda mais"** (confirmado por ela, caso real: na Imperatriz tem Diretor que é Naipe E Admin ao mesmo tempo) — quem é Admin aparece só nesse grupo; o Naipe continua salvo/editável normalmente, só não decide mais o agrupamento nesse caso.
+- Ordem final, pedido dela ("isso é algo muito importante de se visualizar"): Admin sempre antes de Naipe, tanto na ficha quanto em Permissões.
+- Confirmado com ela: carteirinha nunca muda (cargo impresso continua "Diretor de Bateria"/"Diretor" normal) — selo "Admin" é só interno.
+- **Selo restrito depois** (commit `6880d43`): ela perguntou se o selo podia ser visível só pra quem tem permissão de ver — "pode ter bateria que as pessoas não querem que ninguém saiba quem é o admin". Selo (lista de Diretoria e de Permissões) passou a checar `tenhoCapacidade('ver_admin_bateria')`, mesma trava já usada na ficha.
+
+### Achado à parte: campo "Título do relatório" do Exportar nunca aparecia (commit `6284a9d`)
+
+Ela reportou "não estou conseguindo colocar título no Exportar". O campo (`#exportTituloCustom`, criado 24/ago) usava a classe `fc-input`, que tem `display:none` como padrão (pensada só pro campo de edição da ficha, ligado via JS quando clica "Editar") — ninguém nunca ligou o display desse campo específico, então ele existia no código mas nunca apareceu na tela desde que foi criado. Corrigido com `display:block` explícito. Auditada toda a categoria (grep de `class="fc-input"` no projeto inteiro) — só esse campo tinha o problema.
+
+Memórias novas desta sessão: `feedback_checar_dom_hiding_antes_de_assumir_bug_permissao` (quando o comportamento não bate com a matriz de permissão, procurar manipulação de DOM direta antes de mexer em capacidade).
