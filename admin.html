@@ -6224,6 +6224,9 @@
         const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === item.id);
         if (!existente) return;
         existente[campo] = valor;
+        // Botão de marcar entrega depende desse interruptor (04/set/2026) --
+        // re-renderiza na hora, sem precisar sair e voltar da tela.
+        renderizarEntregasFigurinoLista();
         await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
             method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ [campo]: valor })
         });
@@ -6408,7 +6411,15 @@
             if (statusFiltro === 'entregues' && !p.entregue) return false;
             return true;
         });
-        const podeEditar = tenhoCapacidade('editar_figurino');
+        // Só pode marcar entrega com "Entrega Iniciada" ligado e "Entrega
+        // Finalizada" desligado (pedido dela, 04/set/2026) -- antes o botão
+        // funcionava mesmo com os dois interruptores desligados, bastando
+        // ter a permissão. Lê direto de bateriaFigurinoCache (não de `item`,
+        // que fica desatualizado depois de mexer nos interruptores -- ver
+        // salvarFlagFigurinoEntrega).
+        const bfAtual = bateriaFigurinoCache.find(x => x.figurino_item_mestre_id === item.id);
+        const entregaIniciada = !!(bfAtual && bfAtual.mostra_visao_geral && !bfAtual.entrega_finalizada);
+        const podeEditar = entregaIniciada && tenhoCapacidade('editar_figurino');
         const linhaPessoaHtml = p => {
             const detalhe = esc(p.instrumento_nome || (p.tipo === 'vinculo' ? LABEL_PERFIL_FIGURINO[p.perfil] : null) || (p.tipo === 'extra' ? 'Convidado' : ''));
             let acaoHtml;
@@ -6526,6 +6537,10 @@
     async function toggleEntregaFigurino(tipo, id, entregar) {
         const item = figurinoEntregaItemAtual;
         if (!item) return;
+        // Trava de verdade, não só visual (04/set/2026) -- mesmo raciocínio
+        // de marcarPresenca().
+        const bfGuarda = bateriaFigurinoCache.find(x => x.figurino_item_mestre_id === item.id);
+        if (!bfGuarda || !bfGuarda.mostra_visao_geral || bfGuarda.entrega_finalizada) { renderizarEntregasFigurinoLista(); return; }
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         // Convidado Especial é vínculo de verdade -- grava em vinculo_id
         // como qualquer outro vínculo, mesmo sendo tipo 'extra' na UI (só o
@@ -7028,6 +7043,9 @@
         if (!evento) return;
         evento[campo] = valor;
         renderPresencaTrilhos();
+        // Botão de marcar presença depende desse interruptor (04/set/2026) --
+        // re-renderiza na hora, sem precisar sair e voltar da tela.
+        renderizarPresencaLista();
         await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${evento.id}`, {
             method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ [campo]: valor })
         });
@@ -7245,7 +7263,13 @@
             if (statusFiltro === 'ausentes' && p.presente) return false;
             return true;
         });
-        const podeMarcar = souSuperAdmin || tenhoCapacidade('marcar_presenca');
+        // Só pode marcar presença com "Evento Iniciado" ligado e "Evento
+        // Finalizado" desligado (pedido dela, 04/set/2026) -- antes o botão
+        // funcionava mesmo com os dois interruptores desligados, bastando
+        // ter a permissão (achado dela ao vivo, com print mostrando o botão
+        // funcionando com "Evento Iniciado" desligado).
+        const eventoIniciado = !!(presencaEventoAtual && presencaEventoAtual.iniciado && !presencaEventoAtual.finalizado);
+        const podeMarcar = eventoIniciado && (souSuperAdmin || tenhoCapacidade('marcar_presenca'));
         const linhaHtml = p => {
             const detalhe = esc(p.instrumento_nome || (p.tipo === 'vinculo' ? LABEL_PERFIL_DIRETORIA_PRESENCA[p.perfil] : null) || (p.tipo === 'extra' ? 'Convidado' : ''));
             let acaoHtml;
@@ -7311,6 +7335,10 @@
     async function marcarPresenca(tipo, id) {
         const p = presencaPessoasCache.find(x => x.tipo === tipo && x.id === id);
         if (!p || !presencaEventoAtual) return;
+        // Trava de verdade, não só visual (04/set/2026) -- cobre o caso raro
+        // de alguém já ter aberto a confirmação "Sim/Cancelar" antes do
+        // evento ser des-iniciado por outra pessoa.
+        if (!presencaEventoAtual.iniciado || presencaEventoAtual.finalizado) { delete presencaConfirmando[`${tipo}-${id}`]; renderizarPresencaLista(); return; }
         delete presencaConfirmando[`${tipo}-${id}`];
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         const bateriaId = bateriaIdContexto();
