@@ -2488,30 +2488,19 @@
 </div>
 
 <!-- PAINEL CONVIDADOS (25/ago/2026, reorganizado em 31/ago/2026 -- pedido
-     dela). Por trás existem 2 modelos, mas a bateria só usa UM por vez
-     (escolhido em Comercial → Convidado Especial: desligado = Modelo
-     Simples, ligado = Modelo Especial com carteirinha) -- pra quem usa o
-     app, é sempre só "Convidados", um menu só, sem escolha nenhuma visível.
-     Modelo Simples: gente de fora que ganha Figurino mas não desfila, sem
-     CPF/login/carteirinha. Modelo Especial: vínculo de verdade, com login/
-     carteirinha, mas 100% separado da contagem normal de Ritmistas/
-     Diretoria. Roteamento automático em iniciarConvidadosAba(). -->
+     dela). Unificado em 04/set/2026 (decisão dela: acabar com o modelo
+     Simples/`extras`) -- todo mundo usa o mesmo modelo (vínculo de verdade,
+     eh_convidado=true), com ou sem carteirinha. A tela antiga do Modelo
+     Simples (tabela `extras`) foi removida daqui -- nenhuma bateria real
+     tinha dado lá quando isso foi decidido. Ver
+     project_unificacao_convidado_especial_desenho na memória. -->
 <div class="painel" id="painel-extras">
     <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
     <div class="painel-titulo">Convidados</div>
 
-    <!-- Conteúdo do Modelo Simples -->
-    <div id="convidados-simples-conteudo">
-        <div id="extras-editor" style="display:none;"></div>
-        <button type="button" id="extras-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoExtra()">+ Novo Convidado</button>
-        <div id="extras-total-geral" style="font-size:13px;color:#888;margin:-12px 0 16px;"></div>
-        <div id="extras-lista" class="lista-cards"></div>
-    </div>
-
-    <!-- Conteúdo do Modelo Especial -- mesmo padrão estético de Ritmistas/
-         Diretoria (pedido dela, 31/ago/2026): Exportar, "Novo cadastro"
-         recolhido, busca, filtros (Tipo de Convidado faz o papel de
-         Cargo/Instrumento) e Status. -->
+    <!-- Mesmo padrão estético de Ritmistas/Diretoria (pedido dela,
+         31/ago/2026): Exportar, "Novo cadastro" recolhido, busca, filtros
+         (Tipo de Convidado faz o papel de Cargo/Instrumento) e Status. -->
     <div id="convidados-especiais-conteudo" style="display:none;">
 
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
@@ -2791,20 +2780,8 @@
         <div class="grade-item grade-item--unico" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Rejeitados <b class="n-rejeitado" id="totalDiretoriaRejeitados">—</b></div>
     </div>
 
-    <!-- Convidados Ritmistas + Convidados Diretoria lado a lado (27/ago/2026,
-         pedido dela) -- substitui o antigo box único "Convidados" (25/ago) e
-         o box "Menores ativos" (26/ago, que virou o card completo de Menores
-         mais abaixo). Os dois continuam só aparecendo pra quem tem
-         ver_extras, escondidos juntos (mesma linha, mesma capacidade). -->
-    <!-- Peso reduzido (28/ago/2026, sessão seguinte, pedido dela) -- virou
-         a mesma grade usada nos "outros status" acima, em vez dos 2 cards
-         grandes de antes (mesmo tamanho visual de Ativos/Pendentes, peso
-         que ela achou alto demais pra Convidados). -->
-    <div class="vg-grupo-titulo" id="vgTituloConvidados" style="display:none;">Convidados</div>
-    <div class="grade-status" id="totalizadoresExtras" style="display:none;">
-        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Ritmistas <b id="totalExtrasRitmistas">—</b></div>
-        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Diretoria <b id="totalExtrasDiretoria">—</b></div>
-    </div>
+    <!-- Card "Convidados" (27-31/ago/2026, unificado 04/set/2026 -- só existe
+         mais um modelo, ver_convidados_especiais). -->
 
     <!-- Modelo Especial de Convidados (31/ago/2026) -- só aparece quando a
          bateria está nesse modelo (nunca junto com o bloco "Convidados"
@@ -3314,32 +3291,15 @@
         elPilula.querySelector('.grade-pilula-seta').classList.toggle('aberta', abrindo);
     }
 
-    // Cards "Convidados Ritmistas"/"Convidados Diretoria" na Visão Geral --
-    // só pra quem tem ver_extras. Antes (25/ago) era um card só somando
-    // tudo; separado por grupo a pedido dela, 27/ago/2026.
-    function atualizarTotalizadorExtras() {
-        const card = document.getElementById('totalizadoresExtras');
-        const titulo = document.getElementById('vgTituloConvidados');
-        if (!card) return;
-        // Modelo Simples (31/ago/2026): some da Visão Geral quando a bateria
-        // está no modelo Especial -- os dois nunca aparecem juntos.
-        if (modoConvidadosEspecial() || (!souSuperAdmin && !tenhoCapacidade('ver_extras'))) { card.style.display = 'none'; if (titulo) titulo.style.display = 'none'; return; }
-        const lista = extrasCache || [];
-        document.getElementById('totalExtrasRitmistas').textContent = lista.filter(e => e.grupo === 'ritmista').length;
-        document.getElementById('totalExtrasDiretoria').textContent = lista.filter(e => e.grupo === 'diretor' || e.grupo === 'apoio').length;
-        card.style.display = 'grid';
-        if (titulo) titulo.style.display = 'block';
-    }
-
-    // Card "Convidado Especial" na Visão Geral (31/ago/2026) -- só pra quem
-    // tem ver_convidados_especiais E a bateria tiver o gate comercial
-    // ligado (mesma dupla trava do bloco dentro da aba Convidados).
+    // Card "Convidados" na Visão Geral (31/ago/2026) -- só pra quem tem
+    // ver_convidados_especiais. Antes também exigia a bateria ter carteirinha
+    // ligada (convidado_tem_carteirinha) -- tirado na unificação (04/set/2026):
+    // toda bateria tem Convidados de verdade agora, com ou sem carteirinha.
     function atualizarTotalizadorConvidadosEspeciais() {
         const card = document.getElementById('totalizadoresConvidadosEspeciais');
         const titulo = document.getElementById('vgTituloConvidadosEspeciais');
         if (!card) return;
-        const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
-        if (!habilitado || (!souSuperAdmin && !tenhoCapacidade('ver_convidados_especiais'))) { card.style.display = 'none'; if (titulo) titulo.style.display = 'none'; return; }
+        if (!souSuperAdmin && !tenhoCapacidade('ver_convidados_especiais')) { card.style.display = 'none'; if (titulo) titulo.style.display = 'none'; return; }
         const lista = convidadosEspeciaisCache || [];
         document.getElementById('totalConvidadosEspeciaisAtivos').textContent = lista.filter(r => r.status === 'aprovado').length;
         document.getElementById('totalConvidadosEspeciaisPendentes').textContent = lista.filter(r => r.status === 'pendente').length;
@@ -3360,8 +3320,7 @@
         return (souSuperAdmin || tenhoCapacidade('ver_acessos')) ? (listaDiretoriaAtual || []).filter(a => a.status === 'pendente').length : 0;
     }
     function pendentesConvidadosEspeciaisCount() {
-        const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
-        if (!habilitado || !(souSuperAdmin || tenhoCapacidade('ver_convidados_especiais'))) return 0;
+        if (!(souSuperAdmin || tenhoCapacidade('ver_convidados_especiais'))) return 0;
         return (convidadosEspeciaisCache || []).filter(r => r.status === 'pendente').length;
     }
     function aplicarBadgeIcone(id, n) {
@@ -5357,12 +5316,10 @@
         // pra quem tem ver_acessos -- sem a capacidade, RLS devolveria vazio
         // e o card mostraria "0" de forma enganosa em vez de ficar escondido.
         if (souSuperAdmin || tenhoCapacidade('ver_acessos')) cargaInicialMD.push(carregarDiretoria(true).then(() => { diretoriaCarregada = false; carregarDiretoria(); }));
-        // Card "Extras" na Visão Geral, mesmo padrão do card de Diretoria acima.
-        if (souSuperAdmin || tenhoCapacidade('ver_extras')) cargaInicialMD.push(carregarExtras().then(atualizarTotalizadorExtras));
-        // Card "Convidado Especial" na Visão Geral, mesmo padrão do card de
-        // Extras acima -- achado dela, 01/set/2026: card ficava vazio até
-        // visitar a aba Convidados de verdade (carregarConvidadosEspeciais()
-        // só rodava lá dentro, nunca no carregamento inicial da tela).
+        // Card "Convidados" na Visão Geral, mesmo padrão do card de Diretoria
+        // acima -- achado dela, 01/set/2026: card ficava vazio até visitar a
+        // aba Convidados de verdade (carregarConvidadosEspeciais() só rodava
+        // lá dentro, nunca no carregamento inicial da tela).
         if (souSuperAdmin || tenhoCapacidade('ver_convidados_especiais')) cargaInicialMD.push(carregarConvidadosEspeciais(true).then(() => { convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais(); }));
         await Promise.all(cargaInicialMD);
         iniciarAutoRefreshRitmistas();
@@ -6591,81 +6548,21 @@
         renderizarEntregasFigurinoLista();
     }
 
-    // ══════════════════════════════════════════════════════════════════
-    // EXTRAS (25/ago/2026) -- gente de fora que ganha Figurino mas não
-    // desfila (amigos convidados pelo Mestre/Diretoria), cadastro mínimo:
-    // nome + grupo (Ritmistas/Diretoria, só pra decidir em qual peça de
-    // Figurino entram, ver grupoExtraDoPublico) + tamanho por Categoria de
-    // Figurino aberta pro público "Extras" (mesmo mecanismo de
-    // bateria_medida_tipos.publico usado em Configurações → Categoria de
-    // Figurino). Sem CPF, sem login, sem vínculo -- não é Ritmista nem
-    // Diretoria.
-    // ══════════════════════════════════════════════════════════════════
-    let extrasCache = [];
-    let extraEditando = null;
-    let extraMedidaTiposAtivos = []; // Categorias de Figurino com "Extras" marcado, pra essa bateria
-    let extraOpcoesInstrumento = []; // Instrumentos ativos da bateria -- só usado quando o Convidado é Tipo "Ritmistas"
-
-    async function carregarExtras() {
-        const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { extrasCache = []; return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&order=nome`, { headers: authHeaders });
-        extrasCache = res.ok ? await res.json() : [];
-    }
-
-    // Quais figurinos cada Convidado já recebeu, mostrado direto no card
-    // dele (26/ago/2026, pedido dela) -- só peças com "Incluir Convidados"
-    // ligado fazem sentido aqui, filtradas pelo mesmo lado (ritmista/
-    // diretoria) do Convidado, via grupoExtraDoPublico já usado na Entrega.
-    let extraFigurinoItensAtivos = [];
-    let extraFigurinoEntreguesPorExtra = {};
-    async function carregarFigurinoParaExtras() {
-        extraFigurinoItensAtivos = [];
-        extraFigurinoEntreguesPorExtra = {};
-        const bateriaId = bateriaIdContexto();
-        if (!bateriaId || extrasCache.length === 0) return;
-        const resAtivos = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}&ativo=eq.true&select=id,figurino_item_mestre_id,publico,inclui_extras,item:figurino_itens_mestre(id,nome)`, { headers: authHeaders });
-        const ativos = resAtivos.ok ? await resAtivos.json() : [];
-        extraFigurinoItensAtivos = ativos.filter(a => a.item && a.inclui_extras)
-            .map(a => ({ id: a.figurino_item_mestre_id, nome: a.item.nome, publico: publicoFigurinoBateria(a) }));
-        if (extraFigurinoItensAtivos.length === 0) return;
-        const itemIds = extraFigurinoItensAtivos.map(it => it.id);
-        const extraIds = extrasCache.map(e => e.id);
-        const resEntregas = await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?figurino_item_id=in.(${itemIds.join(',')})&extra_id=in.(${extraIds.join(',')})&entregue_em=not.is.null&select=extra_id,figurino_item_id`, { headers: authHeaders });
-        const entregas = resEntregas.ok ? await resEntregas.json() : [];
-        entregas.forEach(e => {
-            if (!extraFigurinoEntreguesPorExtra[e.extra_id]) extraFigurinoEntreguesPorExtra[e.extra_id] = new Set();
-            extraFigurinoEntreguesPorExtra[e.extra_id].add(e.figurino_item_id);
-        });
-    }
-
-    async function iniciarExtrasTab() {
-        // Busca tudo antes de renderizar -- sem spinner, sem overlay
-        // (01/set/2026, mesma varredura).
-        await carregarExtras();
-        await carregarFigurinoParaExtras();
-        extraEditando = null;
-        renderizarEditorExtra();
-        const btnNovo = document.getElementById('extras-btn-novo');
-        if (btnNovo) btnNovo.style.display = tenhoCapacidade('editar_extras') ? '' : 'none';
-        renderizarExtrasLista();
-        atualizarTotalizadorExtras();
-    }
-
-    // "Convidados" (31/ago/2026, reorganizado a pedido dela em 2 rodadas) --
-    // Convidado_tem_carteirinha decide só se ESSE convidado tem carteirinha/
-    // login ou não -- mas desde 04/set/2026 (decisão dela: unificar, acabar
-    // com o modelo Simples/`extras`) o modelo de dados é sempre o mesmo
-    // (vinculos, eh_convidado=true), então o painel usado é sempre o mesmo
-    // também. Ver project_unificacao_convidado_especial_desenho na memória.
-    // O painel antigo (`convidados-simples-conteudo`, tabela `extras`) fica
-    // no código como histórico congelado -- nenhuma bateria real tinha dado
-    // lá quando isso foi decidido, então não existe nada pra migrar.
+    // Unificação (04/set/2026, decisão dela): acabou o modelo Simples
+    // (tabela `extras`) -- toda bateria usa sempre vinculos/eh_convidado=true,
+    // com ou sem carteirinha (isso último só decide o formulário de cadastro,
+    // ver cadastro.html). Essa função ficou fixa em `true` de propósito: os
+    // outros módulos (Entrega de Figurino, Presença) ainda checam ela pra
+    // decidir vinculo_id vs extra_id -- forçar `true` aqui redireciona todo
+    // mundo pro caminho certo de uma vez, sem precisar caçar cada `if
+    // (especial)` um por um. Os ramos `else` que sobraram (tabela `extras`)
+    // viram código morto de propósito -- nenhuma bateria real tinha dado lá
+    // quando isso foi decidido. Ver project_unificacao_convidado_especial_desenho
+    // na memória.
     function modoConvidadosEspecial() {
-        return !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
+        return true;
     }
     async function iniciarConvidadosAba() {
-        document.getElementById('convidados-simples-conteudo').style.display = 'none';
         document.getElementById('convidados-especiais-conteudo').style.display = '';
         await iniciarConvidadosEspeciaisTab();
     }
@@ -6885,206 +6782,6 @@
             document.getElementById('modalAdmin').style.display = 'block';
             document.body.style.overflow = 'hidden';
         }
-    }
-
-    // 3 grupos (27/ago/2026, era só Ritmistas/Diretoria) -- sem grupo
-    // próprio pra Mestre ("só o Mestre que é único mesmo, rs" -- não existe
-    // "Convidado do Mestre"). Mesmo rótulo plural já usado nos títulos de
-    // seção da aba Diretoria.
-    const LABEL_GRUPO_EXTRA = { ritmista: 'Ritmistas', diretor: 'Diretores de Bateria', apoio: 'Diretores (Apoio)' };
-    function renderizarExtrasLista() {
-        const container = document.getElementById('extras-lista');
-        if (!container) return;
-        // Contador totalizador (27/ago/2026, pedido dela) -- geral no topo da
-        // tela, e um por tipo colado no título de cada grupo (mesmo estilo
-        // já aprovado hoje pro contador de status em Ritmistas: número
-        // dourado, sem fundo).
-        const totalGeralEl = document.getElementById('extras-total-geral');
-        if (totalGeralEl) totalGeralEl.textContent = `${extrasCache.length} convidado(s) no total`;
-        if (extrasCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🎽</div>Nenhum Convidado cadastrado ainda.</div>'; return; }
-        const podeEditar = tenhoCapacidade('editar_extras');
-        container.innerHTML = ['ritmista', 'diretor', 'apoio'].map(grupo => {
-            const itens = extrasCache.filter(e => e.grupo === grupo);
-            if (itens.length === 0) return '';
-            return `<div class="secao-titulo" style="display:flex;justify-content:space-between;align-items:center;"><span>${LABEL_GRUPO_EXTRA[grupo]}</span><span style="color:#D4AF37;font-weight:800;font-size:14px;letter-spacing:normal;">${itens.length}</span></div>` + itens.map(e => {
-                // Figurinos que esse Convidado já recebeu (26/ago/2026, pedido
-                // dela) -- só peças cujo público cobre o mesmo grupo do
-                // Convidado (ritmista/diretor/apoio), com "Incluir Convidados" ligado.
-                const itensDesseGrupo = extraFigurinoItensAtivos.filter(it => it.publico.includes(e.grupo));
-                const entreguesSet = extraFigurinoEntreguesPorExtra[e.id] || new Set();
-                const figurinoHtml = itensDesseGrupo.length > 0 ? `<div class="extra-figurino-status">${itensDesseGrupo.map(it => {
-                    const entregue = entreguesSet.has(it.id);
-                    return `<div class="extra-figurino-linha"><span class="extra-figurino-marca ${entregue ? 'sim' : 'nao'}">${entregue ? '✓' : ''}</span>${entregue ? esc(it.nome) : `<span style="color:var(--cor-texto-muted);">${esc(it.nome)} — não entregue</span>`}</div>`;
-                }).join('')}</div>` : '';
-                // Instrumento (só existe pra Convidado do Tipo "Ritmistas") vem
-                // antes da observação -- pedido dela, 27/ago/2026: ajuda a
-                // identificar o Diretor de Naipe responsável por esse
-                // Convidado.
-                const bi = e.bateria_instrumento_id ? (bateriaInstrumentosCache || []).find(b => String(b.id) === String(e.bateria_instrumento_id)) : null;
-                const instrumentoNome = bi ? nomeExibicaoBateriaInstrumento(bi) : null;
-                // Um ao lado do outro, separados por " - " (ex: "Repique -
-                // Teste") -- pedido dela, 27/ago/2026, corrigindo minha 1ª
-                // tentativa (que tinha colocado em linhas separadas).
-                const detalheTexto = [instrumentoNome, e.observacoes].filter(Boolean).map(esc).join(' - ');
-                return `
-                <div class="item-card">
-                    <div class="item-info"><div class="item-nome">${esc(e.nome)}</div>${detalheTexto ? `<div class="item-detalhe">${detalheTexto}</div>` : ''}${figurinoHtml}</div>
-                    ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarExtra(${e.id})">Editar</button></div>` : ''}
-                </div>`;
-            }).join('');
-        }).join('');
-    }
-
-    // Mesma leitura da view pública bateria_medidas_publicas usada em
-    // cadastro.html, só filtrando por publico incluir 'extra' -- herda
-    // automaticamente qualquer Categoria de Figurino nova, não trava em Camisa.
-    async function carregarMedidaTiposParaExtra() {
-        const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { extraMedidaTiposAtivos = []; return; }
-        // Função em vez de view direta (28/ago/2026, correção de segurança
-        // real) -- a view aceitava consulta sem filtro, devolvendo medidas
-        // de todas as baterias do sistema numa chamada só.
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bateria_medidas_publicas_da_bateria?order=tipo_id,ordem`, { method: 'POST', headers: { ...authHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_bateria_id: bateriaId }) });
-        const opcoes = res.ok ? await res.json() : [];
-        const porTipo = {};
-        opcoes.forEach(o => {
-            const publico = Array.isArray(o.publico) ? o.publico : ['ritmista', 'mestre', 'diretor', 'apoio', 'extra'];
-            if (!publico.includes('extra')) return;
-            if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { tipoId: Number(o.tipo_id), nome: o.tipo_nome, tamanhos: [], publico };
-            porTipo[o.tipo_id].tamanhos.push(o.nome_exibicao);
-        });
-        extraMedidaTiposAtivos = Object.values(porTipo);
-    }
-
-    // Instrumento só existe pra Convidado do Tipo "Ritmistas" -- mesma lista
-    // de instrumentos ativos da bateria já usada na ficha (fpCarregarOpcoesInstrumento,
-    // compartilhada globalmente por ficha-perfil.js), pra não duplicar a
-    // lógica de categoria+nomenclatura aqui.
-    async function carregarOpcoesInstrumentoParaExtra() {
-        extraOpcoesInstrumento = await fpCarregarOpcoesInstrumento(bateriaIdContexto());
-    }
-
-    function abrirNovoExtra() {
-        extraEditando = { id: null, nome: '', grupo: 'ritmista', observacoes: '', medidas: {}, bateria_instrumento_id: null };
-        Promise.all([carregarMedidaTiposParaExtra(), carregarOpcoesInstrumentoParaExtra()]).then(renderizarEditorExtra);
-    }
-    async function abrirEditarExtra(id) {
-        const e = extrasCache.find(x => x.id === id);
-        if (!e) return;
-        await Promise.all([carregarMedidaTiposParaExtra(), carregarOpcoesInstrumentoParaExtra()]);
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?extra_id=eq.${id}`, { headers: authHeaders });
-        const valores = res.ok ? await res.json() : [];
-        const medidas = {};
-        valores.forEach(v => { medidas[v.tipo_id] = v.valor; });
-        extraEditando = { id: e.id, nome: e.nome, grupo: e.grupo, observacoes: e.observacoes || '', medidas, bateria_instrumento_id: e.bateria_instrumento_id };
-        renderizarEditorExtra();
-    }
-    // Troca do Tipo de Convidado precisa re-renderizar (mostra/esconde
-    // Instrumento) sem perder o que já foi digitado nos outros campos.
-    function onchangeGrupoExtra(novoGrupo) {
-        extraEditando.nome = document.getElementById('extra-edit-nome').value;
-        extraEditando.observacoes = document.getElementById('extra-edit-observacoes').value;
-        extraMedidaTiposAtivos.forEach(t => {
-            const select = document.getElementById(`extra-edit-medida-${t.tipoId}`);
-            if (select) extraEditando.medidas[t.tipoId] = select.value;
-        });
-        extraEditando.grupo = novoGrupo;
-        renderizarEditorExtra();
-    }
-    function renderizarEditorExtra() {
-        const ee = extraEditando;
-        const editor = document.getElementById('extras-editor');
-        if (!editor) return;
-        if (!ee) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
-        editor.style.display = 'block';
-        editor.innerHTML = `<div class="card-form">
-            <div class="card-form-titulo">${ee.id ? 'Editar Convidado' : 'Novo Convidado'}</div>
-            <div class="form-grid">
-                <div class="campo campo-full"><label>Nome *</label><input type="text" id="extra-edit-nome" value="${esc(ee.nome)}" placeholder="Nome completo"></div>
-                <div class="campo campo-full"><label>Tipo de Convidado *</label><select id="extra-edit-grupo" onchange="onchangeGrupoExtra(this.value)">
-                    ${['ritmista', 'diretor', 'apoio'].map(g => `<option value="${g}" ${ee.grupo === g ? 'selected' : ''}>${LABEL_GRUPO_EXTRA[g]}</option>`).join('')}
-                </select></div>
-                ${ee.grupo === 'ritmista' ? `<div class="campo campo-full"><label>Instrumento *</label><select id="extra-edit-instrumento">
-                    <option value="">Selecione</option>
-                    ${extraOpcoesInstrumento.map(o => `<option value="${o.id}" ${String(ee.bateria_instrumento_id) === String(o.id) ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}
-                </select></div>` : ''}
-                ${extraMedidaTiposAtivos.filter(t => t.publico.includes(ee.grupo)).map(t => `
-                    <div class="campo"><label>Tamanho: ${esc(t.nome)}</label><select id="extra-edit-medida-${t.tipoId}">
-                        <option value="">Selecione</option>
-                        ${t.tamanhos.map(nome => `<option value="${esc(nome)}" ${ee.medidas[t.tipoId] === nome ? 'selected' : ''}>${esc(nome)}</option>`).join('')}
-                    </select></div>`).join('')}
-                <div class="campo campo-full"><label>Observações</label><textarea id="extra-edit-observacoes" rows="3" placeholder="Ex: convidado da bateria. Vai precisar da camisa da final e da camisa da rainha, vai participar do ensaio técnico.">${esc(ee.observacoes)}</textarea></div>
-            </div>
-            <div class="form-rodape">
-                <div class="form-rodape-esq">
-                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarExtra()">Salvar</button>
-                    ${ee.id ? `<button class="btn-ficha btn-ficha-danger" onclick="excluirExtra(${ee.id})">Excluir</button>` : ''}
-                </div>
-                <button class="btn-ficha" onclick="fecharEditorExtra()">Cancelar</button>
-            </div>
-        </div>`;
-        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    function fecharEditorExtra() { extraEditando = null; renderizarEditorExtra(); }
-    let salvandoExtra = false;
-    async function salvarExtra() {
-        if (salvandoExtra) return;
-        const nome = document.getElementById('extra-edit-nome').value.trim();
-        if (!nome) { mostrarToast('Informe o nome.', 'erro'); return; }
-        const grupo = document.getElementById('extra-edit-grupo').value;
-        // Instrumento só existe (e só é obrigatório) pro Tipo "Ritmistas" --
-        // mesma regra de cadastro.html/ficha-perfil.js.
-        let bateria_instrumento_id = null;
-        if (grupo === 'ritmista') {
-            const selInstrumento = document.getElementById('extra-edit-instrumento');
-            const val = selInstrumento ? selInstrumento.value : '';
-            if (!val) { mostrarToast('Selecione o instrumento.', 'erro'); return; }
-            bateria_instrumento_id = Number(val);
-        }
-        const observacoes = document.getElementById('extra-edit-observacoes').value.trim() || null;
-        const bateriaId = bateriaIdContexto();
-        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        salvandoExtra = true;
-        try {
-            let extraId = extraEditando.id;
-            if (extraId) {
-                await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${extraId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo, observacoes, bateria_instrumento_id }) });
-            } else {
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/extras`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, grupo, observacoes, bateria_instrumento_id, criado_por: u ? u.pessoa_id : null }) });
-                const dados = await res.json();
-                extraId = dados[0].id;
-            }
-            for (const t of extraMedidaTiposAtivos) {
-                const select = document.getElementById(`extra-edit-medida-${t.tipoId}`);
-                const valor = select ? select.value : '';
-                if (valor) {
-                    await fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?on_conflict=extra_id,tipo_id`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates', ...authHeaders },
-                        body: JSON.stringify([{ extra_id: extraId, tipo_id: t.tipoId, valor }]),
-                    });
-                } else {
-                    await fetch(`${SUPABASE_URL}/rest/v1/extras_medidas?extra_id=eq.${extraId}&tipo_id=eq.${t.tipoId}`, { method: 'DELETE', headers: authHeaders });
-                }
-            }
-            mostrarToast(extraEditando.id ? 'Convidado atualizado!' : 'Convidado cadastrado!');
-            extraEditando = null;
-            await carregarExtras();
-            renderizarEditorExtra();
-            renderizarExtrasLista();
-            atualizarTotalizadorExtras();
-        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
-        finally { salvandoExtra = false; }
-    }
-    async function excluirExtra(id) {
-        if (!(await tumtuConfirmar('Excluir este Convidado? Isso apaga também o tamanho e a entrega de figurino registrada pra ele.', { textoConfirmar: 'Excluir' }))) return;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
-        if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
-        mostrarToast('Convidado excluído.');
-        extraEditando = null;
-        await carregarExtras();
-        renderizarEditorExtra();
-        renderizarExtrasLista();
-        atualizarTotalizadorExtras();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -8279,8 +7976,7 @@
         await Promise.all([
             carregarRitmistas(true).then(() => { carregarRitmistas(); }),
             carregarDiretoria(true).then(() => { diretoriaCarregada = false; carregarDiretoria(); }), // Super Admin sempre vê o card "Diretoria ativa"
-            carregarExtras().then(atualizarTotalizadorExtras), // idem, card "Extras"
-            carregarConvidadosEspeciais(true).then(() => { convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais(); }), // idem, card "Convidado Especial" (achado 01/set/2026, mesmo bug do card acima)
+            carregarConvidadosEspeciais(true).then(() => { convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais(); }), // idem, card "Convidados" (achado 01/set/2026, mesmo bug do card acima)
         ]);
         iniciarAutoRefreshRitmistas();
 
