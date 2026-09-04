@@ -9428,7 +9428,7 @@
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, ehAdminBateria: !!p.eh_admin_bateria, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
         // O editor toma conta da tela inteira, por cima da sub-tela do
         // grupo (ou da lista, se veio da ficha) -- nunca os dois visíveis
         // ao mesmo tempo.
@@ -9496,6 +9496,11 @@
                     <input type="checkbox" id="pp-modo-carteirinha" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.modoCarteirinhaIndividual ? 'checked' : ''}>
                     <label for="pp-modo-carteirinha" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Modo Carteirinha individual — só vê a própria carteirinha, sem entrar na gestão (ignora as capacidades abaixo)</label>
                 </div>
+                ${pe.perfil === 'diretor' ? `
+                <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e0e0e0;">
+                    <input type="checkbox" id="pp-admin-bateria" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.ehAdminBateria ? 'checked' : ''}>
+                    <label for="pp-admin-bateria" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Admin desta bateria — já nasce com a Permissão Padrão de Diretor Admin ao ser aprovado (Configurações → Permissões Padrão)</label>
+                </div>` : ''}
                 </div>
             </div>
             ${gruposCapacidadesVisiveis().map(g => `
@@ -9610,7 +9615,12 @@
         // salva false (nunca ficou disponível pra marcar mesmo).
         const restritoNaipeEl = document.getElementById('pp-restrito-naipe');
         const restrito_ao_naipe = restritoNaipeEl ? restritoNaipeEl.checked : false;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual, restrito_ao_naipe }) });
+        // "Admin desta bateria" (04/set/2026) só existe na tela pra Diretor
+        // de Bateria (ver renderizarEditorPermissoesPessoa) -- mesmo padrão
+        // de "Restrito ao naipe" logo acima.
+        const adminBateriaEl = document.getElementById('pp-admin-bateria');
+        const eh_admin_bateria = adminBateriaEl ? adminBateriaEl.checked : false;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual, restrito_ao_naipe, eh_admin_bateria }) });
         if (res.ok) {
             mostrarToast('Permissões atualizadas!');
             const grupoOrigem = pe.grupoOrigem;
@@ -10950,21 +10960,6 @@
         await carregarDiretoria(true);
     }
 
-    // "Admin desta bateria" (04/set/2026) -- ver blocoAdminBateria em
-    // abrirFichaAdmin. Reabre a ficha depois de salvar só pra atualizar o
-    // texto do checkbox/selo com o cache recém-recarregado.
-    async function alternarAdminBateria(vinculoId, ligado) {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${vinculoId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ eh_admin_bateria: ligado }) });
-        if (res.ok) {
-            mostrarToast(ligado ? 'Marcado como Admin desta bateria.' : 'Deixou de ser Admin desta bateria.');
-            diretoriaCarregada = false;
-            await carregarDiretoria(true);
-            abrirFichaAdmin(vinculoId);
-        } else {
-            mostrarToast('Erro ao atualizar.', 'erro');
-        }
-    }
-
     async function abrirFichaAdmin(id) {
         const admins = window._adminsCache || [];
         const a = admins.find(x => x.id === id);
@@ -10982,19 +10977,7 @@
         // lógica) -- ver fpIrParaPermissoesDeFicha.
         const extraAdmin = document.querySelector('#fp-container-admin #fp-extra-conteudo');
         if (extraAdmin) {
-            // "Admin desta bateria" (04/set/2026, pedido dela) -- só faz
-            // sentido pra Diretor de Bateria puro (Mestre e Apoio já têm seu
-            // próprio molde de Permissões Padrão, sem essa distinção extra).
-            // Clique instantâneo (mesmo padrão de fpAlternarDeclaracao) --
-            // não passa por Editar/Salvar, é uma marcação isolada.
-            const blocoAdminBateria = (a.perfil === 'diretor' && tenhoCapacidade('editar_permissoes')) ? `
-                <div class="ficha-secao">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <input type="checkbox" id="fp-admin-bateria" onchange="alternarAdminBateria(${a.id}, this.checked)" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${a.eh_admin_bateria ? 'checked' : ''}>
-                        <label for="fp-admin-bateria" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Admin desta bateria — já nasce com a Permissão Padrão de Diretor Admin ao ser aprovado (Configurações → Permissões Padrão)</label>
-                    </div>
-                </div>` : '';
-            extraAdmin.innerHTML = blocoAdminBateria + (tenhoCapacidade('ver_permissoes') ? `
+            extraAdmin.innerHTML = tenhoCapacidade('ver_permissoes') ? `
                 <div class="ficha-secao">
                     <div class="ficha-secao-titulo">Permissões</div>
                     <div class="ficha-campo full">
@@ -11006,7 +10989,7 @@
                         <div id="fp-permissoes-detalhe" style="display:none;font-size:13px;line-height:1.6;">${permissoesResumoDetalhado(a)}</div>
                     </div>
                     <button type="button" class="btn-ficha" style="margin-top:8px;" onclick="fpIrParaPermissoesDeFicha(${a.id})">Editar permissões</button>
-                </div>` : '');
+                </div>` : '';
         }
 
         // Botões de ação de status + Ver carteirinha + Fechar -- mesmo
