@@ -304,6 +304,18 @@ const FP_IDADE_MAXIMA = 100;
 function fpApenasDigitos(valor) {
     return (valor || '').replace(/\D/g, '');
 }
+// Celular (11 dígitos, começa com 9 depois do DDD) OU fixo (10 dígitos,
+// não começa com 9) -- regra refinada 03/set/2026, achado dela: número
+// fixo de verdade (comum em contato de emergência de gente mais velha)
+// não devia ser tratado como erro só por ter 10 dígitos. Mas um número
+// que começa com 9 e tem só 10 dígitos continua errado -- só pode faltar
+// um dígito de um celular truncado, nunca é fixo de verdade.
+function fpTelefoneValido(valor) {
+    const d = fpApenasDigitos(valor);
+    if (d.length === 11 && d[2] === '9') return true;
+    if (d.length === 10 && d[2] !== '9') return true;
+    return false;
+}
 function fpEhMenorIdade(nascimentoISO) {
     if (!nascimentoISO) return false;
     const nascimento = new Date(nascimentoISO + 'T00:00:00');
@@ -337,7 +349,10 @@ function fpProblemasDadosProprios(pessoa) {
         if (pessoa.celular && fpApenasDigitos(pessoa.celular).length !== 11) {
             problemas.push({ campo: 'celular', rotulo: 'Celular' });
         }
-        if (pessoa.emergencia_celular && fpApenasDigitos(pessoa.emergencia_celular).length !== 11) {
+        // Celular de EMERGÊNCIA aceita fixo também (03/set/2026, pedido
+        // dela) -- pode ser o telefone de casa de alguém mais velho. Só o
+        // celular da própria pessoa exige celular de verdade.
+        if (pessoa.emergencia_celular && !fpTelefoneValido(pessoa.emergencia_celular)) {
             problemas.push({ campo: 'emergencia_celular', rotulo: 'Celular de emergência' });
         }
     }
@@ -777,7 +792,9 @@ function fpProblemasFicha(p) {
     const ehBrasileira = p.nacionalidade === 'Brasileira' || !p.nacionalidade;
     if (ehBrasileira) {
         if (p.celular && fpApenasDigitos(p.celular).length !== 11) msgs.push('Celular incompleto (confira os 11 números)');
-        if (p.emergencia_celular && fpApenasDigitos(p.emergencia_celular).length !== 11) msgs.push('Celular de emergência incompleto');
+        // Emergência aceita fixo (10 dígitos, sem o 9) além de celular --
+        // único campo com essa exceção (03/set/2026, pedido dela).
+        if (p.emergencia_celular && !fpTelefoneValido(p.emergencia_celular)) msgs.push('Celular de emergência incompleto');
         if (p.responsavel_celular && fpApenasDigitos(p.responsavel_celular).length !== 11) msgs.push('Celular do responsável incompleto');
     }
     if (p.responsavel_cpf && fpApenasDigitos(p.responsavel_cpf).length !== 11) msgs.push('CPF do responsável incompleto');
@@ -1596,17 +1613,24 @@ async function fpSalvar() {
             ? fpEl('fp-responsavel-celular-edit').value.trim() : (fpEstado.alvo.responsavel_celular || '');
         const fpEmergenciaCelularAtual = fpEstado.editaveis.has('emergencia_celular') && fpEl('fp-emergencia-celular-edit')
             ? fpEl('fp-emergencia-celular-edit').value.trim() : (fpEstado.alvo.emergencia_celular || '');
+        // Emergência aceita fixo (10 dígitos, sem o 9) além de celular --
+        // único dos 3 com essa exceção (03/set/2026, pedido dela: pode ser
+        // o telefone de casa de alguém mais velho). Celular da pessoa e do
+        // responsável continuam exigindo celular de verdade.
         const fpCamposCelular = [
-            { valor: fpCelularAtual, el: fpEl('fp-celular-edit') || fpEl('fp-celular') },
-            { valor: fpResponsavelCelularAtual, el: fpEl('fp-responsavel-celular-edit') || fpEl('fp-responsavel-celular') },
-            { valor: fpEmergenciaCelularAtual, el: fpEl('fp-emergencia-celular-edit') || fpEl('fp-emergencia-celular') },
+            { valor: fpCelularAtual, el: fpEl('fp-celular-edit') || fpEl('fp-celular'), aceitaFixo: false },
+            { valor: fpResponsavelCelularAtual, el: fpEl('fp-responsavel-celular-edit') || fpEl('fp-responsavel-celular'), aceitaFixo: false },
+            { valor: fpEmergenciaCelularAtual, el: fpEl('fp-emergencia-celular-edit') || fpEl('fp-emergencia-celular'), aceitaFixo: true },
         ].filter(c => c.el);
-        for (const { valor, el } of fpCamposCelular) {
-            if (valor && fpApenasDigitos(valor).length !== 11) {
+        for (const { valor, el, aceitaFixo } of fpCamposCelular) {
+            const valido = aceitaFixo ? fpTelefoneValido(valor) : (fpApenasDigitos(valor).length === 11);
+            if (valor && !valido) {
                 const msg = fpEl('fp-mensagem');
                 if (msg) {
                     msg.className = 'fp-mensagem erro';
-                    msg.textContent = 'Celular incompleto — confira se digitou os 11 números, com DDD.';
+                    msg.textContent = aceitaFixo
+                        ? 'Celular de emergência incompleto — confira o número (celular com 11 dígitos, ou fixo com 10).'
+                        : 'Celular incompleto — confira se digitou os 11 números, com DDD.';
                     msg.style.display = 'block';
                 }
                 el.classList.add('campo-invalido');

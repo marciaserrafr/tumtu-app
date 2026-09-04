@@ -785,6 +785,16 @@
     function apenasDigitos(valor) {
         return (valor || '').replace(/\D/g, '');
     }
+    // Celular (11 dígitos, começa com 9) OU fixo (10 dígitos, não começa
+    // com 9) -- só usado no celular de EMERGÊNCIA (03/set/2026, pedido
+    // dela: pode ser o telefone de casa de alguém mais velho). Celular da
+    // pessoa e do responsável continuam exigindo celular de verdade.
+    function telefoneValido(valor) {
+        const d = apenasDigitos(valor);
+        if (d.length === 11 && d[2] === '9') return true;
+        if (d.length === 10 && d[2] !== '9') return true;
+        return false;
+    }
 
     // Idade máxima plausível pro alerta de nascimento digitado errado
     // (03/set/2026, pedido da Márcia depois de achar um cadastro real com
@@ -1413,13 +1423,16 @@
         // segue esse padrão, fica livre pra quem marcar Estrangeira.
         if (document.getElementById('nacionalidade_tipo').value !== 'Estrangeira') {
             const camposCelular = [
-                document.getElementById('celular'),
-                document.getElementById('responsavel_celular'),
-                document.getElementById('emergencia_celular'),
+                { campo: document.getElementById('celular'), aceitaFixo: false },
+                { campo: document.getElementById('responsavel_celular'), aceitaFixo: false },
+                { campo: document.getElementById('emergencia_celular'), aceitaFixo: true },
             ];
-            for (const campoCelular of camposCelular) {
-                if (campoCelular.value.trim() && apenasDigitos(campoCelular.value).length !== 11) {
-                    mostrarErroCampo(campoCelular, 'Celular incompleto — confira se digitou os 11 números, com DDD.');
+            for (const { campo: campoCelular, aceitaFixo } of camposCelular) {
+                const valido = aceitaFixo ? telefoneValido(campoCelular.value) : (apenasDigitos(campoCelular.value).length === 11);
+                if (campoCelular.value.trim() && !valido) {
+                    mostrarErroCampo(campoCelular, aceitaFixo
+                        ? 'Celular de emergência incompleto — confira o número (celular com 11 dígitos, ou fixo com 10).'
+                        : 'Celular incompleto — confira se digitou os 11 números, com DDD.');
                     campoCelular.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     travarFormulario(false);
                     return;
