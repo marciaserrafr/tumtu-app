@@ -9732,9 +9732,17 @@
         const container = document.getElementById('sa-permissoes-padrao-lista');
         if (!container) return;
         container.innerHTML = ordem.map(cargo => {
-            const p = permissoesPadraoCache.find(x => x.cargo === cargo) || { cargo, capacidades: {} };
+            const p = permissoesPadraoCache.find(x => x.cargo === cargo) || { cargo, capacidades: {}, modo_carteirinha_individual: false };
             const ligadas = TODAS_CAPACIDADES.filter(c => p.capacidades && p.capacidades[c]).length;
-            const detalhe = ligadas === 0 ? 'Nenhuma permissão marcada ainda' : `${ligadas} permissão(ões) marcada(s)`;
+            // Achado dela, 04/set/2026: Modo Carteirinha individual não
+            // contava aqui -- alguém podia salvar SÓ isso (sem nenhuma
+            // capacidade marcada, o que é normal, já que o modo ignora as
+            // capacidades) e o card dizia "Nenhuma permissão marcada ainda",
+            // como se nada tivesse sido configurado.
+            const partes = [];
+            if (p.modo_carteirinha_individual) partes.push('Modo Carteirinha individual');
+            if (ligadas > 0) partes.push(`${ligadas} permissão(ões) marcada(s)`);
+            const detalhe = partes.length === 0 ? 'Nenhuma permissão marcada ainda' : partes.join(' · ');
             return `<div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${LABEL_PERMISSAO_PADRAO[cargo]}</div>
