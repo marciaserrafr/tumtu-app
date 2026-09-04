@@ -19,7 +19,7 @@
     <script defer src="/_vercel/insights/script.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=28">
+    <link rel="stylesheet" href="styles/components.css?v=29">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Leitor de QR pra Presença (29/ago/2026) -- lê o mesmo QR que já
          existe na carteirinha (qr_token), direto pela câmera do celular,
@@ -29,7 +29,7 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=62"></script>
+    <script src="ficha-perfil.js?v=63"></script>
     <script src="faceid.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -4065,8 +4065,8 @@
         const porGrupo = formatoMarcado === 'por-instrumento' || formatoMarcado === 'por-cargo';
 
         const marcados = Array.from(document.querySelectorAll('.export-campo-check:checked')).map(c => c.value);
-        if (marcados.length === 0) { alert('Marque pelo menos um campo para exportar.'); return; }
-        if (lista.length === 0) { alert('Não há registros para exportar com os filtros marcados.'); return; }
+        if (marcados.length === 0) { mostrarToast('Marque pelo menos um campo para exportar.', 'erro'); return; }
+        if (lista.length === 0) { mostrarToast('Não há registros para exportar com os filtros marcados.', 'erro'); return; }
 
         const todosCampos = campos.flatMap(g => g.campos);
         const marcadosMedida = marcados.some(c => c.startsWith('medida_'));
@@ -4077,7 +4077,7 @@
         try {
             await carregarSheetJS();
         } catch (e) {
-            alert('Não foi possível exportar agora — verifique sua conexão com a internet e tente de novo.');
+            mostrarToast('Não foi possível exportar agora — verifique sua conexão com a internet e tente de novo.', 'erro');
             return;
         }
 
@@ -4151,8 +4151,8 @@
         atualizarStatus(acaoAtualId, 'desligado', motivo, acaoAtualRecarregar);
     }
 
-    function fecharModal(id) {
-        if (typeof fpPodeDescartar === 'function' && !fpPodeDescartar()) return;
+    async function fecharModal(id) {
+        if (typeof fpPodeDescartar === 'function' && !(await fpPodeDescartar())) return;
         document.getElementById(id).classList.remove('aberto');
     }
 
@@ -4912,9 +4912,9 @@
     // fpEstado global cobre qualquer modal, já que só uma ficha fica
     // aberta/em edição por vez.
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', e => {
+        overlay.addEventListener('click', async e => {
             if (e.target !== overlay) return;
-            if (typeof fpPodeDescartar === 'function' && !fpPodeDescartar()) return;
+            if (typeof fpPodeDescartar === 'function' && !(await fpPodeDescartar())) return;
             overlay.classList.remove('aberto');
         });
     });
@@ -4934,12 +4934,12 @@
 
     function irParaCadastroManualRitmista() {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { alert('Bateria não encontrada para este usuário.'); return; }
+        if (!bateriaId) { mostrarToast('Bateria não encontrada para este usuário.', 'erro'); return; }
         window.location.href = `cadastro?modo=manual&cargo=ritmista&bateria_id=${bateriaId}`;
     }
     function irParaCadastroManualDiretoria(cargo) {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { alert('Bateria não encontrada para este usuário.'); return; }
+        if (!bateriaId) { mostrarToast('Bateria não encontrada para este usuário.', 'erro'); return; }
         window.location.href = `cadastro?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}`;
     }
 
@@ -7009,7 +7009,7 @@
         finally { salvandoExtra = false; }
     }
     async function excluirExtra(id) {
-        if (!confirm('Excluir este Convidado? Isso apaga também o tamanho e a entrega de figurino registrada pra ele.')) return;
+        if (!(await tumtuConfirmar('Excluir este Convidado? Isso apaga também o tamanho e a entrega de figurino registrada pra ele.', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/extras?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
         mostrarToast('Convidado excluído.');
@@ -7167,7 +7167,7 @@
         finally { salvandoEvento = false; }
     }
     async function excluirEvento(id) {
-        if (!confirm('Excluir este evento? Isso apaga também todas as presenças já registradas nele.')) return;
+        if (!(await tumtuConfirmar('Excluir este evento? Isso apaga também todas as presenças já registradas nele.', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
         mostrarToast('Evento excluído.');
@@ -9149,6 +9149,13 @@
         // caso de "Ritmistas": interruptor da bateria inteira, sem lista de
         // gente, então não precisa de filtro/fonte nenhum.
     };
+    // Plural pro botão "Aplicar a todos" (03/set/2026, pedido dela: "tá me
+    // dando um trabalho danado marcar tudo igualzinho para todos"). Mesmo
+    // agrupamento de PERMISSOES_GRUPOS, mas por perfil puro -- Diretor de
+    // Naipe e Diretor sem naipe são o MESMO cargo pra fins de permissão, só
+    // divididos ali por causa da restrição de naipe (que "Aplicar a todos"
+    // nunca mexe, ver aplicarPermissoesATodos).
+    const LABEL_PERFIL_PLURAL = { mestre: 'Mestres', diretor: 'Diretores de Bateria', apoio: 'Diretores (Apoio)' };
 
     // Usado na lista de Permissões (linha por pessoa, precisa ser curto --
     // só a contagem, não cabe o detalhe todo numa lista de várias pessoas).
@@ -9426,17 +9433,35 @@
         await carregarPermissoesEscola();
         abrirEditorPermissoesPessoa(vinculoId, true);
     }
+    // Mesmo cargo (mestre/diretor/apoio), qualquer bateria -- Diretor de
+    // Naipe e Diretor sem naipe contam como o mesmo cargo aqui (ver
+    // LABEL_PERFIL_PLURAL). Usado por "Copiar de" e "Aplicar a todos"
+    // (03/set/2026, pedido dela).
+    function permissoesPessoasMesmoPerfil(pe) {
+        return permissoesPessoaCache.filter(x => x.perfil === pe.perfil && x.id !== pe.id);
+    }
     function renderizarEditorPermissoesPessoa() {
         const pe = permissoesPessoaEditando;
         const editor = document.getElementById('pe-editor');
         if (!editor) return;
         if (!pe) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
         editor.style.display = 'block';
+        const outrosMesmoPerfil = permissoesPessoasMesmoPerfil(pe);
+        const pluralPerfil = LABEL_PERFIL_PLURAL[pe.perfil] || 'outras pessoas desse cargo';
+        const blocoCopiarDe = outrosMesmoPerfil.length === 0 ? '' : `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:#f7f6fb;border-radius:10px;">
+                <label for="pp-copiar-de" style="margin:0;font-size:13px;color:var(--cor-texto-secundario);white-space:nowrap;">Copiar permissão de</label>
+                <select id="pp-copiar-de" style="flex:1;min-width:140px;padding:6px 10px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-family:inherit;">
+                    <option value="">Selecione...</option>
+                    ${outrosMesmoPerfil.map(o => `<option value="${o.id}">${esc(o.nome)}</option>`).join('')}
+                </select>
+                <button class="btn-ficha" onclick="copiarPermissoesDe()">Copiar</button>
+            </div>`;
         editor.innerHTML = `<div class="card-form">
             ${pe.veioDaFicha
                 ? `<div style="margin-bottom:8px;"><span onclick="abrirFichaAdmin(${pe.id})" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Voltar para a ficha</span></div>`
                 : (pe.grupoOrigem && PERMISSOES_GRUPOS[pe.grupoOrigem] ? `<div style="margin-bottom:8px;"><span onclick="fecharEditorPermissoesPessoa()" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← ${esc(PERMISSOES_GRUPOS[pe.grupoOrigem].label)}</span></div>` : '')}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
+            ${blocoCopiarDe}
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>Acesso ao TumTu<span class="ficha-secao-seta">▸</span></div>
                 <div class="ficha-secao-corpo" style="display:none;">
@@ -9485,7 +9510,10 @@
                     </div>
                 </div>`).join('')}
             <div class="form-rodape">
-                <div class="form-rodape-esq"><button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button></div>
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarPermissoesPessoa()">Salvar</button>
+                    ${outrosMesmoPerfil.length > 0 ? `<button class="btn-ficha" onclick="aplicarPermissoesATodos()">Aplicar a todos os ${esc(pluralPerfil)}</button>` : ''}
+                </div>
                 <button class="btn-ficha" onclick="fecharEditorPermissoesPessoa()">Cancelar</button>
             </div>
         </div>`;
@@ -9567,6 +9595,70 @@
             else voltarPermissoesLista();
         }
         else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
+    }
+    // "Copiar permissão de [Fulano]" (03/set/2026, pedido dela: "tá me
+    // dando um trabalho danado marcar tudo igualzinho para todos"). Só
+    // preenche os checkboxes na tela com o que Fulano já tem hoje -- não
+    // grava nada sozinho, ela ainda precisa clicar em Salvar (dá pra
+    // conferir/ajustar antes). Restrito ao naipe só copia se ESSA pessoa
+    // (não a de origem) tiver naipe declarado -- senão o checkbox nem
+    // existe na tela pra ela marcar.
+    function copiarPermissoesDe() {
+        const pe = permissoesPessoaEditando;
+        if (!pe) return;
+        const sel = document.getElementById('pp-copiar-de');
+        const origemId = sel && sel.value ? Number(sel.value) : null;
+        if (!origemId) return;
+        const origem = permissoesPessoaCache.find(x => x.id === origemId);
+        if (!origem) return;
+        pe.capacidades = { ...(origem.capacidades || {}) };
+        pe.modoCarteirinhaIndividual = !!origem.modo_carteirinha_individual;
+        if (pe.temNaipe) pe.restritoAoNaipe = !!origem.restrito_ao_naipe;
+        renderizarEditorPermissoesPessoa();
+        mostrarToast(`Permissão de ${origem.nome} copiada pra tela -- confira e clique em Salvar.`);
+    }
+    // "Aplicar a todos os [cargo]" (03/set/2026, mesmo pedido) -- grava de
+    // uma vez só (sem passar por Salvar) a permissão que está marcada AGORA
+    // na tela pra essa pessoa E pra todo mundo do mesmo cargo nesta bateria,
+    // numa única chamada (id=in.(...), PostgREST atualiza todas as linhas
+    // que baterem no filtro). De propósito, NÃO inclui restrito_ao_naipe --
+    // é um interruptor pessoal (cada Diretor de Naipe restringe a SI mesmo),
+    // replicar às cegas podia ligar a restrição em alguém sem considerar se
+    // isso faz sentido pro naipe dele. Pede confirmação antes (mesmo modal
+    // personalizado usado em excluirX) porque sobrescreve o que os outros
+    // já tinham configurado.
+    async function aplicarPermissoesATodos() {
+        const pe = permissoesPessoaEditando;
+        if (!pe) return;
+        const outros = permissoesPessoasMesmoPerfil(pe);
+        if (outros.length === 0) return;
+        const capacidades = {};
+        TODAS_CAPACIDADES.forEach(c => {
+            const el = document.getElementById('pp-cap-' + c);
+            capacidades[c] = el ? el.checked : !!(pe.capacidades && pe.capacidades[c]);
+        });
+        const modoCarteirinhaEl = document.getElementById('pp-modo-carteirinha');
+        const modo_carteirinha_individual = modoCarteirinhaEl ? modoCarteirinhaEl.checked : !!pe.modoCarteirinhaIndividual;
+        const plural = LABEL_PERFIL_PLURAL[pe.perfil] || 'pessoas desse cargo';
+        const confirmou = await tumtuConfirmar(`Aplicar essa mesma permissão (o que está marcado acima) para os outros ${outros.length} ${plural}? Isso substitui o que cada um já tinha configurado -- a restrição por Naipe de cada um não muda.`, { textoConfirmar: 'Aplicar a todos' });
+        if (!confirmou) return;
+        const idsAlvo = [pe.id, ...outros.map(o => o.id)];
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=in.(${idsAlvo.join(',')})`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual }) });
+        if (res.ok) {
+            mostrarToast(`Permissão aplicada a ${idsAlvo.length} ${plural}.`);
+            const grupoOrigem = pe.grupoOrigem;
+            const veioDaFicha = pe.veioDaFicha;
+            const id = pe.id;
+            permissoesPessoaEditando = null;
+            await carregarPermissoesEscola();
+            renderizarEditorPermissoesPessoa();
+            if (veioDaFicha) abrirFichaAdmin(id);
+            else if (grupoOrigem) abrirPermissoesGrupo(grupoOrigem);
+            else voltarPermissoesLista();
+        } else {
+            const err = await res.json();
+            mostrarToast('Erro: ' + (err.message || res.status), 'erro');
+        }
     }
 
     // ── Configurações globais → Instrumentos (biblioteca mestre) ─────────
@@ -9712,7 +9804,7 @@
         finally { salvandoCategoria = false; }
     }
     async function excluirCategoria(id) {
-        if (!confirm('Excluir esta categoria? Isso remove também suas nomenclaturas. Se alguma bateria já usa esse instrumento, prefira marcar como "Inativa".')) return;
+        if (!(await tumtuConfirmar('Excluir esta categoria? Isso remove também suas nomenclaturas. Se alguma bateria já usa esse instrumento, prefira marcar como "Inativa".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
         mostrarToast('Categoria excluída.'); categoriaEditando = null; await carregarCategorias(); renderizarEditorCategoria(); renderizarCategoriasLista();
@@ -9870,7 +9962,7 @@
         finally { salvandoMedidaTipo = false; }
     }
     async function excluirMedidaTipoSA(id) {
-        if (!confirm('Excluir esta categoria de figurino? Isso remove também sua escala de Medida. Se alguma bateria já usa, prefira marcar como "Inativo".')) return;
+        if (!(await tumtuConfirmar('Excluir esta categoria de figurino? Isso remove também sua escala de Medida. Se alguma bateria já usa, prefira marcar como "Inativo".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
         mostrarToast('Categoria de figurino excluída.'); medidaTipoEditando = null; await carregarMedidaTiposSA(); renderizarEditorMedidaTipo(); renderizarMedidaTiposListaSA();
@@ -9974,7 +10066,7 @@
         } finally { salvandoFigurinoMestre = false; }
     }
     async function excluirFigurinoMestre(id) {
-        if (!confirm('Excluir este Figurino? Isso remove também o controle de entrega já registrado em toda bateria que usa ele. Se preferir manter o histórico, marque como "Inativo".')) return;
+        if (!(await tumtuConfirmar('Excluir este Figurino? Isso remove também o controle de entrega já registrado em toda bateria que usa ele. Se preferir manter o histórico, marque como "Inativo".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir.', 'erro'); return; }
         mostrarToast('Figurino excluído.');
@@ -10067,7 +10159,7 @@
         finally { salvandoEventoTipo = false; }
     }
     async function excluirEventoTipoSA(id) {
-        if (!confirm('Excluir este tipo de evento? Se alguma bateria já tem Eventos criados com ele, prefira marcar como "Inativo".')) return;
+        if (!(await tumtuConfirmar('Excluir este tipo de evento? Se alguma bateria já tem Eventos criados com ele, prefira marcar como "Inativo".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
         mostrarToast('Tipo de evento excluído.'); eventoTipoEditando = null; await carregarEventoTiposSA(); renderizarEditorEventoTipo(); renderizarEventoTiposListaSA();
@@ -10155,7 +10247,7 @@
         finally { salvandoTemporada = false; }
     }
     async function excluirTemporadaSA(id) {
-        if (!confirm('Excluir esta temporada? Se algum evento já usa ela, prefira marcar como "Inativa".')) return;
+        if (!(await tumtuConfirmar('Excluir esta temporada? Se algum evento já usa ela, prefira marcar como "Inativa".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
         mostrarToast('Temporada excluída.'); temporadaEditando = null; await carregarTemporadasSA(); renderizarEditorTemporada(); renderizarTemporadasListaSA();

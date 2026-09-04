@@ -164,6 +164,29 @@
 .btn-ficha-editar:hover { background: #B8922A; }
 .btn-ficha-salvar    { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
 .btn-ficha-salvar:hover { background: #B8922A; }
+/* Já existia só dentro do <style> de admin.html (telas de exclusão do Super
+   Admin) -- movido pra cá em 03/set/2026 pra ficar disponível também em
+   carteirinha.html (modal de confirmação personalizado, ver abaixo). */
+.btn-ficha-danger { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+.btn-ficha-danger:hover { background: #fef0eb; }
+
+/* ── Confirmação personalizada (substitui o confirm() nativo do navegador
+   em todo o app -- 03/set/2026, pedido dela: "tudo do TumTu é
+   personalizado"). Gerado via JS (tumtuConfirmar, em ficha-perfil.js),
+   nunca escrito direto no HTML. Mesma linguagem visual do modal-sa
+   (Super Admin): caixa branca arredondada sobre véu escuro. ── */
+.tumtu-confirm-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 99999;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.tumtu-confirm-box {
+    background: #ffffff; border-radius: 16px; width: 100%; max-width: 360px;
+    padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.tumtu-confirm-texto {
+    font-size: 14px; color: var(--cor-texto-principal); line-height: 1.5; margin: 0 0 20px;
+}
+.tumtu-confirm-acoes { display: flex; justify-content: flex-end; gap: 10px; }
 
 .fc-input {
     display: none;

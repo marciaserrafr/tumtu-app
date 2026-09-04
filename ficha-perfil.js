@@ -327,12 +327,51 @@ function fpEhMenorIdade(nascimentoISO) {
     return idade < FP_IDADE_MAIOR;
 }
 
+// Modal de confirmação personalizado do TumTu -- substitui o confirm()
+// nativo do navegador em todo o app (03/set/2026, pedido dela: "tudo do
+// TumTu é personalizado"). Compartilhado por admin.html e carteirinha.html
+// (mesmo critério de fpPodeDescartar logo abaixo). Retorna uma Promise que
+// resolve true (confirmou) ou false (cancelou/clicou fora).
+function tumtuConfirmar(mensagem, opcoes) {
+    opcoes = opcoes || {};
+    return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.className = 'tumtu-confirm-overlay';
+        const box = document.createElement('div');
+        box.className = 'tumtu-confirm-box';
+        const texto = document.createElement('p');
+        texto.className = 'tumtu-confirm-texto';
+        texto.textContent = mensagem;
+        const acoes = document.createElement('div');
+        acoes.className = 'tumtu-confirm-acoes';
+        const btnCancelar = document.createElement('button');
+        btnCancelar.type = 'button';
+        btnCancelar.className = 'btn-ficha';
+        btnCancelar.textContent = opcoes.textoCancelar || 'Cancelar';
+        const btnConfirmar = document.createElement('button');
+        btnConfirmar.type = 'button';
+        btnConfirmar.className = 'btn-ficha btn-ficha-danger';
+        btnConfirmar.textContent = opcoes.textoConfirmar || 'Confirmar';
+        acoes.appendChild(btnCancelar);
+        acoes.appendChild(btnConfirmar);
+        box.appendChild(texto);
+        box.appendChild(acoes);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+        function fechar(resultado) { overlay.remove(); resolve(resultado); }
+        btnCancelar.addEventListener('click', () => fechar(false));
+        btnConfirmar.addEventListener('click', () => fechar(true));
+        overlay.addEventListener('click', e => { if (e.target === overlay) fechar(false); });
+        btnConfirmar.focus();
+    });
+}
+
 // Confirma antes de descartar edição não salva (03/set/2026, pedido dela).
 // true = pode fechar/cancelar sem perguntar (nada mudou, ou a pessoa
 // confirmou que quer descartar mesmo). false = ficar onde está.
-function fpPodeDescartar() {
+async function fpPodeDescartar() {
     if (!fpEstado.sujo) return true;
-    return confirm('Você tem alterações não salvas. Quer mesmo sair sem salvar?');
+    return await tumtuConfirmar('Você tem alterações não salvas. Quer mesmo sair sem salvar?', { textoConfirmar: 'Sair sem salvar' });
 }
 
 // Aviso de dado próprio incompleto ao logar (03/set/2026, pedido dela
@@ -1299,8 +1338,8 @@ async function fpAtivarEdicao() {
     }
 }
 
-function fpCancelarEdicao() {
-    if (!fpPodeDescartar()) return;
+async function fpCancelarEdicao() {
+    if (!(await fpPodeDescartar())) return;
     fpEstado.sujo = false;
     FP_CAMPOS.forEach(({ id, col }) => {
         const strong = fpEl(id);
