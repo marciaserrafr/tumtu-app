@@ -687,9 +687,21 @@
 
     function previewFoto(input) {
         if (!input.files || !input.files[0]) return;
+        // Achado real (04/set/2026, suporte -- Luiz Henrique, "tentando há
+        // dias e não consigo"): sem tratamento de erro aqui, uma foto que o
+        // navegador não consiga ler (comum em foto de iPhone em formato
+        // HEIC, ou arquivo corrompido) falhava em silêncio -- fotoBase64
+        // nunca era preenchido, e a pessoa só via "adicione uma foto" de
+        // novo, sem entender o motivo.
         const reader = new FileReader();
+        reader.onerror = () => {
+            mostrarErroFoto('Não consegui ler esse arquivo — tente escolher a foto de novo ou tire uma nova.');
+        };
         reader.onload = e => {
             const img = new Image();
+            img.onerror = () => {
+                mostrarErroFoto('Essa foto não pôde ser aberta (formato não reconhecido) — tente outra foto ou tire uma nova.');
+            };
             img.onload = () => {
                 const MAX = 1000;
                 const escala = Math.min(1, MAX / Math.max(img.width, img.height));
@@ -1246,7 +1258,7 @@
     // só quando não é cadastro manual (ver inicializarModoManual). Mesmo
     // padrão visual de mostrarErroCampo, só que preso na área da foto em
     // vez de um input.
-    function mostrarErroFoto() {
+    function mostrarErroFoto(mensagem) {
         const area = document.querySelector('.foto-area');
         let span = area.querySelector('.erro-inline');
         if (!span) {
@@ -1255,7 +1267,7 @@
             span.style.cssText = 'font-size:12px;color:#dc3545;margin-top:8px;display:block;text-align:center;';
             area.appendChild(span);
         }
-        span.textContent = 'Adicione uma foto pra continuar.';
+        span.textContent = mensagem || 'Adicione uma foto pra continuar.';
     }
 
     function validarCamposEtapa(n) {
