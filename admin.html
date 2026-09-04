@@ -3708,7 +3708,12 @@
         container.innerHTML = html;
     }
 
-    async function atualizarStatus(id, status, motivo = null, recarregar = () => carregarRitmistas(true)) {
+    // tipoAprovacao (03/set/2026) só importa quando status==='aprovado' --
+    // distingue 1a aprovação ('aprovado', padrão) de volta de suspenso/
+    // desligado ('reativado'), mesmo status no banco mas e-mails diferentes
+    // (ver notificarAprovacao). Quem chama com 'Reativar' na tela precisa
+    // mandar explícito.
+    async function atualizarStatus(id, status, motivo = null, recarregar = () => carregarRitmistas(true), tipoAprovacao = 'aprovado') {
         const body = { status };
         if (motivo !== null) body.motivo_status = motivo;
         if (status === 'aprovado') body.motivo_status = null;
@@ -3717,18 +3722,23 @@
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify(body)
         });
-        if (status === 'aprovado') notificarAprovacao(id);
+        if (status === 'aprovado') notificarAprovacao(id, tipoAprovacao);
+        else if (status === 'rejeitado') notificarAprovacao(id, 'rejeitado');
         await recarregar();
     }
 
-    // E-mail de "seu cadastro foi aprovado" -- best-effort, nunca trava
-    // nem avisa erro pra quem está aprovando (a aprovação em si já
-    // aconteceu no PATCH acima; o e-mail é só um extra).
-    function notificarAprovacao(vinculoId) {
+    // E-mail de "seu cadastro foi aprovado/reativado/rejeitado" -- best-effort,
+    // nunca trava nem avisa erro pra quem está mexendo no status (a mudança em
+    // si já aconteceu no PATCH acima; o e-mail é só um extra). Rejeitado e
+    // Reativado (03/set/2026, pedido dela) reaproveitam a mesma Edge Function
+    // já usada pra Aprovado -- só o "tipo" muda o texto/assunto enviado.
+    // Suspenso/Desligado de propósito NÃO mandam e-mail (ver
+    // docs/tumtu-historico-sessoes.md, sessão de 02/set, pro raciocínio).
+    function notificarAprovacao(vinculoId, tipo = 'aprovado') {
         fetch(`${SUPABASE_URL}/functions/v1/notificar-aprovacao`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
-            body: JSON.stringify({ vinculo_id: vinculoId })
+            body: JSON.stringify({ vinculo_id: vinculoId, tipo })
         })
             .then(r => r.json()).then(r => { if (!r.ok) console.warn('notificar-aprovacao:', r.error || r.aviso); })
             .catch(err => console.error('notificar-aprovacao falhou:', err));
@@ -4216,12 +4226,12 @@
                 btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');abrirModalDesligar(${r.id},'${r.nome.replace(/'/g,"\\'")}')">Desligar</button>`;
         } else if (status === 'suspenso') {
             if (tenhoCapacidade('reativar_ritmistas'))
-                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Reativar</button>`;
+                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado',null,undefined,'reativado')">Reativar</button>`;
             if (tenhoCapacidade('desligar_ritmistas'))
                 btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');abrirModalDesligar(${r.id},'${r.nome.replace(/'/g,"\\'")}')">Desligar</button>`;
         } else {
             if (tenhoCapacidade('reativar_ritmistas'))
-                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado')">Reativar</button>`;
+                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');atualizarStatus(${r.id},'aprovado',null,undefined,'reativado')">Reativar</button>`;
         }
         btns += `<button class="btn-ficha" onclick="fecharModal('modalCadastroOverlay')">Fechar</button>`;
         document.getElementById('fp-container-ritmista').querySelector('#fp-acoes-extra').innerHTML = btns;
@@ -4236,8 +4246,11 @@
                 ? `<button class="btn-ficha btn-ficha-carteirinha" onclick="abrirCarteirinha(${r.id})">Ver carteirinha ↗</button>`
                 : '';
 
-        // Só edita dados de ritmista ativo/suspenso (regra já existia antes do motor único)
-        if (status !== 'aprovado' && status !== 'suspenso') {
+        // Só edita dados de ritmista ativo/suspenso (regra já existia antes do
+        // motor único) -- Super Admin sempre passa direto (03/set/2026,
+        // pedido dela: precisa poder editar até pendente/rejeitado/desligado
+        // pra corrigir dado de teste ou apoiar suporte, sem essa trava).
+        if (status !== 'aprovado' && status !== 'suspenso' && !souSuperAdmin) {
             document.getElementById('fp-container-ritmista').querySelector('#fp-btn-editar').style.display = 'none';
         }
 
@@ -6784,11 +6797,11 @@
             }
         } else if (status === 'suspenso') {
             if (podeAgir) {
-                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();atualizarStatus(${r.id},'aprovado',null,recarregarConvidadosEspeciais)">Reativar</button>`;
+                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();atualizarStatus(${r.id},'aprovado',null,recarregarConvidadosEspeciais,'reativado')">Reativar</button>`;
                 btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();abrirModalDesligar(${r.id},'${nomeEscapado}','Convidado',recarregarConvidadosEspeciais)">Desligar</button>`;
             }
         } else if (podeAgir) {
-            btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();atualizarStatus(${r.id},'aprovado',null,recarregarConvidadosEspeciais)">Reativar</button>`;
+            btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModal('modalCadastroOverlay');fecharModalAdmin();atualizarStatus(${r.id},'aprovado',null,recarregarConvidadosEspeciais,'reativado')">Reativar</button>`;
         }
 
         const meu = JSON.parse(localStorage.getItem('ritmista') || 'null');
@@ -6804,7 +6817,7 @@
             btns += `<button class="btn-ficha" onclick="fecharModal('modalCadastroOverlay')">Fechar</button>`;
             document.getElementById('fp-container-ritmista').querySelector('#fp-acoes-extra').innerHTML = btns;
             document.getElementById('fp-container-ritmista').querySelector('#fp-ver-carteirinha').innerHTML = btnCarteirinha;
-            if (status !== 'aprovado' && status !== 'suspenso') document.getElementById('fp-container-ritmista').querySelector('#fp-btn-editar').style.display = 'none';
+            if (status !== 'aprovado' && status !== 'suspenso' && !souSuperAdmin) document.getElementById('fp-container-ritmista').querySelector('#fp-btn-editar').style.display = 'none';
             document.getElementById('modalCadastroOverlay').classList.add('aberto');
         } else {
             await fpMontar(document.getElementById('fp-container-admin'));
@@ -6814,7 +6827,7 @@
             btns += `<button class="btn-ficha" onclick="fecharModalAdmin()">Fechar</button>`;
             document.querySelector('#fp-container-admin #fp-acoes-extra').innerHTML = btns;
             document.querySelector('#fp-container-admin #fp-ver-carteirinha').innerHTML = btnCarteirinha;
-            if (status !== 'aprovado' && status !== 'suspenso') document.getElementById('fp-container-admin').querySelector('#fp-btn-editar').style.display = 'none';
+            if (status !== 'aprovado' && status !== 'suspenso' && !souSuperAdmin) document.getElementById('fp-container-admin').querySelector('#fp-btn-editar').style.display = 'none';
             document.getElementById('modalAdmin').style.display = 'block';
             document.body.style.overflow = 'hidden';
         }
@@ -10784,6 +10797,7 @@
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ status: 'rejeitado' })
         });
+        notificarAprovacao(id, 'rejeitado');
         diretoriaCarregada = false;
         await carregarDiretoria(true);
     }
@@ -10844,12 +10858,12 @@
                 btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModalAdmin();abrirModalDesligar(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Desligar</button>`;
         } else if (a.status === 'suspenso') {
             if (tenhoCapacidade('reativar_acessos'))
-                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModalAdmin();atualizarStatus(${a.id},'aprovado',null,recarregarDiretoria)">Reativar</button>`;
+                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModalAdmin();atualizarStatus(${a.id},'aprovado',null,recarregarDiretoria,'reativado')">Reativar</button>`;
             if (tenhoCapacidade('desligar_acessos'))
                 btns += `<button class="btn-ficha btn-ficha-desligar" onclick="fecharModalAdmin();abrirModalDesligar(${a.id},'${nomeEscapado}','${rotulo}',recarregarDiretoria)">Desligar</button>`;
         } else {
             if (tenhoCapacidade('reativar_acessos'))
-                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModalAdmin();atualizarStatus(${a.id},'aprovado',null,recarregarDiretoria)">Reativar</button>`;
+                btns += `<button class="btn-ficha btn-ficha-reativar" onclick="fecharModalAdmin();atualizarStatus(${a.id},'aprovado',null,recarregarDiretoria,'reativado')">Reativar</button>`;
         }
         btns += `<button class="btn-ficha" onclick="fecharModalAdmin()">Fechar</button>`;
         document.querySelector('#fp-container-admin #fp-acoes-extra').innerHTML = btns;
@@ -10864,7 +10878,9 @@
                 : '';
 
         // Só edita dados de quem está ativo/suspenso (mesma regra do Ritmista)
-        if (a.status !== 'aprovado' && a.status !== 'suspenso') {
+        // -- Super Admin sempre passa direto (03/set/2026, ver justificativa
+        // em abrirCadastro).
+        if (a.status !== 'aprovado' && a.status !== 'suspenso' && !souSuperAdmin) {
             document.getElementById('fp-container-admin').querySelector('#fp-btn-editar').style.display = 'none';
         }
 
