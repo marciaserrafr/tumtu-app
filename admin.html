@@ -1869,7 +1869,7 @@
         <div id="sa-config-tela-permissoes-padrao" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Permissões Padrão</div>
-            <p class="config-sub-desc">Permissão com que Mestre, Diretor Admin, Diretor de Bateria e Diretor (Apoio) já nascem ao serem aprovados pela primeira vez, em qualquer bateria. Depois disso, cada um pode ser ajustado na mão em Permissões, normalmente.</p>
+            <p class="config-sub-desc">Permissão com que Mestre, Diretor Admin, Diretor de Naipe, Diretor de Bateria e Diretor (Apoio) já nascem ao serem aprovados pela primeira vez, em qualquer bateria. Diretor de Bateria também sobe pra Diretor de Naipe ou Diretor Admin sozinho, automaticamente, no momento em que o Naipe ou o Admin da Bateria for marcado na ficha dele — sempre somando permissão, nunca tirando o que já tinha. Depois disso, cada um pode ser ajustado na mão em Permissões, normalmente.</p>
             <div id="sa-permissoes-padrao-editor" style="display:none;"></div>
             <div id="sa-permissoes-padrao-lista" class="lista-cards"></div>
         </div>
@@ -9722,13 +9722,13 @@
     // possíveis, já que baterias diferentes podem usar modelos diferentes.
     let permissoesPadraoCache = [];
     let permissaoPadraoEditando = null;
-    const LABEL_PERMISSAO_PADRAO = { mestre: 'Mestre', diretor_admin: 'Diretor Admin', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
+    const LABEL_PERMISSAO_PADRAO = { mestre: 'Mestre', diretor_admin: 'Diretor Admin', diretor_naipe: 'Diretor de Naipe', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
     async function carregarPermissoesPadrao() {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/permissoes_padrao`, { headers: authHeaders });
         permissoesPadraoCache = res.ok ? await res.json() : [];
     }
     function renderizarPermissoesPadraoLista() {
-        const ordem = ['mestre', 'diretor_admin', 'diretor', 'apoio'];
+        const ordem = ['mestre', 'diretor_admin', 'diretor_naipe', 'diretor', 'apoio'];
         const container = document.getElementById('sa-permissoes-padrao-lista');
         if (!container) return;
         container.innerHTML = ordem.map(cargo => {
