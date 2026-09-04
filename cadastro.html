@@ -505,7 +505,7 @@
              linha por linha (23/ago/2026, reforma de medidas abertas). -->
         <div class="form-row" id="linha-medidas-dinamico"></div>
 
-        <div class="secao oculto-pessoa-existente">Saúde</div>
+        <div class="secao oculto-pessoa-existente" id="secao-saude">Saúde</div>
 
         <div class="auth-form-group oculto-pessoa-existente">
             <label>Tipo sanguíneo</label>
@@ -1146,12 +1146,29 @@
 
         const cargo = params.get('cargo');
         const bateriaId = params.get('bateria_id');
+        // Convidado "sem carteirinha" (04/set/2026, decisão dela): único jeito
+        // de cadastrar esse tipo de Convidado é por aqui, nunca por link -- ver
+        // project_unificacao_convidado_especial_desenho na memória.
+        const ehConvidadoSemCarteirinha = params.get('convidado_especial') === '1';
         const usuarioLogado = JSON.parse(localStorage.getItem('ritmista') || 'null');
 
-        const autorizado = !!usuarioLogado && (
+        const { data: sessionDataManual } = await sb.auth.getSession();
+        const tokenManual = sessionDataManual.session ? sessionDataManual.session.access_token : SUPABASE_KEY;
+        const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${tokenManual}` };
+
+        let autorizado = !!usuarioLogado && (
             usuarioLogado.perfil === 'super_admin' ||
-            (cargo === 'ritmista' && (usuarioLogado.perfil === 'mestre' || usuarioLogado.perfil === 'diretor' || usuarioLogado.perfil === 'apoio'))
+            (!ehConvidadoSemCarteirinha && cargo === 'ritmista' && (usuarioLogado.perfil === 'mestre' || usuarioLogado.perfil === 'diretor' || usuarioLogado.perfil === 'apoio'))
         );
+        // Convidado não depende do perfil de quem cadastra, e sim de uma
+        // capacidade granular (criar_cadastro_convidados_especiais) -- mesmo
+        // conceito de tenhoCapacidade() em admin.html, só que direto via REST
+        // (esta tela não carrega minhasCapacidades).
+        if (!autorizado && ehConvidadoSemCarteirinha && usuarioLogado && usuarioLogado.pessoa_id && bateriaId) {
+            const resCap = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?pessoa_id=eq.${usuarioLogado.pessoa_id}&bateria_id=eq.${bateriaId}&status=eq.aprovado&select=capacidades`, { headers });
+            const linhasCap = resCap.ok ? await resCap.json() : [];
+            autorizado = linhasCap.some(v => v.capacidades && v.capacidades.criar_cadastro_convidados_especiais === true);
+        }
 
         if (!bateriaId || !cargo || !autorizado) {
             document.getElementById('conteudo-cadastro').style.display = 'none';
@@ -1161,18 +1178,15 @@
             return;
         }
 
-        const { data: sessionDataManual } = await sb.auth.getSession();
-        const tokenManual = sessionDataManual.session ? sessionDataManual.session.access_token : SUPABASE_KEY;
-        const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${tokenManual}` };
         const resBat = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome`, { headers });
         const baterias = await resBat.json();
 
-        modoManualAtual = { cargo, bateriaId: Number(bateriaId), criadoPorId: usuarioLogado.id };
+        modoManualAtual = { cargo, bateriaId: Number(bateriaId), criadoPorId: usuarioLogado.id, ehConvidadoSemCarteirinha };
         atualizarCampoInstrumento(cargo);
         await carregarOpcoesInstrumento(Number(bateriaId));
-        await carregarOpcoesMedidas(Number(bateriaId), cargo);
+        await carregarOpcoesMedidas(Number(bateriaId), cargo, ehConvidadoSemCarteirinha);
         const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor de Bateria' : cargo === 'apoio' ? 'Diretor (Apoio)' : 'Ritmista';
-        document.getElementById('convite-cargo').textContent = cargoLabel;
+        document.getElementById('convite-cargo').textContent = ehConvidadoSemCarteirinha ? `Convidado – ${cargoLabel}` : cargoLabel;
         document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
         document.getElementById('convite-banner').style.display = 'block';
         document.getElementById('bloco-consentimento').style.display = 'block';
@@ -1186,6 +1200,29 @@
         // vale a pena adicionar mesmo assim, se der.
         document.getElementById('fotoObrigatorioTexto').style.display = 'none';
         document.getElementById('fotoAvisoManual').style.display = 'block';
+
+        // Convidado "sem carteirinha": só nome + tamanho do figurino importam
+        // (pedido dela, 04/set/2026) -- esconde e libera (tira o "required")
+        // tudo que ela não quer perguntar. E-mail/senha são gerados sozinhos,
+        // só pra satisfazer o login do Supabase Auth por baixo -- ninguém vai
+        // usar isso pra entrar no TumTu (convidado sem carteirinha não acessa
+        // o app).
+        if (ehConvidadoSemCarteirinha) {
+            document.getElementById('cpf').required = false;
+            document.getElementById('cpf').closest('.auth-form-group').style.display = 'none';
+            document.getElementById('nascimento').required = false;
+            document.getElementById('nascimento').closest('.form-row').style.display = 'none';
+            document.getElementById('nacionalidade_tipo').required = false;
+            document.getElementById('nacionalidade_tipo').closest('.form-row').style.display = 'none';
+            const secaoSaude = document.getElementById('secao-saude');
+            if (secaoSaude) secaoSaude.style.display = 'none';
+            document.getElementById('tipo_sanguineo').closest('.auth-form-group').style.display = 'none';
+            document.getElementById('senha').closest('.form-row').style.display = 'none';
+            const senhaGerada = crypto.randomUUID();
+            document.getElementById('senha').value = senhaGerada;
+            document.getElementById('confirmar_senha').value = senhaGerada;
+            document.getElementById('email').value = `convidado.${crypto.randomUUID()}@sem-login.tumtu.com.br`;
+        }
     }
 
     function mostrarErroCampo(campo, mensagem) {
@@ -1280,6 +1317,10 @@
     }
 
     function etapaEscondida(n) {
+        // Convidado "sem carteirinha": pula direto Contato/Bateria (2),
+        // Endereço (3) e Emergência (5) -- só nome (etapa 1) e tamanho de
+        // figurino (etapa 4) importam.
+        if (modoManualAtual && modoManualAtual.ehConvidadoSemCarteirinha && (n === 2 || n === 3 || n === 5)) return true;
         if (!pessoaExistente) return false;
         const stepEl = document.querySelector(`.form-step[data-step="${n}"]`);
         return !!(stepEl && stepEl.classList.contains('oculto-pessoa-existente'));
@@ -1514,6 +1555,7 @@
             }
             dados.senha = senha;
             dados.consentimento_confirmado = true;
+            dados.eh_convidado = modoManualAtual.ehConvidadoSemCarteirinha === true;
             const resFn = await fetch(`${SUPABASE_URL}/functions/v1/admin-create-user`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },

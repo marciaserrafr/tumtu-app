@@ -2523,12 +2523,16 @@
             <span class="config-item-seta" id="cadastroConvidadoEspecialSeta">›</span>
         </div>
         <div id="cadastroConvidadoEspecialConteudo" style="display:none;margin-top:12px;">
-            <!-- "+ Cadastrar X" (cadastro manual, como em Ritmistas/Diretoria)
-                 ainda NÃO existe aqui de propósito -- depende de uma mudança
-                 na Edge Function admin-create-user (rodando com service_role,
-                 fora deste arquivo) pra saber lidar com Convidado Especial;
-                 sem isso o botão criaria um Ritmista/Diretor comum por
-                 engano, sem eh_convidado=true. Ver conversa de 31/ago/2026. -->
+            <!-- Bateria "com carteirinha": autocadastro por link (mesmo
+                 padrão de Ritmista/Diretoria). Bateria "sem carteirinha"
+                 (04/set/2026, decisão dela): só cadastro manual, direto aqui
+                 -- nunca por link. Só um dos dois blocos aparece por vez,
+                 decidido em renderizarLinksCadastroConvidadoEspecial(). -->
+            <div id="botoesCadastroConvidadoEspecial" style="display:none;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+                <button class="btn-novo" id="btnCadastrarConvidadoRitmista" onclick="irParaCadastroManualConvidado('ritmista')">+ Cadastrar Convidado Ritmista</button>
+                <button class="btn-novo" id="btnCadastrarConvidadoDiretor" onclick="irParaCadastroManualConvidado('diretor')">+ Cadastrar Convidado Diretor de Bateria</button>
+                <button class="btn-novo" id="btnCadastrarConvidadoApoio" onclick="irParaCadastroManualConvidado('apoio')">+ Cadastrar Convidado (Apoio)</button>
+            </div>
             <div id="linksCadastroConvidadoEspecial"></div>
         </div>
 
@@ -4980,6 +4984,13 @@
         if (!bateriaId) { mostrarToast('Bateria não encontrada para este usuário.', 'erro'); return; }
         window.location.href = `cadastro?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}`;
     }
+    // Convidado "sem carteirinha" (04/set/2026) -- cargo aqui é só o "Tipo de
+    // Convidado" (ritmista/diretor/apoio), nunca o cargo real de Diretoria.
+    function irParaCadastroManualConvidado(cargo) {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { mostrarToast('Bateria não encontrada para este usuário.', 'erro'); return; }
+        window.location.href = `cadastro?modo=manual&cargo=${cargo}&bateria_id=${bateriaId}&convidado_especial=1`;
+    }
 
 
     let bibliotecaInstrumentos = []; // categorias da biblioteca mestre, cada uma com .nomenclaturas
@@ -6642,19 +6653,21 @@
     }
 
     // "Convidados" (31/ago/2026, reorganizado a pedido dela em 2 rodadas) --
-    // por trás tem 2 modelos (Simples/Especial), mas cada bateria só usa UM
-    // por vez, escolhido em Comercial → Convidado Especial (desligado =
-    // Simples, ligado = Especial). Pra quem usa o app é sempre só
-    // "Convidados", roteado automaticamente aqui -- nunca uma escolha
-    // visível, nunca os dois ao mesmo tempo.
+    // Convidado_tem_carteirinha decide só se ESSE convidado tem carteirinha/
+    // login ou não -- mas desde 04/set/2026 (decisão dela: unificar, acabar
+    // com o modelo Simples/`extras`) o modelo de dados é sempre o mesmo
+    // (vinculos, eh_convidado=true), então o painel usado é sempre o mesmo
+    // também. Ver project_unificacao_convidado_especial_desenho na memória.
+    // O painel antigo (`convidados-simples-conteudo`, tabela `extras`) fica
+    // no código como histórico congelado -- nenhuma bateria real tinha dado
+    // lá quando isso foi decidido, então não existe nada pra migrar.
     function modoConvidadosEspecial() {
         return !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
     }
     async function iniciarConvidadosAba() {
-        const especial = modoConvidadosEspecial();
-        document.getElementById('convidados-simples-conteudo').style.display = especial ? 'none' : '';
-        document.getElementById('convidados-especiais-conteudo').style.display = especial ? '' : 'none';
-        if (especial) await iniciarConvidadosEspeciaisTab(); else await iniciarExtrasTab();
+        document.getElementById('convidados-simples-conteudo').style.display = 'none';
+        document.getElementById('convidados-especiais-conteudo').style.display = '';
+        await iniciarConvidadosEspeciaisTab();
     }
 
     async function iniciarConvidadosEspeciaisTab() {
@@ -6671,7 +6684,8 @@
         const be = document.getElementById('btnExportarConvidadosEspeciais');
         if (be) be.style.display = (souSuperAdmin || tenhoCapacidade('exportar_convidados_especiais')) ? '' : 'none';
         const cc = document.getElementById('cadastroConvidadoEspecialCabecalho');
-        if (cc) cc.style.display = (souSuperAdmin || tenhoCapacidade('copiar_link_convidados_especiais')) ? '' : 'none';
+        const capNovoCadastro = modoConvidadosEspecial() ? 'copiar_link_convidados_especiais' : 'criar_cadastro_convidados_especiais';
+        if (cc) cc.style.display = (souSuperAdmin || tenhoCapacidade(capNovoCadastro)) ? '' : 'none';
         await carregarConvidadosEspeciais();
     }
 
@@ -6722,10 +6736,26 @@
 
     function renderizarLinksCadastroConvidadoEspecial() {
         const div = document.getElementById('linksCadastroConvidadoEspecial');
+        const botoes = document.getElementById('botoesCadastroConvidadoEspecial');
         if (!div) return;
+        const habilitado = modoConvidadosEspecial();
+        if (!habilitado) {
+            // Sem carteirinha: só cadastro manual, nunca por link.
+            div.innerHTML = '';
+            if (botoes) {
+                botoes.style.display = 'flex';
+                const podeCriar = souSuperAdmin || tenhoCapacidade('criar_cadastro_convidados_especiais');
+                botoes.querySelectorAll('button').forEach(b => {
+                    b.disabled = !podeCriar;
+                    b.style.opacity = podeCriar ? '1' : '0.5';
+                    b.style.cursor = podeCriar ? 'pointer' : 'not-allowed';
+                });
+            }
+            return;
+        }
+        if (botoes) botoes.style.display = 'none';
         const codigo = codigoConviteBateria || bateriaIdContexto();
-        const habilitado = !!(bateriaAtualData && bateriaAtualData.convidado_tem_carteirinha);
-        if (!codigo || !habilitado) { div.innerHTML = ''; return; }
+        if (!codigo) { div.innerHTML = ''; return; }
         const podeCopiar = souSuperAdmin || tenhoCapacidade('copiar_link_convidados_especiais');
         const base = `${window.location.origin}/cadastro?bateria=${codigo}&convidado_especial=1`;
         div.innerHTML = caixaLinkCadastro('linksCadastroConvidadoEspecial-box', 'Links de cadastro', [
@@ -9101,6 +9131,7 @@
             { chave: 'aprovar_convidados_especiais', label: 'Aprovar, rejeitar, suspender, desligar e reativar', dependeDe: 'ver_convidados_especiais', subgrupo: 'Lista' },
             { chave: 'exportar_convidados_especiais', label: 'Exportar pra Excel', dependeDe: 'ver_convidados_especiais', subgrupo: 'Lista' },
             { chave: 'copiar_link_convidados_especiais', label: 'Copiar Link de Cadastro', dependeDe: 'ver_convidados_especiais', subgrupo: 'Novo Cadastro' },
+            { chave: 'criar_cadastro_convidados_especiais', label: 'Cadastrar Convidado (sem carteirinha)', dependeDe: 'ver_convidados_especiais', subgrupo: 'Novo Cadastro' },
         ] },
         // "Perfil do Convidado" (01/set/2026) -- mesmo mapa completo de
         // Perfil do Ritmista/Diretor, pedido dela: "Essa ficha do perfil...
@@ -9159,9 +9190,11 @@
     // 'especial', ver GRUPOS_CAPACIDADES), mas a bateria só usa um por vez --
     // essa lista tira o grupo do modelo que não está em uso, pra nunca
     // aparecer duas seções "Convidados" (ou uma inútil) na tela.
+    // "Convidados (modelo Simples)" fica congelado, nunca mais visível --
+    // desde a unificação (04/set/2026) toda bateria usa o mesmo modelo
+    // (vinculos, eh_convidado), com ou sem carteirinha.
     function gruposCapacidadesVisiveis() {
-        const especial = modoConvidadosEspecial();
-        return GRUPOS_CAPACIDADES.filter(g => !g.modoConvidados || (g.modoConvidados === 'especial') === especial);
+        return GRUPOS_CAPACIDADES.filter(g => g.modoConvidados !== 'simples');
     }
 
     let permissoesPessoaCache = [];
@@ -9800,7 +9833,7 @@
                 </div>
                 </div>
             </div>
-            ${GRUPOS_CAPACIDADES.map(g => `
+            ${GRUPOS_CAPACIDADES.filter(g => g.modoConvidados !== 'simples').map(g => `
                 <div class="ficha-secao">
                     <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>${esc(g.grupo)}<span class="ficha-secao-seta">▸</span></div>
                     <div class="ficha-secao-corpo" style="display:none;">
