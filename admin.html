@@ -9408,7 +9408,7 @@
         const detalhe = permissoesResumoTexto(p);
         return `<div class="item-card">
             <div class="item-info">
-                <div class="item-nome">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}${p.eh_admin_bateria ? ' <span class="dir-badge-admin">Admin</span>' : ''}</div>
+                <div class="item-nome">${esc(p.nome)}${p.apelido ? ' · ' + esc(p.apelido) : ''}${p.eh_admin_bateria && tenhoCapacidade('ver_admin_bateria') ? ' <span class="dir-badge-admin">Admin</span>' : ''}</div>
                 <div class="item-detalhe">${detalhe}</div>
             </div>
             <div class="item-acoes"><button class="btn-ficha" onclick="abrirEditorPermissoesPessoa(${p.id})">Editar</button></div>
@@ -10915,7 +10915,7 @@
                     </div>
                     <div class="card-linha2">
                         <span class="dir-badge-cargo">${cargo}</span>
-                        ${a.eh_admin_bateria ? `<span class="dir-badge-admin">Admin</span>` : ''}
+                        ${a.eh_admin_bateria && tenhoCapacidade('ver_admin_bateria') ? `<span class="dir-badge-admin">Admin</span>` : ''}
                         ${seloNaipe ? `<span class="pill-instrumento">🥁 ${seloNaipe}</span>` : ''}
                     </div>
                 </div>
