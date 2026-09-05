@@ -57,6 +57,18 @@
            agora) -- mantém o mesmo benefício de não "pular" de largura,
            só que no lugar certo. */
         html { scrollbar-gutter: auto; }
+        /* REVERTIDO de novo, 05/set/2026 -- a 2ª tentativa (dar fundo
+           próprio a .main/.sa-main e só então escurecer o body) corrigiu o
+           "tudo preto", mas criou um problema novo: em telas largas, a
+           margem ao redor do conteúdo (fora dos 1200px centralizados)
+           ficou escura em vez de clara, um contraste feio que nunca
+           existiu antes. Mexer no fundo do body pra resolver o lampejo do
+           carregamento se mostrou arriscado demais nesse arquivo -- 2
+           regressões reais em 2 tentativas. A correção certa é outra: dar
+           fundo visível ao PRÓPRIO #overlayCarregandoEscola desde o HTML
+           (como login.html/carteirinha.html já fazem com os deles), sem
+           tocar no body nem no layout de conteúdo. Não repetir a
+           abordagem "escurecer o body" sem isso. */
         body { background: var(--cor-fundo-claro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
         .container { flex: 1; }
         .conteudo-rolavel { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; display: flex; flex-direction: column; }
@@ -267,7 +279,12 @@
            somava por cima, estourando a borda direita -- achado ao testar
            numa janela de ~1280px). Trocado por width:min(...), que nunca
            deixa o conteúdo passar do espaço disponível ao lado da barra. */
-        .main { flex: 1; padding: 32px 24px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); display: flex; flex-direction: column; }
+        /* Fundo claro PRÓPRIO (05/set/2026) -- antes dependia só do body
+           pintar claro por trás; quando o body tentou virar escuro por
+           padrão (pra resolver o lampejo no carregamento), esse painel
+           inteiro vazou preto porque nunca teve cor própria. Agora o
+           conteúdo real da tela sempre é claro, não importa a cor do body. */
+        .main { flex: 1; padding: 32px 24px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); display: flex; flex-direction: column; background: var(--cor-fundo-claro); }
 
         /* TÍTULO DE PAINEL (padrão super-admin) */
         .painel-titulo { font-size: 20px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 20px; }
@@ -1393,8 +1410,9 @@
         .sa-sidebar-item.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
 
         /* Mesmo padrão de .main -- 1200px máximo, centralizado de verdade,
-           sem nunca estourar a tela (ver comentário completo em .main). */
-        .sa-main { flex: 1; padding: 28px 32px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); display: flex; flex-direction: column; }
+           sem nunca estourar a tela (ver comentário completo em .main).
+           Fundo claro próprio, mesmo motivo de .main (05/set/2026). */
+        .sa-main { flex: 1; padding: 28px 32px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); display: flex; flex-direction: column; background: var(--cor-fundo-claro); }
         .sa-painel { display: none; }
         .sa-painel.ativo { display: block; }
 
@@ -1589,12 +1607,30 @@
            que o app é claro), mas pediu de volta o escuro pra ficar igual
            nos 3 lugares: "não gostei" do claro depois de ver ao vivo.
            Decisão final, não reabrir sem ela pedir de novo. */
+        /* Nasce VISÍVEL por padrão (05/set/2026) -- mesmo padrão que
+           login.html/carteirinha.html já usam sem problema nenhum. Antes
+           nascia escondido (display:none) e só um pedaço de JS o ligava
+           (.visivel) -- nessa brecha, por menor que seja, o fundo claro
+           do body (var(--cor-fundo-claro), a cor do CONTEÚDO real do
+           painel) aparecia por baixo, dando o efeito de "uma tela entrando
+           em cima da outra". Tentei corrigir isso escurecendo o body por
+           padrão duas vezes (revertido as duas: 1ª deixou o app inteiro
+           preto, 2ª deixou a margem das telas largas escura) -- essa
+           abordagem aqui não tem esse risco, porque não toca no body nem
+           no layout de conteúdo, só no próprio overlay (elemento
+           independente, position:fixed;inset:0, por cima de tudo). Agora é
+           a classe .escondida que ESCONDE (inverso de antes) -- os 3
+           lugares que usam esse overlay (login de Mestre/Diretor, Super
+           Admin entrando numa escola, Dashboard do Super Admin) sempre
+           tiravam essa classe quando prontos; sempre reponham .escondida
+           se algum caminho novo carregar admin.html sem passar por um
+           desses 3 fluxos. */
         #overlayCarregandoEscola {
-            display: none; position: fixed; inset: 0; z-index: 3000;
+            display: flex; position: fixed; inset: 0; z-index: 3000;
             background: var(--cor-fundo-escuro, #12101a);
             align-items: center; justify-content: center;
         }
-        #overlayCarregandoEscola.visivel { display: flex; }
+        #overlayCarregandoEscola.escondida { display: none; }
         #overlayCarregandoEscola .spinner {
             width: 56px; height: 56px;
             animation: tt-girar 1.1s linear infinite;
@@ -5236,7 +5272,7 @@
             // rede) antes de preencher de verdade. Achado da Márcia,
             // 19/ago/2026: "aparece Bateria escrito e depois é que muda
             // pro dashboard".
-            document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+            document.getElementById('overlayCarregandoEscola').classList.remove('escondida');
             mostrarShellSA();
             // Volta pro mesmo lugar de antes de atualizar a página -- achado
             // da Márcia, 20/ago/2026: "sempre que eu atualizo a página, ela
@@ -5256,7 +5292,7 @@
             } else {
                 await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
             }
-            document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
+            document.getElementById('overlayCarregandoEscola').classList.add('escondida');
             return;
         }
 
@@ -5276,7 +5312,7 @@
         // cor da escola no final -- achado da Márcia, 19/ago/2026, "isso é
         // perceptível sim". Quando o cache já existe (caso comum), o
         // overlay só pisca rápido, sem custo perceptível.
-        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+        document.getElementById('overlayCarregandoEscola').classList.remove('escondida');
 
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
         renderizarAvatarHeader({ nome: usuario.nome || 'Admin', foto_url: usuario.foto_url });
@@ -5389,7 +5425,7 @@
         }
 
         if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(usuario, 'avisoDadosProprios');
-        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
+        document.getElementById('overlayCarregandoEscola').classList.add('escondida');
     }
 
     // Preenche configEscola.nomeEscola/nomeBateria com dado real -- antes desse
@@ -7999,7 +8035,7 @@
         // e só depois de vários pedidos ao banco virava a cor da escola
         // (achado da Márcia, 19/ago/2026). Só sai da tela quando o tema já
         // está aplicado, igual ao login.html/carteirinha.html já fazem.
-        document.getElementById('overlayCarregandoEscola').classList.add('visivel');
+        document.getElementById('overlayCarregandoEscola').classList.remove('escondida');
 
         // 25/ago/2026: paraleliza os pedidos ao banco que não dependem um
         // do outro -- antes eram 5 pedidos em fila, cada um esperando o
@@ -8068,7 +8104,7 @@
         ]);
         iniciarAutoRefreshRitmistas();
 
-        document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
+        document.getElementById('overlayCarregandoEscola').classList.add('escondida');
         // Fotos completas chegam depois, em segundo plano, sem travar a tela
         // nem os cliques (achado real, 05/set/2026 -- ver
         // preencherFotosRitmistasEmSegundoPlano acima).
