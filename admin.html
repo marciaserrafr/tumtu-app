@@ -57,7 +57,18 @@
            agora) -- mantém o mesmo benefício de não "pular" de largura,
            só que no lugar certo. */
         html { scrollbar-gutter: auto; }
-        body { background: var(--cor-fundo-claro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* Fundo ESCURO por padrão (igual ao html inline acima, igual ao
+           spinner que cobre a tela) -- achado real, 05/set/2026: antes era
+           claro (--cor-fundo-claro), a cor do CONTEÚDO real do painel, não
+           da tela de carregamento. Isso nascia visível assim que esse
+           <style> carregava, MESMO ANTES do JavaScript rodar -- criava um
+           lampejo claro entre "html escuro" e "JS liga o spinner escuro"
+           (só esse arquivo tinha esse problema -- login.html/carteirinha.html
+           já nasciam escuros desde sempre). Nunca precisa virar claro de
+           novo: os painéis reais (.container, #mainEscola, #saMain) cobrem
+           a tela inteira assim que aparecem, então o fundo do body nunca
+           fica visível depois que a página carrega de verdade. */
+        body { background: var(--cor-fundo-escuro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
         .container { flex: 1; }
         .conteudo-rolavel { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; display: flex; flex-direction: column; }
 
