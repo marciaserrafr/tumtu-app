@@ -8,8 +8,38 @@
     <meta name="theme-color" content="#12101a">
     <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <!-- Imagens de abertura do iPhone (05/set/2026) -- sem isso, o próprio
+         iOS "inventa" sozinho a cor da tela por um instante antes do nosso
+         HTML carregar, e essa invenção varia um pouco a cada abertura
+         (achado real dela: "às vezes pisca só na lateral, às vezes só em
+         cima"). Entregando uma imagem pronta, do tamanho físico exato de
+         cada iPhone, com o mesmo fundo escuro e a mesma marca da nossa
+         tela de carregamento de verdade, o iOS usa a NOSSA imagem em vez
+         de inventar -- elimina essa variação na raiz. Uma por modelo,
+         porque o Safari exige bater exatamente device-width/height/dpr. -->
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-750-1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1242-2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1125-2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-828-1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1242-2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1080-2340.png" media="(device-width: 360px) and (device-height: 780px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1170-2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1284-2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1179-2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1290-2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1206-2622.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1320-2868.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <!-- black-translucent (05/set/2026, era "black") -- obrigatório pro
+         viewport-fit=cover (logo abaixo) funcionar de verdade: com "black"
+         puro, o iOS reserva um espaço preto sozinho pra barra de status,
+         por fora do nosso controle -- nosso CSS de safe-area não tinha
+         efeito real nenhum ali. Com "black-translucent", a nossa tela passa
+         a ocupar a tela inteira de verdade (inclusive atrás do notch), e a
+         barra de status fica transparente por cima -- só assim o padding
+         de env(safe-area-inset-top) do cabeçalho (ver .header) passa a
+         fazer sentido. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TumTu">
     <script src="pwa-register.js" defer></script>
     <!-- Vercel Web Analytics (02/set/2026) -- contagem de acesso gratuita,
@@ -57,6 +87,18 @@
            agora) -- mantém o mesmo benefício de não "pular" de largura,
            só que no lugar certo. */
         html { scrollbar-gutter: auto; }
+        /* Esmaecer suave na entrada (05/set/2026) -- camada extra de
+           segurança, além da imagem de abertura acima: se sobrar QUALQUER
+           diferença de um pixel entre a imagem de abertura do iOS e o
+           primeiro quadro real da página, esse esmaecer rapidinho (250ms)
+           disfarça a troca em vez de um corte seco. Sem efeito
+           perceptível quando não há diferença nenhuma -- só suaviza o pior
+           caso. Respeita quem prefere menos animação (prefers-reduced-motion). */
+        body { animation: tt-corpo-surge 0.25s ease-out; }
+        @keyframes tt-corpo-surge { from { opacity: 0; } to { opacity: 1; } }
+        @media (prefers-reduced-motion: reduce) {
+            body { animation: none; }
+        }
         /* REVERTIDO de novo, 05/set/2026 -- a 2ª tentativa (dar fundo
            próprio a .main/.sa-main e só então escurecer o body) corrigiu o
            "tudo preto", mas criou um problema novo: em telas largas, a
