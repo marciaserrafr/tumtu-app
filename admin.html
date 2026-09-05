@@ -2,7 +2,7 @@
 <html lang="pt-BR" data-tema="tumtu" style="background:#12101a;">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>TumTu — Painel do Diretor</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#12101a">
@@ -77,7 +77,7 @@
         .header {
             background: var(--cor-fundo-escuro);
             color: white;
-            padding: 16px 24px;
+            padding: calc(16px + env(safe-area-inset-top)) 24px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1658,7 +1658,10 @@
         @media (max-width: 560px) {
             .sa-sidebar {
                 flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-                position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: 100%;
+                /* `top` calculado em vez de `bottom:0` (05/set/2026) -- ver
+                   comentário completo na regra equivalente de .nav-abas,
+                   mais abaixo. */
+                position: fixed; top: calc(100dvh - var(--altura-nav-mobile, 70px)); left: 0; right: 0; bottom: auto; width: 100%;
                 background: var(--cor-fundo-escuro); justify-content: space-around; z-index: 200;
             }
             .sa-sidebar-item { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
@@ -1687,9 +1690,25 @@
 
             /* NAV ABAS -- mesmo comportamento de .sa-sidebar aqui em cima:
                vira barra fixa embaixo, ícone em cima do texto. */
+            /* `top` calculado em vez de `bottom:0` (05/set/2026, achado
+               por pesquisa) -- viewport-fit=cover (ligado hoje pela 1ª vez
+               de novo, ver <meta name="viewport"> no head) tem um bug
+               conhecido e documentado pela própria Apple no Safari em modo
+               instalado (PWA): elementos position:fixed ancorados por
+               `bottom` "descolam" da borda de verdade da tela, empurrando
+               a barra pra cima e sobrando um vão embaixo -- foi exatamente
+               isso que quebrou as 3 tentativas anteriores (ver
+               tumtu-historico-sessoes.md, 03/set/2026). Ancorar pelo `top`
+               em vez do `bottom` evita esse padrão específico do bug --
+               usa --altura-nav-mobile, que já é medida de verdade (não
+               chute) por ajustarAlturaNavMobile(), incluindo a própria
+               margem de segurança de baixo que a barra já soma no padding
+               acima. NÃO testado num iPhone de verdade ainda -- se voltar
+               a quebrar, reverter tanto isso quanto o viewport-fit=cover
+               juntos (ver git blame desse bloco). */
             .nav-abas {
                 flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-                position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: 100%;
+                position: fixed; top: calc(100dvh - var(--altura-nav-mobile, 70px)); left: 0; right: 0; bottom: auto; width: 100%;
                 background: var(--cor-fundo-escuro); justify-content: space-around; z-index: 200;
             }
             .aba-btn { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
@@ -7863,9 +7882,17 @@
     // sobrepondo o ícone de Visão Geral em telas reais. Medir de verdade
     // em vez de estimar evita esse tipo de erro em qualquer aparelho.
     function ajustarAlturaNavMobile() {
+        // Mede qualquer uma das duas barras fixas de baixo que estiver
+        // visível no momento (Mestre/Diretor usa #navAbasEscola, Super
+        // Admin usa #saSidebar -- nunca as duas ao mesmo tempo). Estendido
+        // 05/set/2026: antes só media #navAbasEscola, então .sa-sidebar
+        // usava a variável desatualizada/chutada (--altura-nav-mobile:70px)
+        // ao virar `top` calculado em vez de `bottom:0`.
         const nav = document.getElementById('navAbasEscola');
-        if (nav && nav.style.display !== 'none' && window.innerWidth <= 600) {
-            document.documentElement.style.setProperty('--altura-nav-mobile', nav.offsetHeight + 'px');
+        const sideb = document.getElementById('saSidebar');
+        const alvo = (nav && nav.style.display !== 'none') ? nav : ((sideb && sideb.style.display !== 'none') ? sideb : null);
+        if (alvo && window.innerWidth <= 600) {
+            document.documentElement.style.setProperty('--altura-nav-mobile', alvo.offsetHeight + 'px');
         }
     }
     window.addEventListener('resize', ajustarAlturaNavMobile);
@@ -7964,6 +7991,10 @@
         document.getElementById('headerEscolaNome').style.display = '';
         document.getElementById('headerBateriaNome').textContent = '';
         document.getElementById('headerBateriaNome').style.display = 'none';
+        // #saSidebar passou a precisar dessa medida de verdade também
+        // (05/set/2026, ver comentário em ajustarAlturaNavMobile) -- antes
+        // usava bottom:0, que não dependia disso.
+        ajustarAlturaNavMobile();
     }
 
     async function trocarSaAba(aba, el) {
