@@ -3478,6 +3478,41 @@
         await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]);
     }
 
+    // Achado real, 05/set/2026: bateria com 230+ pessoas (Imperatriz) trava
+    // o app por vários segundos logo depois do login -- a foto de cada
+    // pessoa vem "colada" nos dados (texto base64, ~174KB em média cada,
+    // ver COLUNAS_RITMISTAS_SEM_FOTO acima), então buscar todo mundo de uma
+    // vez de uma bateria grande baixa dezenas de MB numa única resposta.
+    // Isso travava tanto o fim do login (o spinner ficava esperando essa
+    // busca terminar) quanto os cliques em botões (o navegador fica ocupado
+    // processando aquele tanto de dado de uma vez). Corrigido em duas
+    // frentes: (1) essa busca completa não entra mais no Promise.all que o
+    // spinner espera -- só a passada "leve" (sem foto) entra ali; (2) em vez
+    // de uma megabusca só, as fotos chegam aos pouquinhos (30 por vez),
+    // cedendo o navegador entre cada pedaço (setTimeout 0) pra não travar
+    // clique nenhum. Só atualiza foto por foto, sem mexer em mais nada.
+    async function preencherFotosRitmistasEmSegundoPlano() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) return;
+        const LOTE = 30;
+        let offset = 0;
+        while (true) {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&select=id,foto_url&order=created_at.desc&limit=${LOTE}&offset=${offset}`, {
+                headers: authHeaders
+            });
+            const lote = await res.json();
+            if (!Array.isArray(lote) || lote.length === 0) break;
+            const fotosPorId = {};
+            lote.forEach(p => { if (p.foto_url) fotosPorId[p.id] = p.foto_url; });
+            let mudou = false;
+            todosRitmistas.forEach(p => { if (fotosPorId[p.id] && p.foto_url !== fotosPorId[p.id]) { p.foto_url = fotosPorId[p.id]; mudou = true; } });
+            if (mudou) aplicarFiltros();
+            if (lote.length < LOTE) break;
+            offset += LOTE;
+            await new Promise(r => setTimeout(r, 0));
+        }
+    }
+
     function toggleStatusSelect() {
         const dd = document.getElementById('statusSelectDropdown');
         const arrow = document.getElementById('statusSelectArrow');
@@ -5309,20 +5344,28 @@
         // depois, sem bloquear nada -- mesma otimização de sempre
         // (carregarRitmistasComFotos/carregarDiretoriaComFotos), só que
         // agora dá pra esperar só a primeira passada de cada uma.
-        const cargaInicialMD = [carregarRitmistas(true).then(() => { carregarRitmistas(); })];
+        const cargaInicialMD = [carregarRitmistas(true)];
         // Card "Diretoria ativa" na Visão Geral (novo, 21/ago/2026) --
         // reaproveita a mesma carregarDiretoria() da aba Diretoria (fica em
         // cache pra quando ela clicar lá, sem buscar de novo). Só dispara
         // pra quem tem ver_acessos -- sem a capacidade, RLS devolveria vazio
         // e o card mostraria "0" de forma enganosa em vez de ficar escondido.
-        if (souSuperAdmin || tenhoCapacidade('ver_acessos')) cargaInicialMD.push(carregarDiretoria(true).then(() => { diretoriaCarregada = false; carregarDiretoria(); }));
+        const vejoAcessosMD = souSuperAdmin || tenhoCapacidade('ver_acessos');
+        if (vejoAcessosMD) cargaInicialMD.push(carregarDiretoria(true));
         // Card "Convidados" na Visão Geral, mesmo padrão do card de Diretoria
         // acima -- achado dela, 01/set/2026: card ficava vazio até visitar a
         // aba Convidados de verdade (carregarConvidadosEspeciais() só rodava
         // lá dentro, nunca no carregamento inicial da tela).
-        if (souSuperAdmin || tenhoCapacidade('ver_convidados_especiais')) cargaInicialMD.push(carregarConvidadosEspeciais(true).then(() => { convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais(); }));
+        const vejoConvidadosMD = souSuperAdmin || tenhoCapacidade('ver_convidados_especiais');
+        if (vejoConvidadosMD) cargaInicialMD.push(carregarConvidadosEspeciais(true));
         await Promise.all(cargaInicialMD);
         iniciarAutoRefreshRitmistas();
+        // Fotos completas chegam depois, em segundo plano, sem travar a tela
+        // nem os cliques (achado real, 05/set/2026 -- ver
+        // preencherFotosRitmistasEmSegundoPlano acima).
+        preencherFotosRitmistasEmSegundoPlano();
+        if (vejoAcessosMD) preencherFotosDiretoriaEmSegundoPlano();
+        if (vejoConvidadosMD) { convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais(); }
 
         // Volta pra mesma aba de antes de atualizar a página (mesmo achado
         // da Márcia, 20/ago/2026, aplicado aqui também) -- "visao" já é o
@@ -8006,13 +8049,19 @@
         // (carregarRitmistasComFotos/carregarDiretoriaComFotos), só que
         // agora dá pra esperar só a primeira passada de cada uma.
         await Promise.all([
-            carregarRitmistas(true).then(() => { carregarRitmistas(); }),
-            carregarDiretoria(true).then(() => { diretoriaCarregada = false; carregarDiretoria(); }), // Super Admin sempre vê o card "Diretoria ativa"
-            carregarConvidadosEspeciais(true).then(() => { convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais(); }), // idem, card "Convidados" (achado 01/set/2026, mesmo bug do card acima)
+            carregarRitmistas(true),
+            carregarDiretoria(true), // Super Admin sempre vê o card "Diretoria ativa"
+            carregarConvidadosEspeciais(true), // idem, card "Convidados" (achado 01/set/2026, mesmo bug do card acima)
         ]);
         iniciarAutoRefreshRitmistas();
 
         document.getElementById('overlayCarregandoEscola').classList.remove('visivel');
+        // Fotos completas chegam depois, em segundo plano, sem travar a tela
+        // nem os cliques (achado real, 05/set/2026 -- ver
+        // preencherFotosRitmistasEmSegundoPlano acima).
+        preencherFotosRitmistasEmSegundoPlano();
+        preencherFotosDiretoriaEmSegundoPlano();
+        convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais();
     }
 
     async function voltarParaEscolasSA() {
@@ -10551,6 +10600,30 @@
         // aqui pra não ficar faltando gente até a próxima troca de aba.
         if (document.getElementById('vg-aniversariantes')) renderizarVisaoGeral();
         diretoriaCarregada = true;
+    }
+
+    // Mesmo raciocínio de preencherFotosRitmistasEmSegundoPlano() logo
+    // acima -- achado real, 05/set/2026.
+    async function preencherFotosDiretoriaEmSegundoPlano() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) return;
+        const LOTE = 30;
+        let offset = 0;
+        while (true) {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=id,foto_url&limit=${LOTE}&offset=${offset}`, {
+                headers: authHeaders
+            });
+            const lote = await res.json();
+            if (!Array.isArray(lote) || lote.length === 0) break;
+            const fotosPorId = {};
+            lote.forEach(p => { if (p.foto_url) fotosPorId[p.id] = p.foto_url; });
+            let mudou = false;
+            listaDiretoriaAtual.forEach(p => { if (fotosPorId[p.id] && p.foto_url !== fotosPorId[p.id]) { p.foto_url = fotosPorId[p.id]; mudou = true; } });
+            if (mudou) aplicarFiltrosDiretoria();
+            if (lote.length < LOTE) break;
+            offset += LOTE;
+            await new Promise(r => setTimeout(r, 0));
+        }
     }
 
     function toggleCargoSelect() {
