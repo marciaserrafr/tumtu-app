@@ -57,18 +57,19 @@
            agora) -- mantém o mesmo benefício de não "pular" de largura,
            só que no lugar certo. */
         html { scrollbar-gutter: auto; }
-        /* Fundo ESCURO por padrão (05/set/2026, 2ª tentativa) -- a 1ª
-           tentativa deixou o app inteiro preto porque .main/.sa-main
-           (o conteúdo real das telas) nunca tinham fundo próprio, só
-           dependiam do body pintar claro por trás. Agora os dois já têm
-           `background: var(--cor-fundo-claro)` explícito (ver as duas
-           regras), então o body pode ficar escuro sem vazar nada -- ele só
-           aparece mesmo nas frestas ANTES do JavaScript montar a tela
-           (exatamente a brecha que causava o lampejo claro no carregamento
-           de admin.html, que login.html/carteirinha.html nunca tiveram).
-           Testar TODAS as telas (Dashboard, dentro de uma escola, Meu
-           Perfil, Configurações) antes de considerar isso pronto. */
-        body { background: var(--cor-fundo-escuro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* REVERTIDO de novo, 05/set/2026 -- a 2ª tentativa (dar fundo
+           próprio a .main/.sa-main e só então escurecer o body) corrigiu o
+           "tudo preto", mas criou um problema novo: em telas largas, a
+           margem ao redor do conteúdo (fora dos 1200px centralizados)
+           ficou escura em vez de clara, um contraste feio que nunca
+           existiu antes. Mexer no fundo do body pra resolver o lampejo do
+           carregamento se mostrou arriscado demais nesse arquivo -- 2
+           regressões reais em 2 tentativas. A correção certa é outra: dar
+           fundo visível ao PRÓPRIO #overlayCarregandoEscola desde o HTML
+           (como login.html/carteirinha.html já fazem com os deles), sem
+           tocar no body nem no layout de conteúdo. Não repetir a
+           abordagem "escurecer o body" sem isso. */
+        body { background: var(--cor-fundo-claro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
         .container { flex: 1; }
         .conteudo-rolavel { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; display: flex; flex-direction: column; }
 
