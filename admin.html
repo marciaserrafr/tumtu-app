@@ -57,16 +57,18 @@
            agora) -- mantém o mesmo benefício de não "pular" de largura,
            só que no lugar certo. */
         html { scrollbar-gutter: auto; }
-        /* REVERTIDO, 05/set/2026: tentei mudar o fundo do body pra escuro
-           por padrão (pra evitar o lampejo claro antes do JS rodar), mas
-           #mainEscola/#saMain/.container/.conteudo-rolavel NÃO têm fundo
-           próprio -- sempre dependeram do body pintar claro por trás
-           deles. Resultado real, achado dela ao vivo: o app inteiro ficou
-           preto, não só o instante de carregamento. Mesma armadilha já
-           registrada antes (ver CLAUDE.md/memória -- 2 tentativas
-           anteriores, mesmo sintoma). Não repetir sem antes dar fundo
-           claro explícito pra ESSES containers específicos. */
-        body { background: var(--cor-fundo-claro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* Fundo ESCURO por padrão (05/set/2026, 2ª tentativa) -- a 1ª
+           tentativa deixou o app inteiro preto porque .main/.sa-main
+           (o conteúdo real das telas) nunca tinham fundo próprio, só
+           dependiam do body pintar claro por trás. Agora os dois já têm
+           `background: var(--cor-fundo-claro)` explícito (ver as duas
+           regras), então o body pode ficar escuro sem vazar nada -- ele só
+           aparece mesmo nas frestas ANTES do JavaScript montar a tela
+           (exatamente a brecha que causava o lampejo claro no carregamento
+           de admin.html, que login.html/carteirinha.html nunca tiveram).
+           Testar TODAS as telas (Dashboard, dentro de uma escola, Meu
+           Perfil, Configurações) antes de considerar isso pronto. */
+        body { background: var(--cor-fundo-escuro); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; }
         .container { flex: 1; }
         .conteudo-rolavel { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; display: flex; flex-direction: column; }
 
@@ -276,7 +278,12 @@
            somava por cima, estourando a borda direita -- achado ao testar
            numa janela de ~1280px). Trocado por width:min(...), que nunca
            deixa o conteúdo passar do espaço disponível ao lado da barra. */
-        .main { flex: 1; padding: 32px 24px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); display: flex; flex-direction: column; }
+        /* Fundo claro PRÓPRIO (05/set/2026) -- antes dependia só do body
+           pintar claro por trás; quando o body tentou virar escuro por
+           padrão (pra resolver o lampejo no carregamento), esse painel
+           inteiro vazou preto porque nunca teve cor própria. Agora o
+           conteúdo real da tela sempre é claro, não importa a cor do body. */
+        .main { flex: 1; padding: 32px 24px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); display: flex; flex-direction: column; background: var(--cor-fundo-claro); }
 
         /* TÍTULO DE PAINEL (padrão super-admin) */
         .painel-titulo { font-size: 20px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 20px; }
@@ -1402,8 +1409,9 @@
         .sa-sidebar-item.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
 
         /* Mesmo padrão de .main -- 1200px máximo, centralizado de verdade,
-           sem nunca estourar a tela (ver comentário completo em .main). */
-        .sa-main { flex: 1; padding: 28px 32px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); display: flex; flex-direction: column; }
+           sem nunca estourar a tela (ver comentário completo em .main).
+           Fundo claro próprio, mesmo motivo de .main (05/set/2026). */
+        .sa-main { flex: 1; padding: 28px 32px; width: min(1200px, calc(100vw - 210px)); margin-left: calc(210px + (100vw - 210px - min(1200px, 100vw - 210px)) / 2); display: flex; flex-direction: column; background: var(--cor-fundo-claro); }
         .sa-painel { display: none; }
         .sa-painel.ativo { display: block; }
 
