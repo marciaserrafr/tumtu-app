@@ -5291,10 +5291,23 @@
         if (usuario.totalVinculos > 1) {
             document.getElementById('btnTrocarBateriaNav').style.display = 'flex';
         }
-        await carregarBibliotecaInstrumentos();
-        await carregarBateriaInstrumentos();
+        // Paraleliza os pedidos ao banco que não dependem um do outro --
+        // mesmo padrão já usado em entrarContextoEscolaSA (Super Admin,
+        // 25/ago/2026), só que esse caminho aqui (Mestre/Diretor comum)
+        // nunca tinha recebido a mesma correção. Achado real, 05/set/2026:
+        // eram 5 pedidos em fila, cada um esperando o anterior terminar sem
+        // precisar -- Diretor da Rocinha reportando login/troca de aba
+        // extremamente lentos, mesmo numa bateria pequena. Todos os 5 só
+        // precisam do bateria_id (já sabido, veio do login), nenhum depende
+        // do resultado de outro.
+        const [resB] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${usuario.bateria_id}`, { headers: authHeaders }),
+            carregarBibliotecaInstrumentos(),
+            carregarBateriaInstrumentos(),
+            carregarNomeEscolaBateria(usuario.bateria_id),
+            carregarMinhasCapacidades(usuario.bateria_id),
+        ]);
         construirMultiSelect();
-        await carregarNomeEscolaBateria(usuario.bateria_id);
         aplicarConfigEscola();
         // Mede a altura real do cabeçalho (depois de aplicarConfigEscola,
         // que pode aumentar essa altura com o tema/logo da escola) -- a
@@ -5308,8 +5321,9 @@
         // carregarNomeEscolaBateria() (que só preenche configEscola pro
         // header) -- pra Dados da Escola/Dados da Bateria/Comercial
         // funcionarem pra Admin comum também, se a Márcia liberar essas
-        // capacidades pra ele (antes, só Super Admin via essas abas).
-        const resB = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${usuario.bateria_id}`, { headers: authHeaders });
+        // capacidades pra ele (antes, só Super Admin via essas abas). Esse
+        // pedido (resB) já saiu junto com os outros 4 acima -- só o que
+        // depende de já saber o escola_id (a busca da escola em si) espera.
         const bs = await resB.json();
         bateriaAtualData = Array.isArray(bs) && bs[0] ? bs[0] : null;
         if (bateriaAtualData && bateriaAtualData.escola_id) {
@@ -5321,7 +5335,6 @@
         renderizarDadosBateriaTab();
         renderizarComercialTab();
 
-        await carregarMinhasCapacidades(usuario.bateria_id);
         aplicarGatingAbas();
         aplicarGatingBotoesExportar();
         aplicarGatingNovoCadastro();
