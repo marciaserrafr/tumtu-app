@@ -7984,6 +7984,17 @@
     }
 
     async function trocarSaAba(aba, el) {
+        // O BOTÃO acende na hora, antes de qualquer busca no banco --
+        // separado de propósito do conteúdo (mais abaixo), que continua só
+        // aparecendo quando estiver pronto. Achado dela, 05/set/2026: numa
+        // conexão lenta, o botão ficava sem nenhuma resposta visual até os
+        // dados chegarem (podendo levar vários segundos) -- parecia que o
+        // clique não tinha registrado, e ela clicava de novo. Isso não viola
+        // a regra de "nunca revelar tela pela metade" (01/set/2026): o
+        // destaque é só do BOTÃO em si, não do painel de conteúdo.
+        document.querySelectorAll('.sa-sidebar-item').forEach(x => x.classList.remove('ativa'));
+        if (el) el.classList.add('ativa');
+
         // Busca os dados ANTES de trocar o painel visível -- fica na aba
         // atual, sem nada "carregando" (nem spinner, nem overlay), até a
         // aba nova estar pronta pra aparecer já montada de uma vez. Achado
@@ -8000,8 +8011,6 @@
         window.scrollTo(0, 0);
         saAbaAtual = aba;
         salvarEstadoNavegacao('sa-shell', aba);
-        document.querySelectorAll('.sa-sidebar-item').forEach(x => x.classList.remove('ativa'));
-        if (el) el.classList.add('ativa');
         document.querySelectorAll('.sa-painel').forEach(p => p.classList.remove('ativo'));
         const alvo = document.getElementById('sa-painel-' + aba);
         if (alvo) alvo.classList.add('ativo');
@@ -11011,6 +11020,28 @@
         fecharQrEvento();
         fecharQrFigurino();
 
+        // O BOTÃO acende na hora, antes de qualquer busca no banco --
+        // separado de propósito do painel de conteúdo (mais abaixo), que
+        // continua só aparecendo quando estiver pronto. Achado dela,
+        // 05/set/2026: numa conexão lenta, o botão ficava sem nenhuma
+        // resposta visual até os dados chegarem (podendo levar vários
+        // segundos) -- parecia que o clique não tinha registrado, e ela
+        // clicava de novo. Isso não viola a regra de "nunca revelar tela
+        // pela metade" (01/set/2026, comentário original abaixo): o
+        // destaque é só do BOTÃO em si, não do painel.
+        document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
+        document.querySelectorAll('.aba-sub-btn').forEach(b => b.classList.remove('ativa'));
+        // Navegar pra uma aba de verdade (não um item do submenu "Mais",
+        // que chama isso com btn=null) fecha o acordeão -- só fica aberto
+        // enquanto a pessoa estiver navegando dentro dele mesmo.
+        if (btn && btn.id !== 'btnMais') {
+            const submenuMais = document.getElementById('abaMaisSubmenu');
+            const btnMais = document.getElementById('btnMais');
+            if (submenuMais) submenuMais.classList.remove('aberto');
+            if (btnMais) btnMais.classList.remove('aberto');
+        }
+        if (btn) btn.classList.add('ativa');
+
         // Busca os dados ANTES de revelar o painel novo -- só pras abas que
         // fazem busca de verdade (Figurino/Presença/Histórico/Convidados).
         // Fica no painel atual, sem nada "carregando", até a aba nova
@@ -11028,19 +11059,7 @@
 
         window.scrollTo(0, 0);
         document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));
-        document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
-        document.querySelectorAll('.aba-sub-btn').forEach(b => b.classList.remove('ativa'));
-        // Navegar pra uma aba de verdade (não um item do submenu "Mais",
-        // que chama isso com btn=null) fecha o acordeão -- só fica aberto
-        // enquanto a pessoa estiver navegando dentro dele mesmo.
-        if (btn && btn.id !== 'btnMais') {
-            const submenuMais = document.getElementById('abaMaisSubmenu');
-            const btnMais = document.getElementById('btnMais');
-            if (submenuMais) submenuMais.classList.remove('aberto');
-            if (btnMais) btnMais.classList.remove('aberto');
-        }
         document.getElementById('painel-' + aba).classList.add('ativo');
-        if (btn) btn.classList.add('ativa');
         salvarEstadoNavegacao(souSuperAdmin ? 'sa-escola' : 'mestre-diretor', aba, souSuperAdmin ? escolaSelecionadaId : null);
 
         // Tentativa de 27/ago/2026 de recarregar Visão Geral/Ritmistas ao
