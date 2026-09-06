@@ -1657,13 +1657,12 @@
            surdo -- literalmente o som que deu nome ao app. */
         #overlayCarregandoEscola {
             display: flex; position: fixed; inset: 0; z-index: 3000;
-            /* Degradê medido pixel a pixel (06/set/2026) na faixa cinza real
-               que o iOS mostra na área da barra de hora durante a transição
-               -- achado dela, com print: aquilo não é uma cor sólida, é um
-               degradê. Em vez de aproximar com creme (uma cor só), a
-               moldura usa os MESMOS valores medidos, do escuro no topo ao
-               claro logo abaixo -- mesma variação, não uma média. */
-            background: linear-gradient(to bottom, #636365 0%, #cfced3 12%, #cfced3 100%);
+            /* Cor final (06/set/2026): mesma cor de fundo que o resto do
+               app já usa (--cor-fundo-claro, tokens.css) -- pedido dela,
+               depois de comparar com a tentativa de medir/copiar o cinza
+               que o iOS mostra na transição (não valeu a pena, mais
+               simples usar uma cor que já existe no sistema). */
+            background: #f7f6fb;
             /* 20px é o mínimo -- em aparelhos com área de segurança maior
                (ex: Dynamic Island), a moldura nunca pode ficar mais fina
                que essa área, senão o vazamento do iOS passa por cima dela
@@ -1746,8 +1745,13 @@
             .sa-sidebar {
                 flex-direction: row; padding: 6px 4px;
                 /* Faixa "fumê" flutuante (06/set/2026) -- ver comentário
-                   completo na regra equivalente de .nav-abas, mais abaixo. */
-                position: fixed; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
+                   completo na regra equivalente de .nav-abas, mais abaixo.
+                   top:auto AQUI é essencial -- achado dela ao vivo, com
+                   print: sem isso, o `top: var(--altura-header-admin)` da
+                   regra de computador (linha ~1406, nunca sobrescrita aqui)
+                   continuava valendo JUNTO com o `bottom` novo, esticando
+                   a barra do topo até quase o fim da tela inteira. */
+                position: fixed; top: auto; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
                 border-radius: 26px; backdrop-filter: blur(6px);
                 background: linear-gradient(180deg, rgba(18,16,26,0.15) 0%, rgba(18,16,26,0.85) 55%, rgba(18,16,26,0.92) 100%);
                 box-shadow: 0 6px 18px rgba(0,0,0,0.25);
@@ -1791,7 +1795,18 @@
                quebrou as tentativas anteriores de hoje, ver histórico). */
             .nav-abas {
                 flex-direction: row; padding: 6px 4px;
-                position: fixed; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
+                /* top:auto AQUI é a causa raiz real do "rodapé ocupa a tela
+                   toda" (achado dela ao vivo, com print, 06/set/2026): a
+                   regra de computador (linha ~213) tem `top: var(--altura-
+                   header-admin)`, e sem resetar isso aqui, ele continuava
+                   valendo JUNTO com o `bottom` novo -- um elemento fixed
+                   com top E bottom definidos estica pra preencher o espaço
+                   entre os dois, cobrindo quase a tela inteira com o
+                   degradê + desfoque. Mesma causa nas duas tentativas de
+                   hoje (barra sólida E faixa fumê) -- só nunca aparecia no
+                   teste do computador porque a media query só ativa em
+                   tela estreita de verdade. */
+                position: fixed; top: auto; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
                 border-radius: 26px; backdrop-filter: blur(6px);
                 background: linear-gradient(180deg, rgba(18,16,26,0.15) 0%, rgba(18,16,26,0.85) 55%, rgba(18,16,26,0.92) 100%);
                 box-shadow: 0 6px 18px rgba(0,0,0,0.25);
