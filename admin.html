@@ -30,7 +30,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=29">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- defer (06/set/2026, achado real dela com vídeo gravado quadro a
+         quadro) -- sem isso, o navegador PARAVA de desenhar a tela pra
+         esperar essa biblioteca baixar de um servidor externo antes de
+         mostrar até o nosso próprio spinner, sobrando mais tempo com a
+         tela em branco/controlada pelo iOS antes da nossa aparecer (o
+         "flash" que ela via só nesta tela, nunca na carteirinha -- lá
+         essa mesma biblioteca já carregava com defer). Só é seguro criar
+         o cliente de verdade (`sb`) depois que isso termina -- por isso
+         também passou a esperar DOMContentLoaded, ver comentário junto
+         de `let sb;` mais abaixo. -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <!-- Leitor de QR pra Presença (29/ago/2026) -- lê o mesmo QR que já
          existe na carteirinha (qr_token), direto pela câmera do celular,
          sem abrir link nenhum. -->
@@ -39,8 +49,11 @@
          com a câmera do celular pra confirmar a própria presença sozinho) --
          mesma biblioteca já usada pra gerar o QR de emergência na carteirinha. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
-    <script src="ficha-perfil.js?v=66"></script>
-    <script src="faceid.js?v=2"></script>
+    <!-- defer (06/set/2026) -- nenhuma das duas executa nada sozinha ao
+         carregar, só define função pra usar depois (conferido no código
+         das duas), então não corre risco nenhum de rodar antes da hora. -->
+    <script src="ficha-perfil.js?v=66" defer></script>
+    <script src="faceid.js?v=2" defer></script>
     <style>
         /* Desliga a transição nativa entre páginas (ligada globalmente em
            styles/tokens.css) -- pista real dela, 06/set/2026: testando a
@@ -3366,7 +3379,18 @@
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // sb declarado aqui (escopo do <script> inteiro, todas as funções do
+    // arquivo fecham sobre essa variável), mas SÓ criado dentro de
+    // DOMContentLoaded (06/set/2026) -- ver comentário completo junto do
+    // <script src="...supabase-js" defer> no <head>: precisa que o
+    // "defer" ali tenha tempo de terminar antes de chamar
+    // window.supabase.createClient, senão dá erro (window.supabase ainda
+    // não existiria). Mesmo padrão já usado com segurança em
+    // carteirinha.html (ver `let sb;` + DOMContentLoaded lá).
+    let sb;
+    document.addEventListener('DOMContentLoaded', () => {
+        sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    });
 
     // Tela de carregamento "Passaporte" (05/set/2026) -- tempo mínimo de
     // exibição (~600ms) e esmaecer suave (~250ms) na saída, pedido no
@@ -10782,10 +10806,16 @@
             </div>`).join('');
     }
 
-    (async () => {
-        await iniciarSessaoAuth();
-        await iniciarUsuario();
-    })();
+    // Também dentro de DOMContentLoaded (06/set/2026, mesmo motivo do `sb`
+    // acima) -- precisa rodar DEPOIS que o `sb` acima já foi criado (os
+    // dois listeners disparam na ordem em que foram registrados, e este
+    // é registrado depois, então sempre roda depois).
+    document.addEventListener('DOMContentLoaded', () => {
+        (async () => {
+            await iniciarSessaoAuth();
+            await iniciarUsuario();
+        })();
+    });
 </script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
