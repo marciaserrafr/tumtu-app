@@ -2,44 +2,24 @@
 <html lang="pt-BR" data-tema="tumtu" style="background:#12101a;">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TumTu — Painel do Diretor</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#12101a">
     <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-    <!-- Imagens de abertura do iPhone (05/set/2026) -- sem isso, o próprio
-         iOS "inventa" sozinho a cor da tela por um instante antes do nosso
-         HTML carregar, e essa invenção varia um pouco a cada abertura
-         (achado real dela: "às vezes pisca só na lateral, às vezes só em
-         cima"). Entregando uma imagem pronta, do tamanho físico exato de
-         cada iPhone, com o mesmo fundo escuro e a mesma marca da nossa
-         tela de carregamento de verdade, o iOS usa a NOSSA imagem em vez
-         de inventar -- elimina essa variação na raiz. Uma por modelo,
-         porque o Safari exige bater exatamente device-width/height/dpr. -->
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-750-1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1242-2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1125-2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-828-1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1242-2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1080-2340.png" media="(device-width: 360px) and (device-height: 780px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1170-2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1284-2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1179-2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1290-2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1206-2622.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-    <link rel="apple-touch-startup-image" href="icons/splash/apple-splash-1320-2868.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- black-translucent (05/set/2026, era "black") -- obrigatório pro
-         viewport-fit=cover (logo abaixo) funcionar de verdade: com "black"
-         puro, o iOS reserva um espaço preto sozinho pra barra de status,
-         por fora do nosso controle -- nosso CSS de safe-area não tinha
-         efeito real nenhum ali. Com "black-translucent", a nossa tela passa
-         a ocupar a tela inteira de verdade (inclusive atrás do notch), e a
-         barra de status fica transparente por cima -- só assim o padding
-         de env(safe-area-inset-top) do cabeçalho (ver .header) passa a
-         fazer sentido. -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Revertido pra "black" em 06/set/2026 -- a combinação com
+         viewport-fit=cover (também revertido) causou dois problemas novos,
+         piores que o pisca-pisca original que tentava resolver: a barra
+         fixa de baixo (.nav-abas/.sa-sidebar) descolou da borda real da
+         tela (vão branco embaixo, achado dela com print real) e um flash
+         branco novo passou a aparecer antes do spinner. "black" (opaco,
+         sem viewport-fit=cover) é o estado que funcionou sem esses
+         problemas por meses -- não reativar essa combinação sem resolver
+         antes, com ferramenta de teste de verdade, os dois problemas
+         acima. Ver docs/tumtu-historico-sessoes.md, 03 e 06/set/2026. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="TumTu">
     <script src="pwa-register.js" defer></script>
     <!-- Vercel Web Analytics (02/set/2026) -- contagem de acesso gratuita,
@@ -1759,10 +1739,9 @@
         @media (max-width: 560px) {
             .sa-sidebar {
                 flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-                /* `top` calculado em vez de `bottom:0` (05/set/2026) -- ver
-                   comentário completo na regra equivalente de .nav-abas,
-                   mais abaixo. */
-                position: fixed; top: calc(100dvh - var(--altura-nav-mobile, 70px)); left: 0; right: 0; bottom: auto; width: 100%;
+                /* bottom:0 de volta (06/set/2026) -- ver comentário completo
+                   na regra equivalente de .nav-abas, mais abaixo. */
+                position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
                 background: var(--cor-fundo-escuro); justify-content: space-around; z-index: 200;
             }
             .sa-sidebar-item { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
@@ -1791,25 +1770,17 @@
 
             /* NAV ABAS -- mesmo comportamento de .sa-sidebar aqui em cima:
                vira barra fixa embaixo, ícone em cima do texto. */
-            /* `top` calculado em vez de `bottom:0` (05/set/2026, achado
-               por pesquisa) -- viewport-fit=cover (ligado hoje pela 1ª vez
-               de novo, ver <meta name="viewport"> no head) tem um bug
-               conhecido e documentado pela própria Apple no Safari em modo
-               instalado (PWA): elementos position:fixed ancorados por
-               `bottom` "descolam" da borda de verdade da tela, empurrando
-               a barra pra cima e sobrando um vão embaixo -- foi exatamente
-               isso que quebrou as 3 tentativas anteriores (ver
-               tumtu-historico-sessoes.md, 03/set/2026). Ancorar pelo `top`
-               em vez do `bottom` evita esse padrão específico do bug --
-               usa --altura-nav-mobile, que já é medida de verdade (não
-               chute) por ajustarAlturaNavMobile(), incluindo a própria
-               margem de segurança de baixo que a barra já soma no padding
-               acima. NÃO testado num iPhone de verdade ainda -- se voltar
-               a quebrar, reverter tanto isso quanto o viewport-fit=cover
-               juntos (ver git blame desse bloco). */
+            /* bottom:0 de volta (06/set/2026) -- a tentativa de ancorar pelo
+               `top` calculado (05/set/2026, pra tentar evitar um bug do
+               viewport-fit=cover) foi testada num iPhone de verdade e
+               quebrou de um jeito diferente (vão branco embaixo da barra,
+               achado dela com print real) -- viewport-fit=cover foi
+               revertido junto (ver <meta name="viewport"> no head), então
+               esse workaround não faz mais sentido nem falta. bottom:0 é o
+               que funcionou sem problema por meses antes dessa sessão. */
             .nav-abas {
                 flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-                position: fixed; top: calc(100dvh - var(--altura-nav-mobile, 70px)); left: 0; right: 0; bottom: auto; width: 100%;
+                position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
                 background: var(--cor-fundo-escuro); justify-content: space-around; z-index: 200;
             }
             .aba-btn { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
