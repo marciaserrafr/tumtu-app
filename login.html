@@ -34,7 +34,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
-        @view-transition { navigation: auto; }
+        /* Desligada de novo (06/set/2026, mesma sessão -- teste de
+           diagnóstico, ver comentário completo em admin.html): achado
+           comparando com carteirinha.html (mesma linha desligada desde
+           15/jul, nunca pisca) -- a piscada é anterior a essa transição
+           existir no código, então ela não pode ser a causa original. */
+        @view-transition { navigation: none; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { overflow-x: hidden; max-width: 100vw; }

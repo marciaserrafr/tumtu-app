@@ -69,7 +69,21 @@
     <script src="ficha-perfil.js?v=66" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
-        @view-transition { navigation: auto; }
+        /* Desligada de novo (06/set/2026, mesma sessão -- teste de
+           diagnóstico). Tinha sido religada mais cedo hoje na esperança de
+           fechar de vez a fresta da transição login→admin, e ela ajudou
+           ("melhorou muito", segundo ela) mas não eliminou -- ficou
+           inclusive intermitente. Achado real comparando com
+           carteirinha.html (que tem essa mesma linha desligada desde
+           15/jul/2026, por outro motivo, e NUNCA pisca, com o mesmo
+           desenho de spinner e a mesma fonte): a piscada em si já existia
+           muito antes dessa transição existir no código (documentada em
+           03/set e 05-06/set) -- ela não pode ser a causa original, só uma
+           possível amplificadora. Desligando aqui como teste de
+           diagnóstico: se a piscada melhorar mas continuar, confirma que a
+           causa de fundo é a janela de primeira pintura (script bloqueante,
+           fonte, CSS), não esta transição. */
+        @view-transition { navigation: none; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
