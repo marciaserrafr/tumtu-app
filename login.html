@@ -29,10 +29,20 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
-        /* Desliga a transição nativa entre páginas (ligada globalmente em
-           styles/tokens.css) -- ver comentário completo em admin.html,
-           mesma correção, mesma pista dela (06/set/2026). */
-        @view-transition { navigation: none; }
+        /* Religada (06/set/2026, mesma sessão, experimento consciente): a
+           versão GERAL dessa transição (afetando toda navegação, nas duas
+           direções) já causou um bug real aqui no passado ("página
+           fantasma" -- ver carteirinha.html) e foi desligada por isso.
+           Desta vez é diferente: o spinner "Passaporte" de login.html e o
+           de admin.html são hoje pixel a pixel idênticos -- então na
+           transição login→admin, a "foto" de saída e a de entrada são a
+           MESMA imagem, sem nada pra parecer fantasma. login.html nunca
+           navega pra fora mostrando outra coisa além do próprio spinner
+           (a página inteira já é o spinner até o redirect acontecer), então
+           não precisa de nenhuma trava extra aqui -- só em admin.html
+           (ver comentário lá), que tem telas carregadas de verdade pra
+           proteger na saída (logout, etc.). */
+        @view-transition { navigation: auto; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { overflow-x: hidden; max-width: 100vw; }

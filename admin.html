@@ -55,13 +55,18 @@
     <script src="ficha-perfil.js?v=66" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
-        /* Desliga a transição nativa entre páginas (ligada globalmente em
-           styles/tokens.css) -- pista real dela, 06/set/2026: testando a
-           carteirinha (a única tela que já desligava isso, desde 15/jul,
-           por causa de uma "página fantasma" sobreposta) ela nunca via a
-           faixa branca do notch piscar; em login.html/admin.html (sem essa
-           linha) ela sempre via. Mesma correção aplicada aqui. */
-        @view-transition { navigation: none; }
+        /* Religada (06/set/2026, mesma sessão, experimento consciente pra
+           tentar fechar de vez a fresta da transição login→admin -- ver
+           comentário completo em login.html). Sozinha, essa linha
+           animaria TODA navegação pra fora daqui também (logout, cadastro
+           manual...) -- essas saídas mostram a tela carregada de verdade,
+           bem diferente do spinner de destino, e repetiriam o mesmo tipo
+           de bug de "página fantasma" que a carteirinha já teve. Por isso,
+           logo abaixo (perto de `let sb`), um listener de `pageswap`
+           cancela a transição sempre que a SAÍDA é daqui -- só a ENTRADA
+           vinda de login.html (spinner idêntico dos dois lados) continua
+           animada. */
+        @view-transition { navigation: auto; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
@@ -3399,7 +3404,7 @@
 
 <script src="config-escola.js?v=4"></script>
 <script src="config-suporte.js?v=1"></script>
-<script src="admin-logic-1.js?v=1" defer></script>
+<script src="admin-logic-1.js?v=2" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

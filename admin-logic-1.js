@@ -13,6 +13,21 @@
         sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     });
 
+    // Experimento consciente do notch, 06/set/2026 (ver comentário completo
+    // junto do "@view-transition" no <style> deste arquivo): a transição
+    // nativa entre páginas foi religada pra tentar fechar a fresta da
+    // piscada na troca login→admin (spinner idêntico dos dois lados, então
+    // deveria ficar imperceptível). Só que sozinha ela animaria QUALQUER
+    // navegação saindo daqui também (logout, cadastro manual...), onde a
+    // tela de saída é o painel carregado de verdade -- bem diferente do
+    // spinner de destino, repetindo o mesmo tipo de bug de "página
+    // fantasma" que a carteirinha já teve no passado. Este listener
+    // cancela a transição toda vez que a saída é DAQUI, sem exceção --
+    // login.html continua livre pra animar a entrada normalmente.
+    window.addEventListener('pageswap', (event) => {
+        if (event.viewTransition) event.viewTransition.skipTransition();
+    });
+
     // Tela de carregamento "Passaporte" (05/set/2026) -- tempo mínimo de
     // exibição (~600ms) e esmaecer suave (~250ms) na saída, pedido no
     // documento de handoff do design: sem isso, em conexão rápida a batida
