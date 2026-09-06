@@ -3233,6 +3233,30 @@
         if (sessionData.session) authHeaders['Authorization'] = `Bearer ${sessionData.session.access_token}`;
     }
 
+    // Registro de erro real do navegador (06/set/2026) -- achado dela ao
+    // vivo: trocar de aba "não faz nada" em momentos imprevisíveis, sem
+    // nenhum aviso na tela. Causa provável: uma exceção no meio do caminho
+    // (rede falhando, resposta inesperada) para a função de troca de aba
+    // no meio, silenciosamente -- ninguém vê, o clique só "não funciona".
+    // Grava aqui pra investigar depois com dado real, nunca bloqueia nem
+    // atrapalha quem está usando (fire-and-forget, com try/catch próprio).
+    function logErroCliente(contexto, err) {
+        try {
+            const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+            fetch(`${SUPABASE_URL}/rest/v1/logs_erro_cliente`, {
+                method: 'POST',
+                headers: { ...authHeaders, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pessoa_id: u ? u.pessoa_id : null,
+                    contexto,
+                    mensagem: err && err.message ? err.message : String(err),
+                    detalhe: err && err.stack ? err.stack : null,
+                    user_agent: navigator.userAgent,
+                }),
+            }).catch(() => {});
+        } catch (e) { /* nunca deixa o log quebrar a tela */ }
+    }
+
     let todosRitmistas = [];
     let _ultimoRawLeveRitmistas = null; // {bateriaId, raw} -- ver comentário em carregarRitmistas()
     let listaFiltradaAtual = [];
@@ -7995,6 +8019,14 @@
         document.querySelectorAll('.sa-sidebar-item').forEach(x => x.classList.remove('ativa'));
         if (el) el.classList.add('ativa');
 
+        // A partir daqui vai tudo dentro de um try/catch (06/set/2026) --
+        // achado dela ao vivo: trocar de aba "não fazia nada" em momentos
+        // imprevisíveis, sem nenhum aviso. Se uma dessas buscas falhar no
+        // meio do caminho (rede, resposta inesperada), a função parava
+        // silenciosamente bem aqui -- o botão acendia (linha de cima) mas o
+        // painel nunca trocava, e ninguém via o motivo. Agora pelo menos
+        // fica registrado (logErroCliente) pra investigar com dado real.
+        try {
         // Busca os dados ANTES de trocar o painel visível -- fica na aba
         // atual, sem nada "carregando" (nem spinner, nem overlay), até a
         // aba nova estar pronta pra aparecer já montada de uma vez. Achado
@@ -8023,6 +8055,10 @@
         ajustarAlturaHeaderAdmin();
         if (aba === 'configuracoes-globais') voltarConfigListaSA();
         else if (aba === 'meu-perfil') await iniciarMeuPerfilSaAba();
+        } catch (err) {
+            console.error('trocarSaAba falhou:', err);
+            logErroCliente('trocarSaAba:' + aba, err);
+        }
     }
 
     // Meu Perfil do Super Admin, fora do contexto de uma escola -- mesmo
@@ -11042,6 +11078,14 @@
         }
         if (btn) btn.classList.add('ativa');
 
+        // A partir daqui vai tudo dentro de um try/catch (06/set/2026) --
+        // achado dela ao vivo: trocar de aba "não fazia nada" em momentos
+        // imprevisíveis, sem nenhum aviso (ex: de Diretoria pra Visão
+        // Geral). Se algo falhar no meio do caminho, a função parava
+        // silenciosamente bem aqui -- o botão acendia (linha de cima) mas
+        // o painel nunca trocava, e ninguém via o motivo. Agora pelo menos
+        // fica registrado (logErroCliente) pra investigar com dado real.
+        try {
         // Busca os dados ANTES de revelar o painel novo -- só pras abas que
         // fazem busca de verdade (Figurino/Presença/Histórico/Convidados).
         // Fica no painel atual, sem nada "carregando", até a aba nova
@@ -11080,6 +11124,10 @@
         if (aba === 'comercial') renderizarComercialTab();
         if (aba === 'permissoes') { permissoesPessoaEditando = null; voltarPermissoesLista(); renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'administrativo') renderizarAdministrativoLista();
+        } catch (err) {
+            console.error('trocarAba falhou:', err);
+            logErroCliente('trocarAba:' + aba, err);
+        }
     }
 </script>
 </body>
