@@ -1678,8 +1678,15 @@
         #overlayCarregandoEscola {
             display: flex; position: fixed; inset: 0; z-index: 3000;
             background: #efe9dc;
-            padding: 20px; box-sizing: border-box;
+            /* 20px é o mínimo -- em aparelhos com área de segurança maior
+               (ex: Dynamic Island), a moldura nunca pode ficar mais fina
+               que essa área, senão o vazamento do iOS passa por cima dela
+               (ressalva do handoff de design). */
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+            box-sizing: border-box;
+            opacity: 1; transition: opacity .25s ease;
         }
+        #overlayCarregandoEscola.escondida-saindo { opacity: 0; pointer-events: none; }
         #overlayCarregandoEscola.escondida { display: none; }
         #overlayCarregandoEscola .cartao {
             flex: 1; background: #12101a; border-radius: 30px;
@@ -1728,8 +1735,11 @@
         @keyframes tt-respira { 0%, 100% { opacity: .45; } 50% { opacity: .9; } }
         @keyframes tt-girar { to { transform: rotate(360deg); } }
         @media (prefers-reduced-motion: reduce) {
-            #overlayCarregandoEscola .tum, #overlayCarregandoEscola .tu, #overlayCarregandoEscola .onda,
+            #overlayCarregandoEscola .tum, #overlayCarregandoEscola .tu,
             #overlayCarregandoEscola .compasso-bola, #overlayCarregandoEscola .status-abertura { animation: none; }
+            /* A onda é só movimento (some ao expandir) -- sem animação ela
+               ficaria parada como um anel sólido, sem sentido. Some de vez. */
+            #overlayCarregandoEscola .onda { display: none; }
         }
 
         /* Versão pequena do mesmo spinner, pros "Carregando..." de dentro de
@@ -3347,6 +3357,27 @@
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Tela de carregamento "Passaporte" (05/set/2026) -- tempo mínimo de
+    // exibição (~600ms) e esmaecer suave (~250ms) na saída, pedido no
+    // documento de handoff do design: sem isso, em conexão rápida a batida
+    // só "pisca" (não dá tempo nem de completar meio ciclo) e o
+    // desaparecimento seco quebra a sensação de intenção da tela.
+    let overlayCarregandoMostradoEm = performance.now(); // já visível desde o HTML puro
+    function mostrarOverlayCarregando() {
+        overlayCarregandoMostradoEm = performance.now();
+        const el = document.getElementById('overlayCarregandoEscola');
+        el.classList.remove('escondida', 'escondida-saindo');
+    }
+    function esconderOverlayCarregando() {
+        const decorrido = performance.now() - overlayCarregandoMostradoEm;
+        const espera = Math.max(0, 600 - decorrido);
+        setTimeout(() => {
+            const el = document.getElementById('overlayCarregandoEscola');
+            el.classList.add('escondida-saindo');
+            setTimeout(() => { el.classList.add('escondida'); el.classList.remove('escondida-saindo'); }, 250);
+        }, espera);
+    }
 
     const authHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
     async function iniciarSessaoAuth() {
@@ -5393,7 +5424,7 @@
             // rede) antes de preencher de verdade. Achado da Márcia,
             // 19/ago/2026: "aparece Bateria escrito e depois é que muda
             // pro dashboard".
-            document.getElementById('overlayCarregandoEscola').classList.remove('escondida');
+            mostrarOverlayCarregando();
             mostrarShellSA();
             // Volta pro mesmo lugar de antes de atualizar a página -- achado
             // da Márcia, 20/ago/2026: "sempre que eu atualizo a página, ela
@@ -5413,7 +5444,7 @@
             } else {
                 await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
             }
-            document.getElementById('overlayCarregandoEscola').classList.add('escondida');
+            esconderOverlayCarregando();
             return;
         }
 
@@ -5433,7 +5464,7 @@
         // cor da escola no final -- achado da Márcia, 19/ago/2026, "isso é
         // perceptível sim". Quando o cache já existe (caso comum), o
         // overlay só pisca rápido, sem custo perceptível.
-        document.getElementById('overlayCarregandoEscola').classList.remove('escondida');
+        mostrarOverlayCarregando();
 
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
         renderizarAvatarHeader({ nome: usuario.nome || 'Admin', foto_url: usuario.foto_url });
@@ -5546,7 +5577,7 @@
         }
 
         if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(usuario, 'avisoDadosProprios');
-        document.getElementById('overlayCarregandoEscola').classList.add('escondida');
+        esconderOverlayCarregando();
     }
 
     // Preenche configEscola.nomeEscola/nomeBateria com dado real -- antes desse
@@ -8168,7 +8199,7 @@
         // e só depois de vários pedidos ao banco virava a cor da escola
         // (achado da Márcia, 19/ago/2026). Só sai da tela quando o tema já
         // está aplicado, igual ao login.html/carteirinha.html já fazem.
-        document.getElementById('overlayCarregandoEscola').classList.remove('escondida');
+        mostrarOverlayCarregando();
 
         // 25/ago/2026: paraleliza os pedidos ao banco que não dependem um
         // do outro -- antes eram 5 pedidos em fila, cada um esperando o
@@ -8237,7 +8268,7 @@
         ]);
         iniciarAutoRefreshRitmistas();
 
-        document.getElementById('overlayCarregandoEscola').classList.add('escondida');
+        esconderOverlayCarregando();
         // Fotos completas chegam depois, em segundo plano, sem travar a tela
         // nem os cliques (achado real, 05/set/2026 -- ver
         // preencherFotosRitmistasEmSegundoPlano acima).
