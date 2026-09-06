@@ -1688,15 +1688,14 @@
                (ex: Dynamic Island), a moldura nunca pode ficar mais fina
                que essa área, senão o vazamento do iOS passa por cima dela
                (ressalva do handoff de design). */
-            /* Topo mudou de max(20px,...) pra 0 (06/set/2026) -- achado dela,
-               comprovado com a própria foto (pixel a pixel, não chute): o
-               cabeçalho real (.header) começa escuro exatamente onde a área
-               de conteúdo começa, sem nenhuma margem clara antes -- essa
-               moldura clara de 20px só no topo criava um "corte" visível na
-               troca spinner→tela carregada. 0 aqui iguala essa altura exata,
-               nem um pixel além. Os outros 3 lados continuam com a folga de
-               20px de antes (nunca reportado como problema). */
-            padding: 0 max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+            /* Revertido (06/set/2026, mesma sessão): a tentativa de igualar
+               essa altura à do cabeçalho deixou o cartão com formato
+               DIFERENTE do de login.html (cantos retos em cima vs.
+               arredondados) -- na sequência login→admin, isso criou dois
+               spinners com formato diferente aparecendo em sequência, pior
+               do que o problema original. Volta a ser idêntico ao de
+               login.html/carteirinha.html nos 4 lados. */
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
             box-sizing: border-box;
         }
         #overlayCarregandoEscola.escondida { display: none; }
@@ -8146,6 +8145,7 @@
     // sobrepondo o ícone de Visão Geral em telas reais. Medir de verdade
     // em vez de estimar evita esse tipo de erro em qualquer aparelho.
     let _diagnosticoRodapeEnviado = false;
+    let _diagnosticoBtnVoltarEnviado = false;
     function ajustarAlturaNavMobile() {
         // Mede qualquer uma das duas barras fixas de baixo que estiver
         // visível no momento (Mestre/Diretor usa #navAbasEscola, Super
@@ -8410,6 +8410,37 @@
         document.getElementById('mainEscola').style.display = 'flex';
         document.getElementById('btnVoltarEscolasNav').style.display = 'flex';
         document.querySelectorAll('.aba-btn-sa').forEach(el => el.style.display = '');
+        // Diagnóstico real (06/set/2026) -- ela reportou o botão "Super
+        // Admin" (voltar de dentro de uma bateria) sumido no celular; não
+        // achei nenhuma regra/JS escondendo ele de propósito, e este
+        // ambiente não simula largura de celular de verdade pra reproduzir.
+        // Mesmo padrão já usado em ajustarAlturaNavMobile(): manda a
+        // geometria REAL do elemento pro banco, uma vez, pra investigar com
+        // dado real em vez de mais palpite.
+        if (!_diagnosticoBtnVoltarEnviado) {
+            _diagnosticoBtnVoltarEnviado = true;
+            setTimeout(() => {
+                const el = document.getElementById('btnVoltarEscolasNav');
+                if (!el) return;
+                const r = el.getBoundingClientRect();
+                const cs = getComputedStyle(el);
+                logErroCliente('diagnostico_btn_voltar_sa', {
+                    message: JSON.stringify({
+                        innerWidth: window.innerWidth,
+                        innerHeight: window.innerHeight,
+                        mediaQueryBateu: window.matchMedia('(max-width: 560px)').matches,
+                        rect: { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width, height: r.height },
+                        display: cs.display,
+                        position: cs.position,
+                        bottom: cs.bottom,
+                        zIndex: cs.zIndex,
+                        alturaNavMobileVar: getComputedStyle(document.documentElement).getPropertyValue('--altura-nav-mobile'),
+                        visibility: cs.visibility,
+                        opacity: cs.opacity,
+                    }),
+                });
+            }, 800);
+        }
 
         await Promise.all([
             carregarBateriaInstrumentos(),
