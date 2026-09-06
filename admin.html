@@ -1657,7 +1657,13 @@
            surdo -- literalmente o som que deu nome ao app. */
         #overlayCarregandoEscola {
             display: flex; position: fixed; inset: 0; z-index: 3000;
-            background: #efe9dc;
+            /* Degradê medido pixel a pixel (06/set/2026) na faixa cinza real
+               que o iOS mostra na área da barra de hora durante a transição
+               -- achado dela, com print: aquilo não é uma cor sólida, é um
+               degradê. Em vez de aproximar com creme (uma cor só), a
+               moldura usa os MESMOS valores medidos, do escuro no topo ao
+               claro logo abaixo -- mesma variação, não uma média. */
+            background: linear-gradient(to bottom, #636365 0%, #cfced3 12%, #cfced3 100%);
             /* 20px é o mínimo -- em aparelhos com área de segurança maior
                (ex: Dynamic Island), a moldura nunca pode ficar mais fina
                que essa área, senão o vazamento do iOS passa por cima dela
@@ -1738,11 +1744,14 @@
 
         @media (max-width: 560px) {
             .sa-sidebar {
-                flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-                /* bottom:0 de volta (06/set/2026) -- ver comentário completo
-                   na regra equivalente de .nav-abas, mais abaixo. */
-                position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
-                background: var(--cor-fundo-escuro); justify-content: space-around; z-index: 200;
+                flex-direction: row; padding: 6px 4px;
+                /* Faixa "fumê" flutuante (06/set/2026) -- ver comentário
+                   completo na regra equivalente de .nav-abas, mais abaixo. */
+                position: fixed; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
+                border-radius: 26px; backdrop-filter: blur(6px);
+                background: linear-gradient(180deg, rgba(18,16,26,0.15) 0%, rgba(18,16,26,0.85) 55%, rgba(18,16,26,0.92) 100%);
+                box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+                justify-content: space-around; z-index: 200;
             }
             .sa-sidebar-item { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .sa-sidebar-item .sa-ic { font-size: 18px; width: auto; }
@@ -1770,18 +1779,23 @@
 
             /* NAV ABAS -- mesmo comportamento de .sa-sidebar aqui em cima:
                vira barra fixa embaixo, ícone em cima do texto. */
-            /* bottom:0 de volta (06/set/2026) -- a tentativa de ancorar pelo
-               `top` calculado (05/set/2026, pra tentar evitar um bug do
-               viewport-fit=cover) foi testada num iPhone de verdade e
-               quebrou de um jeito diferente (vão branco embaixo da barra,
-               achado dela com print real) -- viewport-fit=cover foi
-               revertido junto (ver <meta name="viewport"> no head), então
-               esse workaround não faz mais sentido nem falta. bottom:0 é o
-               que funcionou sem problema por meses antes dessa sessão. */
+            /* Faixa "fumê" flutuante (06/set/2026) -- pedido dela: ícones
+               soltos (sem caixa dura colada na borda, mesmo padrão já
+               aprovado na carteirinha) precisavam de algum contraste atrás,
+               porque dourado/cinza claro não aparece bem em cima do fundo
+               branco do conteúdo (--cor-fundo-claro). Faixa com degradê
+               escuro translúcido + desfoque, pontas bem arredondadas,
+               flutuando com respiro de 10px das bordas -- a folga em si é
+               o desenho, não sobra de bug: nunca mais precisa encostar
+               milimetricamente na borda física da tela (o problema que
+               quebrou as tentativas anteriores de hoje, ver histórico). */
             .nav-abas {
-                flex-direction: row; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-                position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
-                background: var(--cor-fundo-escuro); justify-content: space-around; z-index: 200;
+                flex-direction: row; padding: 6px 4px;
+                position: fixed; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
+                border-radius: 26px; backdrop-filter: blur(6px);
+                background: linear-gradient(180deg, rgba(18,16,26,0.15) 0%, rgba(18,16,26,0.85) 55%, rgba(18,16,26,0.92) 100%);
+                box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+                justify-content: space-around; z-index: 200;
             }
             .aba-btn { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .aba-btn .aba-ic { font-size: 18px; width: auto; }
@@ -1808,7 +1822,11 @@
                Visão Geral em aparelho real. --altura-nav-mobile é medida
                de verdade (ajustarAlturaNavMobile()), não mais chute. */
             .nav-abas-voltar {
-                position: fixed; top: auto; bottom: calc(var(--altura-nav-mobile, 70px) + 10px); left: 12px; z-index: 150;
+                /* +20px (era +10px) -- a barra agora flutua com 10px de
+                   respiro da borda (06/set/2026), então a folga acima dela
+                   precisa somar esses mesmos 10px pra manter a mesma
+                   distância visual de antes. */
+                position: fixed; top: auto; bottom: calc(var(--altura-nav-mobile, 70px) + 20px); left: 12px; z-index: 150;
                 width: auto; background: rgba(18,16,26,0.85); color: #fff;
                 padding: 7px 14px; border-radius: 999px; font-size: 12px;
                 backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0,0,0,0.35);
