@@ -29,6 +29,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
+        /* Desliga a transição nativa entre páginas (ligada globalmente em
+           styles/tokens.css) -- ver comentário completo em admin.html,
+           mesma correção, mesma pista dela (06/set/2026). */
+        @view-transition { navigation: none; }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { overflow-x: hidden; max-width: 100vw; }
         button { font-family: inherit; }

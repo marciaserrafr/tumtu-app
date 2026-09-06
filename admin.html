@@ -42,6 +42,14 @@
     <script src="ficha-perfil.js?v=66"></script>
     <script src="faceid.js?v=2"></script>
     <style>
+        /* Desliga a transição nativa entre páginas (ligada globalmente em
+           styles/tokens.css) -- pista real dela, 06/set/2026: testando a
+           carteirinha (a única tela que já desligava isso, desde 15/jul,
+           por causa de uma "página fantasma" sobreposta) ela nunca via a
+           faixa branca do notch piscar; em login.html/admin.html (sem essa
+           linha) ela sempre via. Mesma correção aplicada aqui. */
+        @view-transition { navigation: none; }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, input, select, textarea { font-family: inherit; }
         button, .badge { display: inline-flex; align-items: center; gap: 5px; }
@@ -1753,7 +1761,7 @@
                    a barra do topo até quase o fim da tela inteira. */
                 position: fixed; top: auto; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
                 border-radius: 26px; backdrop-filter: blur(6px);
-                background: linear-gradient(180deg, rgba(18,16,26,0.15) 0%, rgba(18,16,26,0.85) 55%, rgba(18,16,26,0.92) 100%);
+                background: rgba(18,16,26,0.92); /* 06/set/2026: sem degrade, cor mais escura solida (com transparencia), a pedido dela */
                 box-shadow: 0 6px 18px rgba(0,0,0,0.25);
                 justify-content: space-around; z-index: 200;
             }
@@ -1808,7 +1816,7 @@
                    tela estreita de verdade. */
                 position: fixed; top: auto; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
                 border-radius: 26px; backdrop-filter: blur(6px);
-                background: linear-gradient(180deg, rgba(18,16,26,0.15) 0%, rgba(18,16,26,0.85) 55%, rgba(18,16,26,0.92) 100%);
+                background: rgba(18,16,26,0.92); /* 06/set/2026: sem degrade, cor mais escura solida (com transparencia), a pedido dela */
                 box-shadow: 0 6px 18px rgba(0,0,0,0.25);
                 justify-content: space-around; z-index: 200;
             }
