@@ -1897,11 +1897,12 @@
                    certa no código. Em vez de continuar dependendo de uma
                    variável calculada por JS (ajustarAlturaNavMobile, que
                    pode não ter rodado ainda ou ter atrasado nesse momento),
-                   valor fixo e generoso: 20px (respiro da barra) + ~65px
-                   (altura típica da barra) + 15px de folga = 100px. Perde um
-                   pouco de precisão em telas com barra de altura diferente,
-                   ganha em nunca depender de timing de JS pra existir. */
-                position: fixed; top: auto; bottom: 100px; left: 12px; z-index: 250;
+                   valor fixo. Causa real depois confirmada e corrigida
+                   (overflow:visible no <nav> pai) -- o botão voltou a
+                   aparecer, e ela testou no celular de verdade: "ficou mto
+                   alto". Baixado de 100px pra 80px (mesma sessão) --
+                   ajuste fino a olho, ela quem confirma se ficou bom. */
+                position: fixed; top: auto; bottom: 80px; left: 12px; z-index: 250;
                 width: auto; background: rgba(18,16,26,0.85); color: #fff;
                 padding: 7px 14px; border-radius: 999px; font-size: 12px;
                 backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0,0,0,0.35);
@@ -2169,7 +2170,7 @@
          bolinha de conta no cabeçalho (#headerAvatarWrap) já leva pra lá,
          ter os dois caminhos era redundante e ocupava espaço à toa
          (crítico no rodapé do celular). -->
-    <button class="aba-btn-sa aba-btn" id="btnMais" data-aba="administrativo" onclick="onClickMais(this)" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg><span class="aba-badge" id="abaBadgeMais" style="display:none"></span></span><span>Mais</span><span class="aba-mais-seta" id="maisSeta">›</span></button>
+    <button class="aba-btn-sa aba-btn" id="btnMais" data-aba="administrativo" onclick="onClickMais(this)" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg><span class="aba-badge" id="abaBadgeMais" style="display:none"></span></span><span>Mais</span><span class="aba-mais-seta" id="maisSeta">›</span></button>
     <!-- Só no computador: "Mais" abre um submenu ali mesmo na barra lateral
          em vez de navegar pra uma tela própria -- pedido da Márcia,
          20/ago/2026 ("pensei em colocar uma seta e esse menu abrir para
