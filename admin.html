@@ -1688,7 +1688,15 @@
                (ex: Dynamic Island), a moldura nunca pode ficar mais fina
                que essa área, senão o vazamento do iOS passa por cima dela
                (ressalva do handoff de design). */
-            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+            /* Topo mudou de max(20px,...) pra 0 (06/set/2026) -- achado dela,
+               comprovado com a própria foto (pixel a pixel, não chute): o
+               cabeçalho real (.header) começa escuro exatamente onde a área
+               de conteúdo começa, sem nenhuma margem clara antes -- essa
+               moldura clara de 20px só no topo criava um "corte" visível na
+               troca spinner→tela carregada. 0 aqui iguala essa altura exata,
+               nem um pixel além. Os outros 3 lados continuam com a folga de
+               20px de antes (nunca reportado como problema). */
+            padding: 0 max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
             box-sizing: border-box;
         }
         #overlayCarregandoEscola.escondida { display: none; }
@@ -1770,7 +1778,12 @@
                    regra de computador (linha ~1406, nunca sobrescrita aqui)
                    continuava valendo JUNTO com o `bottom` novo, esticando
                    a barra do topo até quase o fim da tela inteira. */
-                position: fixed; top: auto; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
+                /* 20px (era 10px), pedido dela 06/set/2026: "os botões estão
+                   muito baixos... eu esbarro ali" -- perto demais da faixa de
+                   gesto do sistema (embaixo da tela) pra quem usa o celular
+                   normalmente. Mesma folga que a moldura do spinner já usa
+                   embaixo, nada inventado. */
+                position: fixed; top: auto; bottom: max(20px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
                 border-radius: 26px; backdrop-filter: blur(6px);
                 background: rgba(18,16,26,0.92); /* 06/set/2026: sem degrade, cor mais escura solida (com transparencia), a pedido dela */
                 box-shadow: 0 6px 18px rgba(0,0,0,0.25);
@@ -1825,7 +1838,12 @@
                    hoje (barra sólida E faixa fumê) -- só nunca aparecia no
                    teste do computador porque a media query só ativa em
                    tela estreita de verdade. */
-                position: fixed; top: auto; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
+                /* 20px (era 10px), pedido dela 06/set/2026: "os botões estão
+                   muito baixos... eu esbarro ali" -- perto demais da faixa de
+                   gesto do sistema (embaixo da tela) pra quem usa o celular
+                   normalmente. Mesma folga que a moldura do spinner já usa
+                   embaixo, nada inventado. */
+                position: fixed; top: auto; bottom: max(20px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
                 border-radius: 26px; backdrop-filter: blur(6px);
                 background: rgba(18,16,26,0.92); /* 06/set/2026: sem degrade, cor mais escura solida (com transparencia), a pedido dela */
                 box-shadow: 0 6px 18px rgba(0,0,0,0.25);
@@ -1856,11 +1874,12 @@
                Visão Geral em aparelho real. --altura-nav-mobile é medida
                de verdade (ajustarAlturaNavMobile()), não mais chute. */
             .nav-abas-voltar {
-                /* +20px (era +10px) -- a barra agora flutua com 10px de
-                   respiro da borda (06/set/2026), então a folga acima dela
-                   precisa somar esses mesmos 10px pra manter a mesma
-                   distância visual de antes. */
-                position: fixed; top: auto; bottom: calc(var(--altura-nav-mobile, 70px) + 20px); left: 12px; z-index: 150;
+                /* +30px (era +20px) -- a barra principal subiu de 10px pra
+                   20px de respiro da borda (06/set/2026, pedido dela: "os
+                   botões estão muito baixos... eu esbarro ali"), então essa
+                   pilula continua encostada exatamente acima dela: 20px (novo
+                   respiro da barra) + 10px de folga própria = 30px. */
+                position: fixed; top: auto; bottom: calc(var(--altura-nav-mobile, 70px) + 30px); left: 12px; z-index: 150;
                 width: auto; background: rgba(18,16,26,0.85); color: #fff;
                 padding: 7px 14px; border-radius: 999px; font-size: 12px;
                 backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0,0,0,0.35);
