@@ -1667,20 +1667,69 @@
            tiravam essa classe quando prontos; sempre reponham .escondida
            se algum caminho novo carregar admin.html sem passar por um
            desses 3 fluxos. */
+        /* Redesenho "Passaporte" (05/set/2026, desenhado por ela no Claude
+           Design) -- moldura creme por fora (cor mais próxima do branco
+           que o iOS vaza nas bordas do notch, então o vazamento cai por
+           cima do creme e some) + cartão escuro por dentro, preservando o
+           clima do TumTu na abertura. Troca o anel giratório antigo por
+           uma animação: os dois círculos da marca "batem" no ritmo do
+           nome (TUM forte, tu resposta), com uma onda de ar saindo do
+           surdo -- literalmente o som que deu nome ao app. */
         #overlayCarregandoEscola {
             display: flex; position: fixed; inset: 0; z-index: 3000;
-            background: var(--cor-fundo-escuro, #12101a);
-            align-items: center; justify-content: center;
+            background: #efe9dc;
+            padding: 20px; box-sizing: border-box;
         }
         #overlayCarregandoEscola.escondida { display: none; }
-        #overlayCarregandoEscola .spinner {
-            width: 56px; height: 56px;
-            animation: tt-girar 1.1s linear infinite;
-            filter: drop-shadow(0 0 6px rgba(212,175,55,0.55));
+        #overlayCarregandoEscola .cartao {
+            flex: 1; background: #12101a; border-radius: 30px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 52px;
+            position: relative; overflow: hidden;
         }
+        #overlayCarregandoEscola .batida { position: relative; width: 170px; height: 130px; }
+        #overlayCarregandoEscola .onda {
+            position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
+            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite;
+        }
+        #overlayCarregandoEscola .tum {
+            position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
+            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite;
+        }
+        #overlayCarregandoEscola .tu {
+            position: absolute; left: 106px; top: 78px; width: 38px; height: 38px; border-radius: 50%;
+            border: 2.5px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .15s;
+        }
+        #overlayCarregandoEscola .marca-abertura {
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+        }
+        #overlayCarregandoEscola .marca-abertura .nome {
+            display: flex; align-items: baseline; font-size: 34px; font-weight: 800; letter-spacing: 0.5px;
+        }
+        #overlayCarregandoEscola .marca-abertura .nome .t { color: #D4AF37; }
+        #overlayCarregandoEscola .marca-abertura .nome .u { color: #fff; }
+        #overlayCarregandoEscola .marca-abertura .nome .m { position: relative; color: #fff; }
+        #overlayCarregandoEscola .marca-abertura .nome .m::after {
+            content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: #7c2d12;
+        }
+        #overlayCarregandoEscola .compasso {
+            width: 56px; height: 2px; background: rgba(212,175,55,.18); border-radius: 2px; overflow: hidden;
+        }
+        #overlayCarregandoEscola .compasso-bola {
+            width: 33%; height: 100%; background: #D4AF37; animation: tt-compasso 1.05s linear infinite;
+        }
+        #overlayCarregandoEscola .status-abertura {
+            position: absolute; bottom: 40px; color: #6f6980; font-size: 13px; font-weight: 600;
+            letter-spacing: 1.5px; text-transform: uppercase; animation: tt-respira 2.1s ease-in-out infinite;
+        }
+        @keyframes tt-tum { 0% { transform: scale(1); } 7% { transform: scale(1.15); } 30% { transform: scale(1); } 100% { transform: scale(1); } }
+        @keyframes tt-tu { 0% { transform: scale(1); opacity: .75; } 7% { transform: scale(1.09); opacity: 1; } 34% { transform: scale(1); opacity: .75; } 100% { transform: scale(1); opacity: .75; } }
+        @keyframes tt-onda { 0% { transform: scale(.75); opacity: .5; } 70% { transform: scale(2.1); opacity: 0; } 100% { transform: scale(2.1); opacity: 0; } }
+        @keyframes tt-compasso { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+        @keyframes tt-respira { 0%, 100% { opacity: .45; } 50% { opacity: .9; } }
         @keyframes tt-girar { to { transform: rotate(360deg); } }
         @media (prefers-reduced-motion: reduce) {
-            #overlayCarregandoEscola .spinner { animation-duration: 2.2s; }
+            #overlayCarregandoEscola .tum, #overlayCarregandoEscola .tu, #overlayCarregandoEscola .onda,
+            #overlayCarregandoEscola .compasso-bola, #overlayCarregandoEscola .status-abertura { animation: none; }
         }
 
         /* Versão pequena do mesmo spinner, pros "Carregando..." de dentro de
@@ -1799,7 +1848,18 @@
 </svg>
 
 <div id="overlayCarregandoEscola">
-    <svg class="spinner" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg>
+    <div class="cartao">
+        <div class="batida">
+            <div class="onda"></div>
+            <div class="tum"></div>
+            <div class="tu"></div>
+        </div>
+        <div class="marca-abertura">
+            <div class="nome"><span class="t">T</span><span class="u">u</span><span class="m">m</span><span class="t">T</span><span class="u">u</span></div>
+            <div class="compasso"><div class="compasso-bola"></div></div>
+        </div>
+        <span class="status-abertura">Afinando a bateria</span>
+    </div>
 </div>
 
 <div class="header" id="pageHeader">
