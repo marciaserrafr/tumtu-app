@@ -3385,6 +3385,30 @@
         if (sessionData.session) authHeaders['Authorization'] = `Bearer ${sessionData.session.access_token}`;
     }
 
+    // Registro de erro real do navegador (06/set/2026) -- achado dela ao
+    // vivo: trocar de aba "não faz nada" em momentos imprevisíveis, sem
+    // nenhum aviso na tela. Causa provável: uma exceção no meio do caminho
+    // (rede falhando, resposta inesperada) para a função de troca de aba
+    // no meio, silenciosamente -- ninguém vê, o clique só "não funciona".
+    // Grava aqui pra investigar depois com dado real, nunca bloqueia nem
+    // atrapalha quem está usando (fire-and-forget, com try/catch próprio).
+    function logErroCliente(contexto, err) {
+        try {
+            const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+            fetch(`${SUPABASE_URL}/rest/v1/logs_erro_cliente`, {
+                method: 'POST',
+                headers: { ...authHeaders, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pessoa_id: u ? u.pessoa_id : null,
+                    contexto,
+                    mensagem: err && err.message ? err.message : String(err),
+                    detalhe: err && err.stack ? err.stack : null,
+                    user_agent: navigator.userAgent,
+                }),
+            }).catch(() => {});
+        } catch (e) { /* nunca deixa o log quebrar a tela */ }
+    }
+
     let todosRitmistas = [];
     let _ultimoRawLeveRitmistas = null; // {bateriaId, raw} -- ver comentário em carregarRitmistas()
     let listaFiltradaAtual = [];
@@ -3632,7 +3656,7 @@
     async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); atualizarBadgesNav(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]); return; }
-        const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
+        const select = COLUNAS_RITMISTAS_SEM_FOTO; // 06/set/2026: nunca mais '*' -- ver comentário em preencherFotosRitmistasEmSegundoPlano()
         // eh_convidado=eq.false (31/ago/2026): Convidado Especial nunca entra
         // na lista normal de Ritmistas -- tem fila e contagens 100% próprias
         // (ver carregarConvidadosEspeciais). Filtrar aqui, na origem, já
@@ -3669,7 +3693,7 @@
             if (_ultimoRawLeveRitmistas && _ultimoRawLeveRitmistas.bateriaId === bateriaId && _ultimoRawLeveRitmistas.raw === rawAtual) return;
             _ultimoRawLeveRitmistas = { bateriaId, raw: rawAtual };
         }
-        todosRitmistas = leve ? reaproveitarFotosCache(novos, todosRitmistas) : novos;
+        todosRitmistas = reaproveitarFotosCache(novos, todosRitmistas);
         aplicarFiltros();
         atualizarTotalizadores();
         atualizarBadgesNav();
@@ -3681,6 +3705,11 @@
         // sem esperar, então os cards de Figurino/Presença na Visão Geral
         // sempre apareciam alguns instantes depois do resto da tela.
         await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]);
+        // Sem await de propósito (06/set/2026) -- a busca principal acima
+        // nunca mais traz foto (ver COLUNAS_RITMISTAS_SEM_FOTO), então toda
+        // chamada desta função precisa disparar isso pra completar as fotos
+        // mais cedo ou mais tarde, não só a carga inicial de login.
+        preencherFotosRitmistasEmSegundoPlano();
     }
 
     // Achado real, 05/set/2026: bateria com 230+ pessoas (Imperatriz) trava
@@ -3712,6 +3741,31 @@
             let mudou = false;
             todosRitmistas.forEach(p => { if (fotosPorId[p.id] && p.foto_url !== fotosPorId[p.id]) { p.foto_url = fotosPorId[p.id]; mudou = true; } });
             if (mudou) aplicarFiltros();
+            if (lote.length < LOTE) break;
+            offset += LOTE;
+            await new Promise(r => setTimeout(r, 0));
+        }
+    }
+
+    // Mesmo raciocínio de preencherFotosRitmistasEmSegundoPlano(), só que
+    // pra fila de Convidado Especial (06/set/2026 -- criada junto com a
+    // correção de nunca mais buscar foto no select principal).
+    async function preencherFotosConvidadosEspeciaisEmSegundoPlano() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) return;
+        const LOTE = 30;
+        let offset = 0;
+        while (true) {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&eh_convidado=eq.true&select=id,foto_url&order=perfil.asc,nome.asc&limit=${LOTE}&offset=${offset}`, {
+                headers: authHeaders
+            });
+            const lote = await res.json();
+            if (!Array.isArray(lote) || lote.length === 0) break;
+            const fotosPorId = {};
+            lote.forEach(p => { if (p.foto_url) fotosPorId[p.id] = p.foto_url; });
+            let mudou = false;
+            convidadosEspeciaisCache.forEach(p => { if (fotosPorId[p.id] && p.foto_url !== fotosPorId[p.id]) { p.foto_url = fotosPorId[p.id]; mudou = true; } });
+            if (mudou) aplicarFiltrosConvidadosEspeciais();
             if (lote.length < LOTE) break;
             offset += LOTE;
             await new Promise(r => setTimeout(r, 0));
@@ -6895,15 +6949,16 @@
             lista.innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         }
         if (!bateriaId) { convidadosEspeciaisCache = []; convidadosEspeciaisCarregados = true; return; }
-        const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
+        const select = COLUNAS_RITMISTAS_SEM_FOTO; // 06/set/2026: nunca mais '*' -- ver comentário em preencherFotosRitmistasEmSegundoPlano()
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&eh_convidado=eq.true&order=perfil.asc,nome.asc&select=${select}`, { headers: authHeaders });
         const novos = res.ok ? await res.json() : [];
         const novosArr = Array.isArray(novos) ? novos : [];
-        convidadosEspeciaisCache = leve ? reaproveitarFotosCache(novosArr, convidadosEspeciaisCache) : novosArr;
+        convidadosEspeciaisCache = reaproveitarFotosCache(novosArr, convidadosEspeciaisCache);
         aplicarFiltrosConvidadosEspeciais();
         atualizarTotalizadorConvidadosEspeciais();
         atualizarBadgesNav();
         convidadosEspeciaisCarregados = true;
+        preencherFotosConvidadosEspeciaisEmSegundoPlano();
     }
 
     function renderizarLinksCadastroConvidadoEspecial() {
@@ -8159,6 +8214,14 @@
         document.querySelectorAll('.sa-sidebar-item').forEach(x => x.classList.remove('ativa'));
         if (el) el.classList.add('ativa');
 
+        // A partir daqui vai tudo dentro de um try/catch (06/set/2026) --
+        // achado dela ao vivo: trocar de aba "não fazia nada" em momentos
+        // imprevisíveis, sem nenhum aviso. Se uma dessas buscas falhar no
+        // meio do caminho (rede, resposta inesperada), a função parava
+        // silenciosamente bem aqui -- o botão acendia (linha de cima) mas o
+        // painel nunca trocava, e ninguém via o motivo. Agora pelo menos
+        // fica registrado (logErroCliente) pra investigar com dado real.
+        try {
         // Busca os dados ANTES de trocar o painel visível -- fica na aba
         // atual, sem nada "carregando" (nem spinner, nem overlay), até a
         // aba nova estar pronta pra aparecer já montada de uma vez. Achado
@@ -8187,6 +8250,10 @@
         ajustarAlturaHeaderAdmin();
         if (aba === 'configuracoes-globais') voltarConfigListaSA();
         else if (aba === 'meu-perfil') await iniciarMeuPerfilSaAba();
+        } catch (err) {
+            console.error('trocarSaAba falhou:', err);
+            logErroCliente('trocarSaAba:' + aba, err);
+        }
     }
 
     // Meu Perfil do Super Admin, fora do contexto de uma escola -- mesmo
@@ -10815,7 +10882,7 @@
         }
 
         if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
-        const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
+        const select = COLUNAS_RITMISTAS_SEM_FOTO; // 06/set/2026: nunca mais '*' -- ver comentário em preencherFotosRitmistasEmSegundoPlano()
         // eh_convidado=eq.false (31/ago/2026): mesmo raciocínio de carregarRitmistas() -- Convidado Especial - Diretor/Apoio tem fila própria.
         const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=${select}`;
 
@@ -10842,7 +10909,7 @@
             if (_ultimoRawLeveDiretoria && _ultimoRawLeveDiretoria.bateriaId === bateriaId && _ultimoRawLeveDiretoria.raw === rawAtual) { diretoriaCarregada = true; return; }
             _ultimoRawLeveDiretoria = { bateriaId, raw: rawAtual };
         }
-        listaDiretoriaAtual = leve ? reaproveitarFotosCache(novosAdmins, listaDiretoriaAtual) : novosAdmins;
+        listaDiretoriaAtual = reaproveitarFotosCache(novosAdmins, listaDiretoriaAtual);
         aplicarFiltrosDiretoria();
         atualizarTotalizadoresDiretoria();
         atualizarBadgesNav();
@@ -10851,6 +10918,10 @@
         // aqui pra não ficar faltando gente até a próxima troca de aba.
         if (document.getElementById('vg-aniversariantes')) renderizarVisaoGeral();
         diretoriaCarregada = true;
+        // Sem await de propósito (06/set/2026) -- mesmo raciocínio de
+        // carregarRitmistas(): a busca principal acima nunca mais traz
+        // foto, então toda chamada precisa disparar isso.
+        preencherFotosDiretoriaEmSegundoPlano();
     }
 
     // Mesmo raciocínio de preencherFotosRitmistasEmSegundoPlano() logo
@@ -11206,6 +11277,14 @@
         }
         if (btn) btn.classList.add('ativa');
 
+        // A partir daqui vai tudo dentro de um try/catch (06/set/2026) --
+        // achado dela ao vivo: trocar de aba "não fazia nada" em momentos
+        // imprevisíveis, sem nenhum aviso (ex: de Diretoria pra Visão
+        // Geral). Se algo falhar no meio do caminho, a função parava
+        // silenciosamente bem aqui -- o botão acendia (linha de cima) mas
+        // o painel nunca trocava, e ninguém via o motivo. Agora pelo menos
+        // fica registrado (logErroCliente) pra investigar com dado real.
+        try {
         // Busca os dados ANTES de revelar o painel novo -- só pras abas que
         // fazem busca de verdade (Figurino/Presença/Histórico/Convidados).
         // Fica no painel atual, sem nada "carregando", até a aba nova
@@ -11244,6 +11323,10 @@
         if (aba === 'comercial') renderizarComercialTab();
         if (aba === 'permissoes') { permissoesPessoaEditando = null; voltarPermissoesLista(); renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'administrativo') renderizarAdministrativoLista();
+        } catch (err) {
+            console.error('trocarAba falhou:', err);
+            logErroCliente('trocarAba:' + aba, err);
+        }
     }
 </script>
 </body>

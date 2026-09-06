@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tumtu-shell-v580';
+const CACHE_NAME = 'tumtu-shell-v583';
 
 // Arquivos com "?v=N" têm o número subido a cada mudança de conteúdo —
 // isso muda a URL inteira, então nem o cache do navegador nem caches de
@@ -51,25 +51,43 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return; // nunca cachear Supabase/CDNs
 
-  // Stale-while-revalidate pra tudo, inclusive abrir uma tela (navigate).
-  // Responde na hora com o que já está em cache (rápido, funciona offline,
-  // não depende da rede responder pra desenhar a tela), e busca uma versão
-  // fresca em segundo plano pra próxima visita.
-  //
-  // Antes, abrir uma tela esperava a rede responder ANTES de mostrar
-  // qualquer coisa (só caía pro cache se a rede falhasse de vez, tipo
-  // offline). Com conexão "fria" (celular parado um tempo, sem uso — não é
-  // bem offline, só lento pra reconectar), essa espera virava uma tela
-  // preta bem longa antes de aparecer qualquer coisa — reportado pela
-  // Márcia em 15/jul/2026 ("se eu ficar 10 minutos sem usar, o preto
-  // demorado aparece; se eu abrir de novo na hora, aparece rápido").
+  // Abrir uma TELA (navigate: login/admin/carteirinha/etc) busca a rede
+  // PRIMEIRO agora (06/set/2026) -- achado real dela: uma correção
+  // publicada podia demorar aberturas inteiras pra aparecer no aparelho
+  // (mesmo excluindo e reinstalando o app -- isso não limpa esse cache),
+  // porque a versão salva sempre respondia antes da rede. Só cai pro que
+  // está salvo se a rede falhar de verdade (sem conexão) -- mantém a
+  // correção antiga de 15/jul/2026 (não ficar tela preta esperando uma
+  // conexão "fria" reconectar) só para esse caso real de falha.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).then((response) => {
+        if (response && response.ok) {
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+        }
+        return response;
+      }).catch(() =>
+        caches.open(CACHE_NAME).then((cache) =>
+          cache.match(request).then((cached) => cached || caches.match('./login'))
+        )
+      )
+    );
+    return;
+  }
+
+  // Arquivos secundários (estilo, script, imagem) continuam com
+  // stale-while-revalidate: responde na hora com o que já está em cache
+  // (rápido, funciona offline), busca uma versão fresca em segundo plano
+  // pra próxima visita. Staleness aqui importa menos -- os arquivos que
+  // realmente mudam de conteúdo usam "?v=N" na URL (vira outro arquivo,
+  // nunca fica preso em cache antigo).
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) =>
       cache.match(request).then((cached) => {
         const fetchAtualizado = fetch(request).then((response) => {
           if (response && response.ok) cache.put(request, response.clone());
           return response;
-        }).catch(() => cached || (request.mode === 'navigate' ? caches.match('./login') : undefined));
+        }).catch(() => cached);
         return cached || fetchAtualizado;
       })
     )
