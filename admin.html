@@ -1873,12 +1873,17 @@
                Visão Geral em aparelho real. --altura-nav-mobile é medida
                de verdade (ajustarAlturaNavMobile()), não mais chute. */
             .nav-abas-voltar {
-                /* +30px (era +20px) -- a barra principal subiu de 10px pra
-                   20px de respiro da borda (06/set/2026, pedido dela: "os
-                   botões estão muito baixos... eu esbarro ali"), então essa
-                   pilula continua encostada exatamente acima dela: 20px (novo
-                   respiro da barra) + 10px de folga própria = 30px. */
-                position: fixed; top: auto; bottom: calc(var(--altura-nav-mobile, 70px) + 30px); left: 12px; z-index: 150;
+                /* Valor FIXO (era calc(var(--altura-nav-mobile) + 30px)) --
+                   06/set/2026, urgente: ela reporta esse botão sumido no
+                   celular de verdade, mesmo com a lógica de mostrar/esconder
+                   certa no código. Em vez de continuar dependendo de uma
+                   variável calculada por JS (ajustarAlturaNavMobile, que
+                   pode não ter rodado ainda ou ter atrasado nesse momento),
+                   valor fixo e generoso: 20px (respiro da barra) + ~65px
+                   (altura típica da barra) + 15px de folga = 100px. Perde um
+                   pouco de precisão em telas com barra de altura diferente,
+                   ganha em nunca depender de timing de JS pra existir. */
+                position: fixed; top: auto; bottom: 100px; left: 12px; z-index: 250;
                 width: auto; background: rgba(18,16,26,0.85); color: #fff;
                 padding: 7px 14px; border-radius: 999px; font-size: 12px;
                 backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0,0,0,0.35);
