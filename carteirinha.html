@@ -142,10 +142,11 @@
             background: #f7f6fb;
             /* Mesmo padding que login.html/admin.html usam -- precisa ser
                IDÊNTICO em forma (não só em espírito), senão a troca de tela
-               mostra dois formatos diferentes em sequência. Topo zerado (ver
-               comentário completo em admin.html). Laterais/embaixo NUNCA
-               mudam. */
-            padding: 0 max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+               mostra dois formatos diferentes em sequência. Revertido pro
+               padding de 20px nos 4 lados (ver comentário completo em
+               admin.html) -- tentativa de zerar o topo "ultrapassou tudo"
+               (relato dela, 06/set/2026). */
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
             box-sizing: border-box;
         }
         #carregandoCarteirinha .cartao {

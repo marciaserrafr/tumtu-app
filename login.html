@@ -89,10 +89,10 @@
                admin.html, mesmo valor: cor de fundo que o app já usa. */
             background: #f7f6fb;
             border-radius: 0; box-shadow: none;
-            /* Topo zerado (ver comentário completo em admin.html) -- mesmo
-               valor nos 3 arquivos. Laterais/embaixo NUNCA mudam (pedido
-               explícito dela, 06/set/2026). */
-            padding: 0 max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+            /* Revertido pro padding de 20px nos 4 lados (ver comentário
+               completo em admin.html) -- tentativa de zerar o topo
+               "ultrapassou tudo" (relato dela, 06/set/2026). */
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
             box-sizing: border-box;
         }
         #containerCarregando .cartao {

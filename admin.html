@@ -1689,20 +1689,13 @@
                que o iOS mostra na transição (não valeu a pena, mais
                simples usar uma cor que já existe no sistema). */
             background: #f7f6fb;
-            /* 20px é o mínimo nas laterais/embaixo -- NUNCA MEXER nesses 3
-               lados de novo, pedido explícito dela, 06/set/2026 ("SEM MEXER
-               LÁ EMBAIXO", "aqui é para manter onde está"). Só o TOPO muda. */
-            /* Topo zerado, 06/set/2026 -- pedido direto dela, com foto
-               marcada mostrando exatamente a folga que sobrava entre a
-               barra de status e o cartão preto, pra ser eliminada (sem
-               cálculo de altura de cabeçalho, só "aumentar a área preta").
-               Aplicado igual nos 3 arquivos (login/admin/carteirinha) desta
-               vez -- a tentativa anterior de zerar isso só em admin.html
-               criou formatos diferentes em sequência entre as telas (não
-               era o valor 0 em si o problema, era a inconsistência entre
-               arquivos); replicando nos 3 ao mesmo tempo evita repetir esse
-               erro específico. */
-            padding: 0 max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+            /* 20px é o mínimo nos 4 lados -- NUNCA MEXER de novo sem
+               confirmar com ela primeiro. Tentativa de 06/set/2026 de zerar
+               o topo (pedido dela, com foto marcada) "ultrapassou tudo"
+               (relato dela) mesmo aplicada nos 3 arquivos ao mesmo tempo --
+               revertido de volta pro estado que funciona, até entender com
+               foto real o que exatamente deu errado dessa vez. */
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
             box-sizing: border-box;
         }
         #overlayCarregandoEscola.escondida { display: none; }
