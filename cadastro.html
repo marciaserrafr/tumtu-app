@@ -158,9 +158,14 @@
          lá -- ficava presa aqui, só saía fechando o app inteiro. Não aparece
          no cadastro público/link fixo (quem preenche ali não tem painel
          nenhum pra voltar). Mostrado via JS em inicializarModoManual(),
-         só depois de confirmar que a pessoa está autorizada. -->
+         só depois de confirmar que a pessoa está autorizada. Texto "Voltar"
+         sem dizer pra onde -- o destino muda de nome dependendo de quem
+         clica (Dashboard pro Super Admin, Visão Geral pro Diretor), então
+         nomear um dos dois ficaria errado pro outro. Dourado + negrito
+         (06/set/2026, pedido dela: "custei a achar de cara") -- mesmo
+         destaque que outras ações importantes do app já usam. -->
     <div id="voltar-admin-manual" style="display:none;text-align:center;margin-bottom:16px;">
-        <a href="admin" class="link-secundario">‹ Voltar para o painel</a>
+        <a href="admin" style="color:#D4AF37;font-weight:700;text-decoration:underline;font-size:15px;">‹ Voltar</a>
     </div>
 
     <div id="convite-banner" style="display:none;background:#fff8e6;border:1.5px solid #D4AF37;border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:#5a5770;text-align:center;">
