@@ -34,19 +34,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
-        /* Religada (06/set/2026, mesma sessão, experimento consciente): a
-           versão GERAL dessa transição (afetando toda navegação, nas duas
-           direções) já causou um bug real aqui no passado ("página
-           fantasma" -- ver carteirinha.html) e foi desligada por isso.
-           Desta vez é diferente: o spinner "Passaporte" de login.html e o
-           de admin.html são hoje pixel a pixel idênticos -- então na
-           transição login→admin, a "foto" de saída e a de entrada são a
-           MESMA imagem, sem nada pra parecer fantasma. login.html nunca
-           navega pra fora mostrando outra coisa além do próprio spinner
-           (a página inteira já é o spinner até o redirect acontecer), então
-           não precisa de nenhuma trava extra aqui -- só em admin.html
-           (ver comentário lá), que tem telas carregadas de verdade pra
-           proteger na saída (logout, etc.). */
         @view-transition { navigation: auto; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -90,18 +77,14 @@
                gente realmente declara, então lista tudo que precisa mudar. */
             position: fixed; inset: 0; width: 100%; max-width: none;
             display: flex; z-index: 2;
-            /* Cor final (06/set/2026) -- ver comentário completo em
-               admin.html, mesmo valor: cor de fundo que o app já usa. */
-            background: #f7f6fb;
+            /* "Passaporte escuro" (06/set/2026) -- ver comentário completo
+               em admin.html: moldura clara abandonada, cor igual à do
+               próprio <html>, sem padding nenhum. */
+            background: #12101a;
             border-radius: 0; box-shadow: none;
-            /* Revertido pro padding de 20px nos 4 lados (ver comentário
-               completo em admin.html) -- tentativa de zerar o topo
-               "ultrapassou tudo" (relato dela, 06/set/2026). */
-            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
-            box-sizing: border-box;
         }
         #containerCarregando .cartao {
-            flex: 1; background: #12101a; border-radius: 30px;
+            flex: 1; background: #12101a;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 52px;
             position: relative; overflow: hidden;
         }

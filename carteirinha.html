@@ -139,18 +139,15 @@
            pixel a pixel, pra a troca entre as duas páginas ser invisível. */
         #carregandoCarteirinha {
             display: flex; position: fixed; inset: 0; z-index: 999;
-            background: #f7f6fb;
-            /* Mesmo padding que login.html/admin.html usam -- precisa ser
-               IDÊNTICO em forma (não só em espírito), senão a troca de tela
-               mostra dois formatos diferentes em sequência. Revertido pro
-               padding de 20px nos 4 lados (ver comentário completo em
-               admin.html) -- tentativa de zerar o topo "ultrapassou tudo"
-               (relato dela, 06/set/2026). */
-            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
-            box-sizing: border-box;
+            /* "Passaporte escuro" (06/set/2026) -- ver comentário completo
+               em admin.html: moldura clara abandonada, cor igual à do
+               próprio <html>, sem padding nenhum. Precisa continuar
+               IDÊNTICO a login.html/admin.html -- senão a troca de tela
+               mostra dois formatos diferentes em sequência. */
+            background: #12101a;
         }
         #carregandoCarteirinha .cartao {
-            flex: 1; background: #12101a; border-radius: 30px;
+            flex: 1; background: #12101a;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 52px;
             position: relative; overflow: hidden;
         }

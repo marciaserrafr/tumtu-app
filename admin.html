@@ -69,17 +69,6 @@
     <script src="ficha-perfil.js?v=66" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
-        /* Religada (06/set/2026, mesma sessão, experimento consciente pra
-           tentar fechar de vez a fresta da transição login→admin -- ver
-           comentário completo em login.html). Sozinha, essa linha
-           animaria TODA navegação pra fora daqui também (logout, cadastro
-           manual...) -- essas saídas mostram a tela carregada de verdade,
-           bem diferente do spinner de destino, e repetiriam o mesmo tipo
-           de bug de "página fantasma" que a carteirinha já teve. Por isso,
-           logo abaixo (perto de `let sb`), um listener de `pageswap`
-           cancela a transição sempre que a SAÍDA é daqui -- só a ENTRADA
-           vinda de login.html (spinner idêntico dos dois lados) continua
-           animada. */
         @view-transition { navigation: auto; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1697,24 +1686,22 @@
            surdo -- literalmente o som que deu nome ao app. */
         #overlayCarregandoEscola {
             display: flex; position: fixed; inset: 0; z-index: 3000;
-            /* Cor final (06/set/2026): mesma cor de fundo que o resto do
-               app já usa (--cor-fundo-claro, tokens.css) -- pedido dela,
-               depois de comparar com a tentativa de medir/copiar o cinza
-               que o iOS mostra na transição (não valeu a pena, mais
-               simples usar uma cor que já existe no sistema). */
-            background: #f7f6fb;
-            /* 20px é o mínimo nos 4 lados -- NUNCA MEXER de novo sem
-               confirmar com ela primeiro. Tentativa de 06/set/2026 de zerar
-               o topo (pedido dela, com foto marcada) "ultrapassou tudo"
-               (relato dela) mesmo aplicada nos 3 arquivos ao mesmo tempo --
-               revertido de volta pro estado que funciona, até entender com
-               foto real o que exatamente deu errado dessa vez. */
-            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
-            box-sizing: border-box;
+            /* "Passaporte escuro" (06/set/2026) -- moldura clara abandonada
+               de vez. Cor igual à do próprio <html> (style inline no topo
+               do arquivo) -- sangra até a borda, sem moldura, sem
+               padding, sem border-radius (nada disso faz falta quando a
+               cor de fora e a de dentro são a mesma: não existe mais
+               nenhum descompasso pra revelar, nem no topo nem nos cantos
+               -- resolve de graça a tentativa fracassada de reduzir a
+               folga de cima de mais cedo hoje, "ultrapassou tudo"). Não
+               precisa de env(safe-area-inset-*) por segurança nenhuma:
+               qualquer coisa que o iOS corte ou não corte, dos dois lados
+               do corte é a mesma cor. */
+            background: #12101a;
         }
         #overlayCarregandoEscola.escondida { display: none; }
         #overlayCarregandoEscola .cartao {
-            flex: 1; background: #12101a; border-radius: 30px;
+            flex: 1; background: #12101a;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 52px;
             position: relative; overflow: hidden;
         }
@@ -3430,8 +3417,19 @@
 <!-- TOAST (Super Admin) -->
 <div class="toast" id="toast"></div>
 
-<script src="config-escola.js?v=4"></script>
-<script src="config-suporte.js?v=1"></script>
+<!-- defer (06/set/2026, achado comparando com carteirinha.html/login.html --
+     essas duas telas já carregavam esses 2 arquivos com defer, só admin.html
+     tinha ficado pra trás nisso, sobrevivendo de antes da extração do JS
+     gigante). Sem defer, são 2 scripts bloqueantes a mais atrasando a
+     primeira pintura da tela -- pouco peso sozinhos (KB), mas cada bloqueio
+     a mais atrasa o momento em que a transição nativa entre páginas
+     (View Transition) considera a tela "pronta pra fotografar". Seguro:
+     nenhum dos dois faz nada além de declarar uma constante/objeto, sem
+     efeito colateral -- e como scripts com defer rodam na mesma ordem em
+     que aparecem no documento, a ordem de execução (antes de
+     admin-logic-1.js) continua garantida. -->
+<script src="config-escola.js?v=4" defer></script>
+<script src="config-suporte.js?v=1" defer></script>
 <script src="admin-logic-1.js?v=3" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
