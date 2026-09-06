@@ -7322,22 +7322,25 @@
         // Super Admin de uma escola). Pra Mestre/Diretor comum essa lista
         // nunca é preenchida, então a busca sempre via "nenhuma bateria" e
         // mostrava a tela vazia, mesmo com a permissão certa no banco.
-        // Corrigido: pra quem não é Super Admin, nem tenta adivinhar aqui
-        // quais baterias a pessoa pode ver -- deixa sem filtro de
-        // bateria_id, e o próprio banco (policy "admin_select_historico_
-        // com_capacidade", que já exigia "ver_historico" por bateria) filtra
-        // sozinho pra exatamente as baterias onde a pessoa tem essa
-        // permissão. Cobre de uma vez o caso do Jhones, que tem
-        // "ver_historico" em DUAS baterias (Diretor numa, Mestre em outra)
-        // -- pedido dela: "tem que ser tudo: todas as baterias e pra todo
-        // mundo que tem essa permissão".
+        // 1ª correção (sem filtro de bateria_id, deixando o RLS decidir
+        // sozinho) causou um vazamento real: Jhones, que tem "ver_historico"
+        // em DUAS baterias de escolas DIFERENTES (Diretor na Imperatriz,
+        // Mestre na Rocinha), passou a ver o histórico das duas MISTURADO
+        // mesmo logado em só uma delas -- achado dela ao vivo ("Nem
+        // condições"). Corrigido de vez: pra quem não é Super Admin, filtra
+        // sempre pela bateria ATUAL da sessão (bateriaIdContexto(), mesma
+        // função que Ritmistas/Diretoria/Figurino/etc já usam) -- nunca
+        // mistura baterias diferentes, mesmo quando a pessoa tem permissão
+        // em mais de uma. RLS continua sendo a rede de segurança por baixo.
         let url;
         if (souSuperAdmin) {
             const idsBaterias = bateriasCache.map(b => b.id);
             if (idsBaterias.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
             url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome,genero),decisor:decidido_por(nome),bateria:bateria_id(nome)&bateria_id=in.(${idsBaterias.join(',')})&order=criado_em.desc&limit=200`;
         } else {
-            url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome,genero),decisor:decidido_por(nome),bateria:bateria_id(nome)&order=criado_em.desc&limit=200`;
+            const meuBateriaId = bateriaIdContexto();
+            if (!meuBateriaId) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
+            url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome,genero),decisor:decidido_por(nome),bateria:bateria_id(nome)&bateria_id=eq.${meuBateriaId}&order=criado_em.desc&limit=200`;
         }
         const res = await fetch(url, { headers: authHeaders });
         if (!res.ok) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Não foi possível carregar o histórico.</div>'; return; }
