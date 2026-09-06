@@ -7315,9 +7315,30 @@
         // mas a lista em si só é tocada quando o resultado final já está
         // pronto -- nunca fica vazia/"carregando" no meio do caminho.
         const container = document.getElementById('lista-historico-escola');
-        const idsBaterias = bateriasCache.map(b => b.id);
-        if (idsBaterias.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
-        const url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome,genero),decisor:decidido_por(nome),bateria:bateria_id(nome)&bateria_id=in.(${idsBaterias.join(',')})&order=criado_em.desc&limit=200`;
+        // Bug real, 06/set/2026 (achado dela: Jhones tinha "ver_historico"
+        // marcado e via a lista vazia): esta função sempre usava
+        // bateriasCache -- só existe preenchida quando quem está logado é
+        // Super Admin (carregarBaterias, chamada dentro do contexto de
+        // Super Admin de uma escola). Pra Mestre/Diretor comum essa lista
+        // nunca é preenchida, então a busca sempre via "nenhuma bateria" e
+        // mostrava a tela vazia, mesmo com a permissão certa no banco.
+        // Corrigido: pra quem não é Super Admin, nem tenta adivinhar aqui
+        // quais baterias a pessoa pode ver -- deixa sem filtro de
+        // bateria_id, e o próprio banco (policy "admin_select_historico_
+        // com_capacidade", que já exigia "ver_historico" por bateria) filtra
+        // sozinho pra exatamente as baterias onde a pessoa tem essa
+        // permissão. Cobre de uma vez o caso do Jhones, que tem
+        // "ver_historico" em DUAS baterias (Diretor numa, Mestre em outra)
+        // -- pedido dela: "tem que ser tudo: todas as baterias e pra todo
+        // mundo que tem essa permissão".
+        let url;
+        if (souSuperAdmin) {
+            const idsBaterias = bateriasCache.map(b => b.id);
+            if (idsBaterias.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Nenhum evento registrado ainda.</div>'; return; }
+            url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome,genero),decisor:decidido_por(nome),bateria:bateria_id(nome)&bateria_id=in.(${idsBaterias.join(',')})&order=criado_em.desc&limit=200`;
+        } else {
+            url = `${SUPABASE_URL}/rest/v1/vinculos_historico_status?select=id,perfil,status_anterior,status_novo,motivo,criado_em,pessoa:pessoa_id(nome,genero),decisor:decidido_por(nome),bateria:bateria_id(nome)&order=criado_em.desc&limit=200`;
+        }
         const res = await fetch(url, { headers: authHeaders });
         if (!res.ok) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📋</div>Não foi possível carregar o histórico.</div>'; return; }
         const eventos = await res.json();
