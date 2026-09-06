@@ -1831,6 +1831,24 @@
                quebrou as tentativas anteriores de hoje, ver histórico). */
             .nav-abas {
                 flex-direction: row; padding: 6px 4px;
+                /* Causa real do botão "Super Admin"/"Trocar de Bateria"
+                   sumido no celular (06/set/2026, achada com foto real do
+                   aparelho dela depois do diagnóstico apontar que o botão
+                   "existia, visível, no lugar certo" segundo o próprio
+                   navegador -- ele só não estava sendo DESENHADO). Causa:
+                   #btnVoltarEscolasNav/#btnTrocarBateriaNav (.nav-abas-
+                   voltar) moram DENTRO deste <nav>, que herda `overflow-y:
+                   auto` da regra de computador (usada lá pra rolar uma
+                   lista vertical longa). No celular, esses botões viram
+                   position:fixed com uma posição PRÓPRIA fora da caixa
+                   deste rodapé (bottom:100px, acima da barra) -- bug
+                   conhecido do Safari: um elemento fixed "escapa" de um
+                   ancestral com overflow, mas o WebKit às vezes corta ele
+                   mesmo assim quando o ancestral também é fixed. Aqui no
+                   celular a barra é só uma fileira de 4 ícones, nunca
+                   precisa rolar -- `visible` sozinho já evita o bug, sem
+                   precisar mover nada de lugar no código. */
+                overflow: visible;
                 /* top:auto AQUI é a causa raiz real do "rodapé ocupa a tela
                    toda" (achado dela ao vivo, com print, 06/set/2026): a
                    regra de computador (linha ~213) tem `top: var(--altura-
