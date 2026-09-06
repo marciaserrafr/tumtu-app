@@ -8075,6 +8075,7 @@
     // "chutado" (64px + safe-area) pra ficar acima do rodapé, mas ficou
     // sobrepondo o ícone de Visão Geral em telas reais. Medir de verdade
     // em vez de estimar evita esse tipo de erro em qualquer aparelho.
+    let _diagnosticoRodapeEnviado = false;
     function ajustarAlturaNavMobile() {
         // Mede qualquer uma das duas barras fixas de baixo que estiver
         // visível no momento (Mestre/Diretor usa #navAbasEscola, Super
@@ -8087,6 +8088,36 @@
         const alvo = (nav && nav.style.display !== 'none') ? nav : ((sideb && sideb.style.display !== 'none') ? sideb : null);
         if (alvo && window.innerWidth <= 600) {
             document.documentElement.style.setProperty('--altura-nav-mobile', alvo.offsetHeight + 'px');
+        }
+        // Diagnóstico real (06/set/2026) -- achado dela ao vivo: o rodapé
+        // "ocupa a tela toda" no aparelho dela, e eu não consigo reproduzir
+        // nem simular isso por aqui (largura de celular não é confiável no
+        // navegador de teste). Em vez de arriscar mais um palpite, manda a
+        // geometria REAL do elemento (tamanho, posição, se a media query
+        // bateu) pro banco -- só uma vez por carregamento -- pra eu
+        // conseguir ver o que está acontecendo de verdade no aparelho dela.
+        if (alvo && !_diagnosticoRodapeEnviado) {
+            _diagnosticoRodapeEnviado = true;
+            setTimeout(() => {
+                const r = alvo.getBoundingClientRect();
+                const cs = getComputedStyle(alvo);
+                logErroCliente('diagnostico_rodape', {
+                    message: JSON.stringify({
+                        elementoId: alvo.id,
+                        innerWidth: window.innerWidth,
+                        innerHeight: window.innerHeight,
+                        mediaQueryBateu: window.matchMedia('(max-width: 560px)').matches,
+                        rect: { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width, height: r.height },
+                        display: cs.display,
+                        flexDirection: cs.flexDirection,
+                        position: cs.position,
+                        top: cs.top,
+                        bottom: cs.bottom,
+                        height: cs.height,
+                        devicePixelRatio: window.devicePixelRatio,
+                    }),
+                });
+            }, 800);
         }
     }
     window.addEventListener('resize', ajustarAlturaNavMobile);
