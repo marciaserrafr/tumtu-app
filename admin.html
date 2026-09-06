@@ -3504,7 +3504,7 @@
     async function carregarRitmistas(leve = false) {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { todosRitmistas = []; aplicarFiltros(); atualizarTotalizadores(); atualizarBadgesNav(); renderizarVisaoGeral(); renderizarContagemInstrumentos(); renderizarControleMenores(); await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]); return; }
-        const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
+        const select = COLUNAS_RITMISTAS_SEM_FOTO; // 06/set/2026: nunca mais '*' -- ver comentário em preencherFotosRitmistasEmSegundoPlano()
         // eh_convidado=eq.false (31/ago/2026): Convidado Especial nunca entra
         // na lista normal de Ritmistas -- tem fila e contagens 100% próprias
         // (ver carregarConvidadosEspeciais). Filtrar aqui, na origem, já
@@ -3541,7 +3541,7 @@
             if (_ultimoRawLeveRitmistas && _ultimoRawLeveRitmistas.bateriaId === bateriaId && _ultimoRawLeveRitmistas.raw === rawAtual) return;
             _ultimoRawLeveRitmistas = { bateriaId, raw: rawAtual };
         }
-        todosRitmistas = leve ? reaproveitarFotosCache(novos, todosRitmistas) : novos;
+        todosRitmistas = reaproveitarFotosCache(novos, todosRitmistas);
         aplicarFiltros();
         atualizarTotalizadores();
         atualizarBadgesNav();
@@ -3553,6 +3553,11 @@
         // sem esperar, então os cards de Figurino/Presença na Visão Geral
         // sempre apareciam alguns instantes depois do resto da tela.
         await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]);
+        // Sem await de propósito (06/set/2026) -- a busca principal acima
+        // nunca mais traz foto (ver COLUNAS_RITMISTAS_SEM_FOTO), então toda
+        // chamada desta função precisa disparar isso pra completar as fotos
+        // mais cedo ou mais tarde, não só a carga inicial de login.
+        preencherFotosRitmistasEmSegundoPlano();
     }
 
     // Achado real, 05/set/2026: bateria com 230+ pessoas (Imperatriz) trava
@@ -3584,6 +3589,31 @@
             let mudou = false;
             todosRitmistas.forEach(p => { if (fotosPorId[p.id] && p.foto_url !== fotosPorId[p.id]) { p.foto_url = fotosPorId[p.id]; mudou = true; } });
             if (mudou) aplicarFiltros();
+            if (lote.length < LOTE) break;
+            offset += LOTE;
+            await new Promise(r => setTimeout(r, 0));
+        }
+    }
+
+    // Mesmo raciocínio de preencherFotosRitmistasEmSegundoPlano(), só que
+    // pra fila de Convidado Especial (06/set/2026 -- criada junto com a
+    // correção de nunca mais buscar foto no select principal).
+    async function preencherFotosConvidadosEspeciaisEmSegundoPlano() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) return;
+        const LOTE = 30;
+        let offset = 0;
+        while (true) {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&eh_convidado=eq.true&select=id,foto_url&order=perfil.asc,nome.asc&limit=${LOTE}&offset=${offset}`, {
+                headers: authHeaders
+            });
+            const lote = await res.json();
+            if (!Array.isArray(lote) || lote.length === 0) break;
+            const fotosPorId = {};
+            lote.forEach(p => { if (p.foto_url) fotosPorId[p.id] = p.foto_url; });
+            let mudou = false;
+            convidadosEspeciaisCache.forEach(p => { if (fotosPorId[p.id] && p.foto_url !== fotosPorId[p.id]) { p.foto_url = fotosPorId[p.id]; mudou = true; } });
+            if (mudou) aplicarFiltrosConvidadosEspeciais();
             if (lote.length < LOTE) break;
             offset += LOTE;
             await new Promise(r => setTimeout(r, 0));
@@ -6767,15 +6797,16 @@
             lista.innerHTML = '<div style="text-align:center;padding:6px 20px;"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div>';
         }
         if (!bateriaId) { convidadosEspeciaisCache = []; convidadosEspeciaisCarregados = true; return; }
-        const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
+        const select = COLUNAS_RITMISTAS_SEM_FOTO; // 06/set/2026: nunca mais '*' -- ver comentário em preencherFotosRitmistasEmSegundoPlano()
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&eh_convidado=eq.true&order=perfil.asc,nome.asc&select=${select}`, { headers: authHeaders });
         const novos = res.ok ? await res.json() : [];
         const novosArr = Array.isArray(novos) ? novos : [];
-        convidadosEspeciaisCache = leve ? reaproveitarFotosCache(novosArr, convidadosEspeciaisCache) : novosArr;
+        convidadosEspeciaisCache = reaproveitarFotosCache(novosArr, convidadosEspeciaisCache);
         aplicarFiltrosConvidadosEspeciais();
         atualizarTotalizadorConvidadosEspeciais();
         atualizarBadgesNav();
         convidadosEspeciaisCarregados = true;
+        preencherFotosConvidadosEspeciaisEmSegundoPlano();
     }
 
     function renderizarLinksCadastroConvidadoEspecial() {
@@ -10687,7 +10718,7 @@
         }
 
         if (!bateriaId) { renderizarDiretoria([]); diretoriaCarregada = true; return; }
-        const select = leve ? COLUNAS_RITMISTAS_SEM_FOTO : '*';
+        const select = COLUNAS_RITMISTAS_SEM_FOTO; // 06/set/2026: nunca mais '*' -- ver comentário em preencherFotosRitmistasEmSegundoPlano()
         // eh_convidado=eq.false (31/ago/2026): mesmo raciocínio de carregarRitmistas() -- Convidado Especial - Diretor/Apoio tem fila própria.
         const url = `${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=${select}`;
 
@@ -10714,7 +10745,7 @@
             if (_ultimoRawLeveDiretoria && _ultimoRawLeveDiretoria.bateriaId === bateriaId && _ultimoRawLeveDiretoria.raw === rawAtual) { diretoriaCarregada = true; return; }
             _ultimoRawLeveDiretoria = { bateriaId, raw: rawAtual };
         }
-        listaDiretoriaAtual = leve ? reaproveitarFotosCache(novosAdmins, listaDiretoriaAtual) : novosAdmins;
+        listaDiretoriaAtual = reaproveitarFotosCache(novosAdmins, listaDiretoriaAtual);
         aplicarFiltrosDiretoria();
         atualizarTotalizadoresDiretoria();
         atualizarBadgesNav();
@@ -10723,6 +10754,10 @@
         // aqui pra não ficar faltando gente até a próxima troca de aba.
         if (document.getElementById('vg-aniversariantes')) renderizarVisaoGeral();
         diretoriaCarregada = true;
+        // Sem await de propósito (06/set/2026) -- mesmo raciocínio de
+        // carregarRitmistas(): a busca principal acima nunca mais traz
+        // foto, então toda chamada precisa disparar isso.
+        preencherFotosDiretoriaEmSegundoPlano();
     }
 
     // Mesmo raciocínio de preencherFotosRitmistasEmSegundoPlano() logo
