@@ -1832,15 +1832,28 @@ async function fpSalvar() {
         if (fpEstado.autoedicao) {
             localStorage.setItem('ritmista', JSON.stringify(novosDados));
         }
-        mensagem.className = 'fp-mensagem sucesso';
-        mensagem.textContent = 'Dados atualizados com sucesso!';
-        mensagem.style.display = 'block';
         // Salvou com sucesso -- não é mais "não salvo", senão a chamada
         // interna de fpCancelarEdicao() logo abaixo perguntaria à toa se
         // quer descartar o que acabou de salvar.
         fpEstado.sujo = false;
         fpCancelarEdicao();
+        // Bug real, 06/set/2026 (achado dela: "não dá a mensagem que foi
+        // salvo"): a mensagem de sucesso era escrita ANTES de fpIniciar()
+        // rodar de novo -- fpIniciar sempre reseta #fp-mensagem pra escondida
+        // logo no início (pra começar limpa em qualquer abertura de ficha),
+        // então a confirmação nunca chegava a aparecer de verdade, apagada
+        // no mesmo instante em que era criada. Corrigido escrevendo a
+        // mensagem DEPOIS de fpIniciar() terminar -- se ainda sobrar algum
+        // outro dado incompleto na ficha, fpIniciar já mostrou o aviso
+        // correspondente; "sucesso" só sobrescreve quando não há mais nada
+        // pendente.
         fpIniciar(novosDados, fpEstado.meuPerfil, fpEstado.minhaPessoaId, { aoSalvar: fpEstado.aoSalvar });
+        if (fpProblemasFicha(novosDados).length === 0) {
+            const mensagemPosSalvar = fpEl('fp-mensagem');
+            mensagemPosSalvar.className = 'fp-mensagem sucesso';
+            mensagemPosSalvar.textContent = 'Dados atualizados com sucesso!';
+            mensagemPosSalvar.style.display = 'block';
+        }
         if (fpEstado.aoSalvar) fpEstado.aoSalvar(novosDados);
     } else {
         mensagem.className = 'fp-mensagem erro';

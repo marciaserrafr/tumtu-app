@@ -9,6 +9,10 @@
     <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- Revertido em 06/set/2026 -- ver comentário completo em admin.html
+         (mesmo motivo: viewport-fit=cover + status bar translúcida +
+         imagens de abertura causaram problemas novos e piores que o
+         pisca-pisca original que tentavam resolver). -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="TumTu">
     <script src="pwa-register.js" defer></script>
@@ -25,6 +29,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
+        /* Religada (06/set/2026, mesma sessão, experimento consciente): a
+           versão GERAL dessa transição (afetando toda navegação, nas duas
+           direções) já causou um bug real aqui no passado ("página
+           fantasma" -- ver carteirinha.html) e foi desligada por isso.
+           Desta vez é diferente: o spinner "Passaporte" de login.html e o
+           de admin.html são hoje pixel a pixel idênticos -- então na
+           transição login→admin, a "foto" de saída e a de entrada são a
+           MESMA imagem, sem nada pra parecer fantasma. login.html nunca
+           navega pra fora mostrando outra coisa além do próprio spinner
+           (a página inteira já é o spinner até o redirect acontecer), então
+           não precisa de nenhuma trava extra aqui -- só em admin.html
+           (ver comentário lá), que tem telas carregadas de verdade pra
+           proteger na saída (logout, etc.). */
+        @view-transition { navigation: auto; }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { overflow-x: hidden; max-width: 100vw; }
         button { font-family: inherit; }
@@ -54,24 +73,69 @@
         .rodape-suporte:hover, .rodape-suporte:focus-visible {
             color: #a39fc0; text-decoration: underline;
         }
-        /* Spinner sozinho, maior, sem logo nem texto — pedido da Márcia em
-           17/jul/2026, inspirado no padrão Disney+/Netflix (símbolo universal
-           de espera, não precisa de mais nada junto). Container próprio fora
-           do fluxo normal (position:fixed;inset:0) pra centralizar de verdade
-           na tela, independente do padding-top pensado pro formulário. */
+        /* Redesenho "Passaporte" (05/set/2026, mesmo de admin.html -- ver
+           comentário completo lá) -- moldura creme que absorve o vazamento
+           branco do iOS + cartão escuro com a batida TUM-tu no miolo.
+           login.html é a porta de entrada de verdade do PWA, então é a
+           PRIMEIRA coisa que qualquer pessoa vê. */
         #containerCarregando {
+            /* Sobrescreve .auth-container/.tela-auth-escura .auth-container
+               (cantos arredondados, sombra, fundo transparente) -- aqui o
+               ID sempre ganha da classe, mas só pra propriedade que a
+               gente realmente declara, então lista tudo que precisa mudar. */
             position: fixed; inset: 0; width: 100%; max-width: none;
-            display: flex; align-items: center; justify-content: center;
-            padding: 0; z-index: 2;
+            display: flex; z-index: 2;
+            /* Cor final (06/set/2026) -- ver comentário completo em
+               admin.html, mesmo valor: cor de fundo que o app já usa. */
+            background: #f7f6fb;
+            border-radius: 0; box-shadow: none;
+            /* Revertido pro padding de 20px nos 4 lados (ver comentário
+               completo em admin.html) -- tentativa de zerar o topo
+               "ultrapassou tudo" (relato dela, 06/set/2026). */
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+            box-sizing: border-box;
         }
-        .spinner {
-            width: 56px; height: 56px;
-            animation: tt-girar 1.1s linear infinite;
-            filter: drop-shadow(0 0 6px rgba(212,175,55,0.55));
+        #containerCarregando .cartao {
+            flex: 1; background: #12101a; border-radius: 30px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 52px;
+            position: relative; overflow: hidden;
         }
-        @keyframes tt-girar { to { transform: rotate(360deg); } }
+        #containerCarregando .batida { position: relative; width: 170px; height: 130px; }
+        #containerCarregando .onda {
+            position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
+            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite;
+        }
+        #containerCarregando .tum {
+            position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
+            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite;
+        }
+        #containerCarregando .tu {
+            position: absolute; left: 106px; top: 78px; width: 38px; height: 38px; border-radius: 50%;
+            border: 2px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .15s;
+        }
+        #containerCarregando .marca-abertura { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+        #containerCarregando .marca-abertura .nome { display: flex; align-items: baseline; font-size: 34px; font-weight: 800; letter-spacing: 0.5px; }
+        #containerCarregando .marca-abertura .nome .t { color: #D4AF37; }
+        #containerCarregando .marca-abertura .nome .u { color: #fff; }
+        #containerCarregando .marca-abertura .nome .m { position: relative; color: #fff; }
+        #containerCarregando .marca-abertura .nome .m::after {
+            content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: #7c2d12;
+        }
+        #containerCarregando .compasso { width: 56px; height: 2px; background: rgba(212,175,55,.18); border-radius: 2px; overflow: hidden; }
+        #containerCarregando .compasso-bola { width: 33%; height: 100%; background: #D4AF37; animation: tt-compasso 1.05s linear infinite; }
+        #containerCarregando .status-abertura {
+            position: absolute; bottom: 40px; color: #6f6980; font-size: 13px; font-weight: 600;
+            letter-spacing: 1.5px; text-transform: uppercase; animation: tt-respira 2.1s ease-in-out infinite;
+        }
+        @keyframes tt-tum { 0% { transform: scale(1); } 7% { transform: scale(1.15); } 30% { transform: scale(1); } 100% { transform: scale(1); } }
+        @keyframes tt-tu { 0% { transform: scale(1); opacity: .75; } 7% { transform: scale(1.09); opacity: 1; } 34% { transform: scale(1); opacity: .75; } 100% { transform: scale(1); opacity: .75; } }
+        @keyframes tt-onda { 0% { transform: scale(.75); opacity: .5; } 70% { transform: scale(2.1); opacity: 0; } 100% { transform: scale(2.1); opacity: 0; } }
+        @keyframes tt-compasso { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+        @keyframes tt-respira { 0%, 100% { opacity: .45; } 50% { opacity: .9; } }
         @media (prefers-reduced-motion: reduce) {
-            .spinner { animation-duration: 2.2s; }
+            #containerCarregando .tum, #containerCarregando .tu,
+            #containerCarregando .compasso-bola, #containerCarregando .status-abertura { animation: none; }
+            #containerCarregando .onda { display: none; }
         }
     </style>
 </head>
@@ -85,7 +149,18 @@
      aqui — spinner dourado sozinho e maior, sem logo nem texto (referência
      Disney+/Netflix, símbolo universal de espera). -->
 <div class="auth-container" id="containerCarregando">
-    <svg class="spinner" viewBox="0 0 56 56" role="status" aria-label="Carregando"><path d="M 33.81 4.71 L 36.68 5.63 L 39.42 6.89 L 41.98 8.49 L 44.32 10.40 L 46.40 12.59 L 48.18 15.02 L 49.65 17.65 L 50.78 20.45 L 51.55 23.37 L 51.94 26.36 L 51.96 29.38 L 51.60 32.37 L 50.86 35.30 L 49.77 38.11 L 48.33 40.76 L 46.56 43.21 L 44.51 45.42 L 42.19 47.35 L 39.65 48.98 L 36.93 50.28 L 34.06 51.22 L 31.10 51.80 L 28.09 52.00 L 25.08 51.82 L 22.11 51.27 L 19.24 50.34 L 16.50 49.07 L 13.95 47.46 L 11.62 45.54 L 9.55 43.35 L 7.77 40.91 L 6.31 38.27 L 5.19 35.47 L 4.43 32.55 L 4.05 29.55 L 4.04 26.53 L 4.42 23.54 L 5.16 20.62 L 6.27 17.81 L 7.72 15.16 L 9.49 12.72 L 11.56 10.52 L 13.88 8.59 L 16.43 6.98 L 19.16 5.69 L 22.02 4.76 L 24.99 4.19 L 28.00 4.00 A 4.00 4.00 0 0 1 28.00 12.00 L 25.96 11.89 L 23.90 12.04 L 21.84 12.47 L 19.83 13.16 L 17.90 14.12 L 16.09 15.34 L 14.43 16.80 L 12.95 18.47 L 11.68 20.35 L 10.66 22.39 L 9.89 24.58 L 9.40 26.86 L 9.21 29.22 L 9.33 31.60 L 9.75 33.97 L 10.48 36.30 L 11.51 38.52 L 12.82 40.62 L 14.41 42.55 L 16.24 44.28 L 18.30 45.77 L 20.55 46.99 L 22.95 47.93 L 25.48 48.55 L 28.08 48.85 L 30.71 48.82 L 33.34 48.45 L 35.91 47.74 L 38.39 46.70 L 40.72 45.35 L 42.88 43.70 L 44.82 41.79 L 46.51 39.62 L 47.92 37.25 L 49.02 34.71 L 49.78 32.04 L 50.21 29.28 L 50.28 26.47 L 49.98 23.68 L 49.34 20.93 L 48.34 18.28 L 47.01 15.77 L 45.36 13.45 L 43.43 11.35 L 41.24 9.52 L 38.84 7.97 L 36.24 6.75 L 33.52 5.88 Z" fill="#D4AF37"></path></svg>
+    <div class="cartao">
+        <div class="batida">
+            <div class="onda"></div>
+            <div class="tum"></div>
+            <div class="tu"></div>
+        </div>
+        <div class="marca-abertura">
+            <div class="nome"><span class="t">T</span><span class="u">u</span><span class="m">m</span><span class="t">T</span><span class="u">u</span></div>
+            <div class="compasso"><div class="compasso-bola"></div></div>
+        </div>
+        <span class="status-abertura">Afinando a bateria</span>
+    </div>
 </div>
 
 <div class="auth-container" id="containerLogin" style="display:none;">
