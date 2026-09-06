@@ -1900,6 +1900,14 @@
     // Reaproveita a sessão já aberta (sem pedir senha de novo) -- mesmo
     // caminho já usado pelo Ritmista em carteirinha.html.
     function trocarBateriaAdmin() {
+        // Mesmo feedback imediato de voltarParaEscolasSA() logo acima --
+        // esse botão navega pra login.html de verdade (refaz login e
+        // escolhe a outra bateria), o que numa conexão mais lenta demora
+        // visivelmente mais que uma simples troca de aba. Sem nenhuma
+        // resposta visual no clique, parecia travado -- achado dela,
+        // 06/set/2026, mesmo sintoma do botão "Super Admin".
+        const btn = document.getElementById('btnTrocarBateriaNav');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
         window.location.href = 'login?trocar=1';
     }
 
@@ -5110,6 +5118,14 @@
     }
 
     async function voltarParaEscolasSA() {
+        // Feedback imediato no próprio botão clicado -- mesma ideia já
+        // aplicada nas abas (038cde3, 05/set/2026: "acende o botão na hora
+        // do clique, antes de buscar dados"), só que esse botão flutuante
+        // nunca tinha ganhado esse tratamento. Sem isso, o botão ficava
+        // sem nenhuma resposta visual até o Dashboard terminar de carregar
+        // -- achado dela, 06/set/2026: "clica várias vezes e ele não vai".
+        const btn = document.getElementById('btnVoltarEscolasNav');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
         window.scrollTo(0, 0);
         escolaSelecionadaId = null; escolaAtualData = null; bateriaAtualData = null;
         // Busca os dados do Dashboard ANTES de revelar a casca do Super
@@ -5119,6 +5135,7 @@
         // só é chamado depois) -- então nada disso aparece até estar pronto.
         await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
         mostrarShellSA();
+        if (btn) { btn.disabled = false; btn.style.opacity = ''; }
     }
 
     // Atalho do Dashboard: "X pendentes" de uma bateria já abre direto em Diretoria.
