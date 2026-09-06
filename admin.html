@@ -27,7 +27,21 @@
          painel da própria Vercel (Project Settings -> Analytics). -->
     <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
     <script defer src="/_vercel/insights/script.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Não-bloqueante (06/set/2026, achado dela: "a piscada ficou
+         intermitente... às vezes sim, às vezes não"). A transição nativa
+         entre páginas (login->admin, religada mais cedo nesta sessão) tira
+         a "foto" da tela nova só depois que TODO arquivo de estilo
+         bloqueante termina de carregar -- inclusive esta fonte do Google,
+         que vem de um servidor externo e nunca fica salva no nosso Service
+         Worker (só arquivo do nosso próprio site fica). Numa conexão mais
+         lenta (ou sem essa fonte ainda em cache do navegador), essa espera
+         atrasa a primeira pintura da tela, dando tempo do branco do
+         próprio iOS aparecer -- exatamente a intermitência que ela
+         reportou. Técnica padrão "preload + trocar rel depois de carregar"
+         tira essa fonte do caminho bloqueante -- a página nunca mais
+         espera por ela pra pintar a primeira vez. -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=29">
     <!-- defer (06/set/2026, achado real dela com vídeo gravado quadro a

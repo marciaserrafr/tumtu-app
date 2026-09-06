@@ -21,7 +21,12 @@
          painel da própria Vercel (Project Settings -> Analytics). -->
     <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
     <script defer src="/_vercel/insights/script.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Não-bloqueante (ver comentário completo em admin.html) -- mesma
+         correção, mesmo motivo: a transição nativa entre páginas espera
+         essa fonte externa carregar antes de pintar a tela, causando a
+         piscada intermitente que ela reportou. -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=29">
     <script src="config-escola.js?v=4" defer></script>
