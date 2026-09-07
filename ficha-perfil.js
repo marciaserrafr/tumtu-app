@@ -1797,6 +1797,16 @@ async function fpSalvar() {
         payloadPessoa.foto_pos_y = fpFotoPosY;
     }
 
+    // Giro no botão (Camada 0, 07/set/2026) -- só a partir daqui pra baixo
+    // é que existe espera de verdade (chamadas de rede); tudo acima é
+    // validação síncrona, que já tinha seus próprios "return" com mensagem
+    // de erro, sem precisar de spinner nenhum. try/finally garante que o
+    // giro some sozinho, mesmo se der erro -- não muda em nada a lógica de
+    // salvar/mensagem que já existia, só o feedback visual do botão.
+    const fpBtnSalvarEmAndamento = fpEl('fp-btn-salvar');
+    if (fpBtnSalvarEmAndamento) fpBtnSalvarEmAndamento.classList.add('btn-carregando');
+    try {
+
     const { data: sessionData } = await sb.auth.getSession();
     const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
     const headers = {
@@ -1892,6 +1902,9 @@ async function fpSalvar() {
         mensagem.className = 'fp-mensagem erro';
         mensagem.textContent = 'Erro ao salvar. Tente novamente.';
         mensagem.style.display = 'block';
+    }
+    } finally {
+        if (fpBtnSalvarEmAndamento) fpBtnSalvarEmAndamento.classList.remove('btn-carregando');
     }
 }
 
