@@ -19,7 +19,7 @@
     <script defer src="/_vercel/insights/script.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=31">
+    <link rel="stylesheet" href="styles/components.css?v=32">
     <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=36">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
     <!-- Leitor de QR pra "Confirmar Presença" (31/ago/2026) -- mesma
@@ -93,7 +93,7 @@
         .btn-sair {
             background: transparent;
             border: 1px solid rgba(212,175,55,0.3);
-            color: #D4AF37;
+            color: var(--cor-destaque);
             padding: 5px 16px;
             border-radius: 20px;
             cursor: pointer;
@@ -108,9 +108,9 @@
         .carteirinha-scene { margin-top: 0; }
         .c-toast {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: #1e1b2e; color: white; padding: 12px 20px; border-radius: 12px;
+            background: var(--cor-fundo-medio); color: white; padding: 12px 20px; border-radius: 12px;
             font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            z-index: 9999; display: none; border-left: 4px solid #D4AF37; max-width: 90vw;
+            z-index: 9999; display: none; border-left: 4px solid var(--cor-destaque); max-width: 90vw;
         }
         .c-toast.erro { border-left-color: #ef4444; }
         .c-toast.visivel { display: block; }
@@ -119,7 +119,7 @@
            sempre visível (não é toast, não some sozinho) até a pessoa
            corrigir o dado. */
         .aviso-dados-proprios {
-            background: #fff3cd; color: #856404;
+            background: var(--cor-aviso-fundo); color: var(--cor-aviso);
             padding: 10px 24px; font-size: 13px; font-weight: 600;
             cursor: pointer; text-align: center;
         }
@@ -349,8 +349,8 @@
      do app, lendo o QR do evento que o Diretor projeta/mostra. -->
 <div id="presencaScannerOverlay" style="display:none;position:fixed;inset:0;z-index:2000;background:#0b0a12;flex-direction:column;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;flex-shrink:0;">
-        <div style="font-size:16px;font-weight:800;color:#fff;">Confirmar Presença</div>
-        <button type="button" onclick="fecharPresenca()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
+        <div style="font-size:16px;font-weight:800;color:var(--cor-texto-claro);">Confirmar Presença</div>
+        <button type="button" onclick="fecharPresenca()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:var(--cor-texto-claro);border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
     </div>
     <div style="flex:1;position:relative;overflow:hidden;background:#000;">
         <video id="presencaScannerVideo" playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
@@ -1009,7 +1009,7 @@
         const feedback = document.getElementById('presencaScannerFeedback');
         const ritmista = JSON.parse(localStorage.getItem('ritmista') || 'null');
         if (!ritmista || !eventoId || !/^\d+$/.test(eventoId)) {
-            feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">QR não reconhecido.</span>';
+            feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">QR não reconhecido.</span>';
             return;
         }
 
@@ -1028,26 +1028,26 @@
                 fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${eventoId}&vinculo_id=eq.${ritmista.id}&select=id`, { headers: hdrs }),
             ]);
             const eventos = resEvento.ok ? await resEvento.json() : [];
-            if (!eventos.length) { feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Evento não encontrado.</span>'; return; }
+            if (!eventos.length) { feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">Evento não encontrado.</span>'; return; }
             const evento = eventos[0];
 
             if (evento.bateria_id !== ritmista.bateria_id) {
-                feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Esse QR é de outra bateria.</span>';
+                feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">Esse QR é de outra bateria.</span>';
                 return;
             }
             const elegivel = ritmista.perfil === 'ritmista' || (evento.perfis_diretoria_inclusos || []).includes(ritmista.perfil);
             if (!elegivel) {
-                feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Esse evento não inclui o seu cargo.</span>';
+                feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">Esse evento não inclui o seu cargo.</span>';
                 return;
             }
             if (!evento.iniciado || evento.finalizado) {
-                feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Esse evento não está ativo no momento.</span>';
+                feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">Esse evento não está ativo no momento.</span>';
                 return;
             }
 
             const jaConfirmado = resJa.ok ? await resJa.json() : [];
             if (jaConfirmado.length) {
-                feedback.innerHTML = `<span style="color:#D4AF37;font-weight:700;">✓ Presença já confirmada em ${escHtml(evento.nome)}.</span>`;
+                feedback.innerHTML = `<span style="color:var(--cor-destaque);font-weight:700;">✓ Presença já confirmada em ${escHtml(evento.nome)}.</span>`;
                 return;
             }
 
@@ -1067,10 +1067,10 @@
                 feedback.innerHTML = `<span style="color:#5cb85c;font-weight:700;font-size:16px;">✓ Presença confirmada em ${escHtml(evento.nome)}!</span>`;
                 verificarPresencaPendente(ritmista); // reconfere -- esconde o botão se não sobrar mais nada pendente
             } else {
-                feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Não consegui confirmar. Tenta de novo.</span>';
+                feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">Não consegui confirmar. Tenta de novo.</span>';
             }
         } catch (e) {
-            feedback.innerHTML = '<span style="color:#e2986e;font-weight:700;">Erro ao verificar. Tenta de novo.</span>';
+            feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">Erro ao verificar. Tenta de novo.</span>';
         }
     }
 </script>
