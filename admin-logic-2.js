@@ -501,6 +501,26 @@
         window.open(`carteirinha.html?id=${id}`, '_blank');
     }
 
+    // ── BARRA DE PROGRESSO DA TROCA DE ABA (Camada 0, 07/set/2026) ──────────────
+    // Só acende se a troca demorar mais de 150ms -- regra do plano de
+    // Estados de Carregamento: "menos de 300ms, nada" (piscar um sinal é
+    // pior que não mostrar nada numa troca que já foi rápida). Não muda em
+    // nada a ORDEM em que trocarAba busca/revela os dados -- é só um
+    // reforço visual por cima do que já existia.
+    let _timerBarraProgresso = null;
+    function mostrarBarraProgressoComAtraso() {
+        clearTimeout(_timerBarraProgresso);
+        _timerBarraProgresso = setTimeout(() => {
+            const b = document.getElementById('barraProgressoTransicao');
+            if (b) b.classList.add('ativa');
+        }, 150);
+    }
+    function esconderBarraProgresso() {
+        clearTimeout(_timerBarraProgresso);
+        const b = document.getElementById('barraProgressoTransicao');
+        if (b) b.classList.remove('ativa');
+    }
+
     // ── TROCAR ABA (atualizado) ───────────────────────────────────────────────
     async function trocarAba(aba, btn) {
         // Reforço na tela (a segurança de verdade é o RLS -- mesmo se alguém
@@ -535,6 +555,11 @@
             if (btnMais) btnMais.classList.remove('aberto');
         }
         if (btn) btn.classList.add('ativa');
+
+        // Barra fina de progresso (Camada 0, 07/set/2026) -- só acende
+        // depois de 150ms (ver mostrarBarraProgressoComAtraso acima), some
+        // sozinha no finally logo abaixo, aconteça o que acontecer.
+        mostrarBarraProgressoComAtraso();
 
         // A partir daqui vai tudo dentro de um try/catch (06/set/2026) --
         // achado dela ao vivo: trocar de aba "não fazia nada" em momentos
@@ -585,5 +610,7 @@
         } catch (err) {
             console.error('trocarAba falhou:', err);
             logErroCliente('trocarAba:' + aba, err);
+        } finally {
+            esconderBarraProgresso();
         }
     }

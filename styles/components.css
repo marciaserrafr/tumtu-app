@@ -593,3 +593,49 @@ body.tela-auth-escura .link-secundario { color: #b3aecb !important; font-weight:
 .fundo-decorativo { display: none; position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
 .fundo-decorativo .fd-big { position: absolute; width: 280px; height: 280px; border-radius: 50%; background: rgba(212,175,55,0.07); left: 50%; bottom: -110px; transform: translateX(-68%); }
 .fundo-decorativo .fd-small { position: absolute; width: 170px; height: 170px; border-radius: 50%; border: 3px solid rgba(124,45,18,0.14); background: transparent; left: 50%; bottom: -30px; transform: translateX(38%); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   ESTADOS DE CARREGAMENTO — Camada 0 (07/set/2026, docs/PLANO.md)
+   Peças novas, reaproveitáveis em qualquer tela. Nenhuma tela usa ainda --
+   ficam prontas aqui pra quando entrarmos na Etapa 1 (Ritmistas) e
+   seguintes. Não mexe em nada que já existe (spinner-mini, spinner grande
+   de tela cheia continuam do jeito que estão).
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Esqueleto — bloco cinza com "brilho" passando, no formato exato do que
+   vai aparecer no lugar dele (regra do plano: nunca um espaço vazio ou
+   sinal solto, sempre a FORMA do conteúdo que está vindo). Combinar
+   .skeleton-linha (uma linha de texto) e .skeleton-bloco (foto, ícone,
+   card inteiro) com largura/altura definida onde for usado. */
+.skeleton-linha, .skeleton-bloco {
+    background: linear-gradient(90deg, #eceaf3 25%, #f5f4f9 37%, #eceaf3 63%);
+    background-size: 400% 100%;
+    animation: skeletonBrilho 1.4s ease infinite;
+    border-radius: 8px;
+}
+.skeleton-linha { height: 12px; }
+@keyframes skeletonBrilho {
+    0%   { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Giro no botão — ação da pessoa (ex: "Salvar", "Ativar"): o texto do
+   próprio botão some e um anel giratório pequeno aparece no lugar,
+   centralizado. O botão continua com o mesmo tamanho (não "pula"). Padrão
+   (.btn-carregando) tem anel escuro, pra botão de fundo claro/dourado;
+   ".btn-carregando-claro" é a variação de anel branco, pra botão de fundo
+   escuro (ex: "Ativar", header). */
+.btn-carregando {
+    position: relative; color: transparent !important; pointer-events: none;
+}
+.btn-carregando::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 14px; height: 14px; margin: -7px 0 0 -7px;
+    border-radius: 50%; border: 2px solid rgba(18,16,26,0.25);
+    border-top-color: #12101a;
+    animation: btnCarregandoGirar 0.6s linear infinite;
+}
+.btn-carregando.btn-carregando-claro::after {
+    border-color: rgba(255,255,255,0.35); border-top-color: #ffffff;
+}
+@keyframes btnCarregandoGirar { to { transform: rotate(360deg); } }
