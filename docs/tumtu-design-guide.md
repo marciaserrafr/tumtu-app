@@ -49,7 +49,11 @@ Se um campo estiver vazio, o espaço fica vazio — nunca preenche com placehold
   --cor-destaque-hover:  #B8922A;  /* hover do dourado */
   --cor-texto-principal: #12101a;  /* títulos e corpo */
   --cor-texto-secundario:#5a5770;  /* labels, metadados */
-  --cor-texto-muted:     #8b88a0;  /* placeholders, hints */
+  --cor-texto-muted:     #706c87;  /* placeholders, hints -- escurecido depois
+     de auditoria de UX aprovada pela Márcia (ver tumtu-documentacao-tecnica.md,
+     seção de Contraste): #8b88a0 (valor antigo, ainda escrito aqui até
+     07/set/2026) dava só 3,4:1 de contraste contra fundo branco, abaixo do
+     mínimo de 4,5:1 pra texto pequeno; #706c87 dá 5,0:1. */
   --cor-texto-claro:     #ffffff;  /* texto sobre fundo escuro */
   --cor-borda:           #e8e6f0;  /* bordas de cards e inputs */
 }

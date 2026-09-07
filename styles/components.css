@@ -359,7 +359,12 @@
 .ficha-modal-overlay .fc-input:focus { border-color: #f5d778; }
 .ficha-modal-overlay .mp-foto-circle { background: var(--cor-fundo-medio); border-color: rgba(255,255,255,0.25); }
 .ficha-modal-overlay .mp-foto-circle.mp-foto-circle--editavel { border-color: var(--cor-destaque); }
-.ficha-modal-overlay .mp-foto-hint { color: #8b88a0; }
+/* Achado ao lado (07/set/2026): essa linha ainda estava no #8b88a0 antigo,
+   nunca atualizada quando o resto do .ficha-modal-overlay migrou pro
+   #a39fc0 (ver comentário logo acima, 11/ago/2026) -- ficava
+   discretamente mais difícil de ler que o resto do texto secundário
+   dentro do Meu Perfil escuro. */
+.ficha-modal-overlay .mp-foto-hint { color: #a39fc0; }
 .ficha-modal-overlay .btn-ficha { background: transparent; border-color: rgba(255,255,255,0.25); color: #d8d5e6; }
 .ficha-modal-overlay .btn-ficha:hover { background: rgba(255,255,255,0.06); }
 /* Os modificadores de cor (.btn-ficha-editar etc.) precisam ser reafirmados

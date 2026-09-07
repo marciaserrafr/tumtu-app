@@ -1421,7 +1421,7 @@
                 <div class="celula-hero"><div class="total-duplo-numero total">${totalGeral}</div><div class="total-duplo-rotulo">Total</div></div>
                 <div class="celula-hero"><div class="total-duplo-numero faltam">${faltamGeral}</div><div class="total-duplo-rotulo">${faltamGeral === 1 ? 'Falta' : 'Faltam'}</div></div>
             </div>
-            <button type="button" onclick="toggleTotalizadorDetalhe('${idPrefix}')" style="background:none;border:none;padding:4px 0 2px;margin:0;font-family:inherit;font-size:11px;font-weight:700;color:#8b88a0;cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
+            <button type="button" onclick="toggleTotalizadorDetalhe('${idPrefix}')" style="background:none;border:none;padding:4px 0 2px;margin:0;font-family:inherit;font-size:11px;font-weight:700;color:var(--cor-texto-muted);cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
                 <span id="totalizador-toggle-rotulo-${idPrefix}">${aberto ? 'Ver menos' : 'Ver por grupo'}</span>
                 <span class="vg-secao-seta ${aberto ? 'aberta' : ''}" id="totalizador-toggle-seta-${idPrefix}" style="font-size:12px;">›</span>
             </button>
@@ -2396,13 +2396,13 @@
         return `
             <div class="secao-titulo" style="margin-top:4px;">${titulo}</div>
             <div style="background:#fff;border:1.5px solid #e8e6f0;border-radius:12px;padding:16px;">
-                ${podeCopiar ? `<p style="font-size:13px;color:#8b88a0;margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>` : ''}
+                ${podeCopiar ? `<p style="font-size:13px;color:var(--cor-texto-muted);margin:0 0 14px;">Envie o link por WhatsApp pra quem vai se cadastrar — pode mandar pra quantas pessoas quiser, ele não expira e não é de uso único.</p>` : ''}
                 ${podeCopiar ? linhas.map((l, i) => `
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;${i > 0 ? 'margin-top:10px;' : ''}">
                     <label style="width:120px;flex-shrink:0;font-size:12px;color:#5a5770;font-weight:600;">${l.label}</label>
                     <input type="text" readonly value="${esc(l.url)}" style="flex:1;min-width:200px;padding:9px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;color:#333;">
                     <button class="btn-modal-confirmar verde" onclick="copiarLinkCadastroAdmin(this)">Copiar</button>
-                </div>`).join('') : `<p style="font-size:13px;color:#8b88a0;margin:0;">Link disponível — peça a alguém com mais acesso pra te enviar.</p>`}
+                </div>`).join('') : `<p style="font-size:13px;color:var(--cor-texto-muted);margin:0;">Link disponível — peça a alguém com mais acesso pra te enviar.</p>`}
             </div>`;
     }
     // "Cadastro" recolhido (Ritmistas/Diretoria) -- pedido da Márcia,

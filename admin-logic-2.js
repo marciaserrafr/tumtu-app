@@ -428,7 +428,7 @@
                     <div class="ficha-secao-titulo">Permissões</div>
                     <div class="ficha-campo full">
                         <span>Nesta bateria</span>
-                        <button type="button" onclick="toggleResumoPermissoesFicha()" style="background:none;border:none;padding:4px 0 2px;margin:0 0 8px;font-family:inherit;font-size:11px;font-weight:700;color:#8b88a0;cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
+                        <button type="button" onclick="toggleResumoPermissoesFicha()" style="background:none;border:none;padding:4px 0 2px;margin:0 0 8px;font-family:inherit;font-size:11px;font-weight:700;color:var(--cor-texto-muted);cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
                             <span id="fp-permissoes-toggle-rotulo">Ver detalhes</span>
                             <span class="vg-secao-seta" id="fp-permissoes-toggle-seta" style="font-size:12px;">›</span>
                         </button>

@@ -477,7 +477,7 @@
         }
         .grade-pilula-toggle:hover { border-color: var(--cor-borda-forte); }
         .grade-pilula-toggle .grade-pilula-seta {
-            font-size: 14px; color: #8b88a0; display: inline-block; transition: transform 0.15s;
+            font-size: 14px; color: var(--cor-texto-muted); display: inline-block; transition: transform 0.15s;
         }
         .grade-pilula-toggle .grade-pilula-seta.aberta { transform: rotate(90deg); }
         /* CONTAINER */
@@ -571,7 +571,7 @@
            Figurino (.config-medida-seta). */
         .vg-secao-titulo--clicavel { display: flex; align-items: center; justify-content: space-between; cursor: pointer; gap: 10px; }
         .vg-secao-resumo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-        .vg-secao-seta { font-size: 15px; color: #8b88a0; transition: transform 0.15s; display: inline-block; text-transform: none; letter-spacing: normal; }
+        .vg-secao-seta { font-size: 15px; color: var(--cor-texto-muted); transition: transform 0.15s; display: inline-block; text-transform: none; letter-spacing: normal; }
         .vg-secao-seta.aberta { transform: rotate(90deg); }
         .vg-figurino-peca-titulo { font-size: 13px; font-weight: 700; color: var(--cor-texto-principal); margin: 0; }
         .vg-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 16px; }
@@ -638,7 +638,7 @@
             width: 44px; height: 44px; border-radius: 8px; background: #f7f6fb;
             border: 1px solid #e8e6f0; overflow: hidden; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
-            font-size: 15px; font-weight: 700; color: #8b88a0;
+            font-size: 15px; font-weight: 700; color: var(--cor-texto-muted);
         }
         .card-foto img { width: 100%; height: 100%; object-fit: cover; }
         .card-esquerda { flex: 1; min-width: 0; }
@@ -1042,7 +1042,7 @@
         .config-item-seta { color: #ccc; font-size: 20px; font-weight: 300; }
         .btn-voltar-config { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: #D4AF37; padding: 0; margin-bottom: 16px; font-family: inherit; }
         .btn-voltar-config:hover { text-decoration: underline; }
-        .config-sub-desc { font-size: 13px; color: #8b88a0; margin: -10px 0 16px; }
+        .config-sub-desc { font-size: 13px; color: var(--cor-texto-muted); margin: -10px 0 16px; }
         /* Sub-tela de Configurações em modo "só ver" (Reforma de Permissões,
            28/ago/2026) -- quem só tem a capacidade "Ver" (sem "Editar") abre
            a tela normal, mas com tudo acinzentado/travado, pra ficar óbvio
@@ -1244,7 +1244,7 @@
             padding: 10px 20px; margin-bottom: 4px;
             background: #f7f6fb; border: 1px solid #e8e6f0; border-bottom: none;
             border-radius: 10px 10px 0 0;
-            font-size: 11px; font-weight: 700; color: #8b88a0;
+            font-size: 11px; font-weight: 700; color: var(--cor-texto-muted);
             text-transform: uppercase; letter-spacing: 0.6px;
         }
         /* "Nº de Vagas" quebrando em 2 linhas (achado real dela, 22/ago/2026,
@@ -1458,9 +1458,9 @@
             margin: auto 0;
         }
         .modal-admin-titulo { font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 4px; }
-        .modal-admin-sub { font-size: 13px; color: #8b88a0; margin-bottom: 20px; }
+        .modal-admin-sub { font-size: 13px; color: var(--cor-texto-muted); margin-bottom: 20px; }
         .modal-admin-campo { display: flex; flex-direction: column; margin-bottom: 12px; }
-        .modal-admin-campo span { font-size: 11px; font-weight: 600; color: #8b88a0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .modal-admin-campo span { font-size: 11px; font-weight: 600; color: var(--cor-texto-muted); text-transform: uppercase; letter-spacing: 0.5px; }
         .modal-admin-campo strong { font-size: 15px; color: #12101a; margin-top: 2px; }
         .modal-admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
 
@@ -1531,7 +1531,7 @@
         .escola-logo-circulo {
             width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
             box-shadow: 0 0 0 2px #D4AF37;
-            background: #f7f6fb; color: #8b88a0;
+            background: var(--cor-fundo-claro); color: var(--cor-texto-muted);
             display: flex; align-items: center; justify-content: center;
             font-size: 15px; font-weight: 700; overflow: hidden;
         }
@@ -1545,7 +1545,7 @@
         .config-medida-card { padding: 0; display: block; }
         .config-medida-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; }
         .config-medida-seta { font-size: 20px; color: #c0bdd0; transition: transform 0.15s; line-height: 1; }
-        .config-medida-seta.aberta { transform: rotate(90deg); color: #8b88a0; }
+        .config-medida-seta.aberta { transform: rotate(90deg); color: var(--cor-texto-muted); }
         .config-medida-tamanhos { padding: 4px 20px 16px 49px; border-top: 1px solid #f4f4f4; }
         .config-medida-tamanhos .config-instrumento-linha:last-child { border-bottom: none; }
         /* Público da Categoria de Figurino (25/ago/2026) -- quem preenche

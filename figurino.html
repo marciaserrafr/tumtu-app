@@ -20,7 +20,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #12101a;
+            background: var(--cor-fundo-escuro);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -39,23 +39,23 @@
         .marca {
             text-align: center;
             font-size: 22px;
-            color: #12101a;
+            color: var(--cor-texto-principal);
             margin-bottom: 24px;
         }
         .secao {
             font-size: 20px;
             font-weight: 800;
-            color: #12101a;
+            color: var(--cor-texto-principal);
             margin-bottom: 8px;
         }
-        .subtexto { color: #5a5770; font-size: 14px; line-height: 1.5; margin: 16px 0 20px; }
-        .subtexto b { color: #12101a; }
+        .subtexto { color: var(--cor-texto-secundario); font-size: 14px; line-height: 1.5; margin: 16px 0 20px; }
+        .subtexto b { color: var(--cor-texto-principal); }
         .btn-acao {
             display: block;
             width: 100%;
             padding: 14px;
-            background: #D4AF37;
-            color: #12101a;
+            background: var(--cor-destaque);
+            color: var(--cor-texto-destaque);
             font-size: 15px;
             font-weight: 700;
             font-family: inherit;
@@ -65,10 +65,10 @@
             text-align: center;
             text-decoration: none;
         }
-        .btn-acao:hover { background: #B8922A; }
+        .btn-acao:hover { background: var(--cor-destaque-hover); }
         .btn-acao:disabled { opacity: 0.6; cursor: default; }
-        .carregando { text-align: center; color: #8b88a0; font-size: 15px; padding: 40px 0; }
-        .erro { text-align: center; color: #b3261e; font-size: 15px; padding: 24px 0; }
+        .carregando { text-align: center; color: var(--cor-texto-muted); font-size: 15px; padding: 40px 0; }
+        .erro { text-align: center; color: var(--cor-erro); font-size: 15px; padding: 24px 0; }
         .sucesso {
             text-align: center;
             color: #2f8f5b;

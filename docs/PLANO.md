@@ -73,10 +73,18 @@ idêntico, zero mudança visual. `admin.html` (a maior parte, ~300
 ocorrências) fica pra uma leva própria. Ficam de propósito sem tocar: o
 spinner "Passaporte" (área frágil, cor combinada com o `<html>` de
 propósito), cores dentro de SVG inline, cores calculadas em JS (contraste
-dinâmico por escola), e um achado real — `--cor-texto-muted` no token é
-`#706c87`, mas a maior parte do app (27 lugares, incluindo o próprio
-guia de design) já usa `#8b88a0` pro mesmo papel. Discrepância não
-resolvida — ver pergunta na sessão de 07/set no histórico.
+dinâmico por escola).
+
+**Achado real, resolvido (07/set/2026):** `--cor-texto-muted` tinha duas
+versões convivendo — o token (`#706c87`) e ~27 lugares no código com
+`#8b88a0` direto. Não era desatualização do token: `#706c87` foi decisão
+deliberada, já aprovada pela Márcia (ver `tumtu-documentacao-tecnica.md`,
+seção de Contraste) — `#8b88a0` dá só 3,4:1 de contraste contra fundo
+branco (abaixo do mínimo de 4,5:1 pra texto pequeno), `#706c87` dá 5,0:1.
+O valor listado acima na seção 0.1 (copiado do guia de design, que nunca
+tinha sido atualizado) está com o valor antigo — **o token de verdade é
+`#706c87`**, já corrigido no guia de design e nos ~27 lugares que ainda
+usavam o valor antigo.
 
 **Dourado tem dois valores, definidos pelo fundo:** `#D4AF37` sobre escuro
 (sidebar, splash, header preto); em texto pequeno sobre fundo claro, `#D4AF37`

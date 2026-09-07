@@ -19,7 +19,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #12101a;
+            background: var(--cor-fundo-escuro);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -37,13 +37,13 @@
         .marca {
             text-align: center;
             font-size: 22px;
-            color: #12101a;
+            color: var(--cor-texto-principal);
             margin-bottom: 24px;
         }
         .secao {
             font-size: 11px;
             font-weight: 700;
-            color: #8b88a0;
+            color: var(--cor-texto-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
@@ -51,17 +51,17 @@
         .nome-ritmista {
             font-size: 22px;
             font-weight: 800;
-            color: #12101a;
+            color: var(--cor-texto-principal);
             margin-bottom: 24px;
         }
         .divisor {
             height: 1px;
-            background: #e8e6f0;
+            background: var(--cor-borda);
             margin-bottom: 24px;
         }
         .alerta {
-            background: #fff8e6;
-            border: 1px solid #D4AF37;
+            background: var(--cor-destaque-suave);
+            border: 1px solid var(--cor-destaque);
             border-radius: 12px;
             padding: 14px 16px;
             margin-bottom: 20px;
@@ -76,7 +76,7 @@
         .campo-label {
             font-size: 11px;
             font-weight: 700;
-            color: #8b88a0;
+            color: var(--cor-texto-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 4px;
@@ -84,14 +84,14 @@
         .campo-valor {
             font-size: 17px;
             font-weight: 700;
-            color: #12101a;
+            color: var(--cor-texto-principal);
         }
         .btn-ligar {
             display: block;
             width: 100%;
             padding: 14px;
-            background: #D4AF37;
-            color: #12101a;
+            background: var(--cor-destaque);
+            color: var(--cor-texto-destaque);
             font-size: 15px;
             font-weight: 700;
             font-family: inherit;
@@ -102,12 +102,12 @@
             text-decoration: none;
             margin-top: 8px;
         }
-        .btn-ligar:hover { background: #B8922A; }
-        .carregando { text-align: center; color: #8b88a0; font-size: 15px; padding: 40px 0; }
-        .erro { text-align: center; color: #b3261e; font-size: 15px; padding: 40px 0; }
+        .btn-ligar:hover { background: var(--cor-destaque-hover); }
+        .carregando { text-align: center; color: var(--cor-texto-muted); font-size: 15px; padding: 40px 0; }
+        .erro { text-align: center; color: var(--cor-erro); font-size: 15px; padding: 40px 0; }
         .sem-emergencia {
             text-align: center;
-            color: #8b88a0;
+            color: var(--cor-texto-muted);
             font-size: 14px;
             padding: 16px 0;
             font-style: italic;
@@ -160,7 +160,7 @@
         div.innerHTML = `
             <div class="secao">Ritmista</div>
             <div class="nome-ritmista">${r.nome}</div>
-            ${r.tipo_sanguineo ? `<div class="campo"><div class="campo-label">Tipo sanguíneo</div><div class="campo-valor" style="color:#b3261e;font-size:22px;">${r.tipo_sanguineo}</div></div>` : ''}
+            ${r.tipo_sanguineo ? `<div class="campo"><div class="campo-label">Tipo sanguíneo</div><div class="campo-valor" style="color:var(--cor-erro);font-size:22px;">${r.tipo_sanguineo}</div></div>` : ''}
             <div class="divisor"></div>
             <div class="secao">Contato de emergência</div>
             ${temEmergencia ? `
