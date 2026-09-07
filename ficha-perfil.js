@@ -201,7 +201,7 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil, ehConvidado) {
 
 async function fpMontar(containerEl) {
     if (!fpPartialHtml) {
-        const res = await fetch('ficha-perfil.partial.html?v=34');
+        const res = await fetch('ficha-perfil.partial.html?v=35');
         fpPartialHtml = await res.text();
     }
     containerEl.innerHTML = fpPartialHtml;
@@ -257,11 +257,41 @@ function fpMascaraCPF(input) {
     v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     input.value = v;
 }
+// Mesma regra de nacionalidade usada pra validar (ver fpProblemasFicha) --
+// '' (ainda não escolheu) conta como Brasileira, igual ao resto do app.
+function fpCelularEhBrasileira() {
+    const sel = fpEl('fp-nacionalidade-edit');
+    const val = sel ? sel.value : (fpEstado.alvo ? fpEstado.alvo.nacionalidade : '');
+    return val === 'Brasileira' || !val;
+}
 function fpMascaraCelular(input) {
+    // Estrangeiro: número não segue o padrão brasileiro -- deixa livre,
+    // sem máscara (06/set/2026).
+    if (!fpCelularEhBrasileira()) return;
     let v = input.value.replace(/\D/g, '');
+    // Corrige o hábito de digitar o código do país (+55) antes do número --
+    // o "+" já foi descartado acima, sobra só "55" colado no lugar do DDD.
+    // Achado real, 06/set/2026: pelo menos 4 pessoas no banco com número
+    // errado por causa exatamente disso.
+    if (v.length > 11 && v.startsWith('55')) v = v.slice(2);
+    if (v.length > 11) v = v.slice(0, 11);
     v = v.replace(/^(\d{2})(\d)/, '($1) $2');
     v = v.replace(/(\d{5})(\d)/, '$1-$2');
     input.value = v;
+}
+// Celular estrangeiro não cabe no molde "(DD) DDDDD-DDDD" -- libera espaço
+// pro código do país quando a Nacionalidade for diferente de Brasileira,
+// nos 3 campos de celular (própria pessoa, responsável, contato de
+// emergência). Chamado ao trocar a Nacionalidade E ao abrir a edição
+// (fpAtivarEdicao), pra já nascer certo se a pessoa já é estrangeira.
+function fpAoMudarNacionalidade() {
+    const brasileira = fpCelularEhBrasileira();
+    ['fp-celular-edit', 'fp-emergencia-celular-edit', 'fp-responsavel-celular-edit'].forEach(id => {
+        const campo = fpEl(id);
+        if (!campo) return;
+        campo.maxLength = brasileira ? 15 : 30;
+        campo.placeholder = brasileira ? '(21) 99999-9999' : '+1 555 123 4567';
+    });
 }
 const FP_PREPOSICOES_MINUSCULAS = new Set(['de', 'da', 'do', 'dos', 'das']);
 function fpCorrigirCapitalizacao(texto) {
@@ -1248,6 +1278,9 @@ async function fpAtivarEdicao() {
         strong.style.display = 'none';
         input.style.display = 'block';
     });
+    // Já nasce com maxlength/placeholder certos se a pessoa já é
+    // estrangeira -- sem isso só atualizaria depois de mexer no campo.
+    fpAoMudarNacionalidade();
 
     if (fpEstado.editaveis.has('tipo_documento')) {
         fpEl('fp-tipo-documento-edit').value = fpEstado.alvo.tipo_documento || '';

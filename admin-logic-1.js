@@ -525,6 +525,13 @@
         return (r.status === 'aprovado' && r.nao_desfila) ? 'nao_desfila' : (r.status || 'pendente');
     }
 
+    // "Limpar" a busca (06/set/2026, pedido dela: sem isso a pessoa tinha
+    // que apagar o texto digitado na mão pra voltar a ver a lista inteira).
+    function limparBusca() {
+        document.getElementById('campoBusca').value = '';
+        aplicarFiltros();
+    }
+
     function aplicarFiltros() {
         // Estilo Excel, 20/ago/2026: cada checkbox controla exatamente o
         // que aparece -- 0 marcado num grupo = ninguém passa nesse grupo
@@ -3381,6 +3388,12 @@
     // achado dela, 25/ago/2026: sem nenhuma divisão visual, os Extras
     // ficavam misturados na lista sem se destacar. Peça sem Extras continua
     // com a lista simples de sempre (sem título de seção nenhum).
+    // "Limpar" a busca (06/set/2026, mesmo padrão de Ritmistas/Diretoria/Convidados).
+    function limparBuscaFigurinoEntregas() {
+        document.getElementById('figurino-entregas-busca').value = '';
+        renderizarEntregasFigurinoLista();
+    }
+
     function renderizarEntregasFigurinoLista() {
         const container = document.getElementById('figurino-entregas-lista');
         if (!container) return;
@@ -3396,11 +3409,14 @@
         const mostrarFiltroInstrumento = figurinoEntregaLadoAtual !== 'convidados'
             && (figurinoEntregaLadoAtual === 'ritmista' ? doLado.some(p => p.instrumento_nome) : doLado.length > 0);
         filtroInstrumentoEl.style.display = mostrarFiltroInstrumento ? '' : 'none';
-        const busca = (document.getElementById('figurino-entregas-busca').value || '').trim().toLowerCase();
+        // Busca sem depender de acento (06/set/2026, achado dela: seu
+        // próprio nome, "Márcia", só aparecia digitando o acento certinho
+        // -- mesmo padrão de semAcento() já usado em Ritmistas).
+        const busca = semAcento(document.getElementById('figurino-entregas-busca').value || '');
         const instrumentoFiltro = mostrarFiltroInstrumento ? filtroInstrumentoEl.value : '';
         const statusFiltro = document.getElementById('figurino-entregas-filtro-status').value;
         const filtrada = doLado.filter(p => {
-            if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
+            if (busca && !(semAcento(p.nome).includes(busca) || semAcento(p.apelido).includes(busca))) return false;
             if (instrumentoFiltro) {
                 if (figurinoEntregaLadoAtual === 'ritmista') {
                     if (p.instrumento_nome !== instrumentoFiltro) return false;
@@ -4240,6 +4256,12 @@
         travarLarguraTotalizador('presenca-totalizador', 'presenca');
     }
 
+    // "Limpar" a busca (06/set/2026, mesmo padrão de Ritmistas/Diretoria/Convidados).
+    function limparBuscaPresenca() {
+        document.getElementById('presenca-busca').value = '';
+        renderizarPresencaLista();
+    }
+
     function renderizarPresencaLista() {
         const container = document.getElementById('presenca-pessoas-lista');
         if (!container) return;
@@ -4250,11 +4272,13 @@
         const mostrarFiltroTipo = presencaLadoAtual !== 'convidados'
             && (presencaLadoAtual === 'ritmista' ? doLado.some(p => p.instrumento_nome) : doLado.length > 0);
         filtroTipoEl.style.display = mostrarFiltroTipo ? '' : 'none';
-        const busca = (document.getElementById('presenca-busca').value || '').trim().toLowerCase();
+        // Busca sem depender de acento (06/set/2026, mesmo achado/correção
+        // de Entrega de Figurino).
+        const busca = semAcento(document.getElementById('presenca-busca').value || '');
         const tipoFiltro = mostrarFiltroTipo ? filtroTipoEl.value : '';
         const statusFiltro = document.getElementById('presenca-filtro-status').value;
         const filtrada = doLado.filter(p => {
-            if (busca && !((p.nome || '').toLowerCase().includes(busca) || (p.apelido || '').toLowerCase().includes(busca))) return false;
+            if (busca && !(semAcento(p.nome).includes(busca) || semAcento(p.apelido).includes(busca))) return false;
             if (tipoFiltro) {
                 if (presencaLadoAtual === 'ritmista') { if (p.instrumento_nome !== tipoFiltro) return false; }
                 else if (p.perfil !== tipoFiltro) return false;

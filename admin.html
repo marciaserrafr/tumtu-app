@@ -66,7 +66,7 @@
     <!-- defer (06/set/2026) -- nenhuma das duas executa nada sozinha ao
          carregar, só define função pra usar depois (conferido no código
          das duas), então não corre risco nenhum de rodar antes da hora. -->
-    <script src="ficha-perfil.js?v=66" defer></script>
+    <script src="ficha-perfil.js?v=67" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
         /* Desligada de novo (06/set/2026, mesma sessão -- teste de
@@ -2483,6 +2483,11 @@
             style="flex:1;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
         <button type="button" class="btn-ficha" onclick="aplicarFiltros()" style="flex-shrink:0;">Buscar</button>
     </div>
+    <!-- "Limpar" a busca (06/set/2026, pedido dela) -- mesmo estilo de
+         "Limpar" já usado nos filtros Excel-like abaixo. -->
+    <div style="text-align:right;margin:-8px 0 12px;">
+        <span onclick="limparBusca()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+    </div>
 
     <!-- Título estático (não clicável, não recolhe) -- pedido da Márcia,
          20/ago/2026: "sinto falta de um título para os filtros", mesmo
@@ -2705,7 +2710,10 @@
              separados, quando existem os dois. -->
         <div class="figurino-tabs-lado" id="figurino-filtro-lado" style="display:none;"></div>
         <input type="text" id="figurino-entregas-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarEntregasFigurinoLista()"
-            style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;margin-bottom:10px;">
+            style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;">
+        <div style="text-align:right;margin:2px 0 10px;">
+            <span onclick="limparBuscaFigurinoEntregas()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+        </div>
         <!-- Instrumento e Status reorganizados em pílulas lado a lado
              (27/ago/2026, pedido dela: "muito filtro misturado" -- antes
              eram 2 blocos cheios empilhados). -->
@@ -2776,6 +2784,9 @@
             <input type="text" id="campoBuscaConvidadoEspecial" placeholder="Buscar por nome ou apelido..." oninput="aplicarFiltrosConvidadosEspeciais()" onkeydown="if(event.key==='Enter') aplicarFiltrosConvidadosEspeciais()"
                 style="flex:1;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
             <button type="button" class="btn-ficha" onclick="aplicarFiltrosConvidadosEspeciais()" style="flex-shrink:0;">Buscar</button>
+        </div>
+        <div style="text-align:right;margin:-8px 0 12px;">
+            <span onclick="limparBuscaConvidados()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
         </div>
 
         <div class="secao-titulo secao-titulo-neutro" style="margin-top:0;">Filtros</div>
@@ -2872,7 +2883,10 @@
         </div>
         <div class="figurino-tabs-lado" id="presenca-filtro-lado" style="display:none;"></div>
         <input type="text" id="presenca-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarPresencaLista()"
-            style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;margin-bottom:10px;">
+            style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;">
+        <div style="text-align:right;margin:2px 0 10px;">
+            <span onclick="limparBuscaPresenca()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+        </div>
         <div class="figurino-filtros-rotulo">Filtros</div>
         <div class="figurino-filtros-linha">
             <select id="presenca-filtro-tipo" class="figurino-pill-select" onchange="renderizarPresencaLista()">
@@ -3161,6 +3175,9 @@
             style="flex:1;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
         <button type="button" class="btn-ficha" onclick="aplicarFiltrosDiretoria()" style="flex-shrink:0;">Buscar</button>
     </div>
+    <div style="text-align:right;margin:-8px 0 12px;">
+        <span onclick="limparBuscaDiretoria()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+    </div>
 
     <div class="secao-titulo secao-titulo-neutro" style="margin-top:0;">Filtros</div>
     <div class="filtros" style="margin-bottom:24px;">
@@ -3444,7 +3461,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=3" defer></script>
+<script src="admin-logic-1.js?v=4" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">
@@ -3455,6 +3472,6 @@
     </div>
 </div>
 
-<script src="admin-logic-2.js?v=1" defer></script>
+<script src="admin-logic-2.js?v=2" defer></script>
 </body>
 </html>

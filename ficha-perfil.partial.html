@@ -38,7 +38,7 @@
         </div>
         <div class="ficha-campo"><span>Como se identifica</span><strong id="fp-genero-personalizado"></strong><input id="fp-genero-personalizado-edit" class="fc-input" type="text" placeholder="Só se escolheu 'Prefiro me identificar como...' acima"></div>
         <div class="ficha-campo"><span>Nacionalidade <span class="obrigatorio">*</span></span><strong id="fp-nacionalidade"></strong>
-            <select id="fp-nacionalidade-edit" class="fc-input">
+            <select id="fp-nacionalidade-edit" class="fc-input" onchange="fpAoMudarNacionalidade()">
                 <option value="">Selecione</option>
                 <option value="Brasileira">Brasileira</option>
                 <option value="Portuguesa">Portuguesa</option>

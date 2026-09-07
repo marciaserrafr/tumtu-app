@@ -103,6 +103,12 @@
     }
     function aplicarFiltroStatusConvidado() { toggleStatusConvidadoSelect(); aplicarFiltrosConvidadosEspeciais(); }
 
+    // "Limpar" a busca (06/set/2026, mesmo padrão de Ritmistas/Diretoria).
+    function limparBuscaConvidados() {
+        document.getElementById('campoBuscaConvidadoEspecial').value = '';
+        aplicarFiltrosConvidadosEspeciais();
+    }
+
     function aplicarFiltrosConvidadosEspeciais() {
         let lista = (convidadosEspeciaisCache || []).filter(r => {
             const tipoOk = filtroTipoConvidadoSelecionados.includes(r.perfil);
@@ -255,6 +261,12 @@
         document.getElementById('statusDiretoriaSelectTrigger').classList.toggle('ativo', filtroStatusDiretoriaSelecionados.length > 0 && filtroStatusDiretoriaSelecionados.length < total);
         const marcarTudoEl = document.getElementById('statusDiretoriaMarcarTudoLink');
         if (marcarTudoEl) marcarTudoEl.textContent = filtroStatusDiretoriaSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
+    }
+
+    // "Limpar" a busca (06/set/2026, mesmo padrão de Ritmistas/Convidados).
+    function limparBuscaDiretoria() {
+        document.getElementById('campoBuscaDiretoria').value = '';
+        aplicarFiltrosDiretoria();
     }
 
     function aplicarFiltrosDiretoria() {
