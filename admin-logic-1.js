@@ -4954,6 +4954,11 @@
         document.querySelectorAll('.sa-sidebar-item').forEach(x => x.classList.remove('ativa'));
         if (el) el.classList.add('ativa');
 
+        // Barra fina de progresso (Camada 0, 07/set/2026) -- mesma peça e
+        // mesma regra de trocarAba() em admin-logic-2.js: só acende depois
+        // de 150ms, some sozinha no finally logo abaixo.
+        mostrarBarraProgressoComAtraso();
+
         // A partir daqui vai tudo dentro de um try/catch (06/set/2026) --
         // achado dela ao vivo: trocar de aba "não fazia nada" em momentos
         // imprevisíveis, sem nenhum aviso. Se uma dessas buscas falhar no
@@ -4993,6 +4998,8 @@
         } catch (err) {
             console.error('trocarSaAba falhou:', err);
             logErroCliente('trocarSaAba:' + aba, err);
+        } finally {
+            esconderBarraProgresso();
         }
     }
 
