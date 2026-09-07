@@ -166,7 +166,7 @@
         .header-marca-logo-wrap {
             width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
             background: rgba(255,255,255,0.92);
-            box-shadow: 0 0 0 2px #D4AF37;
+            box-shadow: 0 0 0 2px var(--cor-destaque);
             overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
         .header-marca-logo { width: 100%; height: 100%; object-fit: contain; }
@@ -207,9 +207,9 @@
                box-sizing:border-box "comia" o círculo (34px viravam 30px de
                foto/iniciais visíveis), achado da Márcia, 22/ago/2026 --
                mesma técnica já usada na logo da carteirinha. */
-            box-shadow: 0 0 0 2px #D4AF37;
+            box-shadow: 0 0 0 2px var(--cor-destaque);
             display: flex; align-items: center; justify-content: center;
-            background: #12101a; color: #f5d778;
+            background: var(--cor-fundo-escuro); color: #f5d778;
             font-size: 13px; font-weight: 800;
         }
         .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -224,7 +224,7 @@
         /* Borda a 30% (mesma da carteirinha) ficava quase invisível em cima
            de cabeçalho colorido (achado dela, print, 22/ago/2026) --
            reforçada pra 70% opaca e um pouco mais grossa (1.5px). */
-        .btn-sair { background: transparent; border: 1.5px solid rgba(212,175,55,0.7); color: #D4AF37; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .btn-sair { background: transparent; border: 1.5px solid rgba(212,175,55,0.7); color: var(--cor-destaque); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; }
         .btn-sair:hover { background: rgba(212,175,55,0.08); }
         /* Assinatura "TumTu" -- morava solta no meio do conteúdo (rodapé de
            verdade), mas nesse layout (cabeçalho fixo, só o miolo rola) o
@@ -272,12 +272,12 @@
            app, só que sobre o ícone em vez de ao lado do texto. */
         .aba-badge {
             position: absolute; top: -5px; right: -8px;
-            background: #d64545; color: #fff; font-size: 9px; font-weight: 700;
+            background: #d64545; color: var(--cor-texto-claro); font-size: 9px; font-weight: 700;
             min-width: 14px; height: 14px; border-radius: 7px; line-height: 14px;
             text-align: center; padding: 0 3px; box-sizing: border-box;
         }
         .config-item-badge {
-            background: #d64545; color: #fff; font-size: 11px; font-weight: 700;
+            background: #d64545; color: var(--cor-texto-claro); font-size: 11px; font-weight: 700;
             min-width: 18px; height: 18px; border-radius: 9px; line-height: 18px;
             text-align: center; padding: 0 5px; box-sizing: border-box; margin-left: 8px;
         }
@@ -295,7 +295,7 @@
            ficar "suja"), mesma regra de "destaque real" que o projeto já
            usa em botão de ação principal (ex: "Meu Perfil" na
            carteirinha). Texto escuro por cima, igual lá. */
-        .aba-btn.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
+        .aba-btn.ativa { color: var(--cor-texto-destaque); background: var(--cor-destaque); font-weight: 700; }
 
         /* "Mais" no computador: acordeão que abre ali mesmo na barra lateral
            (pedido da Márcia, 20/ago/2026), em vez de navegar pra uma tela
@@ -314,7 +314,7 @@
         /* Mesmo dourado sólido de .aba-btn.ativa (ver comentário lá) --
            essa terceira receita "suja" (submenu "Mais") só tinha sido
            achada testando ao vivo na prévia, 22/ago/2026. */
-        .aba-sub-btn.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
+        .aba-sub-btn.ativa { color: var(--cor-texto-destaque); background: var(--cor-destaque); font-weight: 700; }
 
         /* BARRA DE PROGRESSO NA TROCA DE ABA (Camada 0 -- "Estados de
            Carregamento", 07/set/2026). Fininha, sempre ABAIXO do header
@@ -443,7 +443,7 @@
         .grade-item b { font-weight: 800; font-size: 13.5px; }
         .grade-item--unico { grid-column: 1 / -1; }
         .grade-item .n-suspenso  { color: #e65100; }
-        .grade-item .n-desligado { color: #b3261e; }
+        .grade-item .n-desligado { color: var(--cor-erro); }
         .grade-item .n-rejeitado { color: #757575; }
         .grade-item .n-naodesfila { color: var(--cor-texto-secundario); }
         /* Título de grupo acima de cada bloco (Ritmistas/Diretoria/
@@ -509,8 +509,8 @@
            marcado), nunca no estado "Todos". */
         .multi-select-trigger {
             padding: 7px 14px; border-radius: 20px;
-            border: 1.5px solid #e0e0e0; background: #fff;
-            color: #12101a; cursor: pointer; font-size: 12.5px; font-weight: 600;
+            border: 1.5px solid #e0e0e0; background: var(--cor-superficie);
+            color: var(--cor-texto-principal); cursor: pointer; font-size: 12.5px; font-weight: 600;
             display: inline-flex; align-items: center; gap: 8px;
             justify-content: space-between; user-select: none; min-width: 140px;
         }
@@ -539,7 +539,7 @@
            pessoa, só que reto -- é o que faz ler como "faixa", não "caixa". */
         .cadastro-cabecalho {
             display: flex; align-items: center; justify-content: space-between; gap: 10px;
-            background: #fff; padding: 12px 16px;
+            background: var(--cor-superficie); padding: 12px 16px;
             cursor: pointer;
             font-size: 14px; font-weight: 600; color: var(--cor-texto-principal);
             transition: background 0.15s;
@@ -563,7 +563,7 @@
         .btn-exportar:hover { background: #f5f4f8; }
 
         /* VISÃO GERAL */
-        .vg-secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; }
+        .vg-secao-titulo { font-size: 11px; font-weight: 700; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--cor-destaque); }
         /* Cabeçalho fechado/aberto dos cards "Ritmistas por Instrumento" e
            "Entrega de Figurino" (25/ago/2026) -- fechado mostra só o total
            geral (pílula), clica pra abrir o detalhe por naipe/grupo. Mesma
@@ -593,14 +593,14 @@
             display: inline-flex; align-items: center; justify-content: center;
             min-width: 56px; box-sizing: border-box;
             padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 800;
-            background: #e8e6f0; color: #5a5770; border: 1px solid #d8d5e3;
+            background: var(--cor-borda); color: var(--cor-texto-secundario); border: 1px solid #d8d5e3;
         }
         .vg-instrumento-qtd.completo { background: #f0faf4; color: #2d7a4f; border-color: #b8ddc8; }
         /* "Faltam N" -- sinalizador discreto pra chamar atenção de quem
            gerencia, sem competir visualmente com a pílula de contagem
            (essa sim colorida/com peso). Pedido da Márcia, 21/ago/2026. */
-        .vg-instrumento-faltam { font-size: 11.5px; font-weight: 400; color: #b3261e; font-style: italic; white-space: nowrap; }
-        .vg-instrumento-qtd.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
+        .vg-instrumento-faltam { font-size: 11.5px; font-weight: 400; color: var(--cor-erro); font-style: italic; white-space: nowrap; }
+        .vg-instrumento-qtd.excedeu { background: var(--cor-erro-fundo); color: var(--cor-erro); border-color: #f0c4c0; }
         /* Diretoria/Convidados sempre por último na lista de uma peça de
            Figurino (nunca entram na ordenação alfabética dos instrumentos) --
            diferencial sutil pra distinguir de um naipe de verdade, pedido
@@ -618,8 +618,8 @@
         .cards { display: flex; flex-direction: column; gap: 10px; }
         .card-ritmista {
             background: white;
-            border: 1px solid #e8e6f0;
-            border-left: 3px solid #D4AF37;
+            border: 1px solid var(--cor-borda);
+            border-left: 3px solid var(--cor-destaque);
             border-radius: 14px;
             padding: 14px 18px;
             display: flex; align-items: center;
@@ -635,8 +635,8 @@
            "9a" (14-16/ago/2026), pedido explícito da Márcia, 18/ago/2026,
            pra identificar a pessoa de relance na lista de gestão. */
         .card-foto {
-            width: 44px; height: 44px; border-radius: 8px; background: #f7f6fb;
-            border: 1px solid #e8e6f0; overflow: hidden; flex-shrink: 0;
+            width: 44px; height: 44px; border-radius: 8px; background: var(--cor-fundo-claro);
+            border: 1px solid var(--cor-borda); overflow: hidden; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
             font-size: 15px; font-weight: 700; color: var(--cor-texto-muted);
         }
@@ -647,7 +647,7 @@
             font-size: 15px; font-weight: 700; color: var(--cor-texto-principal);
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
         }
-        .card-apelido-inline { font-size: 15px; font-weight: 700; font-style: italic; color: #D4AF37; flex-shrink: 0; white-space: nowrap; }
+        .card-apelido-inline { font-size: 15px; font-weight: 700; font-style: italic; color: var(--cor-destaque); flex-shrink: 0; white-space: nowrap; }
         .card-linha2 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
         /* Mesma "caixa" do .badge (padding, borda de 1px, line-height) de
            propósito -- pedido da Márcia, 20/ago/2026, depois de duas
@@ -658,7 +658,7 @@
            mas fica invisível, sem mudar a aparência de antes. */
         .pill-instrumento {
             display: inline-flex; align-items: center; gap: 5px;
-            background: #e8e6f0; color: #5a5770; border: 1px solid #e8e6f0;
+            background: var(--cor-borda); color: var(--cor-texto-secundario); border: 1px solid var(--cor-borda);
             padding: 3px 10px; border-radius: 20px;
             font-size: 12px; font-weight: 600; line-height: 1;
         }
@@ -669,9 +669,9 @@
             background: transparent; display: inline-flex; align-items: center; gap: 5px;
             white-space: nowrap;
         }
-        .btn-card-ativar  { background: #12101a; border-color: #12101a; color: #ffffff; }
+        .btn-card-ativar  { background: var(--cor-fundo-escuro); border-color: var(--cor-fundo-escuro); color: var(--cor-texto-claro); }
         .btn-card-ativar:hover { background: #2a2740; border-color: #2a2740; }
-        .btn-card-rejeitar { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+        .btn-card-rejeitar { border: 1.5px solid var(--cor-terracota); color: var(--cor-terracota); background: transparent; }
         .btn-card-rejeitar:hover { background: #fef0eb; }
         .card-chevron { color: #ccc; font-size: 20px; font-weight: 300; line-height: 1; }
 
@@ -681,7 +681,7 @@
 
         .badge-pendente  { background: #fffbf0; color: #8a6800; border-color: #ffe69c; }
         .badge-suspenso  { background: #fff3e0; color: #e65100; border-color: #ffcc80; }
-        .badge-desligado { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
+        .badge-desligado { background: var(--cor-erro-fundo); color: var(--cor-erro); border-color: #f0c4c0; }
         .badge-rejeitado { background: #f5f5f5; color: #757575; border-color: #e0e0e0; }
         /* "Não Desfila" (28/ago/2026) -- por baixo dos panos a pessoa
            continua status=aprovado (login/carteirinha intactos), mas o
@@ -700,17 +700,17 @@
         }
         .btn-cancelar:hover { background: #f8f8f8; }
         .btn-primario {
-            padding: 9px 22px; background: #D4AF37; color: #12101a;
+            padding: 9px 22px; background: var(--cor-destaque); color: var(--cor-texto-destaque);
             border: none; border-radius: 10px; cursor: pointer;
             font-size: 13px; font-weight: 700;
         }
-        .btn-primario:hover { background: #B8922A; }
+        .btn-primario:hover { background: var(--cor-destaque-hover); }
 
         /* MODAL — BOTÕES */
         .btn-modal-cancelar { padding: 9px 20px; border: 1px solid #e0e0e0; background: white; color: var(--cor-texto-principal); border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; }
         .btn-modal-cancelar:hover { background: #f8f8f8; }
         .btn-modal-confirmar { padding: 9px 20px; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700; color: white; }
-        .btn-modal-confirmar.verde  { background: #D4AF37; color: #12101a; }
+        .btn-modal-confirmar.verde  { background: var(--cor-destaque); color: var(--cor-texto-destaque); }
         .btn-modal-confirmar.laranja { background: #d4720a; }
         .btn-modal-confirmar.vermelho { background: #c62828; }
         .btn-modal-confirmar.azul { background: var(--cor-fundo-escuro); }
@@ -735,9 +735,9 @@
             background: white; color: var(--cor-texto-principal);
         }
         .btn-ficha:hover { background: #f8f8f8; }
-        .btn-ficha-ativar    { background: #12101a; border-color: #12101a; color: #ffffff; }
+        .btn-ficha-ativar    { background: var(--cor-fundo-escuro); border-color: var(--cor-fundo-escuro); color: var(--cor-texto-claro); }
         .btn-ficha-ativar:hover { background: #2a2740; border-color: #2a2740; }
-        .btn-ficha-rejeitar  { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+        .btn-ficha-rejeitar  { border: 1.5px solid var(--cor-terracota); color: var(--cor-terracota); background: transparent; }
         .btn-ficha-rejeitar:hover { background: #fef0eb; }
         .btn-ficha-suspender { border-color: #d4720a; color: #d4720a; }
         .btn-ficha-suspender:hover { background: #fff8f0; }
@@ -745,19 +745,19 @@
         .btn-ficha-desligar:hover  { background: #fff5f5; }
         .btn-ficha-reativar  { border-color: var(--cor-texto-principal); color: var(--cor-texto-principal); }
         .btn-ficha-reativar:hover  { background: #f0f0f0; }
-        .btn-ficha-editar    { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
-        .btn-ficha-editar:hover { background: #B8922A; }
-        .btn-ficha-salvar    { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
-        .btn-ficha-salvar:hover { background: #B8922A; }
-        .btn-ficha-carteirinha { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
-        .btn-ficha-carteirinha:hover { background: #B8922A; }
+        .btn-ficha-editar    { background: var(--cor-destaque); border-color: var(--cor-destaque); color: var(--cor-texto-destaque); }
+        .btn-ficha-editar:hover { background: var(--cor-destaque-hover); }
+        .btn-ficha-salvar    { background: var(--cor-destaque); border-color: var(--cor-destaque); color: var(--cor-texto-destaque); }
+        .btn-ficha-salvar:hover { background: var(--cor-destaque-hover); }
+        .btn-ficha-carteirinha { background: var(--cor-destaque); border-color: var(--cor-destaque); color: var(--cor-texto-destaque); }
+        .btn-ficha-carteirinha:hover { background: var(--cor-destaque-hover); }
 
         /* INPUTS DE EDIÇÃO NO MODAL */
         .fc-input {
             display: none;
             width: 100%;
             padding: 7px 10px;
-            border: 1.5px solid #D4AF37;
+            border: 1.5px solid var(--cor-destaque);
             border-radius: 8px;
             font-size: 13px;
             font-family: inherit;
@@ -765,7 +765,7 @@
             color: var(--cor-texto-principal);
             margin-top: 2px;
         }
-        .fc-input:focus { outline: none; border-color: #b8922a; }
+        .fc-input:focus { outline: none; border-color: var(--cor-destaque-hover); }
 
         /* DECLARAÇÃO MENOR NO MODAL — toggle switch */
         .toggle-declaracao {
@@ -773,10 +773,10 @@
         }
         .toggle-track {
             width: 40px; height: 22px; border-radius: 11px;
-            background: #b3261e; border: 1.5px solid #b3261e; position: relative;
+            background: var(--cor-erro); border: 1.5px solid var(--cor-erro); position: relative;
             transition: background 0.2s; flex-shrink: 0;
         }
-        .toggle-track.on { background: #1f4d1f; border-color: #1f4d1f; }
+        .toggle-track.on { background: var(--cor-sucesso); border-color: var(--cor-sucesso); }
         .toggle-thumb {
             position: absolute; top: 3px; left: 3px;
             width: 16px; height: 16px; border-radius: 50%;
@@ -831,7 +831,7 @@
             border-radius: 8px; font-size: 14px; margin-bottom: 16px;
             font-family: Arial, sans-serif;
         }
-        .modal select:focus, .modal textarea:focus { outline: none; border-color: #D4AF37; }
+        .modal select:focus, .modal textarea:focus { outline: none; border-color: var(--cor-destaque); }
         /* Checkbox/radio nunca devem herdar largura/borda/padding de campo de texto --
            sem isso, o input invisível esticava pra ocupar a linha inteira, empurrando
            o texto do rótulo pra longe (achado da Márcia, 18/ago/2026, print da modal
@@ -840,7 +840,7 @@
         .modal-acoes { display: flex; gap: 10px; justify-content: flex-end; }
         .btn-modal-cancelar { background: #f0f0f0; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; }
         .btn-modal-confirmar { border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; color: white; }
-        .btn-modal-confirmar.verde { background: #D4AF37; color: #12101a; }
+        .btn-modal-confirmar.verde { background: var(--cor-destaque); color: var(--cor-texto-destaque); }
         .btn-modal-confirmar.laranja { background: #fd7e14; }
         .btn-modal-confirmar.vermelho { background: #dc3545; }
         .btn-modal-confirmar.azul { background: var(--cor-fundo-escuro); }
@@ -859,8 +859,8 @@
         .modal-exportar .subtitulo-resumo { font-size: 13px; color: #666; margin-bottom: 22px; }
         .modal-exportar .subtitulo-resumo strong { color: var(--cor-texto-principal); }
         .exp-secao { margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid #f0eef5; }
-        .exp-secao-titulo-linha { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
-        .exp-secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .exp-secao-titulo-linha { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--cor-destaque); margin-bottom: 12px; }
+        .exp-secao-titulo { font-size: 11px; font-weight: 700; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid var(--cor-destaque); margin-bottom: 12px; }
         .exp-secao-titulo-linha .exp-secao-titulo { padding-bottom: 0; border-bottom: none; margin-bottom: 0; }
         .exp-secao-acoes { font-size: 12px; color: #888; font-weight: 500; }
         .exp-secao-acoes span[onclick] { cursor: pointer; }
@@ -885,7 +885,7 @@
         .modal label.exp-radio-linha {
             display: flex; align-items: flex-start; gap: 10px;
             padding: 10px 12px; border-radius: 10px;
-            border: 1.5px solid #e8e6f0; cursor: pointer; margin-bottom: 0;
+            border: 1.5px solid var(--cor-borda); cursor: pointer; margin-bottom: 0;
         }
         .exp-radio-linha input { accent-color: var(--cor-destaque); width: 17px; height: 17px; cursor: pointer; flex-shrink: 0; margin-top: 1px; }
         .exp-radio-texto { display: flex; flex-direction: column; gap: 1px; }
@@ -894,9 +894,9 @@
         .exp-radio-linha:has(input:checked) { border-color: var(--cor-destaque); background: #fdf8ea; }
         .exp-radio-linha:has(input:focus-visible) { outline: 2px solid var(--cor-destaque); outline-offset: 2px; }
         .exp-campos { max-height: 280px; overflow-y: auto; border: 1px solid #f0eef5; border-radius: 10px; padding: 2px 14px; }
-        .exp-campos-grupo-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 0.8px; padding: 24px 0 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .exp-campos-grupo-titulo { font-size: 11px; font-weight: 700; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 0.8px; padding: 24px 0 6px; border-bottom: 1px solid var(--cor-destaque); margin-bottom: 12px; }
         .exp-campos-grupo-titulo:first-child { padding-top: 4px; }
-        .exp-campos .exp-campo-linha { padding: 8px 0; border-top: 1px solid #f7f6fb; }
+        .exp-campos .exp-campo-linha { padding: 8px 0; border-top: 1px solid var(--cor-fundo-claro); }
         .exp-campos-grupo-titulo + .exp-campo-linha { border-top: none; }
 
         /* MODAL CADASTRO COMPLETO */
@@ -904,7 +904,7 @@
         .modal-cadastro h2 { font-size: 17px; margin-bottom: 2px; }
         .modal-cadastro .subtitulo { font-size: 12px; color: #888; margin-bottom: 14px; }
         .ficha-secao { margin-bottom: 24px; }
-        .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .ficha-secao-titulo { font-size: 11px; font-weight: bold; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid var(--cor-destaque); margin-bottom: 12px; }
         /* Título "pai" de um bloco com sub-blocos dentro (ex: "Meu Perfil"
            em Permissões → Ritmistas, 01/set/2026) -- precisa se destacar de
            verdade dos subtítulos (.config-grupo-titulo), que têm o mesmo
@@ -1040,7 +1040,7 @@
         }
         .config-item:hover, .config-item:active { background: var(--cor-fundo-claro); border-color: var(--cor-borda-forte); }
         .config-item-seta { color: #ccc; font-size: 20px; font-weight: 300; }
-        .btn-voltar-config { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: #D4AF37; padding: 0; margin-bottom: 16px; font-family: inherit; }
+        .btn-voltar-config { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--cor-destaque); padding: 0; margin-bottom: 16px; font-family: inherit; }
         .btn-voltar-config:hover { text-decoration: underline; }
         .config-sub-desc { font-size: 13px; color: var(--cor-texto-muted); margin: -10px 0 16px; }
         /* Sub-tela de Configurações em modo "só ver" (Reforma de Permissões,
@@ -1071,7 +1071,7 @@
             background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
             border-radius: 14px; padding: 16px 22px; margin-bottom: 22px;
         }
-        .config-vagas-total-numero { font-size: 34px; font-weight: 800; color: #D4AF37; line-height: 1; flex-shrink: 0; }
+        .config-vagas-total-numero { font-size: 34px; font-weight: 800; color: var(--cor-destaque); line-height: 1; flex-shrink: 0; }
         .config-vagas-total-label { font-size: 12px; color: #888; line-height: 1.4; }
         /* Totalizador de dois números (25/ago/2026) -- mesma fonte grande do
            card acima (.config-vagas-total-numero), mas com dois valores lado
@@ -1083,7 +1083,7 @@
         .total-duplo { display: flex; align-items: center; gap: 14px; }
         .total-duplo-item { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
         .total-duplo-numero { font-size: 34px; font-weight: 800; line-height: 1; }
-        .total-duplo-numero.total { color: #D4AF37; }
+        .total-duplo-numero.total { color: var(--cor-destaque); }
         .total-duplo-numero.faltam { color: var(--cor-terracota); }
         .total-duplo-rotulo { font-size: 12px; color: #888; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.3px; }
         /* Números (Total/Faltam) do totalizador -- era grid de largura justa
@@ -1175,9 +1175,9 @@
            de chegar na borda direita). */
         #presenca-grupos-detalhe, #figurino-grupos-detalhe { width: 100%; }
         .btn-contorno {
-            background: #fff; border: 1.5px solid #D4AF37; border-radius: 20px; padding: 8px 14px;
+            background: var(--cor-superficie); border: 1.5px solid var(--cor-destaque); border-radius: 20px; padding: 8px 14px;
             display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700;
-            color: #12101a; white-space: nowrap; cursor: pointer; font-family: inherit;
+            color: var(--cor-texto-principal); white-space: nowrap; cursor: pointer; font-family: inherit;
         }
         /* Interruptor (trilho/bolinha) -- mesmo visual do Desfile
            (ficha-perfil.js, "ela adorava o visual"), antes só inline-style;
@@ -1186,12 +1186,12 @@
         .trilho-trecho { width: 40px; height: 22px; border-radius: 11px; position: relative; transition: background 0.2s; flex-shrink: 0; }
         .trilho-trecho.on { background: #2d7a4f; }
         .trilho-trecho.off { background: #c7d3e0; }
-        .trilho-bolinha { position: absolute; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: left 0.2s; }
+        .trilho-bolinha { position: absolute; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--cor-superficie); box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: left 0.2s; }
         .trilho-trecho.on .trilho-bolinha { left: 19px; }
         .trilho-trecho.off .trilho-bolinha { left: 3px; }
         .trilho-label { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
         .trilho-label.on { color: #2d7a4f; }
-        .trilho-label.off { color: #706c87; }
+        .trilho-label.off { color: var(--cor-texto-muted); }
         /* Versão pequena, pro cabeçalho fechado dos cards da Visão Geral --
            mesmas cores, fonte reduzida pra caber ao lado do título. */
         .total-duplo--mini { gap: 14px; }
@@ -1223,7 +1223,7 @@
            card (18px em vez de 6px) -- achado real dela, comparando print
            lado a lado. Margem negativa cancela só o gap extra. */
         .lista-cards .config-vagas-cabecalho { margin-bottom: -12px; }
-        .config-vagas-cabecalho span { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .config-vagas-cabecalho span { font-size: 11px; font-weight: 700; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         .config-vagas-cabecalho span:first-child { width: 56px; text-align: center; }
         .config-vagas-cabecalho span:last-child { width: 64px; text-align: center; }
         /* "Nome usado" virou cabeçalho próprio, separado do título do
@@ -1242,7 +1242,7 @@
         .config-lista-cabecalho {
             display: flex; align-items: center; justify-content: space-between;
             padding: 10px 20px; margin-bottom: 4px;
-            background: #f7f6fb; border: 1px solid #e8e6f0; border-bottom: none;
+            background: var(--cor-fundo-claro); border: 1px solid var(--cor-borda); border-bottom: none;
             border-radius: 10px 10px 0 0;
             font-size: 11px; font-weight: 700; color: var(--cor-texto-muted);
             text-transform: uppercase; letter-spacing: 0.6px;
@@ -1255,7 +1255,7 @@
         .config-lista-cabecalho-controles { display: flex; align-items: center; gap: 32px; }
         .config-lista-cabecalho-controles span:first-child { min-width: 56px; text-align: center; white-space: nowrap; }
         .config-lista-cabecalho-controles span:last-child { width: 64px; text-align: center; white-space: nowrap; }
-        .config-grupo-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .config-grupo-titulo { font-size: 11px; font-weight: 700; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid var(--cor-destaque); margin-bottom: 12px; }
         .config-grupo-titulo:first-child { margin-top: 0; }
         /* Medidas usa a linha antiga (.config-instrumento-linha), sem
            controle nenhum à direita -- fica como estava. */
@@ -1279,7 +1279,7 @@
         .config-instrumento-nome-usado-fixo {
             display: inline-block; width: 170px; box-sizing: border-box;
             padding: 5px 8px; border: 1.5px solid #ececec; border-radius: 6px;
-            font-size: 12.5px; color: #333; background: #f7f6fb; text-align: left;
+            font-size: 12.5px; color: #333; background: var(--cor-fundo-claro); text-align: left;
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         /* Respiro entre grupos (ex: Tradicionais → Especiais) -- achado da
@@ -1304,10 +1304,10 @@
             display: inline-flex; align-items: center; justify-content: center;
             min-width: 56px; box-sizing: border-box;
             padding: 2px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 800;
-            background: #e8e6f0; color: #5a5770; border: 1px solid #d8d5e3;
+            background: var(--cor-borda); color: var(--cor-texto-secundario); border: 1px solid #d8d5e3;
         }
         .config-vaga-contagem.completo { background: #f0faf4; color: #2d7a4f; border-color: #b8ddc8; }
-        .config-vaga-contagem.excedeu { background: #fde8e8; color: #b3261e; border-color: #f0c4c0; }
+        .config-vaga-contagem.excedeu { background: var(--cor-erro-fundo); color: var(--cor-erro); border-color: #f0c4c0; }
         .config-vaga-input { width: 64px; padding: 6px; border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 13px; text-align: center; }
         /* Caixinha de tamanho na Entrega de Figurino -- mesma linguagem visual
            do .config-vaga-input (borda 1.5px, cantos 6px), só que fixa e
@@ -1332,14 +1332,14 @@
         button.figurino-selo { cursor: pointer; }
         .figurino-selo-pendente { background: #f0f0f0; color: #888; }
         button.figurino-selo-pendente:hover { background: #e6e6e6; }
-        .figurino-selo-entregue { background: #e8f5e8; color: #1f4d1f; }
+        .figurino-selo-entregue { background: var(--cor-sucesso-fundo); color: var(--cor-sucesso); }
         button.figurino-selo-entregue:hover { background: #d7ecd7; }
         .figurino-confirmacao { display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .figurino-confirmacao .pergunta { font-size: 11px; color: #888; }
         .figurino-confirmacao .botoes { display: flex; gap: 5px; }
         .figurino-confirmacao button { border: none; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; }
-        .figurino-btn-sim { background: #D4AF37; color: #12101a; }
-        .figurino-btn-sim:hover { background: #b8922a; }
+        .figurino-btn-sim { background: var(--cor-destaque); color: var(--cor-texto-destaque); }
+        .figurino-btn-sim:hover { background: var(--cor-destaque-hover); }
         .figurino-btn-nao { background: transparent; color: #888; }
         .figurino-btn-nao:hover { color: #333; }
         /* Filtro de lado (Ritmista/Diretoria) virou aba, não mais pílula
@@ -1348,8 +1348,8 @@
            visualmente). */
         .figurino-tabs-lado { display: flex; gap: 28px; border-bottom: 1.5px solid #eee; margin-top: 22px; margin-bottom: 18px; }
         .figurino-tabs-lado button { background: none; border: none; font-family: inherit; font-size: 15.5px; font-weight: 700; color: #888; padding: 0 0 10px; cursor: pointer; position: relative; }
-        .figurino-tabs-lado button.ativo { color: #12101a; }
-        .figurino-tabs-lado button.ativo::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1.5px; height: 2.5px; background: #D4AF37; border-radius: 2px; }
+        .figurino-tabs-lado button.ativo { color: var(--cor-texto-principal); }
+        .figurino-tabs-lado button.ativo::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1.5px; height: 2.5px; background: var(--cor-destaque); border-radius: 2px; }
         /* Instrumento e Status viram pílulas do mesmo tamanho, lado a lado,
            debaixo de um rótulo "Filtros" -- mesma ideia de Ritmistas/
            Diretoria, só que com <select> nativo (mais simples aqui, já que
@@ -1362,7 +1362,7 @@
            imagem de fundo, ao lado da setinha que já existia. */
         .figurino-pill-select {
             appearance: none; -webkit-appearance: none;
-            background-color: #fff;
+            background-color: var(--cor-superficie);
             background-image:
                 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 6L9 0z' fill='%23888'/%3E%3C/svg%3E"),
                 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='4 4 20 4 14 12 14 19 10 21 10 12 4 4'/%3E%3C/svg%3E");
@@ -1371,7 +1371,7 @@
             background-size: 9px 6px, 12px 12px;
             border: 1.5px solid #e0e0e0; border-radius: 20px;
             padding: 7px 30px 7px 32px;
-            font-family: inherit; font-size: 12.5px; font-weight: 600; color: #12101a; cursor: pointer;
+            font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--cor-texto-principal); cursor: pointer;
         }
         /* Totalizador (Figurino/Presença, função compartilhada
            totalGradeHtml): hero (Total/Faltam) em flex, não mais grid --
@@ -1393,7 +1393,7 @@
         .extra-figurino-status { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e0e0e0; }
         .extra-figurino-linha { display: flex; align-items: center; gap: 7px; font-size: 12.5px; }
         .extra-figurino-marca { width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; }
-        .extra-figurino-marca.sim { background: #2d7a4f; color: #fff; }
+        .extra-figurino-marca.sim { background: #2d7a4f; color: var(--cor-texto-claro); }
         .extra-figurino-marca.nao { border: 1.5px solid #e0e0e0; }
         /* .item-acoes é compartilhado com o resto do app (Ritmistas,
            Diretoria) com gap de 8px, pensado pra botões/badges coladinhos
@@ -1407,7 +1407,7 @@
            (aba Acessos, "Mestres"/"Diretores"), reaproveitado aqui pra
            separar Mestres/Diretores (Diretoria) e Pendentes/Ativos/etc
            (Ritmistas), pedido da Márcia, 18/ago/2026. */
-        .secao-titulo { font-size: 11px; font-weight: 700; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .secao-titulo { font-size: 11px; font-weight: 700; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid var(--cor-destaque); margin-bottom: 12px; }
         .secao-titulo:first-child { margin-top: 4px; }
         /* "Filtros" é um rótulo utilitário (organiza a busca), não uma
            categoria de dado como Pendentes/Ativos/Mestres -- achado da
@@ -1425,12 +1425,12 @@
         /* DIRETORIA -- reaproveita o mesmo padrão visual de card dos
            Ritmistas (.card-ritmista e companhia), pedido da Márcia,
            20/ago/2026: "quero que o padrão visual seja o mesmo". */
-        .dir-badge-cargo { background: #e8e6f0; color: #5a5770; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .dir-badge-cargo { background: var(--cor-borda); color: var(--cor-texto-secundario); padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
         /* Admin desta bateria (04/set/2026) -- soma ao selo de cargo, nunca
            substitui (Diretor de Bateria + Admin juntos). Cor sólida escura
            de propósito -- é a única cor "forte" já usada em selo/botão no
            app (Ativar, cabeçalho), pra se destacar dos selos neutros/suaves. */
-        .dir-badge-admin { background: #12101a; color: #ffffff; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .dir-badge-admin { background: var(--cor-fundo-escuro); color: var(--cor-texto-claro); padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
         /* Modal ficha de admin (Diretoria) */
         .modal-admin-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000;
@@ -1452,16 +1452,16 @@
                nenhum. Continua sendo só UM scroll container (não dois). */
         }
         .modal-admin-box {
-            background: #fff; border-radius: 20px;
+            background: var(--cor-superficie); border-radius: 20px;
             width: 100%; max-width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,0.25);
             padding: 28px;
             margin: auto 0;
         }
-        .modal-admin-titulo { font-size: 18px; font-weight: 800; color: #12101a; margin-bottom: 4px; }
+        .modal-admin-titulo { font-size: 18px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 4px; }
         .modal-admin-sub { font-size: 13px; color: var(--cor-texto-muted); margin-bottom: 20px; }
         .modal-admin-campo { display: flex; flex-direction: column; margin-bottom: 12px; }
         .modal-admin-campo span { font-size: 11px; font-weight: 600; color: var(--cor-texto-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        .modal-admin-campo strong { font-size: 15px; color: #12101a; margin-top: 2px; }
+        .modal-admin-campo strong { font-size: 15px; color: var(--cor-texto-principal); margin-top: 2px; }
         .modal-admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
 
         /* ══════════════════════════════════════════════════════════════
@@ -1500,7 +1500,7 @@
         /* Mesmo dourado sólido de .aba-btn.ativa (ver comentário lá) --
            os dois menus usavam a mesma receita "suja", achado da Márcia,
            22/ago/2026. */
-        .sa-sidebar-item.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
+        .sa-sidebar-item.ativa { color: var(--cor-texto-destaque); background: var(--cor-destaque); font-weight: 700; }
 
         /* Mesmo padrão de .main -- 1200px máximo, centralizado de verdade,
            sem nunca estourar a tela (ver comentário completo em .main).
@@ -1530,7 +1530,7 @@
         .item-card-esquerda { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
         .escola-logo-circulo {
             width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-            box-shadow: 0 0 0 2px #D4AF37;
+            box-shadow: 0 0 0 2px var(--cor-destaque);
             background: var(--cor-fundo-claro); color: var(--cor-texto-muted);
             display: flex; align-items: center; justify-content: center;
             font-size: 15px; font-weight: 700; overflow: hidden;
@@ -1570,7 +1570,7 @@
         .kpi.ok .n { color: #2e7d32; }
         .kpi.atencao .n { color: var(--cor-terracota); }
         .kpi.atencao { border-color: var(--cor-terracota-clara); }
-        .dash-secao-titulo { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #5a5770; margin-top: 4px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .dash-secao-titulo { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cor-texto-secundario); margin-top: 4px; padding-bottom: 6px; border-bottom: 1px solid var(--cor-destaque); margin-bottom: 12px; }
         .dash-secao-hint { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--cor-texto-muted); }
         .atencao-box { background: white; border: 1px solid var(--cor-borda); border-left: 4px solid var(--cor-terracota); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
         .atencao-titulo { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--cor-terracota); margin-bottom: 4px; }
@@ -1604,7 +1604,7 @@
         .aniv-card { background: white; border: 1px solid var(--cor-borda); border-radius: 14px; padding: 16px 18px; }
         .aniv-tag { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.04em; padding: 3px 9px; border-radius: 999px; margin-bottom: 9px; }
         .aniv-tag.hoje { color: #8a6d1a; background: #fdf1cf; }
-        .aniv-tag.amanha { color: #5a5770; background: #e8e6f0; }
+        .aniv-tag.amanha { color: var(--cor-texto-secundario); background: var(--cor-borda); }
         .aniv-nome { font-size: 12.5px; line-height: 1.5; }
         .aniv-nome b { font-weight: 700; }
         .aniv-apelido { color: var(--cor-destaque); font-weight: 400; font-style: italic; }
@@ -1625,22 +1625,22 @@
 
         /* Formulários inline (Nova Escola, Dados da Escola, Dados da Bateria) */
         .card-form { margin-bottom: 14px; }
-        .card-form-titulo { font-size: 11px; font-weight: bold; color: #5a5770; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid #D4AF37; margin-bottom: 12px; }
+        .card-form-titulo { font-size: 11px; font-weight: bold; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 1px solid var(--cor-destaque); margin-bottom: 12px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-grid .campo-full { grid-column: 1 / -1; }
         .campo { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
         .campo > label { font-size: 12px; font-weight: 600; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 0.5px; }
         .campo input, .campo select, .campo textarea {
-            padding: 7px 10px; border: 1.5px solid #D4AF37; border-radius: 8px;
+            padding: 7px 10px; border: 1.5px solid var(--cor-destaque); border-radius: 8px;
             font-size: 15px; color: #0f172a; font-family: inherit; background: #fffdf4;
             transition: border-color 0.2s; outline: none;
         }
-        .campo input:focus, .campo select:focus, .campo textarea:focus { border-color: #b8922a; }
+        .campo input:focus, .campo select:focus, .campo textarea:focus { border-color: var(--cor-destaque-hover); }
         .campo textarea { resize: vertical; min-height: 80px; }
         .preview-cores { display: flex; gap: 10px; margin-top: 10px; padding: 14px; border-radius: 10px; background: var(--cor-fundo-claro); border: 1px solid var(--cor-borda); align-items: center; }
         .preview-circulo { width: 36px; height: 36px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); flex-shrink: 0; }
         .preview-texto { font-size: 12px; color: var(--cor-texto-muted); flex: 1; }
-        .logo-box { width: 96px; height: 96px; border-radius: 12px; border: 2px dashed #D4AF37; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; background: var(--cor-fundo-claro); flex-shrink: 0; }
+        .logo-box { width: 96px; height: 96px; border-radius: 12px; border: 2px dashed var(--cor-destaque); overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; background: var(--cor-fundo-claro); flex-shrink: 0; }
         .logo-box.desabilitado { cursor: default; border-style: solid; border-color: var(--cor-borda); }
         .logo-box img { width: 100%; height: 100%; object-fit: contain; }
         .logo-box-vazio { font-size: 11px; color: var(--cor-texto-muted); text-align: center; padding: 4px; }
@@ -1648,7 +1648,7 @@
         .logo-hint { font-size: 11px; color: var(--cor-texto-muted); }
         .form-rodape { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--cor-borda); flex-wrap: wrap; gap: 8px; }
         .form-rodape-esq { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-        .btn-ficha-danger { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+        .btn-ficha-danger { border: 1.5px solid var(--cor-terracota); color: var(--cor-terracota); background: transparent; }
         .btn-ficha-danger:hover { background: #fef0eb; }
         .btn-secundario {
             display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: transparent;
@@ -1658,8 +1658,8 @@
         .btn-secundario:hover { border-color: var(--cor-borda-forte); color: var(--cor-texto-principal); }
         .cat-edit-nom-linha { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .cat-edit-nom-linha input { flex: 1; padding: 9px 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; }
-        .cat-edit-nom-remover { background: none; border: none; color: #b3261e; font-size: 18px; cursor: pointer; padding: 0 6px; line-height: 1; }
-        .cat-edit-nom-add { display: inline-block; margin-top: 4px; font-size: 12.5px; color: #D4AF37; cursor: pointer; font-weight: 600; }
+        .cat-edit-nom-remover { background: none; border: none; color: var(--cor-erro); font-size: 18px; cursor: pointer; padding: 0 6px; line-height: 1; }
+        .cat-edit-nom-add { display: inline-block; margin-top: 4px; font-size: 12.5px; color: var(--cor-destaque); cursor: pointer; font-weight: 600; }
         .cat-edit-nom-add:hover { text-decoration: underline; }
 
         /* Modal padrão Super Admin (usado só pela exclusão LGPD) */
@@ -1673,11 +1673,11 @@
 
         /* Toast (Super Admin) */
         .toast {
-            position: fixed; bottom: 24px; right: 24px; background: #12101a; color: white; padding: 14px 20px;
+            position: fixed; bottom: 24px; right: 24px; background: var(--cor-fundo-escuro); color: white; padding: 14px 20px;
             border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
             z-index: 9999; display: none; align-items: center; gap: 10px;
         }
-        .toast.ok { border-left: 4px solid #D4AF37; }
+        .toast.ok { border-left: 4px solid var(--cor-destaque); }
         .toast.erro { border-left: 4px solid #ef4444; }
         .toast.visivel { display: flex; }
 
@@ -1739,26 +1739,26 @@
                precisa de env(safe-area-inset-*) por segurança nenhuma:
                qualquer coisa que o iOS corte ou não corte, dos dois lados
                do corte é a mesma cor. */
-            background: #12101a;
+            background: var(--cor-fundo-escuro);
         }
         #overlayCarregandoEscola.escondida { display: none; }
         #overlayCarregandoEscola .cartao {
-            flex: 1; background: #12101a;
+            flex: 1; background: var(--cor-fundo-escuro);
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 52px;
             position: relative; overflow: hidden;
         }
         #overlayCarregandoEscola .batida { position: relative; width: 170px; height: 130px; }
         #overlayCarregandoEscola .onda {
             position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
-            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite;
+            border: 1px solid var(--cor-destaque); animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite;
         }
         #overlayCarregandoEscola .tum {
             position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
-            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite;
+            background: var(--cor-destaque); animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite;
         }
         #overlayCarregandoEscola .tu {
             position: absolute; left: 106px; top: 78px; width: 38px; height: 38px; border-radius: 50%;
-            border: 2px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .15s;
+            border: 2px solid var(--cor-terracota); animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .15s;
         }
         #overlayCarregandoEscola .marca-abertura {
             display: flex; flex-direction: column; align-items: center; gap: 16px;
@@ -1766,17 +1766,17 @@
         #overlayCarregandoEscola .marca-abertura .nome {
             display: flex; align-items: baseline; font-size: 34px; font-weight: 800; letter-spacing: 0.5px;
         }
-        #overlayCarregandoEscola .marca-abertura .nome .t { color: #D4AF37; }
-        #overlayCarregandoEscola .marca-abertura .nome .u { color: #fff; }
-        #overlayCarregandoEscola .marca-abertura .nome .m { position: relative; color: #fff; }
+        #overlayCarregandoEscola .marca-abertura .nome .t { color: var(--cor-destaque); }
+        #overlayCarregandoEscola .marca-abertura .nome .u { color: var(--cor-texto-claro); }
+        #overlayCarregandoEscola .marca-abertura .nome .m { position: relative; color: var(--cor-texto-claro); }
         #overlayCarregandoEscola .marca-abertura .nome .m::after {
-            content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: #7c2d12;
+            content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--cor-terracota);
         }
         #overlayCarregandoEscola .compasso {
             width: 56px; height: 2px; background: rgba(212,175,55,.18); border-radius: 2px; overflow: hidden;
         }
         #overlayCarregandoEscola .compasso-bola {
-            width: 33%; height: 100%; background: #D4AF37; animation: tt-compasso 1.05s linear infinite;
+            width: 33%; height: 100%; background: var(--cor-destaque); animation: tt-compasso 1.05s linear infinite;
         }
         #overlayCarregandoEscola .status-abertura {
             position: absolute; bottom: 40px; color: #6f6980; font-size: 13px; font-weight: 600;
@@ -1949,7 +1949,7 @@
                    alto". Baixado de 100px pra 80px (mesma sessão) --
                    ajuste fino a olho, ela quem confirma se ficou bom. */
                 position: fixed; top: auto; bottom: 80px; left: 12px; z-index: 250;
-                width: auto; background: rgba(18,16,26,0.85); color: #fff;
+                width: auto; background: rgba(18,16,26,0.85); color: var(--cor-texto-claro);
                 padding: 7px 14px; border-radius: 999px; font-size: 12px;
                 backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0,0,0,0.35);
             }
@@ -2078,7 +2078,7 @@
                 <div class="campo"><label>Cor Quaternária</label><input type="text" id="nova-escola-cor-quaternaria" placeholder="#000000" oninput="atualizarPreviewNovaEscola()"></div>
                 <div class="campo campo-full"><label>Preview</label><div class="preview-cores" id="preview-nova-escola"><span style="font-size:13px;color:#999">Sem cores definidas</span></div></div>
                 <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
-                    <input type="checkbox" id="nova-escola-tema-ativo" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;">
+                    <input type="checkbox" id="nova-escola-tema-ativo" style="width:15px;height:15px;accent-color:var(--cor-destaque);cursor:pointer;">
                     <label for="nova-escola-tema-ativo" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Ligar cores da escola no painel de gestão</label>
                 </div>
             </div>
@@ -2339,7 +2339,7 @@
 
             <div class="config-grupo-titulo">Medidas</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
+                <input type="checkbox" id="pe-ritmista-edita-medidas" style="width:15px;height:15px;accent-color:var(--cor-destaque);cursor:pointer;" onchange="salvarRitmistaEditaMedidas(this.checked)">
                 <label for="pe-ritmista-edita-medidas" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
             </div>
 
@@ -2348,11 +2348,11 @@
                  dela, nascem os dois desligados (26/ago/2026). -->
             <div class="config-grupo-titulo">Instrumento</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                <input type="checkbox" id="pe-ritmista-ve-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('ver', this.checked)">
+                <input type="checkbox" id="pe-ritmista-ve-repique-bossa" style="width:15px;height:15px;accent-color:var(--cor-destaque);cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('ver', this.checked)">
                 <label for="pe-ritmista-ve-repique-bossa" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Repique de Bossa</label>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                <input type="checkbox" id="pe-ritmista-marca-repique-bossa" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('marcar', this.checked)">
+                <input type="checkbox" id="pe-ritmista-marca-repique-bossa" style="width:15px;height:15px;accent-color:var(--cor-destaque);cursor:pointer;" onchange="salvarRitmistaRepiqueBossa('marcar', this.checked)">
                 <label for="pe-ritmista-marca-repique-bossa" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Editar Repique de Bossa</label>
             </div>
 
@@ -2360,7 +2360,7 @@
                  sempre a Diretoria pessoa por pessoa (28/ago/2026). -->
             <div class="config-grupo-titulo">Desfile</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                <input type="checkbox" id="pe-ritmista-ve-desfile" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('desfile', this.checked)">
+                <input type="checkbox" id="pe-ritmista-ve-desfile" style="width:15px;height:15px;accent-color:var(--cor-destaque);cursor:pointer;" onchange="salvarRitmistaVeToggle('desfile', this.checked)">
                 <label for="pe-ritmista-ve-desfile" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Desfile</label>
             </div>
 
@@ -2368,7 +2368,7 @@
                  quem é menor de idade (28/ago/2026). -->
             <div class="config-grupo-titulo">Declaração do Responsável</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
+                <input type="checkbox" id="pe-ritmista-ve-declaracao" style="width:15px;height:15px;accent-color:var(--cor-destaque);cursor:pointer;" onchange="salvarRitmistaVeToggle('declaracao', this.checked)">
                 <label for="pe-ritmista-ve-declaracao" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Declaração do Responsável</label>
             </div>
 
@@ -2376,7 +2376,7 @@
                  (28/ago/2026, sessão seguinte). -->
             <div class="config-grupo-titulo">Observações</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
+                <input type="checkbox" id="pe-ritmista-ve-observacoes" style="width:15px;height:15px;accent-color:var(--cor-destaque);cursor:pointer;" onchange="salvarRitmistaVeToggle('observacoes', this.checked)">
                 <label for="pe-ritmista-ve-observacoes" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Visualizar Observações</label>
             </div>
             </div>
@@ -2454,7 +2454,7 @@
 
             <div class="config-grupo-titulo">Medidas</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                <input type="checkbox" id="pe-convidado-edita-medidas" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="salvarConvidadoEditaMedidas(this.checked)">
+                <input type="checkbox" id="pe-convidado-edita-medidas" style="width:15px;height:15px;accent-color:var(--cor-destaque);cursor:pointer;" onchange="salvarConvidadoEditaMedidas(this.checked)">
                 <label for="pe-convidado-edita-medidas" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Editar medidas</label>
             </div>
             </div>
@@ -2950,14 +2950,14 @@
     <div style="display:flex;flex-direction:column;height:100%;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;flex-shrink:0;">
             <div>
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#D4AF37;font-weight:700;">Escaneando presença</div>
-                <div id="presenca-scanner-evento" style="font-size:16px;font-weight:800;color:#fff;"></div>
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--cor-destaque);font-weight:700;">Escaneando presença</div>
+                <div id="presenca-scanner-evento" style="font-size:16px;font-weight:800;color:var(--cor-texto-claro);"></div>
             </div>
-            <button type="button" onclick="fecharScannerPresenca()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
+            <button type="button" onclick="fecharScannerPresenca()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:var(--cor-texto-claro);border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
         </div>
         <div style="flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;">
             <video id="presenca-scanner-video" playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
-            <div style="position:absolute;width:min(70vw,320px);height:min(70vw,320px);border:3px solid #D4AF37;border-radius:20px;box-shadow:0 0 0 2000px rgba(0,0,0,0.45);pointer-events:none;"></div>
+            <div style="position:absolute;width:min(70vw,320px);height:min(70vw,320px);border:3px solid var(--cor-destaque);border-radius:20px;box-shadow:0 0 0 2000px rgba(0,0,0,0.45);pointer-events:none;"></div>
         </div>
         <div id="presenca-scanner-feedback" style="padding:22px 20px;text-align:center;min-height:76px;font-size:15px;flex-shrink:0;"></div>
         <canvas id="presenca-scanner-canvas" style="display:none;"></canvas>
@@ -2972,16 +2972,16 @@
     <div style="display:flex;flex-direction:column;height:100%;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;flex-shrink:0;">
             <div>
-                <div id="presenca-qr-rotulo" style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#D4AF37;font-weight:700;">QR do evento</div>
-                <div id="presenca-qr-evento" style="font-size:16px;font-weight:800;color:#fff;"></div>
+                <div id="presenca-qr-rotulo" style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--cor-destaque);font-weight:700;">QR do evento</div>
+                <div id="presenca-qr-evento" style="font-size:16px;font-weight:800;color:var(--cor-texto-claro);"></div>
             </div>
             <div class="oculta-impressao" style="display:flex;gap:10px;">
-                <button type="button" onclick="imprimirQrEvento()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">🖨️ Imprimir</button>
-                <button type="button" onclick="fecharQrEvento()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
+                <button type="button" onclick="imprimirQrEvento()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:var(--cor-texto-claro);border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">🖨️ Imprimir</button>
+                <button type="button" onclick="fecharQrEvento()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:var(--cor-texto-claro);border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
             </div>
         </div>
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;">
-            <div id="presenca-qr-codigo" style="background:#fff;padding:20px;border-radius:16px;"></div>
+            <div id="presenca-qr-codigo" style="background:var(--cor-superficie);padding:20px;border-radius:16px;"></div>
             <div id="presenca-qr-instrucao" class="oculta-impressao" style="color:#b3aec8;font-size:14px;text-align:center;max-width:320px;">Peça pra cada pessoa escanear com a câmera do próprio celular pra confirmar a própria presença.</div>
         </div>
     </div>
@@ -2994,16 +2994,16 @@
     <div style="display:flex;flex-direction:column;height:100%;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;flex-shrink:0;">
             <div>
-                <div id="figurino-qr-rotulo" style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#D4AF37;font-weight:700;">QR da peça</div>
-                <div id="figurino-qr-item" style="font-size:16px;font-weight:800;color:#fff;"></div>
+                <div id="figurino-qr-rotulo" style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--cor-destaque);font-weight:700;">QR da peça</div>
+                <div id="figurino-qr-item" style="font-size:16px;font-weight:800;color:var(--cor-texto-claro);"></div>
             </div>
             <div class="oculta-impressao" style="display:flex;gap:10px;">
-                <button type="button" onclick="imprimirQrFigurino()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">🖨️ Imprimir</button>
-                <button type="button" onclick="fecharQrFigurino()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
+                <button type="button" onclick="imprimirQrFigurino()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:var(--cor-texto-claro);border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">🖨️ Imprimir</button>
+                <button type="button" onclick="fecharQrFigurino()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:var(--cor-texto-claro);border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
             </div>
         </div>
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;">
-            <div id="figurino-qr-codigo" style="background:#fff;padding:20px;border-radius:16px;"></div>
+            <div id="figurino-qr-codigo" style="background:var(--cor-superficie);padding:20px;border-radius:16px;"></div>
             <div class="oculta-impressao" style="color:#b3aec8;font-size:14px;text-align:center;max-width:320px;">Peça pra cada pessoa escanear com a câmera do próprio celular na hora de pegar a peça, e confirmar sozinha que recebeu.</div>
         </div>
     </div>
@@ -3453,7 +3453,7 @@
             <button class="modal-sa-fechar" onclick="fecharConfirmacaoExclusao()">✕</button>
         </div>
         <div class="modal-sa-body">
-            <p id="excluir-lgpd-descricao" style="font-size:14px;color:#5a5770;margin-bottom:14px;"></p>
+            <p id="excluir-lgpd-descricao" style="font-size:14px;color:var(--cor-texto-secundario);margin-bottom:14px;"></p>
             <div class="campo" style="margin-bottom:10px;" id="excluir-lgpd-motivo-pessoa-wrap">
                 <label>Motivo *</label>
                 <select id="excluir-lgpd-motivo-select" onchange="onMudarMotivoExclusaoPessoa()">
