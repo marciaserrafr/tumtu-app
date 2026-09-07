@@ -770,7 +770,16 @@
     })();
 
     function mascaraCelular(input) {
+        // Estrangeiro: número não segue o padrão brasileiro (DDD + 9
+        // dígitos) -- deixa livre, sem máscara (06/set/2026).
+        if (document.getElementById('nacionalidade_tipo').value === 'Estrangeira') return;
         let v = input.value.replace(/\D/g, '');
+        // Corrige o hábito de digitar o código do país (+55) antes do
+        // número -- o "+" já foi descartado acima, sobra só "55" colado no
+        // lugar do DDD. Achado real, 06/set/2026: pelo menos 4 pessoas no
+        // banco com número errado por causa exatamente disso.
+        if (v.length > 11 && v.startsWith('55')) v = v.slice(2);
+        if (v.length > 11) v = v.slice(0, 11);
         v = v.replace(/^(\d{2})(\d)/, '($1) $2');
         v = v.replace(/(\d{5})(\d)/, '$1-$2');
         input.value = v;
@@ -894,6 +903,16 @@
         input.classList.toggle('aberto', tipo === 'Estrangeira');
         input.required = tipo === 'Estrangeira';
         if (tipo === 'Brasileira') input.value = '';
+        // Celular estrangeiro não cabe no molde "(DD) DDDDD-DDDD" -- libera
+        // espaço pro código do país quando for Estrangeira, volta a travar
+        // se for Brasileira de novo (06/set/2026, pedido dela: aplicar nos
+        // 3 campos -- da própria pessoa, do responsável e do contato).
+        ['celular', 'emergencia_celular', 'responsavel_celular'].forEach(id => {
+            const campo = document.getElementById(id);
+            if (!campo) return;
+            campo.maxLength = tipo === 'Estrangeira' ? 30 : 15;
+            campo.placeholder = tipo === 'Estrangeira' ? '+1 555 123 4567' : '(21) 99999-9999';
+        });
     }
 
     function toggleGeneroPersonalizado() {
