@@ -628,9 +628,17 @@ body.tela-auth-escura .link-secundario { color: #b3aecb !important; font-weight:
 .btn-carregando {
     position: relative; color: transparent !important; pointer-events: none;
 }
+/* Centralização por "inset + margin:auto" (07/set/2026, correção real --
+   o botão "Salvar" da ficha é `display:inline-flex` sem justify-content
+   definido, então o texto (some, mas o layout continua existindo) fica à
+   esquerda dentro do botão; a técnica antiga (top/left:50% + margem
+   negativa) usava o CENTRO GEOMÉTRICO do botão inteiro, que não bate com
+   onde o "Salvar" ficava visualmente. inset:0 + margin:auto centraliza de
+   verdade dentro do espaço real do botão, sem depender de como o
+   conteúdo dele se alinha por dentro). */
 .btn-carregando::after {
-    content: ''; position: absolute; top: 50%; left: 50%;
-    width: 14px; height: 14px; margin: -7px 0 0 -7px;
+    content: ''; position: absolute; inset: 0; margin: auto;
+    width: 14px; height: 14px;
     border-radius: 50%; border: 2px solid rgba(18,16,26,0.25);
     border-top-color: #12101a;
     animation: btnCarregandoGirar 0.6s linear infinite;
