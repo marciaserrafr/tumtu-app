@@ -67,6 +67,17 @@ Todas as cores viram variável CSS na raiz, com os valores do guia:
 **Critério de conclusão:** `grep` por `#` nos arquivos de componente não
 retorna cor nenhuma fora do bloco `:root` e dos overrides `[data-tema]`.
 
+**Progresso (07/set/2026):** `styles/components.css`, `cadastro.html` e
+`carteirinha.html` já limpos (commit `ebd8c1b`) — só troca de valor
+idêntico, zero mudança visual. `admin.html` (a maior parte, ~300
+ocorrências) fica pra uma leva própria. Ficam de propósito sem tocar: o
+spinner "Passaporte" (área frágil, cor combinada com o `<html>` de
+propósito), cores dentro de SVG inline, cores calculadas em JS (contraste
+dinâmico por escola), e um achado real — `--cor-texto-muted` no token é
+`#706c87`, mas a maior parte do app (27 lugares, incluindo o próprio
+guia de design) já usa `#8b88a0` pro mesmo papel. Discrepância não
+resolvida — ver pergunta na sessão de 07/set no histórico.
+
 **Dourado tem dois valores, definidos pelo fundo:** `#D4AF37` sobre escuro
 (sidebar, splash, header preto); em texto pequeno sobre fundo claro, `#D4AF37`
 dá ~1.9:1 de contraste. Ver "Divergências" no fim — precisa de decisão da
