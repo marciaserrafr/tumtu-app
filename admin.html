@@ -2478,15 +2478,18 @@
          chama exatamente a mesma função (aplicarFiltros()) por um
          caminho novo -- se o travamento for algo específico do evento
          oninput/onchange, esse botão contorna. -->
-    <div style="margin:16px 0;display:flex;gap:8px;">
-        <input type="text" id="campoBusca" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltros()" onkeydown="if(event.key==='Enter') aplicarFiltros()"
-            style="flex:1;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+    <div style="margin:16px 0;display:flex;gap:8px;align-items:flex-start;">
+        <div style="flex:1;">
+            <input type="text" id="campoBusca" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltros()" onkeydown="if(event.key==='Enter') aplicarFiltros()"
+                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+            <!-- "Limpar" a busca (06/set/2026, pedido dela) -- embaixo da
+                 caixa do campo, mesmo estilo de "Limpar" já usado nos
+                 filtros Excel-like abaixo, sublinhado igual um link. -->
+            <div style="text-align:right;margin-top:4px;">
+                <span onclick="limparBusca()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;text-decoration:underline;">Limpar</span>
+            </div>
+        </div>
         <button type="button" class="btn-ficha" onclick="aplicarFiltros()" style="flex-shrink:0;">Buscar</button>
-    </div>
-    <!-- "Limpar" a busca (06/set/2026, pedido dela) -- mesmo estilo de
-         "Limpar" já usado nos filtros Excel-like abaixo. -->
-    <div style="text-align:right;margin:-8px 0 12px;">
-        <span onclick="limparBusca()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
     </div>
 
     <!-- Título estático (não clicável, não recolhe) -- pedido da Márcia,
@@ -2712,7 +2715,7 @@
         <input type="text" id="figurino-entregas-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarEntregasFigurinoLista()"
             style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;">
         <div style="text-align:right;margin:2px 0 10px;">
-            <span onclick="limparBuscaFigurinoEntregas()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+            <span onclick="limparBuscaFigurinoEntregas()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;text-decoration:underline;">Limpar</span>
         </div>
         <!-- Instrumento e Status reorganizados em pílulas lado a lado
              (27/ago/2026, pedido dela: "muito filtro misturado" -- antes
@@ -2780,13 +2783,15 @@
             <div id="linksCadastroConvidadoEspecial"></div>
         </div>
 
-        <div style="margin:16px 0;display:flex;gap:8px;">
-            <input type="text" id="campoBuscaConvidadoEspecial" placeholder="Buscar por nome ou apelido..." oninput="aplicarFiltrosConvidadosEspeciais()" onkeydown="if(event.key==='Enter') aplicarFiltrosConvidadosEspeciais()"
-                style="flex:1;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+        <div style="margin:16px 0;display:flex;gap:8px;align-items:flex-start;">
+            <div style="flex:1;">
+                <input type="text" id="campoBuscaConvidadoEspecial" placeholder="Buscar por nome ou apelido..." oninput="aplicarFiltrosConvidadosEspeciais()" onkeydown="if(event.key==='Enter') aplicarFiltrosConvidadosEspeciais()"
+                    style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+                <div style="text-align:right;margin-top:4px;">
+                    <span onclick="limparBuscaConvidados()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;text-decoration:underline;">Limpar</span>
+                </div>
+            </div>
             <button type="button" class="btn-ficha" onclick="aplicarFiltrosConvidadosEspeciais()" style="flex-shrink:0;">Buscar</button>
-        </div>
-        <div style="text-align:right;margin:-8px 0 12px;">
-            <span onclick="limparBuscaConvidados()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
         </div>
 
         <div class="secao-titulo secao-titulo-neutro" style="margin-top:0;">Filtros</div>
@@ -2885,7 +2890,7 @@
         <input type="text" id="presenca-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarPresencaLista()"
             style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;">
         <div style="text-align:right;margin:2px 0 10px;">
-            <span onclick="limparBuscaPresenca()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
+            <span onclick="limparBuscaPresenca()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;text-decoration:underline;">Limpar</span>
         </div>
         <div class="figurino-filtros-rotulo">Filtros</div>
         <div class="figurino-filtros-linha">
@@ -3170,13 +3175,15 @@
          marcado por padrão, "Limpar"/"Marcar todos"). -->
     <!-- Botão "Buscar" (27/ago/2026) -- mesma rede de segurança já
          adicionada em Ritmistas, padronizando as duas telas. -->
-    <div style="margin:16px 0;display:flex;gap:8px;">
-        <input type="text" id="campoBuscaDiretoria" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltrosDiretoria()" onkeydown="if(event.key==='Enter') aplicarFiltrosDiretoria()"
-            style="flex:1;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+    <div style="margin:16px 0;display:flex;gap:8px;align-items:flex-start;">
+        <div style="flex:1;">
+            <input type="text" id="campoBuscaDiretoria" placeholder="Buscar por nome, apelido ou CPF..." oninput="aplicarFiltrosDiretoria()" onkeydown="if(event.key==='Enter') aplicarFiltrosDiretoria()"
+                style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;background:white url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23aaa%22 stroke-width=%222.5%22 stroke-linecap=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat 12px center;">
+            <div style="text-align:right;margin-top:4px;">
+                <span onclick="limparBuscaDiretoria()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;text-decoration:underline;">Limpar</span>
+            </div>
+        </div>
         <button type="button" class="btn-ficha" onclick="aplicarFiltrosDiretoria()" style="flex-shrink:0;">Buscar</button>
-    </div>
-    <div style="text-align:right;margin:-8px 0 12px;">
-        <span onclick="limparBuscaDiretoria()" style="font-size:12px;color:#888;cursor:pointer;font-weight:500;">Limpar</span>
     </div>
 
     <div class="secao-titulo secao-titulo-neutro" style="margin-top:0;">Filtros</div>
