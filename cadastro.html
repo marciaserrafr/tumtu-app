@@ -19,7 +19,7 @@
     <script defer src="/_vercel/insights/script.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=31">
+    <link rel="stylesheet" href="styles/components.css?v=32">
     <script src="config-escola.js?v=4"></script>
     <script src="config-suporte.js?v=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -49,7 +49,7 @@
         }
         .progresso-barra { display: flex; gap: 6px; }
         .progresso-segmento { flex: 1; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.12); transition: background 0.2s; }
-        .progresso-segmento.feito { background: #D4AF37; }
+        .progresso-segmento.feito { background: var(--cor-destaque); }
         .form-step { display: none; }
         .form-step.ativo { display: block; }
         /* Link de suporte fica visualmente quieto — não deve competir com
@@ -130,7 +130,7 @@
             letter-spacing: 1px;
             margin: 20px 0 12px;
             padding-bottom: 6px;
-            border-bottom: 2px solid #D4AF37;
+            border-bottom: 2px solid var(--cor-destaque);
         }
         .form-row {
             display: grid;
@@ -165,18 +165,18 @@
          (06/set/2026, pedido dela: "custei a achar de cara") -- mesmo
          destaque que outras ações importantes do app já usam. -->
     <div id="voltar-admin-manual" style="display:none;text-align:center;margin-bottom:16px;">
-        <a href="admin" style="color:#D4AF37;font-weight:700;text-decoration:underline;font-size:15px;">‹ Voltar</a>
+        <a href="admin" style="color:var(--cor-destaque);font-weight:700;text-decoration:underline;font-size:15px;">‹ Voltar</a>
     </div>
 
-    <div id="convite-banner" style="display:none;background:#fff8e6;border:1.5px solid #D4AF37;border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:#5a5770;text-align:center;">
-        Cadastro de <strong id="convite-cargo" style="color:#12101a;"></strong> da <strong id="convite-bateria" style="color:#12101a;"></strong>
+    <div id="convite-banner" style="display:none;background:var(--cor-destaque-suave);border:1.5px solid var(--cor-destaque);border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:var(--cor-texto-secundario);text-align:center;">
+        Cadastro de <strong id="convite-cargo" style="color:var(--cor-texto-principal);"></strong> da <strong id="convite-bateria" style="color:var(--cor-texto-principal);"></strong>
     </div>
 
-    <div id="pessoa-existente-banner" style="display:none;background:#fff8e6;border:1.5px solid #D4AF37;border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:#5a5770;text-align:center;">
-        Que bom te ver de novo, <strong id="pessoa-existente-nome" style="color:#12101a;"></strong>! Você já tem cadastro no TumTu — só precisamos de alguns dados específicos desta bateria (instrumento, medidas, e a sua senha pra confirmar que é você).
+    <div id="pessoa-existente-banner" style="display:none;background:var(--cor-destaque-suave);border:1.5px solid var(--cor-destaque);border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:var(--cor-texto-secundario);text-align:center;">
+        Que bom te ver de novo, <strong id="pessoa-existente-nome" style="color:var(--cor-texto-principal);"></strong>! Você já tem cadastro no TumTu — só precisamos de alguns dados específicos desta bateria (instrumento, medidas, e a sua senha pra confirmar que é você).
     </div>
 
-    <div id="convite-erro-box" style="display:none;background:#fde8e8;border:1.5px solid #f0c4c0;border-radius:10px;padding:20px;text-align:center;color:#b3261e;font-size:14px;font-weight:600;"></div>
+    <div id="convite-erro-box" style="display:none;background:var(--cor-erro-fundo);border:1.5px solid #f0c4c0;border-radius:10px;padding:20px;text-align:center;color:var(--cor-erro);font-size:14px;font-weight:600;"></div>
 
     <div id="conteudo-cadastro">
     <div id="mensagem" class="mensagem"></div>
@@ -223,7 +223,7 @@
             <label>CPF <span id="cpf-asterisco" class="obrigatorio">*</span></label>
             <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" onblur="verificarCpfExistente()" required>
             <div style="margin-top:8px; display:flex; align-items:center; gap:8px;" class="oculto-pessoa-existente">
-                <input type="checkbox" id="sem_cpf" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" onchange="toggleSemCpf()">
+                <input type="checkbox" id="sem_cpf" style="width:15px;height:15px;accent-color:var(--cor-destaque);cursor:pointer;" onchange="toggleSemCpf()">
                 <label for="sem_cpf" style="margin:0;font-size:12px;color:var(--cor-texto-secundario);cursor:pointer;font-weight:500;">Não tenho CPF</label>
             </div>
             <div id="bloco-documento" class="campo-revelavel">
@@ -607,16 +607,16 @@
             Seus dados serão usados para emissão da sua carteirinha digital e para a gestão da bateria.
         </p>
 
-        <div id="bloco-politica-privacidade" style="margin-top:8px; margin-bottom:6px; background:#fff8e6; border:1.5px solid #D4AF37; border-radius:10px; padding:12px 14px;">
-            <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; font-weight:500; color:#5a5770; cursor:pointer; margin:0;">
-                <input type="checkbox" id="politica_aceita" style="margin-top:2px; width:15px; height:15px; accent-color:#D4AF37; cursor:pointer; flex-shrink:0;" required>
-                <span>Li e concordo com a <a href="politica-privacidade" target="_blank" style="color:#12101a; font-weight:700;">Política de Privacidade</a>.</span>
+        <div id="bloco-politica-privacidade" style="margin-top:8px; margin-bottom:6px; background:var(--cor-destaque-suave); border:1.5px solid var(--cor-destaque); border-radius:10px; padding:12px 14px;">
+            <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; font-weight:500; color:var(--cor-texto-secundario); cursor:pointer; margin:0;">
+                <input type="checkbox" id="politica_aceita" style="margin-top:2px; width:15px; height:15px; accent-color:var(--cor-destaque); cursor:pointer; flex-shrink:0;" required>
+                <span>Li e concordo com a <a href="politica-privacidade" target="_blank" style="color:var(--cor-texto-principal); font-weight:700;">Política de Privacidade</a>.</span>
             </label>
         </div>
 
-        <div id="bloco-consentimento" style="display:none; margin-top:6px; margin-bottom:14px; background:#fff8e6; border:1.5px solid #D4AF37; border-radius:10px; padding:12px 14px;">
-            <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; font-weight:500; color:#5a5770; cursor:pointer;">
-                <input type="checkbox" id="consentimento_confirmado" style="margin-top:2px; width:15px; height:15px; accent-color:#D4AF37; cursor:pointer;">
+        <div id="bloco-consentimento" style="display:none; margin-top:6px; margin-bottom:14px; background:var(--cor-destaque-suave); border:1.5px solid var(--cor-destaque); border-radius:10px; padding:12px 14px;">
+            <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; font-weight:500; color:var(--cor-texto-secundario); cursor:pointer;">
+                <input type="checkbox" id="consentimento_confirmado" style="margin-top:2px; width:15px; height:15px; accent-color:var(--cor-destaque); cursor:pointer;">
                 Confirmo que a pessoa cadastrada está ciente deste cadastro e autorizou seus dados serem inseridos no TumTu.
             </label>
         </div>

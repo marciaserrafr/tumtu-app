@@ -46,8 +46,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #e8e6f0;
-  color: #5a5770;
+  background: var(--cor-borda);
+  color: var(--cor-texto-secundario);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 13px;
@@ -68,7 +68,7 @@
 }
 .campo:focus {
   outline: none;
-  border-color: #D4AF37;
+  border-color: var(--cor-destaque);
 }
 
 /* ── Seção de formulário ── */
@@ -80,22 +80,22 @@
   letter-spacing: 1px;
   margin: 20px 0 12px;
   padding-bottom: 6px;
-  border-bottom: 2px solid #D4AF37;
+  border-bottom: 2px solid var(--cor-destaque);
 }
 
 /* ── Meu Perfil (usado em admin.html e super-admin.html) ── */
 .mp-secao-header { display: flex; align-items: center; gap: 10px; margin: 20px 0 12px; }
-.mp-secao-titulo { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #5a5770; white-space: nowrap; }
-.mp-linha { flex: 1; height: 1px; background: #D4AF37; opacity: 0.35; }
+.mp-secao-titulo { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--cor-texto-secundario); white-space: nowrap; }
+.mp-linha { flex: 1; height: 1px; background: var(--cor-destaque); opacity: 0.35; }
 .mp-campo { margin-bottom: 12px; }
-.mp-campo label { display: block; font-size: 11px; font-weight: 600; color: #5a5770; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.mp-campo label { display: block; font-size: 11px; font-weight: 600; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
 .mp-campo input, .mp-campo select {
-    width: 100%; border: 1.5px solid #e8e6f0; border-radius: 10px;
-    padding: 9px 12px; font-size: 13px; color: #12101a;
+    width: 100%; border: 1.5px solid var(--cor-borda); border-radius: 10px;
+    padding: 9px 12px; font-size: 13px; color: var(--cor-texto-principal);
     font-family: inherit; background: #fff;
     transition: border-color 0.15s; -webkit-appearance: none;
 }
-.mp-campo input:focus, .mp-campo select:focus { outline: none; border-color: #D4AF37; }
+.mp-campo input:focus, .mp-campo select:focus { outline: none; border-color: var(--cor-destaque); }
 .mp-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .mp-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .mp-foto-area { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
@@ -115,22 +115,22 @@
    Super Admin, carteirinha) é risco desnecessário pra um ajuste
    puramente visual. */
 .mp-foto-circle {
-    width: 80px; height: 80px; border-radius: 16px; border: 2px solid #e8e6f0;
+    width: 80px; height: 80px; border-radius: 16px; border: 2px solid var(--cor-borda);
     overflow: hidden; cursor: default; display: flex; align-items: center;
-    justify-content: center; background: #f7f6fb; flex-shrink: 0;
+    justify-content: center; background: var(--cor-fundo-claro); flex-shrink: 0;
 }
-.mp-foto-circle.mp-foto-circle--editavel { border: 2px dashed #D4AF37; cursor: grab; touch-action: none; }
+.mp-foto-circle.mp-foto-circle--editavel { border: 2px dashed var(--cor-destaque); cursor: grab; touch-action: none; }
 .mp-foto-circle.mp-foto-circle--editavel:active { cursor: grabbing; }
 .mp-foto-circle img { width: 100%; height: 100%; object-fit: cover; }
-.mp-foto-hint { font-size: 11px; color: #8b88a0; }
+.mp-foto-hint { font-size: 11px; color: var(--cor-texto-muted); }
 .mp-acoes { display: flex; gap: 10px; justify-content: flex-start; margin-top: 24px; }
 .mp-btn-salvar {
-    background: #D4AF37; border: none; color: #12101a;
+    background: var(--cor-destaque); border: none; color: var(--cor-texto-destaque);
     padding: 10px 24px; border-radius: 10px; cursor: pointer;
     font-size: 13px; font-weight: 700; font-family: inherit;
 }
-.mp-btn-salvar:hover { background: #B8922A; }
-.mp-btn-salvar:disabled { background: #e8e6f0; color: #8b88a0; cursor: not-allowed; }
+.mp-btn-salvar:hover { background: var(--cor-destaque-hover); }
+.mp-btn-salvar:disabled { background: var(--cor-borda); color: var(--cor-texto-muted); cursor: not-allowed; }
 .mp-mensagem {
     border-radius: 8px; padding: 10px 14px; font-size: 12px;
     font-weight: 600; margin-bottom: 12px; display: none;
@@ -138,10 +138,10 @@
 .mp-mensagem.erro { background: var(--cor-erro-fundo); color: var(--cor-erro); display: block; }
 .mp-mensagem.sucesso { background: var(--cor-sucesso-fundo); color: var(--cor-sucesso); display: block; }
 .mp-superadmin-aviso {
-    background: #f7f6fb; border: 1px solid #e8e6f0; border-radius: 12px;
-    padding: 24px; text-align: center; color: #8b88a0; font-size: 13px; margin-top: 8px;
+    background: var(--cor-fundo-claro); border: 1px solid var(--cor-borda); border-radius: 12px;
+    padding: 24px; text-align: center; color: var(--cor-texto-muted); font-size: 13px; margin-top: 8px;
 }
-.mp-superadmin-aviso strong { display: block; font-size: 15px; color: #5a5770; margin-bottom: 6px; }
+.mp-superadmin-aviso strong { display: block; font-size: 15px; color: var(--cor-texto-secundario); margin-bottom: 6px; }
 
 /* ── Ficha de perfil (motor único — usado em admin.html, super-admin.html, carteirinha.html) ── */
 .btn-ficha {
@@ -150,9 +150,9 @@
     background: white; color: #0f172a;
 }
 .btn-ficha:hover { background: #f8f8f8; }
-.btn-ficha-ativar    { background: #12101a; border-color: #12101a; color: #ffffff; }
+.btn-ficha-ativar    { background: var(--cor-fundo-escuro); border-color: var(--cor-fundo-escuro); color: #ffffff; }
 .btn-ficha-ativar:hover { background: #2a2740; border-color: #2a2740; }
-.btn-ficha-rejeitar  { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+.btn-ficha-rejeitar  { border: 1.5px solid var(--cor-terracota); color: var(--cor-terracota); background: transparent; }
 .btn-ficha-rejeitar:hover { background: #fef0eb; }
 .btn-ficha-suspender { border-color: #d4720a; color: #d4720a; }
 .btn-ficha-suspender:hover { background: #fff8f0; }
@@ -160,14 +160,14 @@
 .btn-ficha-desligar:hover  { background: #fff5f5; }
 .btn-ficha-reativar  { border-color: #0f172a; color: #0f172a; }
 .btn-ficha-reativar:hover  { background: #f0f0f0; }
-.btn-ficha-editar    { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
-.btn-ficha-editar:hover { background: #B8922A; }
-.btn-ficha-salvar    { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
-.btn-ficha-salvar:hover { background: #B8922A; }
+.btn-ficha-editar    { background: var(--cor-destaque); border-color: var(--cor-destaque); color: var(--cor-texto-destaque); }
+.btn-ficha-editar:hover { background: var(--cor-destaque-hover); }
+.btn-ficha-salvar    { background: var(--cor-destaque); border-color: var(--cor-destaque); color: var(--cor-texto-destaque); }
+.btn-ficha-salvar:hover { background: var(--cor-destaque-hover); }
 /* Já existia só dentro do <style> de admin.html (telas de exclusão do Super
    Admin) -- movido pra cá em 03/set/2026 pra ficar disponível também em
    carteirinha.html (modal de confirmação personalizado, ver abaixo). */
-.btn-ficha-danger { border: 1.5px solid #7c2d12; color: #7c2d12; background: transparent; }
+.btn-ficha-danger { border: 1.5px solid var(--cor-terracota); color: var(--cor-terracota); background: transparent; }
 .btn-ficha-danger:hover { background: #fef0eb; }
 
 /* ── Confirmação personalizada (substitui o confirm() nativo do navegador
@@ -192,7 +192,7 @@
     display: none;
     width: 100%;
     padding: 7px 10px;
-    border: 1.5px solid #D4AF37;
+    border: 1.5px solid var(--cor-destaque);
     border-radius: 8px;
     font-size: 13px;
     font-family: inherit;
@@ -200,7 +200,7 @@
     color: #0f172a;
     margin-top: 2px;
 }
-.fc-input:focus { outline: none; border-color: #b8922a; }
+.fc-input:focus { outline: none; border-color: var(--cor-destaque-hover); }
 /* Medida obrigatória em branco ao tentar Salvar (ficha-perfil.js,
    fpSalvar) -- mesmo vermelho já usado em .campo-invalido do
    cadastro.html, só que aplicado à cor de borda dourada do .fc-input. */
@@ -217,7 +217,7 @@
    "Título de seção" 11px, "Corpo/labels" 13-14px) — eram 10/12/13px, menores
    até do que o próprio guia já pedia (relato da Márcia, 11/ago/2026: "a
    fonte está pequena demais", testando o Meu Perfil da carteirinha). */
-.ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #D4AF37; padding-bottom: 3px; }
+.ficha-secao-titulo { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid var(--cor-destaque); padding-bottom: 3px; }
 .ficha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
 /* min-width:0 é o ajuste que resolve de raiz (03/set/2026, achado dela:
    "e se alguém digitar um e-mail gigante?") -- por padrão, um item de
@@ -265,7 +265,7 @@
    .mp-foto-circle, .btn-ficha) são escurecidas só dentro do escopo
    ".ficha-modal-overlay", pra não vazar pras outras telas. */
 .ficha-modal-overlay {
-    position: fixed; inset: 0; background: #12101a; z-index: 2000;
+    position: fixed; inset: 0; background: var(--cor-fundo-escuro); z-index: 2000;
     display: flex; flex-direction: column; align-items: center;
     padding: max(6vh, 40px) 20px 40px; overflow-y: auto;
 }
@@ -316,7 +316,7 @@
 }
 .ficha-modal-overlay .ficha-modal-titulo { color: #f7f6fb; }
 .ficha-modal-overlay .ficha-modal-sub { color: #a39fc0; }
-.ficha-modal-overlay .ficha-modal-acoes { border-top-color: rgba(255,255,255,0.12); background: #12101a; }
+.ficha-modal-overlay .ficha-modal-acoes { border-top-color: rgba(255,255,255,0.12); background: var(--cor-fundo-escuro); }
 
 /* Cartões por seção + marcação de cor alternando dourado/terracota clara (as
    duas cores de destaque da marca) — resolve o visual "seco"/monocromático
@@ -341,7 +341,7 @@
 }
 .ficha-modal-overlay .ficha-secao-titulo::before {
     content: ''; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-    background: #D4AF37;
+    background: var(--cor-destaque);
 }
 .ficha-modal-overlay #fp-secao-dados-pessoais .ficha-secao-titulo::before,
 .ficha-modal-overlay #fp-secao-endereco .ficha-secao-titulo::before,
@@ -355,10 +355,10 @@
    partes do app (.ficha-modal-sub, .ficha-secao-titulo aqui mesmo). */
 .ficha-modal-overlay .ficha-campo span { color: #a39fc0; }
 .ficha-modal-overlay .ficha-campo strong { color: #f7f6fb; }
-.ficha-modal-overlay .fc-input { background: var(--cor-fundo-medio); border-color: #D4AF37; color: #f7f6fb; }
+.ficha-modal-overlay .fc-input { background: var(--cor-fundo-medio); border-color: var(--cor-destaque); color: #f7f6fb; }
 .ficha-modal-overlay .fc-input:focus { border-color: #f5d778; }
 .ficha-modal-overlay .mp-foto-circle { background: var(--cor-fundo-medio); border-color: rgba(255,255,255,0.25); }
-.ficha-modal-overlay .mp-foto-circle.mp-foto-circle--editavel { border-color: #D4AF37; }
+.ficha-modal-overlay .mp-foto-circle.mp-foto-circle--editavel { border-color: var(--cor-destaque); }
 .ficha-modal-overlay .mp-foto-hint { color: #8b88a0; }
 .ficha-modal-overlay .btn-ficha { background: transparent; border-color: rgba(255,255,255,0.25); color: #d8d5e6; }
 .ficha-modal-overlay .btn-ficha:hover { background: rgba(255,255,255,0.06); }
@@ -368,10 +368,10 @@
    isso apagava o dourado sem querer (bug real, reportado pela Márcia
    16/jul/2026 — "os botões ficaram todos pretos"). */
 .ficha-modal-overlay .btn-ficha-editar,
-.ficha-modal-overlay .btn-ficha-salvar { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
+.ficha-modal-overlay .btn-ficha-salvar { background: var(--cor-destaque); border-color: var(--cor-destaque); color: var(--cor-texto-destaque); }
 .ficha-modal-overlay .btn-ficha-editar:hover,
-.ficha-modal-overlay .btn-ficha-salvar:hover { background: #B8922A; }
-.ficha-modal-overlay .btn-ficha-ativar { background: #D4AF37; border-color: #D4AF37; color: #12101a; }
+.ficha-modal-overlay .btn-ficha-salvar:hover { background: var(--cor-destaque-hover); }
+.ficha-modal-overlay .btn-ficha-ativar { background: var(--cor-destaque); border-color: var(--cor-destaque); color: var(--cor-texto-destaque); }
 .ficha-modal-overlay .btn-ficha-rejeitar { border-color: #e2986e; color: #e2986e; }
 .ficha-modal-overlay .btn-ficha-suspender { border-color: #e0a252; color: #e0a252; }
 .ficha-modal-overlay .btn-ficha-desligar { border-color: #e08585; color: #e08585; }
@@ -465,12 +465,12 @@
     display: inline-flex; align-items: center; justify-content: center;
     width: 16px; height: 16px; border-radius: 50%;
     border: 1.5px solid #c7c4d9; background: transparent;
-    color: #5a5770; font-size: 10px; font-weight: 700; font-style: italic;
+    color: var(--cor-texto-secundario); font-size: 10px; font-weight: 700; font-style: italic;
     font-family: Georgia, serif; cursor: pointer; padding: 0; vertical-align: middle;
 }
-.btn-info-campo:hover, .btn-info-campo[aria-expanded="true"] { border-color: #D4AF37; color: #D4AF37; }
+.btn-info-campo:hover, .btn-info-campo[aria-expanded="true"] { border-color: var(--cor-destaque); color: var(--cor-destaque); }
 .info-campo-texto {
-    display: none; font-size: 12px; color: #5a5770; margin: 6px 0 8px;
+    display: none; font-size: 12px; color: var(--cor-texto-secundario); margin: 6px 0 8px;
     background: rgba(0,0,0,0.035); border-radius: 8px; padding: 8px 10px;
 }
 .info-campo-texto.visivel { display: block; }
@@ -481,7 +481,7 @@ body.tela-auth-escura .info-campo-texto,
 
 /* ── Logotipo "TumTu" (padrão único, usado em todas as telas) — spec do handoff de design ── */
 .tt-logo { font-weight: 800; font-family: var(--fonte-principal); }
-.tt-logo .tt-t { color: #D4AF37; }
+.tt-logo .tt-t { color: var(--cor-destaque); }
 /* Traço em em, não px -- a marca é reusada em tamanhos bem diferentes (h1
    de login/cadastro ~36px, rodapés pequenos 13-21px). Um traço de 3px fixo
    (valor original do handoff de design, feito pensando no tamanho grande)
@@ -489,7 +489,7 @@ body.tela-auth-escura .info-campo-texto,
    real da Márcia, 18/ago/2026, no rodapé do admin.html. Em em, o traço
    escala junto com o tamanho da fonte em qualquer lugar que a marca apareça,
    sempre com a mesma proporção (3px/36px = 0.083em, 2px/36px = 0.056em). */
-.tt-logo .tt-m { border-bottom: 0.083em solid #7c2d12; padding-bottom: 0.056em; }
+.tt-logo .tt-m { border-bottom: 0.083em solid var(--cor-terracota); padding-bottom: 0.056em; }
 
 /* ── Tela cheia escura — telas de "chegada" do app (login/cadastro/Meu Perfil/
    carregando). Aplicar class="tela-auth-escura" no <body>. Substitui o
@@ -499,7 +499,7 @@ body.tela-auth-escura .info-campo-texto,
    cadastro.html no mesmo dia — um lugar só de verdade, em vez de duplicar a
    regra em cada tela (mesmo princípio do resto do projeto). ── */
 body.tela-auth-escura {
-  background: #12101a;
+  background: var(--cor-fundo-escuro);
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
@@ -565,11 +565,11 @@ body.tela-auth-escura .auth-form-group input:-webkit-autofill:focus,
   font-size: 14px;
   color: var(--cor-texto-secundario);
 }
-.link-cadastro a, .link-login a { color: #D4AF37; font-weight: bold; text-decoration: none; }
+.link-cadastro a, .link-login a { color: var(--cor-destaque); font-weight: bold; text-decoration: none; }
 body.tela-auth-escura .link-cadastro,
 body.tela-auth-escura .link-login { color: #a39fc0; }
 body.tela-auth-escura .link-cadastro a,
-body.tela-auth-escura .link-login a { color: #D4AF37; font-weight: bold; text-decoration: none; }
+body.tela-auth-escura .link-login a { color: var(--cor-destaque); font-weight: bold; text-decoration: none; }
 body.tela-auth-escura .link-secundario { color: #b3aecb !important; font-weight: 600 !important; text-decoration: underline !important; text-decoration-color: rgba(179,174,203,0.4); }
 
 /* Símbolo "eco/pulso" — dois surdos (1ª e 2ª) conversando em sequência, sem
@@ -577,8 +577,8 @@ body.tela-auth-escura .link-secundario { color: #b3aecb !important; font-weight:
    handoff de marca em docs/Conhecendo Design Assistant/.../TumTu - Revisão
    de Marca.dc.html). Fica só nas telas de "chegada", não no resto do app. */
 .simbolo-marca { position: relative; width: 48px; height: 30px; margin: 0 auto 10px; }
-.simbolo-marca .big { width: 24px; height: 24px; border-radius: 50%; background: #D4AF37; position: absolute; left: 0; top: 0; }
-.simbolo-marca .small { width: 14px; height: 14px; border-radius: 50%; background: transparent; border: 2px solid #7c2d12; position: absolute; left: 34px; top: 12px; }
+.simbolo-marca .big { width: 24px; height: 24px; border-radius: 50%; background: var(--cor-destaque); position: absolute; left: 0; top: 0; }
+.simbolo-marca .small { width: 14px; height: 14px; border-radius: 50%; background: transparent; border: 2px solid var(--cor-terracota); position: absolute; left: 34px; top: 12px; }
 
 /* Fundo decorativo — versão grande do mesmo símbolo, só em tela estreita/alta
    (celular), onde sobra espaço vazio embaixo do formulário de verdade. Em
@@ -640,7 +640,7 @@ body.tela-auth-escura .link-secundario { color: #b3aecb !important; font-weight:
     content: ''; position: absolute; inset: 0; margin: auto;
     width: 14px; height: 14px;
     border-radius: 50%; border: 2px solid rgba(18,16,26,0.25);
-    border-top-color: #12101a;
+    border-top-color: var(--cor-texto-principal);
     animation: btnCarregandoGirar 0.6s linear infinite;
 }
 .btn-carregando.btn-carregando-claro::after {
