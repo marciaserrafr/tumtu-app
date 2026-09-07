@@ -81,8 +81,8 @@ Quanto mais curta a espera, mais discreto o sinal.
 |---|---|---|---|
 | Abertura fria | Spinner dourado 56px | Tela cheia, uma vez por sessão | Já existia (spinner "Passaporte") |
 | Troca de tela | Barra de 3px | Abaixo do header, tela anterior a 72% | ✅ **Em produção (07/set/2026)** — só a troca de aba dentro de uma bateria e a navegação do Super Admin (`trocarAba`/`trocarSaAba`); acende só depois de 150ms de espera real |
-| Buscando dados | Esqueleto | No formato do conteúdo que vem | CSS pronto em `components.css`, ainda não aplicado em nenhuma tela |
-| Ação da pessoa | Giro no botão | No elemento tocado, nunca na tela | CSS pronto em `components.css` (`.btn-carregando`), ainda não aplicado em nenhum botão |
+| Buscando dados | Esqueleto | No formato do conteúdo que vem | CSS pronto em `components.css`, ainda não aplicado em nenhuma tela. **Discussão em aberto (07/set/2026):** hoje não existe um momento de "tela vazia esperando" nem em Ritmistas nem em Visão Geral (as duas já buscam tudo e revelam de uma vez, decisão de 01/set) — o único candidato real é trocar o spinner de abertura (login→Visão Geral) por esqueleto, o que redesenha essa abertura inteira. Márcia decidiu levar essa dúvida específica pro Claude Design antes de decidir — não avançar sozinho nessa direção sem ela retomar |
+| Ação da pessoa | Giro no botão | No elemento tocado, nunca na tela | ✅ **Em produção (07/set/2026)** — botão "Salvar" da ficha de perfil (`ficha-perfil.js`), commits `6a6aa13`/`d2ce48f` |
 | Menos de 300ms | Nada | Piscar sinal é pior que não mostrar | Já embutido na barra de 3px (atraso de 150ms antes de acender) |
 
 Isto substitui o comportamento atual de "só atualizar quando estiver pronto".
