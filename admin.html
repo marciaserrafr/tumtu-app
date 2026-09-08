@@ -66,7 +66,7 @@
     <!-- defer (06/set/2026) -- nenhuma das duas executa nada sozinha ao
          carregar, só define função pra usar depois (conferido no código
          das duas), então não corre risco nenhum de rodar antes da hora. -->
-    <script src="ficha-perfil.js?v=68" defer></script>
+    <script src="ficha-perfil.js?v=69" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
         /* Desligada de novo (06/set/2026, mesma sessão -- teste de
@@ -2151,7 +2151,7 @@
         <div id="sa-config-tela-permissoes-padrao" class="config-subtela" style="display:none;">
             <button class="btn-voltar-config" onclick="voltarConfigListaSA()">← Configurações</button>
             <div class="painel-titulo">Permissões Padrão</div>
-            <p class="config-sub-desc">Permissão com que Mestre, Diretor Admin, Diretor de Naipe, Diretor de Bateria e Diretor (Apoio) já nascem ao serem aprovados pela primeira vez, em qualquer bateria. Diretor de Bateria também sobe pra Diretor de Naipe ou Diretor Admin sozinho, automaticamente, no momento em que o Naipe ou o Admin da Bateria for marcado na ficha dele — sempre somando permissão, nunca tirando o que já tinha. Depois disso, cada um pode ser ajustado na mão em Permissões, normalmente.</p>
+            <p class="config-sub-desc">Permissão com que Mestre, Diretor Admin, Diretor de Naipe, Diretor de Bateria e Diretor (Apoio) já nascem ao serem aprovados pela primeira vez, em qualquer bateria. Diretor de Bateria também sobe pra Diretor de Naipe ou Diretor Admin sozinho, automaticamente, no momento em que o Naipe ou o Admin da Bateria for marcado na ficha dele; Diretor (Apoio) sobe pra Diretor Admin da mesma forma, quando o Admin da Bateria for marcado — sempre somando permissão, nunca tirando o que já tinha. Depois disso, cada um pode ser ajustado na mão em Permissões, normalmente.</p>
             <div id="sa-permissoes-padrao-editor" style="display:none;"></div>
             <div id="sa-permissoes-padrao-lista" class="lista-cards"></div>
         </div>
@@ -3503,7 +3503,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=5" defer></script>
+<script src="admin-logic-1.js?v=6" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">
