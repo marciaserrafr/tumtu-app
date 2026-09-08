@@ -546,6 +546,23 @@
             return;
         }
 
+        // Achado real, 09/set/2026 (caso do Gerson: ritmista na Imperatriz E
+        // Diretor no Jacarezinho, só a carteirinha da Imperatriz aparecia
+        // pra ele): totalVinculos ficava gravado no celular no momento do
+        // login e NUNCA era reconferido depois (só se o campo estivesse
+        // ausente, sessão de antes desse recurso existir) -- o botão
+        // "Trocar de Bateria" (carteirinha.html) depende inteiramente desse
+        // número em cache, então um vínculo novo aprovado depois do último
+        // login nesse aparelho nunca aparecia, sem deslogar e logar de novo.
+        // Mesma cautela de "nunca confiar cegamente no cache" já aplicada
+        // acima pra status/cargo -- reconta rápido antes do atalho.
+        const { count: totalVinculosAtual } = await sb.from('vinculos').select('id', { count: 'exact', head: true })
+            .eq('pessoa_id', cache.pessoa_id).not('status', 'in', '(desligado,rejeitado)');
+        if (totalVinculosAtual !== null && totalVinculosAtual !== cache.totalVinculos) {
+            cache.totalVinculos = totalVinculosAtual;
+            localStorage.setItem('ritmista', JSON.stringify(cache));
+        }
+
         const isAdmin = cache.perfil === 'mestre' || cache.perfil === 'diretor' || cache.perfil === 'apoio';
         // Busca cor/logo/tema aqui, com o spinner do login na tela, antes de
         // trocar de tela -- mesmo raciocínio já usado pra carteirinha.html
