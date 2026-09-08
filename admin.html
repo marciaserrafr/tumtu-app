@@ -3057,11 +3057,11 @@
     <div class="vg-grupo-titulo">Ritmistas</div>
     <div class="totalizadores">
         <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
-            <div class="total-numero ativo" id="totalAtivos">—</div>
+            <div class="total-numero ativo" id="totalAtivos"><span class="skeleton-bloco" style="display:inline-block;width:32px;height:22px;vertical-align:middle;"></span></div>
             <div class="total-label">Ritmistas ativos</div>
         </div>
         <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
-            <div class="total-numero" id="totalPendentes">—</div>
+            <div class="total-numero" id="totalPendentes"><span class="skeleton-bloco" style="display:inline-block;width:32px;height:22px;vertical-align:middle;"></span></div>
             <div class="total-label">Ritmistas pendentes</div>
         </div>
     </div>
@@ -3074,15 +3074,15 @@
          itens aqui, cabe redondinho sem sobrar nenhum sozinho. -->
     <div class="grade-linha-toggle">
         <div class="grade-pilula-toggle" onclick="toggleGradeOutros('gradeStatusRitmistas', this)">
-            <span id="totalOutrosRitmistas">—</span>
+            <span id="totalOutrosRitmistas"><span class="skeleton-bloco" style="display:inline-block;width:20px;height:11px;vertical-align:middle;"></span></span>
             <span class="grade-pilula-seta">›</span>
         </div>
     </div>
     <div class="grade-status" id="gradeStatusRitmistas" style="display:none;">
-        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Suspensos <b class="n-suspenso" id="totalSuspensos">—</b></div>
-        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Desligados <b class="n-desligado" id="totalDesligados">—</b></div>
-        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Rejeitados <b class="n-rejeitado" id="totalRejeitados">—</b></div>
-        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Não Desfila <b class="n-naodesfila" id="totalNaoDesfilaStatus">—</b></div>
+        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Suspensos <b class="n-suspenso" id="totalSuspensos"><span class="skeleton-bloco" style="display:inline-block;width:14px;height:12px;vertical-align:middle;"></span></b></div>
+        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Desligados <b class="n-desligado" id="totalDesligados"><span class="skeleton-bloco" style="display:inline-block;width:14px;height:12px;vertical-align:middle;"></span></b></div>
+        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Rejeitados <b class="n-rejeitado" id="totalRejeitados"><span class="skeleton-bloco" style="display:inline-block;width:14px;height:12px;vertical-align:middle;"></span></b></div>
+        <div class="grade-item" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">Não Desfila <b class="n-naodesfila" id="totalNaoDesfilaStatus"><span class="skeleton-bloco" style="display:inline-block;width:14px;height:12px;vertical-align:middle;"></span></b></div>
     </div>
 
     <!-- Card à parte, não somado aos números de Ritmistas acima (pedido da
@@ -3091,11 +3091,11 @@
     <div class="vg-grupo-titulo" id="vgTituloDiretoria" style="display:none;">Diretoria</div>
     <div class="totalizadores" id="totalizadoresDiretoria" style="display:none;">
         <div class="total-card total-card--clicavel" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">
-            <div class="total-numero ativo" id="totalDiretoriaAtivos">—</div>
+            <div class="total-numero ativo" id="totalDiretoriaAtivos"><span class="skeleton-bloco" style="display:inline-block;width:32px;height:22px;vertical-align:middle;"></span></div>
             <div class="total-label">Diretoria ativa</div>
         </div>
         <div class="total-card total-card--clicavel" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">
-            <div class="total-numero" id="totalDiretoriaPendentes">—</div>
+            <div class="total-numero" id="totalDiretoriaPendentes"><span class="skeleton-bloco" style="display:inline-block;width:32px;height:22px;vertical-align:middle;"></span></div>
             <div class="total-label">Diretoria pendente</div>
         </div>
     </div>
@@ -3106,14 +3106,14 @@
          de sobrar uma célula vazia do lado. -->
     <div class="grade-linha-toggle" id="linhaToggleDiretoria" style="display:none;">
         <div class="grade-pilula-toggle" onclick="toggleGradeOutros('gradeStatusDiretoria', this)">
-            <span id="totalOutrosDiretoria">—</span>
+            <span id="totalOutrosDiretoria"><span class="skeleton-bloco" style="display:inline-block;width:20px;height:11px;vertical-align:middle;"></span></span>
             <span class="grade-pilula-seta">›</span>
         </div>
     </div>
     <div class="grade-status" id="gradeStatusDiretoria" style="display:none;">
-        <div class="grade-item" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Suspensos <b class="n-suspenso" id="totalDiretoriaSuspensos">—</b></div>
-        <div class="grade-item" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Desligados <b class="n-desligado" id="totalDiretoriaDesligados">—</b></div>
-        <div class="grade-item grade-item--unico" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Rejeitados <b class="n-rejeitado" id="totalDiretoriaRejeitados">—</b></div>
+        <div class="grade-item" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Suspensos <b class="n-suspenso" id="totalDiretoriaSuspensos"><span class="skeleton-bloco" style="display:inline-block;width:14px;height:12px;vertical-align:middle;"></span></b></div>
+        <div class="grade-item" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Desligados <b class="n-desligado" id="totalDiretoriaDesligados"><span class="skeleton-bloco" style="display:inline-block;width:14px;height:12px;vertical-align:middle;"></span></b></div>
+        <div class="grade-item grade-item--unico" onclick="trocarAba('diretoria', document.querySelector('.aba-btn[data-aba=diretoria]'))">Rejeitados <b class="n-rejeitado" id="totalDiretoriaRejeitados"><span class="skeleton-bloco" style="display:inline-block;width:14px;height:12px;vertical-align:middle;"></span></b></div>
     </div>
 
     <!-- Card "Convidados" (27-31/ago/2026, unificado 04/set/2026 -- só existe
@@ -3125,8 +3125,8 @@
          igual ao outro -- quem usa o app não sabe que existem 2 modelos. -->
     <div class="vg-grupo-titulo" id="vgTituloConvidadosEspeciais" style="display:none;">Convidados</div>
     <div class="grade-status" id="totalizadoresConvidadosEspeciais" style="display:none;">
-        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Ativos <b id="totalConvidadosEspeciaisAtivos">—</b></div>
-        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Pendentes <b id="totalConvidadosEspeciaisPendentes">—</b></div>
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Ativos <b id="totalConvidadosEspeciaisAtivos"><span class="skeleton-bloco" style="display:inline-block;width:14px;height:12px;vertical-align:middle;"></span></b></div>
+        <div class="grade-item" onclick="trocarAba('extras', document.querySelector('.aba-btn[data-aba=administrativo]'))">Pendentes <b id="totalConvidadosEspeciaisPendentes"><span class="skeleton-bloco" style="display:inline-block;width:14px;height:12px;vertical-align:middle;"></span></b></div>
     </div>
 
     <!-- Empilhado, um card embaixo do outro (era grid de 2 colunas até
@@ -3538,7 +3538,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=5" defer></script>
+<script src="admin-logic-1.js?v=6" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

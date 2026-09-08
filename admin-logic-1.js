@@ -2299,14 +2299,26 @@
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'flex';
         ajustarAlturaNavMobile();
+
+        // Volta pra mesma aba de antes de atualizar a página (mesmo achado
+        // da Márcia, 20/ago/2026, aplicado aqui também) -- "visao" já é o
+        // padrão de fábrica da tela, só troca se salvou outra coisa. Decidido
+        // JÁ AQUI (antes de revelar) -- ver comentário do esqueleto abaixo:
+        // só dá pra revelar a Visão Geral em esqueleto quando é ELA mesma
+        // que vai ficar na tela, senão a pessoa veria a Visão Geral piscar
+        // e trocar pra outra aba na sequência.
+        const estadoSalvoMD = lerEstadoNavegacaoSalvo();
+        const abaSalvaMD = (estadoSalvoMD && estadoSalvoMD.contexto === 'mestre-diretor' && estadoSalvoMD.aba && estadoSalvoMD.aba !== 'visao')
+            ? estadoSalvoMD.aba : null;
+
         // Espera a primeira leva de cada card terminar (ritmistas/diretoria
-        // sem foto, extras, convidados) antes de tirar o spinner -- achado
-        // da Márcia, 01/set/2026: a tela "montava em tempo real", cada card
-        // estalando na hora que a própria busca terminava, dando impressão
-        // de sistema amador. As fotos continuam chegando em segundo plano
-        // depois, sem bloquear nada -- mesma otimização de sempre
-        // (carregarRitmistasComFotos/carregarDiretoriaComFotos), só que
-        // agora dá pra esperar só a primeira passada de cada uma.
+        // sem foto, extras, convidados) -- achado da Márcia, 01/set/2026: a
+        // tela "montava em tempo real", cada card estalando na hora que a
+        // própria busca terminava, dando impressão de sistema amador. As
+        // fotos continuam chegando em segundo plano depois, sem bloquear
+        // nada -- mesma otimização de sempre (carregarRitmistasComFotos/
+        // carregarDiretoriaComFotos), só que agora dá pra esperar só a
+        // primeira passada de cada uma.
         const cargaInicialMD = [carregarRitmistas(true)];
         // Card "Diretoria ativa" na Visão Geral (novo, 21/ago/2026) --
         // reaproveita a mesma carregarDiretoria() da aba Diretoria (fica em
@@ -2321,6 +2333,24 @@
         // lá dentro, nunca no carregamento inicial da tela).
         const vejoConvidadosMD = souSuperAdmin || tenhoCapacidade('ver_convidados_especiais');
         if (vejoConvidadosMD) cargaInicialMD.push(carregarConvidadosEspeciais(true));
+
+        // Esqueleto na abertura (08/set/2026, "Abertura e Esperas" -- Claude
+        // Design): quando a Visão Geral é mesmo a tela que vai ficar,
+        // revela ela JÁ (cabeçalho com a cor da escola, cards com os
+        // números em "esqueleto" -- ver os <span class="skeleton-bloco">
+        // no lugar do "—" antigo) ANTES da lista de Ritmistas/Diretoria/
+        // Convidados terminar de carregar, em vez de segurar o spinner até
+        // tudo pronto. Os números entram sozinhos quando cargaInicialMD
+        // termina (atualizarTotalizadores() e afins usam .textContent, que
+        // substitui o esqueleto sem precisar de nenhum código novo aqui).
+        // Quando vai trocar de aba (abaSalvaMD), mantém o comportamento
+        // antigo -- só revela quando tudo está pronto, direto na aba certa,
+        // sem passar pela Visão Geral nem por uma fração de segundo.
+        if (!abaSalvaMD) {
+            if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(usuario, 'avisoDadosProprios');
+            esconderOverlayCarregando();
+        }
+
         await Promise.all(cargaInicialMD);
         iniciarAutoRefreshRitmistas();
         // Fotos completas chegam depois, em segundo plano, sem travar a tela
@@ -2330,16 +2360,11 @@
         if (vejoAcessosMD) preencherFotosDiretoriaEmSegundoPlano();
         if (vejoConvidadosMD) { convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais(); }
 
-        // Volta pra mesma aba de antes de atualizar a página (mesmo achado
-        // da Márcia, 20/ago/2026, aplicado aqui também) -- "visao" já é o
-        // padrão de fábrica da tela, só troca se salvou outra coisa.
-        const estadoSalvoMD = lerEstadoNavegacaoSalvo();
-        if (estadoSalvoMD && estadoSalvoMD.contexto === 'mestre-diretor' && estadoSalvoMD.aba && estadoSalvoMD.aba !== 'visao') {
-            trocarAba(estadoSalvoMD.aba, document.querySelector(`.aba-btn[data-aba="${estadoSalvoMD.aba}"]`));
+        if (abaSalvaMD) {
+            trocarAba(abaSalvaMD, document.querySelector(`.aba-btn[data-aba="${abaSalvaMD}"]`));
+            if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(usuario, 'avisoDadosProprios');
+            esconderOverlayCarregando();
         }
-
-        if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(usuario, 'avisoDadosProprios');
-        esconderOverlayCarregando();
     }
 
     // Preenche configEscola.nomeEscola/nomeBateria com dado real -- antes desse
