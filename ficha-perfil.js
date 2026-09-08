@@ -168,10 +168,11 @@ function fpCamposEditaveis(atorPerfil, autoedicao, alvoPerfil, ehConvidado) {
         const campos = new Set();
         if (alvoPerfil === 'diretor' && typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_naipe')) campos.add('naipe');
         if (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_medidas_diretoria')) campos.add('medidas');
-        // "Admin desta bateria" (04/set/2026) -- mesmo padrão de Naipe logo
-        // acima: capacidade própria (editar_admin_bateria), nunca autoeditado
-        // (ninguém se marca Admin sozinho).
-        if (alvoPerfil === 'diretor' && typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_admin_bateria')) campos.add('eh_admin_bateria');
+        // "Admin desta bateria" (04/set/2026, estendido a Apoio em 09/set/2026)
+        // -- mesmo padrão de Naipe logo acima: capacidade própria
+        // (editar_admin_bateria), nunca autoeditado (ninguém se marca Admin
+        // sozinho).
+        if ((alvoPerfil === 'diretor' || alvoPerfil === 'apoio') && typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_admin_bateria')) campos.add('eh_admin_bateria');
         return campos;
     }
 
@@ -811,11 +812,12 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         if (podeVerNaipe) fpEl('fp-naipe').textContent = fpResolverSeloNaipe(alvo.naipe) || '—';
     }
 
-    // "Admin desta bateria" (04/set/2026) -- mesmo padrão de Naipe logo
-    // acima, capacidades próprias (ver_admin_bateria/editar_admin_bateria).
+    // "Admin desta bateria" (04/set/2026, estendido a Apoio em 09/set/2026)
+    // -- mesmo padrão de Naipe logo acima, capacidades próprias
+    // (ver_admin_bateria/editar_admin_bateria).
     const secaoAdminBateria = fpEl('fp-secao-admin-bateria');
     if (secaoAdminBateria) {
-        const podeVerAdminBateria = alvo.perfil === 'diretor' && alvo.eh_convidado !== true && (
+        const podeVerAdminBateria = (alvo.perfil === 'diretor' || alvo.perfil === 'apoio') && alvo.eh_convidado !== true && (
             fpEstado.autoedicao || fpEstado.meuPerfil === 'super_admin' ||
             (typeof tenhoCapacidade === 'function' && (tenhoCapacidade('ver_admin_bateria') || tenhoCapacidade('editar_admin_bateria')))
         );

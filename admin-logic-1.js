@@ -6085,14 +6085,15 @@
     const PERMISSOES_GRUPOS = {
         mestre: { label: 'Mestre', filtro: p => p.perfil === 'mestre' },
         // "Admin manda mais" (04/set/2026, confirmado por ela: na Imperatriz
-        // tem Diretor que é Naipe E Admin ao mesmo tempo) -- quem é Admin
-        // aparece só aqui, mesmo que também tenha Naipe declarado. O campo
+        // tem Diretor que é Naipe E Admin ao mesmo tempo; estendido a Apoio
+        // em 09/set/2026) -- quem é Admin aparece só aqui, seja Diretor de
+        // Bateria ou Apoio, mesmo que também tenha Naipe declarado. O campo
         // `naipe` continua salvo/editável na ficha normalmente, só não
         // decide mais o agrupamento pra quem também é Admin.
-        'diretor-admin': { label: 'Diretor Admin', filtro: p => p.perfil === 'diretor' && p.eh_admin_bateria },
+        'diretor-admin': { label: 'Diretor Admin', filtro: p => (p.perfil === 'diretor' || p.perfil === 'apoio') && p.eh_admin_bateria },
         'diretor-naipe': { label: 'Diretor de Bateria - Naipe', filtro: p => p.perfil === 'diretor' && !p.eh_admin_bateria && Array.isArray(p.naipe) && p.naipe.length > 0 },
         diretor: { label: 'Diretor de Bateria', filtro: p => p.perfil === 'diretor' && !p.eh_admin_bateria && !(Array.isArray(p.naipe) && p.naipe.length > 0) },
-        apoio: { label: 'Diretor (Apoio)', filtro: p => p.perfil === 'apoio' },
+        apoio: { label: 'Diretor (Apoio)', filtro: p => p.perfil === 'apoio' && !p.eh_admin_bateria },
         // "Convidados" (01/set/2026) não entra aqui de propósito -- mesmo
         // caso de "Ritmistas": interruptor da bateria inteira, sem lista de
         // gente, então não precisa de filtro/fonte nenhum.
@@ -6110,8 +6111,13 @@
     // como um grupo só. Mesma prioridade de PERMISSOES_GRUPOS ("admin
     // manda mais").
     function cargoChaveDiretoria(p) {
-        if (p.perfil !== 'diretor') return p.perfil;
         const ehAdmin = p.eh_admin_bateria !== undefined ? p.eh_admin_bateria : p.ehAdminBateria;
+        // Admin da Bateria estendido a Apoio em 09/set/2026 -- "admin manda
+        // mais" continua valendo pros dois cargos (mesmo critério já usado
+        // pra Diretor de Bateria com Naipe): quem é Admin aparece agrupado
+        // como Admin, não importa o cargo de base.
+        if (p.perfil === 'apoio') return ehAdmin ? 'diretor_admin' : 'apoio';
+        if (p.perfil !== 'diretor') return p.perfil;
         const temNaipe = p.temNaipe !== undefined ? p.temNaipe : (Array.isArray(p.naipe) && p.naipe.length > 0);
         if (ehAdmin) return 'diretor_admin';
         if (temNaipe) return 'diretor_naipe';
