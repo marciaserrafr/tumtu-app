@@ -90,23 +90,40 @@
         }
         #containerCarregando .cartao {
             flex: 1; background: #12101a;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 52px;
+            display: flex; align-items: center; justify-content: center;
             position: relative; overflow: hidden;
         }
-        #containerCarregando .batida { position: relative; width: 170px; height: 130px; }
+        /* Abertura em 2 tempos (08/set/2026, "Abertura e Esperas" -- Claude
+           Design): a marca entra PARADA, sozinha (é o 1º paint, antes de
+           qualquer script -- mata o flash branco do iPhone); só depois de
+           ficar 700ms parada ela sai e, no MESMO lugar, entra o par de
+           surdos batendo. Nunca os dois ao mesmo tempo -- por isso o
+           .compasso (bolinha correndo) e o texto "Afinando a bateria"
+           saíram: eram um 2º sinal de espera competindo com o 1º. */
+        #containerCarregando .abertura-troca { position: relative; width: 200px; height: 130px; }
+        #containerCarregando .marca-abertura,
+        #containerCarregando .batida {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        }
+        #containerCarregando .marca-abertura {
+            opacity: 1; animation: tt-nome-sai .35s ease-out forwards; animation-delay: .7s;
+        }
+        #containerCarregando .batida {
+            opacity: 0; animation: tt-batida-entra .35s ease-out forwards; animation-delay: .7s;
+        }
+        #containerCarregando .batida-figura { position: relative; width: 170px; height: 130px; }
         #containerCarregando .onda {
             position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
-            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite;
+            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite; animation-delay: .7s;
         }
         #containerCarregando .tum {
             position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
-            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite;
+            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .7s;
         }
         #containerCarregando .tu {
             position: absolute; left: 106px; top: 78px; width: 38px; height: 38px; border-radius: 50%;
-            border: 2px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .15s;
+            border: 2px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .85s;
         }
-        #containerCarregando .marca-abertura { display: flex; flex-direction: column; align-items: center; gap: 16px; }
         #containerCarregando .marca-abertura .nome { display: flex; align-items: baseline; font-size: 34px; font-weight: 800; letter-spacing: 0.5px; }
         #containerCarregando .marca-abertura .nome .t { color: #D4AF37; }
         #containerCarregando .marca-abertura .nome .u { color: #fff; }
@@ -114,20 +131,15 @@
         #containerCarregando .marca-abertura .nome .m::after {
             content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: #7c2d12;
         }
-        #containerCarregando .compasso { width: 56px; height: 2px; background: rgba(212,175,55,.18); border-radius: 2px; overflow: hidden; }
-        #containerCarregando .compasso-bola { width: 33%; height: 100%; background: #D4AF37; animation: tt-compasso 1.05s linear infinite; }
-        #containerCarregando .status-abertura {
-            position: absolute; bottom: 40px; color: #6f6980; font-size: 13px; font-weight: 600;
-            letter-spacing: 1.5px; text-transform: uppercase; animation: tt-respira 2.1s ease-in-out infinite;
-        }
+        @keyframes tt-nome-sai { to { opacity: 0; transform: scale(.94); } }
+        @keyframes tt-batida-entra { to { opacity: 1; } }
         @keyframes tt-tum { 0% { transform: scale(1); } 7% { transform: scale(1.15); } 30% { transform: scale(1); } 100% { transform: scale(1); } }
         @keyframes tt-tu { 0% { transform: scale(1); opacity: .75; } 7% { transform: scale(1.09); opacity: 1; } 34% { transform: scale(1); opacity: .75; } 100% { transform: scale(1); opacity: .75; } }
         @keyframes tt-onda { 0% { transform: scale(.75); opacity: .5; } 70% { transform: scale(2.1); opacity: 0; } 100% { transform: scale(2.1); opacity: 0; } }
-        @keyframes tt-compasso { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
-        @keyframes tt-respira { 0%, 100% { opacity: .45; } 50% { opacity: .9; } }
         @media (prefers-reduced-motion: reduce) {
-            #containerCarregando .tum, #containerCarregando .tu,
-            #containerCarregando .compasso-bola, #containerCarregando .status-abertura { animation: none; }
+            #containerCarregando .marca-abertura { animation: none; opacity: 1; }
+            #containerCarregando .batida { animation: none; opacity: 0; }
+            #containerCarregando .tum, #containerCarregando .tu { animation: none; }
             #containerCarregando .onda { display: none; }
         }
     </style>
@@ -143,16 +155,18 @@
      Disney+/Netflix, símbolo universal de espera). -->
 <div class="auth-container" id="containerCarregando">
     <div class="cartao">
-        <div class="batida">
-            <div class="onda"></div>
-            <div class="tum"></div>
-            <div class="tu"></div>
+        <div class="abertura-troca">
+            <div class="marca-abertura">
+                <div class="nome"><span class="t">T</span><span class="u">u</span><span class="m">m</span><span class="t">T</span><span class="u">u</span></div>
+            </div>
+            <div class="batida">
+                <div class="batida-figura">
+                    <div class="onda"></div>
+                    <div class="tum"></div>
+                    <div class="tu"></div>
+                </div>
+            </div>
         </div>
-        <div class="marca-abertura">
-            <div class="nome"><span class="t">T</span><span class="u">u</span><span class="m">m</span><span class="t">T</span><span class="u">u</span></div>
-            <div class="compasso"><div class="compasso-bola"></div></div>
-        </div>
-        <span class="status-abertura">Afinando a bateria</span>
     </div>
 </div>
 
