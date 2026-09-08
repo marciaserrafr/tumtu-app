@@ -513,7 +513,7 @@
 
         <div class="secao" id="secao-medidas">Medidas</div>
 
-        <!-- Preenchido dinamicamente por carregarOpcoesMedidas() -- um
+        <!-- Preenchido dinamicamente por preencherOpcoesMedidas() -- um
              .auth-form-group por tipo de medida ativo na bateria (Camisa/
              Fantasia/Calça/Sapato + qualquer tipo novo criado pelo Super
              Admin). .form-row é grid de 2 colunas, então N campos aqui
@@ -977,24 +977,17 @@
     }
 
     // ── OPÇÕES DE INSTRUMENTO (dinâmicas, dependem da bateria) ──────────────
-    async function carregarOpcoesInstrumento(bateriaId) {
+    // Recebe a lista já buscada (achado 09/set/2026: antes cada tela fazia
+    // sua própria busca de rede pra isso -- agora vem tudo junto de
+    // cadastro_dados_bateria, ver inicializarLinkFixo/inicializarModoManual).
+    function preencherOpcoesInstrumento(opcoes) {
         const select = document.getElementById('instrumento');
-        if (!select || !bateriaId) return;
-        try {
-            // Função em vez de view direta (28/ago/2026, correção de
-            // segurança real) -- uma view aceita ser consultada SEM filtro
-            // nenhum (devolvendo instrumentos de TODAS as baterias), uma
-            // função com parâmetro obrigatório não.
-            const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bateria_instrumentos_publicos_da_bateria?order=grupo,ordem`, { method: 'POST', headers, body: JSON.stringify({ p_bateria_id: bateriaId }) });
-            const opcoes = res.ok ? await res.json() : [];
-            opcoes.sort((a, b) => a.nome_exibicao.localeCompare(b.nome_exibicao, 'pt-BR'));
-            select.innerHTML = '<option value="">Selecione</option>' + opcoes.map(o => `<option value="${o.id}">${o.nome_exibicao}</option>`).join('');
-            if (opcoes.length === 0) {
-                mostrarMensagem('Não consegui carregar a lista de instrumentos. Puxe a tela pra baixo pra atualizar, ou tente de novo em instantes.', 'erro');
-            }
-        } catch (e) {
-            mostrarMensagem('Não consegui carregar a lista de instrumentos (sem conexão?). Verifique sua internet e tente de novo.', 'erro');
+        if (!select) return;
+        opcoes = Array.isArray(opcoes) ? [...opcoes] : [];
+        opcoes.sort((a, b) => a.nome_exibicao.localeCompare(b.nome_exibicao, 'pt-BR'));
+        select.innerHTML = '<option value="">Selecione</option>' + opcoes.map(o => `<option value="${o.id}">${o.nome_exibicao}</option>`).join('');
+        if (opcoes.length === 0) {
+            mostrarMensagem('Não consegui carregar a lista de instrumentos. Puxe a tela pra baixo pra atualizar, ou tente de novo em instantes.', 'erro');
         }
     }
 
@@ -1010,56 +1003,49 @@
     // pedido dela: Calça de Diretoria usa escala numérica, diferente da de
     // Ritmista -- uma categoria pode ser restrita a só alguns públicos,
     // configurado em Configurações → Categoria de Figurino).
-    async function carregarOpcoesMedidas(bateriaId, perfil, ehConvidadoEspecial) {
+    // Mesma ideia de preencherOpcoesInstrumento acima: recebe a lista já
+    // buscada em vez de buscar sozinha.
+    function preencherOpcoesMedidas(opcoes, perfil, ehConvidadoEspecial) {
         const container = document.getElementById('linha-medidas-dinamico');
         const secao = document.getElementById('secao-medidas');
         if (!container) return;
-        if (!bateriaId) { container.innerHTML = ''; idsMedidaAtual = []; if (secao) secao.style.display = 'none'; return; }
-        try {
-            // Mesma correção de segurança da lista de instrumentos acima --
-            // função em vez de view direta.
-            const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bateria_medidas_publicas_da_bateria?order=tipo_id,ordem`, { method: 'POST', headers, body: JSON.stringify({ p_bateria_id: bateriaId }) });
-            const opcoes = res.ok ? await res.json() : [];
-            const porTipo = {};
-            opcoes.forEach(o => {
-                const publico = Array.isArray(o.publico) ? o.publico : ['ritmista', 'mestre', 'diretor', 'apoio', 'extra'];
-                if (perfil && !publico.includes(perfil)) return;
-                // Convidado Especial (31/ago/2026): reaproveita o mesmo
-                // checkbox "Convidados" de Categoria de Figurino (Configurações)
-                // que já existia pro Convidado simples -- desmarcar "Convidados"
-                // ali também tira a Medida do cadastro do Convidado Especial,
-                // sem precisar de nenhuma configuração nova.
-                if (ehConvidadoEspecial && !publico.includes('extra')) return;
-                if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { nome: o.tipo_nome, grupo: o.tipo_grupo, tamanhos: [] };
-                porTipo[o.tipo_id].tamanhos.push(o.nome_exibicao);
-            });
-            const tiposAtivos = Object.entries(porTipo); // já vem só com tamanho ativo -- tipo sem nenhum simplesmente não existe aqui
-            idsMedidaAtual = tiposAtivos.map(([tipoId]) => tipoId);
-            // Sem nenhum tipo de medida ativo pra essa bateria: some a
-            // seção "Medidas" inteira, mesmo critério já usado em
-            // Instrumento pra quem não é Ritmista (esconder em vez de
-            // deixar título solto sem campo nenhum embaixo).
-            if (secao) secao.style.display = tiposAtivos.length === 0 ? 'none' : '';
-            // Categoria "Tradicional" (Camisa/Fantasia/Calça/Sapato) é
-            // obrigatória, "Especial" (ex: Vestido, só ativada pontualmente
-            // por uma bateria) não é -- pedido da Márcia, 24/ago/2026:
-            // categoria pontual criada no meio da temporada não pode forçar
-            // todo mundo a preencher algo que talvez nem seja pra ela.
-            container.innerHTML = tiposAtivos.map(([tipoId, t]) => {
-                const obrigatoria = t.grupo !== 'especial';
-                return `
-                <div class="auth-form-group">
-                    <label>Tamanho: ${t.nome} ${obrigatoria ? '<span class="obrigatorio">*</span>' : ''}</label>
-                    <select id="medida-${tipoId}" data-tipo-id="${tipoId}" ${obrigatoria ? 'required' : ''}>
-                        <option value="">Selecione</option>
-                        ${t.tamanhos.map(nome => `<option value="${nome}">${nome}</option>`).join('')}
-                    </select>
-                </div>`;
-            }).join('');
-        } catch (e) {
-            mostrarMensagem('Não consegui carregar a lista de medidas (sem conexão?). Verifique sua internet e tente de novo.', 'erro');
-        }
+        opcoes = Array.isArray(opcoes) ? opcoes : [];
+        const porTipo = {};
+        opcoes.forEach(o => {
+            const publico = Array.isArray(o.publico) ? o.publico : ['ritmista', 'mestre', 'diretor', 'apoio', 'extra'];
+            if (perfil && !publico.includes(perfil)) return;
+            // Convidado Especial (31/ago/2026): reaproveita o mesmo
+            // checkbox "Convidados" de Categoria de Figurino (Configurações)
+            // que já existia pro Convidado simples -- desmarcar "Convidados"
+            // ali também tira a Medida do cadastro do Convidado Especial,
+            // sem precisar de nenhuma configuração nova.
+            if (ehConvidadoEspecial && !publico.includes('extra')) return;
+            if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { nome: o.tipo_nome, grupo: o.tipo_grupo, tamanhos: [] };
+            porTipo[o.tipo_id].tamanhos.push(o.nome_exibicao);
+        });
+        const tiposAtivos = Object.entries(porTipo); // já vem só com tamanho ativo -- tipo sem nenhum simplesmente não existe aqui
+        idsMedidaAtual = tiposAtivos.map(([tipoId]) => tipoId);
+        // Sem nenhum tipo de medida ativo pra essa bateria: some a
+        // seção "Medidas" inteira, mesmo critério já usado em
+        // Instrumento pra quem não é Ritmista (esconder em vez de
+        // deixar título solto sem campo nenhum embaixo).
+        if (secao) secao.style.display = tiposAtivos.length === 0 ? 'none' : '';
+        // Categoria "Tradicional" (Camisa/Fantasia/Calça/Sapato) é
+        // obrigatória, "Especial" (ex: Vestido, só ativada pontualmente
+        // por uma bateria) não é -- pedido da Márcia, 24/ago/2026:
+        // categoria pontual criada no meio da temporada não pode forçar
+        // todo mundo a preencher algo que talvez nem seja pra ela.
+        container.innerHTML = tiposAtivos.map(([tipoId, t]) => {
+            const obrigatoria = t.grupo !== 'especial';
+            return `
+            <div class="auth-form-group">
+                <label>Tamanho: ${t.nome} ${obrigatoria ? '<span class="obrigatorio">*</span>' : ''}</label>
+                <select id="medida-${tipoId}" data-tipo-id="${tipoId}" ${obrigatoria ? 'required' : ''}>
+                    <option value="">Selecione</option>
+                    ${t.tamanhos.map(nome => `<option value="${nome}">${nome}</option>`).join('')}
+                </select>
+            </div>`;
+        }).join('');
     }
     // Lê os valores escolhidos nos <select> dinâmicos de medida.
     function lerValoresMedidas() {
@@ -1086,18 +1072,21 @@
         // que alguém troque o número na URL e descubra quantas baterias
         // existem no sistema) quanto o ID numérico antigo (links já
         // enviados antes de 21/jul/2026 continuam funcionando pra sempre).
-        // Usa a função resolver_bateria_publica (24/ago/2026, correção de
-        // segurança) em vez da view baterias_publicas direto -- a view
-        // antiga não tinha filtro nenhum embutido, então uma consulta sem
-        // parâmetro devolvia nome + código de convite de TODAS as
-        // baterias do sistema de uma vez, sem login.
-        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/rpc/resolver_bateria_publica`, {
+        // cadastro_dados_bateria (09/set/2026) junta numa busca só o que
+        // antes eram 3 idas e voltas separadas (bateria, instrumentos,
+        // medidas) -- achado real: o banco fica nos EUA, então cada ida e
+        // volta pesa; 3 seguidas deixavam a tela demorada demais pra
+        // aparecer, e piorava a condição de corrida do CPF (ver abaixo).
+        // Antes disso, usava resolver_bateria_publica sozinha (24/ago/2026,
+        // correção de segurança: função com parâmetro obrigatório, nunca
+        // mais a view antiga sem filtro nenhum).
+        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/rpc/cadastro_dados_bateria`, {
             method: 'POST',
             headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify({ p_identificador: bateriaId })
         });
-        const baterias = resBat.ok ? await resBat.json() : [];
-        const bateria = baterias[0];
+        const linhasBateria = resBat.ok ? await resBat.json() : [];
+        const bateria = linhasBateria[0];
 
         if (!bateria) {
             document.getElementById('conteudo-cadastro').style.display = 'none';
@@ -1108,15 +1097,28 @@
         }
 
         const perfil = cargoParam === 'mestre' ? 'mestre' : cargoParam === 'diretor' ? 'diretor' : cargoParam === 'apoio' ? 'apoio' : 'ritmista';
-        linkFixoAtual = { perfil, bateriaId: bateria.id, ehConvidadoEspecial };
+        linkFixoAtual = { perfil, bateriaId: bateria.bateria_id, ehConvidadoEspecial };
         atualizarCampoInstrumento(perfil);
-        await carregarOpcoesInstrumento(bateria.id);
-        await carregarOpcoesMedidas(bateria.id, perfil, ehConvidadoEspecial);
 
         const cargoLabel = (perfil === 'mestre' ? 'Mestre de Bateria' : perfil === 'diretor' ? 'Diretor de Bateria' : perfil === 'apoio' ? 'Diretor (Apoio)' : 'Ritmista');
         document.getElementById('convite-cargo').textContent = ehConvidadoEspecial ? `Convidado Especial – ${cargoLabel}` : cargoLabel;
-        document.getElementById('convite-bateria').textContent = bateria.nome;
+        document.getElementById('convite-bateria').textContent = bateria.bateria_nome;
         document.getElementById('convite-banner').style.display = 'block';
+
+        // Corrige condição de corrida (achado 09/set/2026): se a pessoa já
+        // tinha digitado o CPF antes dessa busca de bateria terminar, a
+        // checagem de "você já tem cadastro" (que depende do ID da bateria,
+        // só disponível aqui) tinha rodado sem esse dado e desistido em
+        // silêncio, sem tentar de novo -- a pessoa só era reconhecida no
+        // fim do cadastro (checagem por e-mail, que não depende da bateria),
+        // depois de já ter preenchido tudo à toa. Repete a checagem agora
+        // que o dado que faltava chegou -- não precisa mais esperar
+        // instrumento/medidas, que já vieram juntos e só faltam ser
+        // desenhados na tela (abaixo).
+        verificarCpfExistente();
+
+        preencherOpcoesInstrumento(bateria.instrumentos);
+        preencherOpcoesMedidas(bateria.medidas, perfil, ehConvidadoEspecial);
     }
 
     // ── DETECÇÃO ANTECIPADA DE PESSOA JÁ CADASTRADA (por CPF) ────────────
@@ -1229,17 +1231,27 @@
             return;
         }
 
-        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome,convidado_tem_carteirinha`, { headers });
-        const baterias = await resBat.json();
-        const ehConvidadoSemCarteirinha = ehConvidado && !(baterias[0] && baterias[0].convidado_tem_carteirinha);
+        // cadastro_dados_bateria (09/set/2026) junta bateria+instrumentos+
+        // medidas numa busca só -- mesma otimização usada no cadastro por
+        // link fixo (ver inicializarLinkFixo), aqui reaproveitada porque
+        // essa função já aceita ID numérico direto, que é o que este modo
+        // sempre teve à mão.
+        const resBat = await fetch(`${SUPABASE_URL}/rest/v1/rpc/cadastro_dados_bateria`, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ p_identificador: String(bateriaId) })
+        });
+        const linhasBateria = resBat.ok ? await resBat.json() : [];
+        const bateria = linhasBateria[0];
+        const ehConvidadoSemCarteirinha = ehConvidado && !(bateria && bateria.convidado_tem_carteirinha);
 
         modoManualAtual = { cargo, bateriaId: Number(bateriaId), criadoPorId: usuarioLogado.id, ehConvidado, ehConvidadoSemCarteirinha };
         atualizarCampoInstrumento(cargo);
-        await carregarOpcoesInstrumento(Number(bateriaId));
-        await carregarOpcoesMedidas(Number(bateriaId), cargo, ehConvidado);
+        preencherOpcoesInstrumento(bateria ? bateria.instrumentos : []);
+        preencherOpcoesMedidas(bateria ? bateria.medidas : [], cargo, ehConvidado);
         const cargoLabel = cargo === 'mestre' ? 'Mestre de Bateria' : cargo === 'diretor' ? 'Diretor de Bateria' : cargo === 'apoio' ? 'Diretor (Apoio)' : 'Ritmista';
         document.getElementById('convite-cargo').textContent = ehConvidado ? `Convidado – ${cargoLabel}` : cargoLabel;
-        document.getElementById('convite-bateria').textContent = baterias[0] ? baterias[0].nome : '';
+        document.getElementById('convite-bateria').textContent = bateria ? bateria.bateria_nome : '';
         document.getElementById('convite-banner').style.display = 'block';
         document.getElementById('voltar-admin-manual').style.display = 'block';
         document.getElementById('bloco-consentimento').style.display = 'block';
@@ -1276,6 +1288,11 @@
             document.getElementById('confirmar_senha').value = senhaGerada;
             document.getElementById('email').value = `convidado.${crypto.randomUUID()}@sem-login.tumtu.com.br`;
         }
+
+        // Mesma correção de condição de corrida do cadastro por link fixo
+        // (ver comentário em inicializarLinkFixo) -- também vale aqui, pro
+        // cadastro manual feito por Mestre/Diretor/Super Admin.
+        verificarCpfExistente();
     }
 
     function mostrarErroCampo(campo, mensagem) {
