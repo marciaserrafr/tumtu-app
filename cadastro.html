@@ -1117,6 +1117,16 @@
         document.getElementById('convite-cargo').textContent = ehConvidadoEspecial ? `Convidado Especial – ${cargoLabel}` : cargoLabel;
         document.getElementById('convite-bateria').textContent = bateria.nome;
         document.getElementById('convite-banner').style.display = 'block';
+
+        // Corrige condição de corrida (achado 09/set/2026): se a pessoa já
+        // tinha digitado o CPF antes dessa busca de bateria terminar, a
+        // checagem de "você já tem cadastro" (que depende do ID da bateria,
+        // só disponível aqui) tinha rodado sem esse dado e desistido em
+        // silêncio, sem tentar de novo -- a pessoa só era reconhecida no
+        // fim do cadastro (checagem por e-mail, que não depende da bateria),
+        // depois de já ter preenchido tudo à toa. Repete a checagem agora
+        // que o dado que faltava chegou.
+        verificarCpfExistente();
     }
 
     // ── DETECÇÃO ANTECIPADA DE PESSOA JÁ CADASTRADA (por CPF) ────────────
@@ -1276,6 +1286,11 @@
             document.getElementById('confirmar_senha').value = senhaGerada;
             document.getElementById('email').value = `convidado.${crypto.randomUUID()}@sem-login.tumtu.com.br`;
         }
+
+        // Mesma correção de condição de corrida do cadastro por link fixo
+        // (ver comentário em inicializarLinkFixo) -- também vale aqui, pro
+        // cadastro manual feito por Mestre/Diretor/Super Admin.
+        verificarCpfExistente();
     }
 
     function mostrarErroCampo(campo, mensagem) {
