@@ -1,6 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-tema="tumtu" style="background:#12101a;">
 <head>
+    <script>
+        /* A "revelação" do nome (parado -> sai -> surdos) só faz sentido na
+           abertura de VERDADE do app, 1x por sessão -- ver "Abertura e
+           Esperas" (08/set/2026). Sem isso, toda troca de página que passa
+           por este mesmo spinner (login -> admin/carteirinha) reiniciava a
+           sequência do zero, e a Márcia via o nome aparecer 2x seguidas
+           ("tumtu, surdos, tumtu de novo, surdos de novo") -- achado dela
+           ao vivo, testando o preview. Síncrono, no topo do <head>, pra
+           marcar a classe ANTES de qualquer pintura (sem flash do nome
+           que não deveria aparecer). Mesma lógica copiada nos 3 arquivos
+           que usam este spinner (login/admin/carteirinha).
+        */
+        try {
+            if (sessionStorage.getItem('tt_abertura_ok')) {
+                document.documentElement.classList.add('tt-pulo-abertura');
+            } else {
+                sessionStorage.setItem('tt_abertura_ok', '1');
+            }
+        } catch (e) {}
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carteirinha — TumTu</title>
@@ -194,6 +214,13 @@
         @keyframes tt-tum { 0% { transform: scale(1); } 7% { transform: scale(1.15); } 30% { transform: scale(1); } 100% { transform: scale(1); } }
         @keyframes tt-tu { 0% { transform: scale(1); opacity: .75; } 7% { transform: scale(1.09); opacity: 1; } 34% { transform: scale(1); opacity: .75; } 100% { transform: scale(1); opacity: .75; } }
         @keyframes tt-onda { 0% { transform: scale(.75); opacity: .5; } 70% { transform: scale(2.1); opacity: 0; } 100% { transform: scale(2.1); opacity: 0; } }
+        /* Nome já mostrado nesta sessão (ver <script> no topo do <head>) --
+           pula direto pros surdos, sem repetir a revelação do nome. */
+        .tt-pulo-abertura #carregandoCarteirinha .marca-abertura { display: none; }
+        .tt-pulo-abertura #carregandoCarteirinha .batida { opacity: 1; animation: none; }
+        .tt-pulo-abertura #carregandoCarteirinha .onda,
+        .tt-pulo-abertura #carregandoCarteirinha .tum { animation-delay: 0s; }
+        .tt-pulo-abertura #carregandoCarteirinha .tu { animation-delay: .15s; }
         @media (prefers-reduced-motion: reduce) {
             #carregandoCarteirinha .marca-abertura { animation: none; opacity: 1; }
             #carregandoCarteirinha .batida { animation: none; opacity: 0; }
