@@ -81,12 +81,7 @@
            precisa de mais teto que os outros usos desta classe (só 1 campo
            cada). max-height é só um teto pra transição -- não estica os
            campos mais simples, que continuam com a altura real deles. */
-        /* 16px (era 8px) -- achado dela, com print: campo/bloco revelado
-           ficava colado demais no campo de cima quando o de cima era um
-           título/rótulo de seção (ex: "Não tenho CPF" -> "Tipo de
-           documento"). 16px iguala o respiro padrão que .auth-form-group já
-           usa entre campos comuns -- valor só, sem elemento novo. */
-        .campo-revelavel.aberto { max-height: 300px; opacity: 1; margin-top: 16px; }
+        .campo-revelavel.aberto { max-height: 300px; opacity: 1; margin-top: 8px; }
         body.pessoa-existente .oculto-pessoa-existente { display: none !important; }
         .form-step-nav {
             display: flex; justify-content: space-between; gap: 10px; margin-top: 24px;
@@ -238,7 +233,7 @@
                 <label for="sem_cpf" style="margin:0;font-size:12px;color:var(--cor-texto-secundario);cursor:pointer;font-weight:500;">Não tenho CPF</label>
             </div>
             <div id="bloco-documento" class="campo-revelavel">
-                <div class="auth-form-group">
+                <div class="auth-form-group" style="margin-bottom:10px;">
                     <label>Tipo de documento <span id="tipo-documento-asterisco" class="obrigatorio" style="display:none;">*</span></label>
                     <select id="tipo_documento" onchange="mostrarOutro('tipo_documento')">
                         <option value="">Selecione</option>
@@ -251,7 +246,7 @@
                     </select>
                     <input type="text" id="tipo_documento_outro" placeholder="Qual documento? *" class="campo-revelavel">
                 </div>
-                <div class="auth-form-group">
+                <div class="auth-form-group" style="margin-bottom:0;">
                     <label>Número do documento <span id="numero-documento-asterisco" class="obrigatorio" style="display:none;">*</span></label>
                     <input type="text" id="numero_documento" placeholder="Ex: AB123456">
                 </div>
@@ -1353,18 +1348,24 @@
         if (!span) {
             span = document.createElement('span');
             span.className = 'erro-inline';
-            span.style.cssText = 'font-size:12px;color:#dc3545;margin-top:4px;display:block;';
+            span.style.cssText = 'font-size:12px;color:#dc3545;margin-top:4px;';
             campo.parentNode.appendChild(span);
         }
         span.textContent = mensagem;
+        span.style.display = 'block';
         campo.addEventListener('input', () => {
             campo.classList.remove('campo-invalido');
-            if (span) span.textContent = '';
+            if (span) { span.textContent = ''; span.style.display = 'none'; }
         }, { once: true });
     }
 
+    // Achado real, 09/set/2026: limpar só o TEXTO do erro (sem esconder o
+    // <span>) deixava um espaço vazio pra sempre no lugar -- ela via como
+    // "espaço vazio demais" em vários campos que já tinham mostrado erro
+    // de validação uma vez (ex: clicou "Continuar" com campo vazio, depois
+    // preencheu). Agora esconde de vez, não só limpa o texto.
     function limparErros() {
-        document.querySelectorAll('.erro-inline').forEach(el => el.textContent = '');
+        document.querySelectorAll('.erro-inline').forEach(el => { el.textContent = ''; el.style.display = 'none'; });
         document.querySelectorAll('.campo-invalido').forEach(el => el.classList.remove('campo-invalido'));
     }
 
