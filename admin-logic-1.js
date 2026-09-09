@@ -540,6 +540,7 @@
         // cadastrado (raro, dado antigo de antes do instrumento virar
         // obrigatório) nunca é escondido pelo filtro de instrumento --
         // não tem checkbox pra ele, então não faria sentido sumir.
+        const ocultosSolo = instrumentosOcultosSoloIds();
         let lista = todosRitmistas.filter(r => {
             const idade = calcularIdade(r.nascimento);
             // "aprovado" (Ativos) e "nao_desfila" (Não Desfila) são
@@ -549,7 +550,7 @@
             // Desfila" junto (e vice-versa, marcar só "Não Desfila" não
             // deveria trazer quem desfila normal).
             const statusOk = filtroStatusSelecionados.some(f => f === 'menor' ? (idade !== null && idade < 18) : f === 'repique_bossa' ? !!r.repique_bossa : f === 'nao_desfila' ? !!r.nao_desfila : f === 'aprovado' ? (r.status === 'aprovado' && !r.nao_desfila) : r.status === f);
-            const instrumentoOk = !r.bateria_instrumento_id || filtroInstrumentosSelecionados.includes(r.bateria_instrumento_id);
+            const instrumentoOk = !r.bateria_instrumento_id || ocultosSolo.has(r.bateria_instrumento_id) || filtroInstrumentosSelecionados.includes(r.bateria_instrumento_id);
             return statusOk && instrumentoOk;
         });
 
@@ -889,8 +890,9 @@
         let lista = ehRitmistas ? todosRitmistas : tipoExportacaoAtual === 'convidado_especial' ? convidadosEspeciaisCache : listaDiretoriaAtual;
         if (statusMarcados.length > 0) lista = lista.filter(r => statusMarcados.includes(r.status || 'pendente'));
         if (segundoMarcados.length > 0) {
+            const ocultosSolo = instrumentosOcultosSoloIds();
             lista = ehRitmistas
-                ? lista.filter(r => segundoMarcados.includes(String(r.bateria_instrumento_id)))
+                ? lista.filter(r => ocultosSolo.has(r.bateria_instrumento_id) || segundoMarcados.includes(String(r.bateria_instrumento_id)))
                 : lista.filter(r => segundoMarcados.includes(r.perfil));
         }
         return lista;
@@ -1976,9 +1978,19 @@
 
     function instrumentosAtivosDaBateria() {
         return bateriaInstrumentosCache
-            .filter(bi => bi.ativo)
+            .filter(bi => bi.ativo && !bi.oculto_solo)
             .map(bi => ({ id: bi.id, nome: nomeExibicaoBateriaInstrumento(bi) }))
             .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    }
+
+    // IDs de instrumentos "Não exibir avulso" -- não aparecem como opção de
+    // filtro (Ritmistas/Exportar), mas quem ainda estiver cadastrado nesse
+    // instrumento (dado antigo, não migrado pra composição) nunca pode sumir
+    // da lista/relatório por causa disso -- não tem checkbox pra essa pessoa
+    // marcar, então não faria sentido ela ficar escondida (mesmo princípio já
+    // usado pra ritmista sem instrumento nenhum, ver aplicarFiltros()).
+    function instrumentosOcultosSoloIds() {
+        return new Set(bateriaInstrumentosCache.filter(bi => bi.oculto_solo).map(bi => bi.id));
     }
 
     // Desfaz qualquer tema de escola aplicado no header (fundo, logo, cores de
