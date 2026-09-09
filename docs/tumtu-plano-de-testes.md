@@ -21,7 +21,26 @@ diferentes, cada uma com propósito e ordem de execução próprios:
 
 ---
 
-## 0. Roteiro OBRIGATÓRIO antes de publicar qualquer mudança em `cadastro.html`
+## 0. Regra geral: quando retestar
+
+> Criado em 09/set/2026, depois de uma sessão inteira corrigindo o cadastro com vários erros pelo caminho (detalhe na seção 0.1). Ela pediu um plano de teste efetivo pra QUALQUER mudança no sistema — por enquanto focado no cadastro (é a porta de entrada), mas o princípio vale pra qualquer área no futuro.
+
+**O princípio, em uma frase**: se uma mudança pode afetar o que uma tela mostra ou salva, essa tela inteira precisa ser reconferida — não só o pedaço que foi mexido.
+
+**Quando isso se aplica ao cadastro, especificamente:**
+- Qualquer edição em `cadastro.html` — óbvio, mas vale repetir.
+- Qualquer edição numa **RPC ou função de banco que o cadastro chama** (`cadastro_dados_bateria`, `resolver_bateria_publica`, `buscar_pessoa_por_cpf`, `verificar_pessoa_existente`, `admin-create-user`, os triggers de `vinculos`).
+- Qualquer edição num **dado que o cadastro lê pra montar a tela** — ex: mudar uma categoria de instrumento, um tipo de medida, uma nomenclatura, uma configuração de bateria (`convidado_tem_carteirinha`, `modo_piloto`) — mesmo que a mudança pareça "só dado", se o cadastro CONSULTA essa tabela pra decidir o que mostrar, ele precisa ser reconferido.
+- Qualquer edição num **CSS ou função JS compartilhada por vários campos** (ex: `.campo-revelavel`, `mostrarOutro()`, `toggleSemCpf()`) — **conferir TODOS os campos que usam aquele mesmo mecanismo, não só o que motivou a mudança.** Foi exatamente isso que deu errado hoje: mexi numa regra CSS compartilhada por 4 campos pensando só no que eu tinha acabado de mexer, e quebrei/mudei os outros 3 sem perceber.
+
+**Antes de reportar "corrigido", 3 perguntas que sempre preciso responder:**
+1. **O que mais usa esse mesmo código/regra que eu mudei?** (grep primeiro, sempre — não confiar na memória de "acho que só afeta aqui")
+2. **Eu vi a causa raiz de verdade, ou só uma correlação?** ("mudei X, o sintoma sumiu" não é o mesmo que "entendi por que X causava o sintoma"). Se a resposta for "acho que é isso", a investigação não terminou.
+3. **Alguém (ela, ou eu de algum jeito) efetivamente OLHOU a tela renderizada**, ou eu só concluí "deveria funcionar" lendo o código?
+
+**Limitação minha, sendo honesta**: nesta sessão eu não tenho como abrir um navegador de verdade e ver a tela renderizada — todo o trabalho de hoje foi baseado em leitura cuidadosa de código, nunca em teste visual real feito por mim. Isso quer dizer que **ela sempre precisa confirmar visualmente antes de eu considerar uma correção de UI/CSS 100% fechada** — eu posso (e devo) me policiar bem mais nas 3 perguntas acima antes de reportar "corrigido", mas não consigo substituir esse último passo sozinha hoje.
+
+### 0.1. Roteiro OBRIGATÓRIO antes de publicar qualquer mudança em `cadastro.html`
 
 > Criado em 09/set/2026, depois de um caso real e grave: o campo de documento pra quem não tem CPF (`toggleSemCpf`) ficou **quebrado em produção por quase 2 meses** (desde 17/jul/2026, commit `9ff7be6`) sem ninguém perceber, até uma pessoa estrangeira sem CPF tentar se cadastrar e travar de verdade — ela só descobriu porque a pessoa avisou. Causa: um commit que mudou a forma de esconder/revelar 4 campos condicionais atualizou 3 corretamente e esqueceu o 4º. **Cadastro é a porta de entrada do sistema — não pode quebrar silenciosamente.** Este roteiro existe pra isso nunca se repetir.
 >
