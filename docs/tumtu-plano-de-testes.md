@@ -21,6 +21,45 @@ diferentes, cada uma com propósito e ordem de execução próprios:
 
 ---
 
+## 0. Roteiro OBRIGATÓRIO antes de publicar qualquer mudança em `cadastro.html`
+
+> Criado em 09/set/2026, depois de um caso real e grave: o campo de documento pra quem não tem CPF (`toggleSemCpf`) ficou **quebrado em produção por quase 2 meses** (desde 17/jul/2026, commit `9ff7be6`) sem ninguém perceber, até uma pessoa estrangeira sem CPF tentar se cadastrar e travar de verdade — ela só descobriu porque a pessoa avisou. Causa: um commit que mudou a forma de esconder/revelar 4 campos condicionais atualizou 3 corretamente e esqueceu o 4º. **Cadastro é a porta de entrada do sistema — não pode quebrar silenciosamente.** Este roteiro existe pra isso nunca se repetir.
+>
+> **Regra**: sempre que `cadastro.html` (ou qualquer RPC que ele chama: `cadastro_dados_bateria`, `resolver_bateria_publica`, `buscar_pessoa_por_cpf`, `verificar_pessoa_existente`, `admin-create-user`) for alterado, rodar esta lista ANTES de considerar a mudança pronta — não só o pedaço que foi mexido, a lista inteira. Cada item é rápido (abrir o link certo, marcar/preencher, olhar se aparece); o que não pode acontecer é pular um por achar que "não tem nada a ver com o que eu mudei" — foi exatamente esse raciocínio que deixou o bug de 17/jul passar despercebido.
+>
+> **Testar é OLHAR A TELA DE VERDADE, não só conferir o banco.** O bug de 17/jul era 100% visual — o dado nunca chegava a existir (o campo nem aparecia pra alguém preencher), então nenhuma consulta no banco jamais teria revelado o problema; só abrir a tela e clicar no checkbox mostrava. Ler o código e concluir "isso deveria funcionar" também não é teste — foi exatamente esse raciocínio (a lógica parecia certa) que deixou o bug viver quase 2 meses. Todo item abaixo tem que ser feito no navegador de verdade (ou pelo menos visualmente conferido por print/vídeo), nunca só inferido pela leitura do código ou por uma query no banco confirmando que o registro foi criado.
+
+### A. Todo campo que aparece/some sozinho precisa realmente aparecer
+
+- [ ] Marcar **"Não tenho CPF"** → campo de Tipo de documento + Número do documento aparecem (não só o checkbox mudando, o bloco de verdade abrindo)
+- [ ] Nacionalidade = **Estrangeira** → campo de nacionalidade específica aparece
+- [ ] Gênero = **"Prefiro me identificar como..."** → campo de texto livre aparece
+- [ ] Estado = **"Outro"** → campo de texto livre aparece
+- [ ] Preencher nascimento de **menor de idade** → bloco "Dados do Responsável" aparece
+- [ ] Digitar um **CPF que já existe** no sistema → banner "Que bom te ver de novo, [Nome]!" aparece **assim que sai do campo CPF** (não só no final do envio — foi um bug real em 09/set/2026, ver `project_bug_cpf_existente_condicao_corrida`)
+
+### B. Um cadastro completo, do início ao fim, sem erro no envio — pelo menos uma vez por perfil
+
+- [ ] **Ritmista**, brasileiro, maior de idade, com CPF, pelo link fixo da bateria
+- [ ] **Pessoa sem CPF** (estrangeira), pelo link fixo — é o caso que quebrou, testar sempre
+- [ ] **Diretor de Bateria** (`?cargo=diretor`)
+- [ ] **Mestre** (`?cargo=mestre`)
+- [ ] **Diretor (Apoio)** (`?cargo=apoio`)
+- [ ] **Pessoa que já existe** em outra bateria — CPF reconhecido, só precisa preencher o que falta (instrumento/medidas) + senha
+- [ ] **Cadastro manual** (Super Admin ou Mestre cadastrando por outra pessoa, `?modo=manual`)
+- [ ] **Convidado Especial com carteirinha**
+- [ ] **Convidado Especial sem carteirinha** (só nome + tamanho de figurino)
+
+### C. Checagem final de sanidade (sempre, rápida)
+
+- [ ] Nenhum erro aparece no console do navegador durante o preenchimento inteiro
+- [ ] Mensagem de sucesso aparece no final, e a barra de progresso volta pro passo 1 (bug antigo: ficava travada no último passo por baixo da mensagem)
+- [ ] O vínculo criado no banco tem o `status`, `perfil` e `bateria_id` certos — conferir com uma consulta rápida, não só confiar na mensagem de sucesso na tela
+
+**Quando pular uma etapa é aceitável**: só quando a mudança for isolada e comprovadamente sem relação nenhuma com cadastro (ex: só texto de ajuda em outra tela). Na dúvida, rodar a lista inteira — o custo de rodar é minutos, o custo de pular e quebrar de novo é meses de gente travada sem ninguém perceber.
+
+---
+
 ## 1. Ambiente de teste (staging) — quando montar
 
 **Decisão (03/jul/2026): por enquanto, continuar desenvolvendo e testando em produção.** Não é necessário montar o ambiente de staging agora.
