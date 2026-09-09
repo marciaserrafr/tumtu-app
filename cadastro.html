@@ -82,6 +82,14 @@
            cada). max-height é só um teto pra transição -- não estica os
            campos mais simples, que continuam com a altura real deles. */
         .campo-revelavel.aberto { max-height: 300px; opacity: 1; margin-top: 8px; }
+        /* "Qual documento?" (09/set/2026) é o único uso desta classe que é
+           um RÓTULO de campo, não o campo em si -- os outros 3 usos (Estado,
+           Nacionalidade, "Como se identifica") não têm rótulo separado, só
+           o próprio input/select aparecendo com 8px de respiro. Um rótulo
+           de campo precisa do mesmo respiro que qualquer outro campo novo
+           começando (16px, igual .auth-form-group usa entre campos) --
+           8px ficava colado demais, achado dela ao ver print da tela. */
+        #label-tipo-documento-outro.aberto { margin-top: 16px; }
         body.pessoa-existente .oculto-pessoa-existente { display: none !important; }
         .form-step-nav {
             display: flex; justify-content: space-between; gap: 10px; margin-top: 24px;
