@@ -88,21 +88,14 @@ const FP_CAMPO_TABELA = {
 };
 
 // Naipe (Diretor) guarda os instrumentos marcados como array de nomes --
-// aqui só resolve pra um selo único, seguindo a regra combinada com a
-// Márcia em 21/ago/2026: Primeira+Segunda vira "Surdo de Marcação",
-// qualquer combinação de 2+ variantes de Repique vira só "Repique", uma
-// opção sozinha (inclusive "Especiais") mostra o nome literal. Mesma lógica
-// estendida em 25/ago/2026 pra Caixa de 12"/14" virarem só "Caixa".
-const FP_NAIPE_SURDO_MARCACAO = ['Surdo de Primeira', 'Surdo de Segunda'];
-const FP_NAIPE_REPIQUE = ['Repique', 'Repique Mor', 'Repique de Bossa'];
-const FP_NAIPE_CAIXA = ['Caixa de 12"', 'Caixa de 14"'];
+// aqui só resolve pra um selo único. Decisão dela, 09/set/2026: sempre
+// literal, sem regra de consolidação nenhuma (tinha 3: Surdo de
+// Marcação, Repique, Caixa) -- "simplifica e muito essa marcação e não
+// deixa lógica e regras soltas". Uma composição de instrumentos (ex:
+// "Pandeiro/Triângulo") entra na lista como qualquer outro nome.
 function fpResolverSeloNaipe(naipe) {
     const lista = Array.isArray(naipe) ? naipe.filter(Boolean) : [];
     if (lista.length === 0) return null;
-    if (lista.length === 1) return lista[0];
-    if (lista.length >= 2 && lista.every(n => FP_NAIPE_SURDO_MARCACAO.includes(n))) return 'Surdo de Marcação';
-    if (lista.length >= 2 && lista.every(n => FP_NAIPE_REPIQUE.includes(n))) return 'Repique';
-    if (lista.length >= 2 && lista.every(n => FP_NAIPE_CAIXA.includes(n))) return 'Caixa';
     return lista.join(', ');
 }
 function fpTabelaDoCampo(col) {
@@ -908,6 +901,7 @@ async function fpCarregarOpcoesInstrumento(bateriaId) {
     const categorias = await resCat.json();
     const nomenclaturas = await resNom.json();
     return bi.map(item => {
+        if (item.eh_composicao) return { id: item.id, nome: item.nome_composicao };
         const cat = categorias.find(c => c.id === item.categoria_id);
         const nom = nomenclaturas.find(n => n.id === item.nomenclatura_id);
         return { id: item.id, nome: (nom && nom.nome) || (cat && cat.nome) || '—' };
@@ -1318,7 +1312,7 @@ async function fpAtivarEdicao() {
         const container = fpEl('fp-naipe-edit');
         const opcoesInstrumento = await fpCarregarOpcoesInstrumento(fpEstado.alvo.bateria_id);
         const nomes = Array.from(new Set(opcoesInstrumento.map(o => o.nome)));
-        nomes.push('Repique de Bossa', 'Especiais');
+        nomes.push('Repique de Bossa');
         const selecionados = new Set(Array.isArray(fpEstado.alvo.naipe) ? fpEstado.alvo.naipe : []);
         container.innerHTML = nomes.map(n => `
             <label style="display:flex;align-items:center;gap:8px;margin-top:4px;">
