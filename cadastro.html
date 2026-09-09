@@ -892,7 +892,13 @@
         cpfInput.value = '';
         cpfInput.required = !semCpf;
         document.getElementById('cpf-asterisco').style.display = semCpf ? 'none' : 'inline';
-        blocoDoc.style.display = semCpf ? 'block' : 'none';
+        // Achado real, 09/set/2026: #bloco-documento usa a classe
+        // .campo-revelavel (transição suave por max-height/opacity, desde
+        // 17/jul/2026) -- só alternar display não abre mais nada, precisa
+        // da classe "aberto" (mesmo padrão já usado em toggleNacionalidade/
+        // toggleGeneroPersonalizado/toggleOutro, que foram corrigidos no
+        // mesmo commit que trocou o sistema; este aqui ficou pra trás).
+        blocoDoc.classList.toggle('aberto', semCpf);
         tipoDoc.required = semCpf;
         numDoc.required = semCpf;
     }
