@@ -234,8 +234,8 @@
             </div>
             <div id="bloco-documento" class="campo-revelavel">
                 <div class="auth-form-group" style="margin-bottom:10px;">
-                    <label>Tipo de documento</label>
-                    <select id="tipo_documento" onchange="mostrarOutro('tipo_documento')">
+                    <label>Tipo de documento <span id="tipo-documento-asterisco" class="obrigatorio" style="display:none;">*</span></label>
+                    <select id="tipo_documento" onchange="mostrarOutro('tipo_documento'); toggleLabelDocumentoOutro();">
                         <option value="">Selecione</option>
                         <option>Passaporte</option>
                         <option>RNE</option>
@@ -244,10 +244,11 @@
                         <option>Protocolo de Refúgio</option>
                         <option value="Outro">Outro</option>
                     </select>
-                    <input type="text" id="tipo_documento_outro" placeholder="Qual documento?" class="campo-revelavel">
+                    <label class="campo-revelavel" id="label-tipo-documento-outro" style="display:block;">Qual documento? <span class="obrigatorio">*</span></label>
+                    <input type="text" id="tipo_documento_outro" placeholder="Ex: Cédula de identidade argentina" class="campo-revelavel">
                 </div>
                 <div class="auth-form-group" style="margin-bottom:0;">
-                    <label>Número do documento</label>
+                    <label>Número do documento <span id="numero-documento-asterisco" class="obrigatorio" style="display:none;">*</span></label>
                     <input type="text" id="numero_documento" placeholder="Ex: AB123456">
                 </div>
             </div>
@@ -334,9 +335,9 @@
                 </select>
             </div>
             <div class="auth-form-group">
-                <label>Gênero <button type="button" class="btn-info-campo" onclick="toggleInfoCampo(this)" aria-label="Por que perguntamos isso">i</button></label>
+                <label>Gênero <span class="obrigatorio">*</span> <button type="button" class="btn-info-campo" onclick="toggleInfoCampo(this)" aria-label="Por que perguntamos isso">i</button></label>
                 <div class="info-campo-texto">Perguntamos isso só pra saber como te tratar certinho.</div>
-                <select id="genero" onchange="toggleGeneroPersonalizado()">
+                <select id="genero" onchange="toggleGeneroPersonalizado()" required>
                     <option value="">Selecione</option>
                     <option value="masculino">Masculino</option>
                     <option value="feminino">Feminino</option>
@@ -884,6 +885,16 @@
         }
     }
 
+    // Rótulo próprio de "Qual documento?" (09/set/2026) -- os outros campos
+    // que usam mostrarOutro() (Estado) não têm rótulo separado, só
+    // placeholder; este precisava de um pra mostrar o asterisco de
+    // obrigatório, então abre/fecha junto com o campo (mesma condição de
+    // mostrarOutro('tipo_documento'), chamado sempre junto no onchange).
+    function toggleLabelDocumentoOutro() {
+        const tipo = document.getElementById('tipo_documento').value;
+        document.getElementById('label-tipo-documento-outro').classList.toggle('aberto', tipo === 'Outro');
+    }
+
     function valorCampo(campo) {
         const select = document.getElementById(campo);
         if (select.value === 'Outro') {
@@ -911,6 +922,11 @@
         blocoDoc.classList.toggle('aberto', semCpf);
         tipoDoc.required = semCpf;
         numDoc.required = semCpf;
+        // Asterisco visual (09/set/2026) -- required sozinho só trava o
+        // envio, não desenha nada; sem isso a pessoa não via que esses 2
+        // campos viraram obrigatórios.
+        document.getElementById('tipo-documento-asterisco').style.display = semCpf ? 'inline' : 'none';
+        document.getElementById('numero-documento-asterisco').style.display = semCpf ? 'inline' : 'none';
         // Ao esconder o bloco, limpa também o "Outro" do tipo de documento --
         // senão ele podia ficar com required=true e invisível, travando o
         // envio em silêncio (achado ao adicionar a opção "Outro" aqui,
@@ -921,6 +937,7 @@
             tipoDocOutro.classList.remove('aberto');
             tipoDocOutro.required = false;
             tipoDocOutro.value = '';
+            document.getElementById('label-tipo-documento-outro').classList.remove('aberto');
         }
     }
 
