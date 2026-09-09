@@ -2689,7 +2689,7 @@
             ocultoSoloHtml = `
                 <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--cor-texto-muted);cursor:pointer;">
                     <input type="checkbox" ${ocultoSolo ? 'checked' : ''} onchange="salvarOcultoSoloInstrumento(${existente.id}, this.checked)" style="width:13px;height:13px;accent-color:var(--cor-destaque);cursor:pointer;">
-                    Só usar dentro de composição
+                    Não exibir avulso
                 </label>`;
         }
         return `
@@ -2832,7 +2832,7 @@
                 </div>
                 <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
                     <input type="checkbox" id="composicao-edit-oculto-solo" checked style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;">
-                    <label for="composicao-edit-oculto-solo" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Os instrumentos escolhidos acima passam a existir só dentro dessa composição</label>
+                    <label for="composicao-edit-oculto-solo" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Não exibir avulsos</label>
                 </div>
             </div>
             <div class="form-rodape">
