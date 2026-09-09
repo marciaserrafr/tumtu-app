@@ -1540,7 +1540,7 @@
         // definição de vagas" quando ninguém preencheu o número ainda, ou
         // "Faltam N" quando já tem número definido mas não bateu -- ver
         // avisoVagaHtml().
-        const linhas = (bateriaInstrumentosCache || []).filter(bi => bi.ativo).map(bi => {
+        const linhas = (bateriaInstrumentosCache || []).filter(bi => bi.ativo && !bi.oculto_solo).map(bi => {
             const qtd = contagem[String(bi.id)] || 0;
             const nome = nomeExibicaoBateriaInstrumento(bi);
             const vagas = bi.vagas || 0;
