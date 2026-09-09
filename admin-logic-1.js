@@ -2687,7 +2687,7 @@
         if (ativo) {
             const ocultoSolo = !!(existente && existente.oculto_solo);
             ocultoSoloHtml = `
-                <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--cor-texto-muted);cursor:pointer;">
+                <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--cor-texto-muted);cursor:pointer;align-self:flex-start;">
                     <input type="checkbox" ${ocultoSolo ? 'checked' : ''} onchange="salvarOcultoSoloInstrumento(${existente.id}, this.checked)" style="width:13px;height:13px;accent-color:var(--cor-destaque);cursor:pointer;">
                     Não exibir avulso
                 </label>`;
