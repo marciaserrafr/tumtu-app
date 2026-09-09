@@ -2676,14 +2676,42 @@
         } else if (ativo) {
             nomeUsadoHtml = `<span class="config-instrumento-nome-usado-fixo">${esc(c.nome)}</span>`;
         }
+        // "Esconder do cadastro/Vagas" (09/set/2026, pedido dela): instrumento
+        // que virou "peça" de uma composição continua ativo (a composição
+        // depende disso), mas ela não quer mais ele oferecido sozinho no
+        // cadastro nem listado sozinho em Vagas. Só faz sentido mostrar esse
+        // controle pra quem já está ativo.
+        let ocultoSoloHtml = '';
+        if (ativo) {
+            const ocultoSolo = !!(existente && existente.oculto_solo);
+            ocultoSoloHtml = `
+                <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--cor-texto-muted);cursor:pointer;">
+                    <input type="checkbox" ${ocultoSolo ? 'checked' : ''} onchange="salvarOcultoSoloInstrumento(${existente.id}, this.checked)" style="width:13px;height:13px;accent-color:var(--cor-destaque);cursor:pointer;">
+                    Esconder do cadastro/Vagas
+                </label>`;
+        }
         return `
             <div class="item-card">
                 <label class="config-instrumento-check">
                     <input type="checkbox" ${ativo ? 'checked' : ''} onchange="salvarInstrumentoBateria(${c.id}, this.checked)">
                     <span class="item-nome">${c.nome}</span>
                 </label>
-                ${nomeUsadoHtml}
+                <div style="display:flex;flex-direction:column;align-items:flex-end;">
+                    ${nomeUsadoHtml}
+                    ${ocultoSoloHtml}
+                </div>
             </div>`;
+    }
+
+    async function salvarOcultoSoloInstrumento(bateriaInstrumentoId, oculto) {
+        await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${bateriaInstrumentoId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ oculto_solo: oculto })
+        });
+        const item = bateriaInstrumentosCache.find(bi => bi.id === bateriaInstrumentoId);
+        if (item) item.oculto_solo = oculto;
+        renderizarConfigVagas();
     }
 
     async function salvarInstrumentoBateria(categoriaId, ativo, nomenclaturaId) {
@@ -2800,6 +2828,10 @@
                     <label>Nome de exibição *</label>
                     <input type="text" id="composicao-edit-nome" value="${esc(nomeSugeridoComposicao(ce.instrumentos))}" placeholder="Ex: Pandeiro/Triângulo" oninput="composicaoEditando.nomeManual = true;">
                 </div>
+                <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="composicao-edit-oculto-solo" checked style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;">
+                    <label for="composicao-edit-oculto-solo" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Esconder os instrumentos escolhidos acima do cadastro e das Vagas (já que agora ficam dentro dessa composição)</label>
+                </div>
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -2829,6 +2861,7 @@
         if (ids.length < 2) { mostrarToast('Selecione pelo menos 2 instrumentos.', 'erro'); return; }
         const nome = document.getElementById('composicao-edit-nome').value.trim();
         if (!nome) { mostrarToast('Informe o nome de exibição.', 'erro'); return; }
+        const esconderIndividuais = document.getElementById('composicao-edit-oculto-solo').checked;
         const bateriaId = bateriaIdContexto();
         salvandoComposicao = true;
         try {
@@ -2838,10 +2871,22 @@
                 body: JSON.stringify({ bateria_id: bateriaId, eh_composicao: true, categoria_id: null, nome_composicao: nome, instrumentos_componentes: ids, vagas: 0, ativo: true })
             });
             if (!res.ok) { mostrarToast('Não foi possível criar a composição.', 'erro'); return; }
+            // "Esconder do cadastro/Vagas" nos instrumentos que viraram peça
+            // dessa composição -- checkbox marcado por padrão (pedido dela,
+            // 09/set/2026), mas continuam ativos (a composição depende
+            // disso) e continuam aparecendo no menu de Instrumento da ficha.
+            if (esconderIndividuais) {
+                await Promise.all(ids.map(id => fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders },
+                    body: JSON.stringify({ oculto_solo: true })
+                })));
+            }
             mostrarToast('Composição criada! Defina a vaga dela em "Vagas de Ritmistas".');
             composicaoEditando = null;
             await carregarBateriaInstrumentos();
             renderizarEditorComposicao();
+            renderizarConfigInstrumentos();
             renderizarComposicaoLista();
             renderizarConfigVagas();
             construirMultiSelect();
@@ -2852,7 +2897,7 @@
     // ── CONFIGURAÇÕES → VAGAS DE RITMISTAS ──────────────────────────────
     function renderizarConfigVagas() {
         const container = document.getElementById('config-vagas-lista');
-        const ativos = bateriaInstrumentosCache.filter(bi => bi.ativo);
+        const ativos = bateriaInstrumentosCache.filter(bi => bi.ativo && !bi.oculto_solo);
         const totalEl = document.getElementById('config-vagas-total-numero');
         if (totalEl) totalEl.textContent = ativos.reduce((soma, bi) => soma + (bi.vagas || 0), 0);
         if (ativos.length === 0) {
