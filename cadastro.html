@@ -897,7 +897,22 @@
         return select.value;
     }
 
+    // Proteção contra toque-fantasma no celular (09/set/2026, achado dela:
+    // marcava "Não tenho CPF" no quadradinho, os campos abriam, e sozinho
+    // desmarcava de novo, escondendo tudo) -- padrão conhecido em navegador
+    // mobile: um único toque físico às vezes dispara o evento de mudança do
+    // checkbox duas vezes seguidas (o checkbox nativo alternando de novo
+    // sozinho). Em vez de reagir na hora a cada disparo, espera 150ms sem
+    // nenhum disparo novo antes de aplicar -- se vier um 2º disparo
+    // fantasma logo em seguida, só o ESTADO FINAL do checkbox depois de
+    // tudo assentar é lido e aplicado (nunca fica dessincronizado do
+    // checkbox de verdade, só posterga um pouco a reação visual).
+    let timeoutToggleSemCpf = null;
     function toggleSemCpf() {
+        clearTimeout(timeoutToggleSemCpf);
+        timeoutToggleSemCpf = setTimeout(aplicarToggleSemCpf, 150);
+    }
+    function aplicarToggleSemCpf() {
         const semCpf = document.getElementById('sem_cpf').checked;
         const cpfInput = document.getElementById('cpf');
         const blocoDoc = document.getElementById('bloco-documento');
