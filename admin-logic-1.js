@@ -1968,6 +1968,7 @@
     }
 
     function nomeExibicaoBateriaInstrumento(bi) {
+        if (bi.eh_composicao) return bi.nome_composicao;
         const cat = bibliotecaInstrumentos.find(c => c.id === bi.categoria_id);
         const nom = cat ? cat.nomenclaturas.find(n => n.id === bi.nomenclatura_id) : null;
         return (nom && nom.nome) || (cat && cat.nome) || '—';
@@ -2607,7 +2608,7 @@
         document.getElementById('config-lista').style.display = 'none';
         document.querySelectorAll('#painel-configuracoes .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('config-tela-' + nome).style.display = 'block';
-        if (nome === 'instrumentos') renderizarConfigInstrumentos();
+        if (nome === 'instrumentos') { renderizarConfigInstrumentos(); fecharEditorComposicao(); renderizarComposicaoLista(); }
         if (nome === 'vagas') renderizarConfigVagas();
         if (nome === 'medidas') renderizarConfigMedidas();
         if (nome === 'figurino') renderizarConfigFigurino();
@@ -2710,6 +2711,142 @@
         await carregarBateriaInstrumentos();
         renderizarConfigInstrumentos();
         construirMultiSelect();
+    }
+
+    // ── CONFIGURAÇÕES → INSTRUMENTOS → COMPOSIÇÕES ──────────────────────
+    // Composição (09/set/2026, pedido do Mestre da Rocinha): ritmista que
+    // toca mais de um instrumento no desfile (ex: Pandeiro/Triângulo).
+    // É mais uma linha em bateria_instrumentos (eh_composicao=true,
+    // categoria_id=null, nome_composicao preenchido) -- zero mudança em
+    // vinculos.bateria_instrumento_id, que continua um valor único.
+    let composicaoEditando = null; // {instrumentos:[ids], nomeManual:bool}
+    let salvandoComposicao = false;
+
+    function instrumentosSimplesAtivosParaComposicao() {
+        return bateriaInstrumentosCache
+            .filter(bi => bi.ativo && !bi.eh_composicao)
+            .map(bi => ({ id: bi.id, nome: nomeExibicaoBateriaInstrumento(bi) }))
+            .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    }
+
+    function renderizarComposicaoLista() {
+        const container = document.getElementById('composicao-lista');
+        if (!container) return;
+        const composicoes = bateriaInstrumentosCache.filter(bi => bi.eh_composicao);
+        if (composicoes.length === 0) { container.innerHTML = '<div class="estado-vazio">Nenhuma composição criada ainda.</div>'; return; }
+        container.innerHTML = composicoes
+            .slice()
+            .sort((a, b) => a.nome_composicao.localeCompare(b.nome_composicao, 'pt-BR'))
+            .map(bi => `
+            <div class="item-card">
+                <label class="config-instrumento-check">
+                    <input type="checkbox" ${bi.ativo ? 'checked' : ''} onchange="salvarComposicaoAtiva(${bi.id}, this.checked)">
+                    <span class="item-nome">${esc(bi.nome_composicao)}</span>
+                </label>
+            </div>`).join('');
+    }
+
+    async function salvarComposicaoAtiva(id, ativo) {
+        await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ ativo })
+        });
+        const item = bateriaInstrumentosCache.find(bi => bi.id === id);
+        if (item) item.ativo = ativo;
+        renderizarConfigVagas();
+        construirMultiSelect();
+    }
+
+    function nomeSugeridoComposicao(idsSelecionados) {
+        const disponiveis = instrumentosSimplesAtivosParaComposicao();
+        return idsSelecionados
+            .map(id => disponiveis.find(o => o.id === id))
+            .filter(Boolean)
+            .map(o => o.nome)
+            .join('/');
+    }
+
+    function abrirNovaComposicao() {
+        if (instrumentosSimplesAtivosParaComposicao().length < 2) {
+            mostrarToast('Ative pelo menos 2 instrumentos em "Instrumentos" antes de criar uma composição.', 'erro');
+            return;
+        }
+        composicaoEditando = { instrumentos: [], nomeManual: false };
+        renderizarEditorComposicao();
+    }
+
+    function renderizarEditorComposicao() {
+        const ce = composicaoEditando;
+        const editor = document.getElementById('composicao-editor');
+        if (!editor) return;
+        if (!ce) { editor.style.display = 'none'; editor.innerHTML = ''; return; }
+        editor.style.display = 'block';
+        const disponiveis = instrumentosSimplesAtivosParaComposicao();
+        editor.innerHTML = `<div class="card-form">
+            <div class="card-form-titulo">Nova Composição</div>
+            <div class="form-grid">
+                <div class="campo campo-full">
+                    <label>Quais instrumentos formam essa composição? *</label>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
+                        ${disponiveis.map(o => `
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" class="composicao-edit-instrumento" value="${o.id}" id="composicao-inst-${o.id}" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ce.instrumentos.includes(o.id) ? 'checked' : ''} onchange="atualizarSelecaoComposicao()">
+                            <label for="composicao-inst-${o.id}" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">${esc(o.nome)}</label>
+                        </div>`).join('')}
+                    </div>
+                </div>
+                <div class="campo campo-full">
+                    <label>Nome de exibição *</label>
+                    <input type="text" id="composicao-edit-nome" value="${esc(nomeSugeridoComposicao(ce.instrumentos))}" placeholder="Ex: Pandeiro/Triângulo" oninput="composicaoEditando.nomeManual = true;">
+                </div>
+            </div>
+            <div class="form-rodape">
+                <div class="form-rodape-esq">
+                    <button class="btn-ficha btn-ficha-salvar" onclick="salvarComposicao()">Criar</button>
+                </div>
+                <button class="btn-ficha" onclick="fecharEditorComposicao()">Cancelar</button>
+            </div>
+        </div>`;
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function atualizarSelecaoComposicao() {
+        if (!composicaoEditando) return;
+        const ids = [...document.querySelectorAll('.composicao-edit-instrumento:checked')].map(el => Number(el.value));
+        composicaoEditando.instrumentos = ids;
+        if (!composicaoEditando.nomeManual) {
+            const nomeEl = document.getElementById('composicao-edit-nome');
+            if (nomeEl) nomeEl.value = nomeSugeridoComposicao(ids);
+        }
+    }
+
+    function fecharEditorComposicao() { composicaoEditando = null; renderizarEditorComposicao(); }
+
+    async function salvarComposicao() {
+        if (salvandoComposicao) return;
+        const ids = composicaoEditando.instrumentos;
+        if (ids.length < 2) { mostrarToast('Selecione pelo menos 2 instrumentos.', 'erro'); return; }
+        const nome = document.getElementById('composicao-edit-nome').value.trim();
+        if (!nome) { mostrarToast('Informe o nome de exibição.', 'erro'); return; }
+        const bateriaId = bateriaIdContexto();
+        salvandoComposicao = true;
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ bateria_id: bateriaId, eh_composicao: true, categoria_id: null, nome_composicao: nome, instrumentos_componentes: ids, vagas: 0, ativo: true })
+            });
+            if (!res.ok) { mostrarToast('Não foi possível criar a composição.', 'erro'); return; }
+            mostrarToast('Composição criada! Defina a vaga dela em "Vagas de Ritmistas".');
+            composicaoEditando = null;
+            await carregarBateriaInstrumentos();
+            renderizarEditorComposicao();
+            renderizarComposicaoLista();
+            renderizarConfigVagas();
+            construirMultiSelect();
+        } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
+        finally { salvandoComposicao = false; }
     }
 
     // ── CONFIGURAÇÕES → VAGAS DE RITMISTAS ──────────────────────────────

@@ -66,7 +66,7 @@
     <!-- defer (06/set/2026) -- nenhuma das duas executa nada sozinha ao
          carregar, só define função pra usar depois (conferido no código
          das duas), então não corre risco nenhum de rodar antes da hora. -->
-    <script src="ficha-perfil.js?v=69" defer></script>
+    <script src="ficha-perfil.js?v=70" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
         /* Desligada de novo (06/set/2026, mesma sessão -- teste de
@@ -2620,6 +2620,12 @@
         <div class="painel-titulo">Instrumentos</div>
         <p class="config-sub-desc">Ative os instrumentos que sua bateria usa. Quando houver mais de um nome possível, escolha o que sua bateria usa.</p>
         <div id="config-instrumentos-lista" class="lista-cards"><div class="vazio"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+
+        <div class="secao-titulo" style="margin-top:24px;">Composições</div>
+        <p class="config-sub-desc">Quando um ritmista toca mais de um instrumento no desfile (ex: Pandeiro numa parte, Triângulo em outra), crie uma composição pra ele aqui.</p>
+        <button id="composicao-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovaComposicao()">+ Criar Composição</button>
+        <div id="composicao-editor" style="display:none;"></div>
+        <div id="composicao-lista" class="lista-cards"></div>
     </div>
 
     <!-- Sub-tela: Vagas de Ritmistas -->
