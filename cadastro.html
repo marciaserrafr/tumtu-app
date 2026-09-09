@@ -75,7 +75,13 @@
             overflow: hidden; max-height: 0; opacity: 0;
             transition: max-height 0.25s ease, opacity 0.2s ease;
         }
-        .campo-revelavel.aberto { max-height: 240px; opacity: 1; margin-top: 8px; }
+        /* 300px (era 240px) -- achado ao acrescentar "Outro" dentro de
+           #bloco-documento (09/set/2026): esse bloco pode empilhar 3 campos
+           de uma vez (tipo de documento + "qual documento" + número), então
+           precisa de mais teto que os outros usos desta classe (só 1 campo
+           cada). max-height é só um teto pra transição -- não estica os
+           campos mais simples, que continuam com a altura real deles. */
+        .campo-revelavel.aberto { max-height: 300px; opacity: 1; margin-top: 8px; }
         body.pessoa-existente .oculto-pessoa-existente { display: none !important; }
         .form-step-nav {
             display: flex; justify-content: space-between; gap: 10px; margin-top: 24px;
@@ -229,12 +235,16 @@
             <div id="bloco-documento" class="campo-revelavel">
                 <div class="auth-form-group" style="margin-bottom:10px;">
                     <label>Tipo de documento</label>
-                    <select id="tipo_documento">
+                    <select id="tipo_documento" onchange="mostrarOutro('tipo_documento')">
                         <option value="">Selecione</option>
                         <option>Passaporte</option>
                         <option>RNE</option>
                         <option>CRNM</option>
+                        <option>Documento Mercosul</option>
+                        <option>Protocolo de Refúgio</option>
+                        <option value="Outro">Outro</option>
                     </select>
+                    <input type="text" id="tipo_documento_outro" placeholder="Qual documento?" class="campo-revelavel">
                 </div>
                 <div class="auth-form-group" style="margin-bottom:0;">
                     <label>Número do documento</label>
@@ -901,6 +911,17 @@
         blocoDoc.classList.toggle('aberto', semCpf);
         tipoDoc.required = semCpf;
         numDoc.required = semCpf;
+        // Ao esconder o bloco, limpa também o "Outro" do tipo de documento --
+        // senão ele podia ficar com required=true e invisível, travando o
+        // envio em silêncio (achado ao adicionar a opção "Outro" aqui,
+        // 09/set/2026, mesmo cuidado de não repetir o bug do campo sumido).
+        if (!semCpf) {
+            tipoDoc.value = '';
+            const tipoDocOutro = document.getElementById('tipo_documento_outro');
+            tipoDocOutro.classList.remove('aberto');
+            tipoDocOutro.required = false;
+            tipoDocOutro.value = '';
+        }
     }
 
     function toggleNacionalidade() {
@@ -1569,7 +1590,7 @@
                 ? (document.getElementById('nacionalidade').value.trim() || 'Estrangeira')
                 : 'Brasileira',
             cpf: cpf || null,
-            tipo_documento: document.getElementById('tipo_documento').value || null,
+            tipo_documento: valorCampo('tipo_documento') || null,
             numero_documento: document.getElementById('numero_documento').value.trim() || null,
             nascimento: dataParaISO(document.getElementById('nascimento').value),
             responsavel_nome: document.getElementById('responsavel_nome').value.trim() || null,
