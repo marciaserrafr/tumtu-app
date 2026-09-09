@@ -893,7 +893,7 @@ async function fpCarregarOpcoesInstrumento(bateriaId) {
     const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
     const authHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` };
     const [resBI, resCat, resNom] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?bateria_id=eq.${bateriaId}&ativo=eq.true`, { headers: authHeaders }),
+        fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?bateria_id=eq.${bateriaId}&ativo=eq.true&oculto_solo=eq.false`, { headers: authHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias`, { headers: authHeaders }),
         fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas`, { headers: authHeaders }),
     ]);

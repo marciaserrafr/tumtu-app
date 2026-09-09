@@ -2676,18 +2676,20 @@
         } else if (ativo) {
             nomeUsadoHtml = `<span class="config-instrumento-nome-usado-fixo">${esc(c.nome)}</span>`;
         }
-        // "Esconder do cadastro/Vagas" (09/set/2026, pedido dela): instrumento
+        // "Só usar dentro de composição" (09/set/2026, pedido dela): instrumento
         // que virou "peça" de uma composição continua ativo (a composição
-        // depende disso), mas ela não quer mais ele oferecido sozinho no
-        // cadastro nem listado sozinho em Vagas. Só faz sentido mostrar esse
-        // controle pra quem já está ativo.
+        // depende disso), mas deixa de ser oferecido sozinho em qualquer
+        // lugar -- cadastro, Vagas, ficha do ritmista e Naipe (achado dela:
+        // deixar selecionável na ficha permitia alguém "sumir" em Vagas,
+        // atribuído a um instrumento que ninguém mais acompanha). Só faz
+        // sentido mostrar esse controle pra quem já está ativo.
         let ocultoSoloHtml = '';
         if (ativo) {
             const ocultoSolo = !!(existente && existente.oculto_solo);
             ocultoSoloHtml = `
                 <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--cor-texto-muted);cursor:pointer;">
                     <input type="checkbox" ${ocultoSolo ? 'checked' : ''} onchange="salvarOcultoSoloInstrumento(${existente.id}, this.checked)" style="width:13px;height:13px;accent-color:var(--cor-destaque);cursor:pointer;">
-                    Esconder do cadastro/Vagas
+                    Não exibir avulso
                 </label>`;
         }
         return `
@@ -2830,7 +2832,7 @@
                 </div>
                 <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
                     <input type="checkbox" id="composicao-edit-oculto-solo" checked style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;">
-                    <label for="composicao-edit-oculto-solo" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Esconder os instrumentos escolhidos acima do cadastro e das Vagas (já que agora ficam dentro dessa composição)</label>
+                    <label for="composicao-edit-oculto-solo" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Não exibir avulsos</label>
                 </div>
             </div>
             <div class="form-rodape">
@@ -2871,10 +2873,11 @@
                 body: JSON.stringify({ bateria_id: bateriaId, eh_composicao: true, categoria_id: null, nome_composicao: nome, instrumentos_componentes: ids, vagas: 0, ativo: true })
             });
             if (!res.ok) { mostrarToast('Não foi possível criar a composição.', 'erro'); return; }
-            // "Esconder do cadastro/Vagas" nos instrumentos que viraram peça
-            // dessa composição -- checkbox marcado por padrão (pedido dela,
-            // 09/set/2026), mas continuam ativos (a composição depende
-            // disso) e continuam aparecendo no menu de Instrumento da ficha.
+            // "Só usar dentro de composição" nos instrumentos que viraram
+            // peça dessa composição -- checkbox marcado por padrão (pedido
+            // dela, 09/set/2026). Continuam ativos (a composição depende
+            // disso), mas deixam de ser oferecidos sozinhos em qualquer
+            // lugar (cadastro, Vagas, ficha, Naipe).
             if (esconderIndividuais) {
                 await Promise.all(ids.map(id => fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${id}`, {
                     method: 'PATCH',
