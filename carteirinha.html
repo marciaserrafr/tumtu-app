@@ -253,7 +253,7 @@
                                 <div class="cf-bateria" id="c-bateria-nome"></div>
                             </div>
                             <div class="cf-divider"></div>
-                            <div class="cf-cpfline">CPF:&nbsp;<span id="cpfRitmista">—</span></div>
+                            <div class="cf-cpfline"><span id="cpfRotulo">CPF</span>:&nbsp;<span id="cpfRitmista">—</span></div>
                         </div>
 
                         <div class="cf-band">
@@ -414,7 +414,20 @@
             document.getElementById('apelidoRitmista').textContent = ritmista.apelido;
         }
 
-        document.getElementById('cpfRitmista').textContent = ritmista.cpf || '—';
+        // Pessoa sem CPF (estrangeira, usa Passaporte/RNE/CRNM no lugar) --
+        // achado real, 09/set/2026: o campo sempre mostrou só "CPF: —" pra
+        // quem não tem CPF, mesmo o documento de verdade já estando salvo.
+        // Mostra o documento no lugar do CPF quando ele não existe.
+        if (ritmista.cpf) {
+            document.getElementById('cpfRotulo').textContent = 'CPF';
+            document.getElementById('cpfRitmista').textContent = ritmista.cpf;
+        } else if (ritmista.numero_documento) {
+            document.getElementById('cpfRotulo').textContent = ritmista.tipo_documento || 'Documento';
+            document.getElementById('cpfRitmista').textContent = ritmista.numero_documento;
+        } else {
+            document.getElementById('cpfRotulo').textContent = 'CPF';
+            document.getElementById('cpfRitmista').textContent = '—';
+        }
 
         if (ritmista.foto_url) {
             const img = document.createElement('img');
