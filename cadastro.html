@@ -75,7 +75,13 @@
             overflow: hidden; max-height: 0; opacity: 0;
             transition: max-height 0.25s ease, opacity 0.2s ease;
         }
-        .campo-revelavel.aberto { max-height: 240px; opacity: 1; margin-top: 8px; }
+        /* 300px (era 240px) -- achado ao acrescentar "Outro" dentro de
+           #bloco-documento (09/set/2026): esse bloco pode empilhar 3 campos
+           de uma vez (tipo de documento + "qual documento" + número), então
+           precisa de mais teto que os outros usos desta classe (só 1 campo
+           cada). max-height é só um teto pra transição -- não estica os
+           campos mais simples, que continuam com a altura real deles. */
+        .campo-revelavel.aberto { max-height: 300px; opacity: 1; margin-top: 8px; }
         body.pessoa-existente .oculto-pessoa-existente { display: none !important; }
         .form-step-nav {
             display: flex; justify-content: space-between; gap: 10px; margin-top: 24px;
@@ -228,16 +234,20 @@
             </div>
             <div id="bloco-documento" class="campo-revelavel">
                 <div class="auth-form-group" style="margin-bottom:10px;">
-                    <label>Tipo de documento</label>
-                    <select id="tipo_documento">
+                    <label>Tipo de documento <span id="tipo-documento-asterisco" class="obrigatorio" style="display:none;">*</span></label>
+                    <select id="tipo_documento" onchange="mostrarOutro('tipo_documento')">
                         <option value="">Selecione</option>
                         <option>Passaporte</option>
                         <option>RNE</option>
                         <option>CRNM</option>
+                        <option>Documento Mercosul</option>
+                        <option>Protocolo de Refúgio</option>
+                        <option value="Outro">Outro</option>
                     </select>
+                    <input type="text" id="tipo_documento_outro" placeholder="Qual documento? *" class="campo-revelavel">
                 </div>
                 <div class="auth-form-group" style="margin-bottom:0;">
-                    <label>Número do documento</label>
+                    <label>Número do documento <span id="numero-documento-asterisco" class="obrigatorio" style="display:none;">*</span></label>
                     <input type="text" id="numero_documento" placeholder="Ex: AB123456">
                 </div>
             </div>
@@ -261,7 +271,7 @@
                     <option value="Estrangeira">Estrangeira</option>
                 </select>
                 <select id="nacionalidade" class="campo-revelavel">
-                    <option value="">Selecione</option>
+                    <option value="">Selecione o país *</option>
                     <option value="Portuguesa">Portuguesa</option>
                     <option value="Angolana">Angolana</option>
                     <option value="Moçambicana">Moçambicana</option>
@@ -324,9 +334,9 @@
                 </select>
             </div>
             <div class="auth-form-group">
-                <label>Gênero <button type="button" class="btn-info-campo" onclick="toggleInfoCampo(this)" aria-label="Por que perguntamos isso">i</button></label>
+                <label>Gênero <span class="obrigatorio">*</span> <button type="button" class="btn-info-campo" onclick="toggleInfoCampo(this)" aria-label="Por que perguntamos isso">i</button></label>
                 <div class="info-campo-texto">Perguntamos isso só pra saber como te tratar certinho.</div>
-                <select id="genero" onchange="toggleGeneroPersonalizado()">
+                <select id="genero" onchange="toggleGeneroPersonalizado()" required>
                     <option value="">Selecione</option>
                     <option value="masculino">Masculino</option>
                     <option value="feminino">Feminino</option>
@@ -882,7 +892,22 @@
         return select.value;
     }
 
+    // Proteção contra toque-fantasma no celular (09/set/2026, achado dela:
+    // marcava "Não tenho CPF" no quadradinho, os campos abriam, e sozinho
+    // desmarcava de novo, escondendo tudo) -- padrão conhecido em navegador
+    // mobile: um único toque físico às vezes dispara o evento de mudança do
+    // checkbox duas vezes seguidas (o checkbox nativo alternando de novo
+    // sozinho). Em vez de reagir na hora a cada disparo, espera 150ms sem
+    // nenhum disparo novo antes de aplicar -- se vier um 2º disparo
+    // fantasma logo em seguida, só o ESTADO FINAL do checkbox depois de
+    // tudo assentar é lido e aplicado (nunca fica dessincronizado do
+    // checkbox de verdade, só posterga um pouco a reação visual).
+    let timeoutToggleSemCpf = null;
     function toggleSemCpf() {
+        clearTimeout(timeoutToggleSemCpf);
+        timeoutToggleSemCpf = setTimeout(aplicarToggleSemCpf, 150);
+    }
+    function aplicarToggleSemCpf() {
         const semCpf = document.getElementById('sem_cpf').checked;
         const cpfInput = document.getElementById('cpf');
         const blocoDoc = document.getElementById('bloco-documento');
@@ -901,6 +926,22 @@
         blocoDoc.classList.toggle('aberto', semCpf);
         tipoDoc.required = semCpf;
         numDoc.required = semCpf;
+        // Asterisco visual (09/set/2026) -- required sozinho só trava o
+        // envio, não desenha nada; sem isso a pessoa não via que esses 2
+        // campos viraram obrigatórios.
+        document.getElementById('tipo-documento-asterisco').style.display = semCpf ? 'inline' : 'none';
+        document.getElementById('numero-documento-asterisco').style.display = semCpf ? 'inline' : 'none';
+        // Ao esconder o bloco, limpa também o "Outro" do tipo de documento --
+        // senão ele podia ficar com required=true e invisível, travando o
+        // envio em silêncio (achado ao adicionar a opção "Outro" aqui,
+        // 09/set/2026, mesmo cuidado de não repetir o bug do campo sumido).
+        if (!semCpf) {
+            tipoDoc.value = '';
+            const tipoDocOutro = document.getElementById('tipo_documento_outro');
+            tipoDocOutro.classList.remove('aberto');
+            tipoDocOutro.required = false;
+            tipoDocOutro.value = '';
+        }
     }
 
     function toggleNacionalidade() {
@@ -1307,18 +1348,24 @@
         if (!span) {
             span = document.createElement('span');
             span.className = 'erro-inline';
-            span.style.cssText = 'font-size:12px;color:#dc3545;margin-top:4px;display:block;';
+            span.style.cssText = 'font-size:12px;color:#dc3545;margin-top:4px;';
             campo.parentNode.appendChild(span);
         }
         span.textContent = mensagem;
+        span.style.display = 'block';
         campo.addEventListener('input', () => {
             campo.classList.remove('campo-invalido');
-            if (span) span.textContent = '';
+            if (span) { span.textContent = ''; span.style.display = 'none'; }
         }, { once: true });
     }
 
+    // Achado real, 09/set/2026: limpar só o TEXTO do erro (sem esconder o
+    // <span>) deixava um espaço vazio pra sempre no lugar -- ela via como
+    // "espaço vazio demais" em vários campos que já tinham mostrado erro
+    // de validação uma vez (ex: clicou "Continuar" com campo vazio, depois
+    // preencheu). Agora esconde de vez, não só limpa o texto.
     function limparErros() {
-        document.querySelectorAll('.erro-inline').forEach(el => el.textContent = '');
+        document.querySelectorAll('.erro-inline').forEach(el => { el.textContent = ''; el.style.display = 'none'; });
         document.querySelectorAll('.campo-invalido').forEach(el => el.classList.remove('campo-invalido'));
     }
 
@@ -1569,7 +1616,7 @@
                 ? (document.getElementById('nacionalidade').value.trim() || 'Estrangeira')
                 : 'Brasileira',
             cpf: cpf || null,
-            tipo_documento: document.getElementById('tipo_documento').value || null,
+            tipo_documento: valorCampo('tipo_documento') || null,
             numero_documento: document.getElementById('numero_documento').value.trim() || null,
             nascimento: dataParaISO(document.getElementById('nascimento').value),
             responsavel_nome: document.getElementById('responsavel_nome').value.trim() || null,
