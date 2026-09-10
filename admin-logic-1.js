@@ -6649,7 +6649,7 @@
         const podeVerNaipePermissao = pe.perfil === 'diretor' && pe.temNaipe && !pe.ehAdminBateria && tenhoCapacidade('ver_naipe_permissao');
         const podeEditarNaipePermissao = tenhoCapacidade('editar_naipe_permissao');
         const blocoNaipePermissao = !podeVerNaipePermissao ? '' : `<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-                <input type="checkbox" id="pp-naipe-permissao" ${podeEditarNaipePermissao ? '' : 'disabled'} style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.naipePermissaoAplicada ? 'checked' : ''}>
+                <input type="checkbox" id="pp-naipe-permissao" ${podeEditarNaipePermissao ? '' : 'disabled'} onchange="aplicarPreviewNaipePermissao(this)" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.naipePermissaoAplicada ? 'checked' : ''}>
                 <label for="pp-naipe-permissao" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Aplicar permissão básica de Diretor de Naipe</label>
             </div>`;
         editor.innerHTML = `<div class="card-form">
@@ -6798,6 +6798,41 @@
             else voltarPermissoesLista();
         }
         else { const err = await res.json(); mostrarToast('Erro: ' + (err.message || res.status), 'erro'); }
+    }
+    // Molde de Diretor de Naipe (Permissões Padrão), buscado uma vez só e
+    // guardado -- usado pra pré-visualizar na tela o efeito do checkbox
+    // "Aplicar permissão básica de Diretor de Naipe" (ver
+    // aplicarPreviewNaipePermissao) antes mesmo de clicar em Salvar. RLS de
+    // permissoes_padrao libera SELECT pra qualquer autenticado.
+    let moldeDiretorNaipeCache = null;
+    async function carregarMoldeDiretorNaipe() {
+        if (moldeDiretorNaipeCache) return moldeDiretorNaipeCache;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/permissoes_padrao?cargo=eq.diretor_naipe&select=capacidades`, { headers: authHeaders });
+        const linhas = res.ok ? await res.json() : [];
+        moldeDiretorNaipeCache = (linhas[0] && linhas[0].capacidades) || {};
+        return moldeDiretorNaipeCache;
+    }
+    // 10/set/2026, achado dela testando ao vivo ("não faz sentido... tem que
+    // desmarcar o modo carteirinha e marcar as opções na hora") -- marcar o
+    // checkbox já mostra na tela o que vai ser salvo (mesmo padrão de
+    // "Copiar permissão de"), sem precisar clicar em Salvar antes pra ver o
+    // resultado. Espelha exatamente o que o trigger do banco faz (merge das
+    // capacidades do molde + desliga Modo Carteirinha + liga Restrito ao
+    // Naipe). Desmarcar não desfaz nada na tela -- mesma regra de "quem tem
+    // permissão, permanece" que já vale no banco.
+    async function aplicarPreviewNaipePermissao(el) {
+        if (!el.checked) return;
+        const molde = await carregarMoldeDiretorNaipe();
+        const modoCarteirinhaEl = document.getElementById('pp-modo-carteirinha');
+        if (modoCarteirinhaEl) modoCarteirinhaEl.checked = false;
+        const restritoNaipeEl = document.getElementById('pp-restrito-naipe');
+        if (restritoNaipeEl) restritoNaipeEl.checked = true;
+        TODAS_CAPACIDADES.forEach(c => {
+            if (!molde[c]) return;
+            const cel = document.getElementById('pp-cap-' + c);
+            if (cel) cel.checked = true;
+        });
+        aplicarDependenciasPermissoes();
     }
     // "Copiar permissão de [Fulano]" (03/set/2026, pedido dela: "tá me
     // dando um trabalho danado marcar tudo igualzinho para todos"). Só
