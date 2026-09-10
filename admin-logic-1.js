@@ -5304,7 +5304,19 @@
             configEscola.nomeEscola = escolaAtualData ? (escolaAtualData.sigla || escolaAtualData.nome || '') : '';
             configEscola.nomeEscolaCurto = escolaAtualData ? (escolaAtualData.nome_curto || '') : '';
             configEscola.nomeBateria = '(sem bateria cadastrada)';
-            configEscola.temaPersonalizadoAtivo = false;
+            // Cor/logo da escola são dado da ESCOLA, não da bateria -- não faz
+            // sentido esperar a bateria existir pra mostrar isso (achado dela,
+            // 10/set/2026: cadastrou escola nova, colocou logo/cores, e o
+            // cabeçalho continuava com a marca TumTu padrão). escolaAtualData
+            // já vem carregado sem "select=" (todas as colunas), então dá pra
+            // ler direto, igual carregarNomeEscolaBateria() já faz quando tem
+            // bateria.
+            configEscola.temaPersonalizadoAtivo = !!(escolaAtualData && escolaAtualData.tema_personalizado_ativo);
+            configEscola.corPrimariaEscola = (escolaAtualData && escolaAtualData.cor_primaria) || null;
+            configEscola.logoEscola = (escolaAtualData && escolaAtualData.logo_url) || null;
+            configEscola.coresEscola = escolaAtualData
+                ? [escolaAtualData.cor_primaria, escolaAtualData.cor_secundaria, escolaAtualData.cor_terciaria, escolaAtualData.cor_quaternaria].filter(Boolean)
+                : [];
         }
         construirMultiSelect();
         aplicarConfigEscola();
