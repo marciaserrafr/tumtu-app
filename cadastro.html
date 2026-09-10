@@ -1201,7 +1201,17 @@
 
         pessoaExistente = encontrada;
         document.getElementById('nome').value = encontrada.nome || '';
-        document.getElementById('email').value = encontrada.email || '';
+        const campoEmail = document.getElementById('email');
+        campoEmail.value = encontrada.email || '';
+        // Trava o e-mail pra não editar -- achado real, 10/set/2026 (caso do
+        // Renan, Mestre da Fla Manguaça): o campo vinha preenchido mas
+        // continuava editável, e um e-mail digitado com letra maiúscula a
+        // mais (autocapitalização do teclado do celular) batia como
+        // "diferente" na comparação exata do banco, travando o cadastro dele
+        // com o erro de "CPF já tem cadastro com outro e-mail" -- mesmo
+        // sendo a mesma pessoa. Pra quem já foi reconhecido, só falta Medidas
+        // e Senha -- e-mail nunca deveria precisar ser digitado de novo.
+        campoEmail.readOnly = true;
         document.getElementById('pessoa-existente-nome').textContent = encontrada.nome || '';
         const banner = document.getElementById('pessoa-existente-banner');
         banner.style.display = 'block';
@@ -1221,6 +1231,7 @@
 
     function desativarModoPessoaExistente() {
         pessoaExistente = null;
+        document.getElementById('email').readOnly = false;
         document.getElementById('pessoa-existente-banner').style.display = 'none';
         document.body.classList.remove('pessoa-existente');
         document.getElementById('label-senha').innerHTML = 'Senha <span class="obrigatorio">*</span>';
