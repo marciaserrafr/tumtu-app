@@ -389,8 +389,8 @@
                 </select>
             </div>
             <div class="auth-form-group">
-                <label>Membro desde</label>
-                <select id="membro_desde">
+                <label>Membro desde <span class="obrigatorio">*</span></label>
+                <select id="membro_desde" required>
                     <option value="">Selecione o ano</option>
                 </select>
             </div>
@@ -767,11 +767,12 @@
         input.value = v;
     }
 
-    // Preenche dropdown de anos (1980 até ano atual)
+    // Preenche dropdown de anos -- vai até 1923 (fundação da Portela, a mais
+    // antiga escola de samba ainda em atividade), não só quem já está no TumTu hoje.
     (function() {
         const select = document.getElementById('membro_desde');
         const anoAtual = new Date().getFullYear();
-        for (let ano = anoAtual; ano >= 1959; ano--) {
+        for (let ano = anoAtual; ano >= 1923; ano--) {
             const opt = document.createElement('option');
             opt.value = ano;
             opt.textContent = ano;
