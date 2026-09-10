@@ -572,7 +572,7 @@ body.tela-auth-escura .auth-form-group input:-webkit-autofill:focus,
 }
 .link-cadastro a, .link-login a { color: var(--cor-destaque); font-weight: bold; text-decoration: none; }
 body.tela-auth-escura .link-cadastro,
-body.tela-auth-escura .link-login { color: #a39fc0; }
+body.tela-auth-escura .link-login { color: #b3aecb; }
 body.tela-auth-escura .link-cadastro a,
 body.tela-auth-escura .link-login a { color: var(--cor-destaque); font-weight: bold; text-decoration: none; }
 body.tela-auth-escura .link-secundario { color: #b3aecb !important; font-weight: 600 !important; text-decoration: underline !important; text-decoration-color: rgba(179,174,203,0.4); }
