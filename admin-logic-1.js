@@ -6181,14 +6181,19 @@
             { chave: 'editar_admin_bateria', label: 'Editar Admin da Bateria', dependeDe: 'ver_admin_bateria', subgrupo: 'Admin da Bateria' },
             { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Naipe' },
             { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
-            { chave: 'ver_naipe_permissao', label: 'Visualizar permissão de Naipe', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
-            { chave: 'editar_naipe_permissao', label: 'Aplicar permissão de Naipe', dependeDe: 'ver_naipe_permissao', subgrupo: 'Naipe' },
             { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Eventos' },
             { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Entrega de Figurinos' },
             { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Saúde' },
             { chave: 'ver_contato_emergencia_acessos', label: 'Visualizar Contato de Emergência', dependeDe: 'ver_acessos', subgrupo: 'Contato de Emergência' },
-            { chave: 'ver_permissoes', label: 'Visualizar Permissões', dependeDe: 'ver_acessos', subgrupo: 'Permissões' },
-            { chave: 'editar_permissoes', label: 'Editar Permissões', dependeDe: 'ver_permissoes', subgrupo: 'Permissões' },
+            // 10/set/2026, achado dela: a seção "Permissões" que aparece
+            // dentro da FICHA de um Diretor (resumo + "Editar permissões")
+            // é uma função diferente de acessar o MENU Permissões (grupo
+            // próprio, mais abaixo) -- mas hoje as duas são controladas
+            // pela MESMA trava (ver_permissoes/editar_permissoes). Mapeada
+            // aqui como nota (não dá pra repetir o mesmo checkbox duas
+            // vezes na tela) até um dia virar capacidade própria, se fizer
+            // sentido separar de verdade.
+            { semFuncionalidade: true, nota: 'Usa a mesma capacidade do menu "Permissões" (mais abaixo na lista) — sem interruptor próprio aqui ainda', subgrupo: 'Permissões' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
         // Bug real, 01/set/2026: dependia de "ver_eventos", que é a
@@ -6249,6 +6254,21 @@
             { chave: 'editar_figurino_bateria', label: 'Ativar/editar peças de Figurino nesta bateria', dependeDe: 'ver_figurino_bateria' },
             { chave: 'ver_eventos', label: 'Visualizar Eventos' },
             { chave: 'editar_eventos', label: 'Criar/editar Eventos', dependeDe: 'ver_eventos' },
+        ] },
+        // 10/set/2026, achado dela: "Permissões" tinha ficado dentro de
+        // "Perfil do Diretor" desde sempre -- errado, porque isso não é um
+        // campo da ficha de um Diretor específico, é acesso ao MENU
+        // Permissões (a tela inteira de gerenciar a permissão de todo
+        // mundo), mesma categoria de Histórico/Configurações logo abaixo.
+        { grupo: 'Permissões', itens: [
+            { chave: 'ver_permissoes', label: 'Visualizar', subgrupo: 'Permissões' },
+            { chave: 'editar_permissoes', label: 'Editar', dependeDe: 'ver_permissoes', subgrupo: 'Permissões' },
+            // 10/set/2026, achado dela: "Aplicar permissão básica de Diretor
+            // de Naipe" é uma ação dentro da tela de Permissões (não um
+            // campo da ficha) -- mesma lógica de ver_permissoes/editar_
+            // permissoes acima, então mora aqui, não em "Perfil do Diretor".
+            { chave: 'ver_naipe_permissao', label: 'Visualizar permissão de Naipe', dependeDe: 'ver_permissoes', subgrupo: 'Diretor de Naipe' },
+            { chave: 'editar_naipe_permissao', label: 'Aplicar permissão de Naipe', dependeDe: 'ver_naipe_permissao', subgrupo: 'Diretor de Naipe' },
         ] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Visualizar' }] },
     ];
