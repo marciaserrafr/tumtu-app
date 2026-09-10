@@ -6181,6 +6181,8 @@
             { chave: 'editar_admin_bateria', label: 'Editar Admin da Bateria', dependeDe: 'ver_admin_bateria', subgrupo: 'Admin da Bateria' },
             { chave: 'ver_naipe', label: 'Visualizar naipe que lidera', dependeDe: 'ver_acessos', subgrupo: 'Naipe' },
             { chave: 'editar_naipe', label: 'Editar naipe que lidera', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
+            { chave: 'ver_naipe_permissao', label: 'Visualizar permissão de Naipe', dependeDe: 'ver_naipe', subgrupo: 'Naipe' },
+            { chave: 'editar_naipe_permissao', label: 'Aplicar permissão de Naipe', dependeDe: 'ver_naipe_permissao', subgrupo: 'Naipe' },
             { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Eventos' },
             { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Entrega de Figurinos' },
             { semFuncionalidade: true, nota: 'Sem configuração de permissão para esse item (todos visualizam)', subgrupo: 'Saúde' },
@@ -6451,7 +6453,7 @@
         // lista -- ele já nunca acessa o painel (modo_carteirinha_individual
         // sempre true pra esse grupo), mas capacidades nunca deviam nem
         // existir na ficha dele, muito menos serem ligáveis por essa tela.
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe,naipe,eh_admin_bateria`, { headers: authHeaders });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=id,nome,apelido,perfil,genero,capacidades,modo_carteirinha_individual,restrito_ao_naipe,naipe,eh_admin_bateria,naipe_permissao_aplicada`, { headers: authHeaders });
         permissoesPessoaCache = res.ok ? await res.json() : [];
         if (permissoesGrupoAtual && PERMISSOES_GRUPOS[permissoesGrupoAtual]) renderizarListaPermissoesGrupo(permissoesGrupoAtual);
     }
@@ -6578,7 +6580,7 @@
     function abrirEditorPermissoesPessoa(vinculoId, veioDaFicha = false) {
         const p = permissoesPessoaCache.find(x => x.id === vinculoId);
         if (!p) return;
-        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, ehAdminBateria: !!p.eh_admin_bateria, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
+        permissoesPessoaEditando = { id: p.id, nome: p.nome, cargo: labelPerfilSA(p.perfil, p.genero), perfil: p.perfil, capacidades: { ...(p.capacidades || {}) }, modoCarteirinhaIndividual: !!p.modo_carteirinha_individual, restritoAoNaipe: !!p.restrito_ao_naipe, temNaipe: Array.isArray(p.naipe) && p.naipe.length > 0, ehAdminBateria: !!p.eh_admin_bateria, naipePermissaoAplicada: !!p.naipe_permissao_aplicada, veioDaFicha, grupoOrigem: veioDaFicha ? null : permissoesGrupoAtual };
         // O editor toma conta da tela inteira, por cima da sub-tela do
         // grupo (ou da lista, se veio da ficha) -- nunca os dois visíveis
         // ao mesmo tempo.
@@ -6634,12 +6636,29 @@
                 </select>
                 <button class="btn-ficha" onclick="copiarPermissoesDe()">Copiar</button>
             </div>`;
+        // Naipe é só informativo na ficha (09/set/2026, decisão dela: "a
+        // ficha é mais para informação... mas permissão eu acho que deveria
+        // ficar sempre em um único lugar") -- esse checkbox é o único jeito
+        // de aplicar o molde de Diretor de Naipe agora, sempre aqui em
+        // Permissões, nunca mais sozinho ao preencher o Naipe na ficha.
+        // Desmarcar depois nunca tira o que a pessoa já ganhou (gravado em
+        // vinculos.naipe_permissao_aplicada, trigger só dispara na transição
+        // false→true). Só aparece pra quem tem Naipe declarado, é Diretor de
+        // Bateria comum (Admin já manda mais, nunca precisa disso) e quem
+        // está editando tem a capacidade ver_naipe_permissao.
+        const podeVerNaipePermissao = pe.perfil === 'diretor' && pe.temNaipe && !pe.ehAdminBateria && tenhoCapacidade('ver_naipe_permissao');
+        const podeEditarNaipePermissao = tenhoCapacidade('editar_naipe_permissao');
+        const blocoNaipePermissao = !podeVerNaipePermissao ? '' : `<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                <input type="checkbox" id="pp-naipe-permissao" ${podeEditarNaipePermissao ? '' : 'disabled'} style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${pe.naipePermissaoAplicada ? 'checked' : ''}>
+                <label for="pp-naipe-permissao" style="margin:0;font-size:13px;font-weight:400;color:var(--cor-texto-principal);cursor:pointer;">Aplicar permissão básica de Diretor de Naipe</label>
+            </div>`;
         editor.innerHTML = `<div class="card-form">
             ${pe.veioDaFicha
                 ? `<div style="margin-bottom:8px;"><span onclick="abrirFichaAdmin(${pe.id})" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← Voltar para a ficha</span></div>`
                 : (pe.grupoOrigem && PERMISSOES_GRUPOS[pe.grupoOrigem] ? `<div style="margin-bottom:8px;"><span onclick="fecharEditorPermissoesPessoa()" style="color:#D4AF37;font-size:13px;font-weight:600;cursor:pointer;">← ${esc(PERMISSOES_GRUPOS[pe.grupoOrigem].label)}</span></div>` : '')}
             <div class="card-form-titulo">${esc(pe.nome)} <span style="font-weight:400;color:#999;font-size:13px;">— ${esc(pe.cargo)}</span></div>
             ${blocoCopiarDe}
+            ${blocoNaipePermissao}
             <div class="ficha-secao">
                 <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>Acesso ao TumTu<span class="ficha-secao-seta">▸</span></div>
                 <div class="ficha-secao-corpo" style="display:none;">
@@ -6761,7 +6780,13 @@
         // salva false (nunca ficou disponível pra marcar mesmo).
         const restritoNaipeEl = document.getElementById('pp-restrito-naipe');
         const restrito_ao_naipe = restritoNaipeEl ? restritoNaipeEl.checked : false;
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual, restrito_ao_naipe }) });
+        // Checkbox "Aplicar permissão básica de Diretor de Naipe" só existe
+        // na tela pra quem tem Naipe declarado e não é Admin (ver
+        // renderizarEditorPermissoesPessoa) -- preserva o valor já salvo pra
+        // qualquer outro caso, nunca reseta à toa.
+        const naipePermissaoEl = document.getElementById('pp-naipe-permissao');
+        const naipe_permissao_aplicada = naipePermissaoEl ? naipePermissaoEl.checked : !!pe.naipePermissaoAplicada;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${pe.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ capacidades, modo_carteirinha_individual, restrito_ao_naipe, naipe_permissao_aplicada }) });
         if (res.ok) {
             mostrarToast('Permissões atualizadas!');
             const grupoOrigem = pe.grupoOrigem;
@@ -6792,6 +6817,12 @@
         pe.capacidades = { ...(origem.capacidades || {}) };
         pe.modoCarteirinhaIndividual = !!origem.modo_carteirinha_individual;
         if (pe.temNaipe) pe.restritoAoNaipe = !!origem.restrito_ao_naipe;
+        // Checkbox de permissão de Naipe também vem junto (09/set/2026,
+        // pedido dela: "se eu entrar em outro diretor e mandar copiar desse
+        // que eu mudei, ele vai ter que mudar tb") -- só faz sentido copiar
+        // dentro do mesmo grupo (Diretor de Bateria - Naipe), onde todo
+        // mundo já tem Naipe declarado.
+        if (pe.temNaipe) pe.naipePermissaoAplicada = !!origem.naipe_permissao_aplicada;
         renderizarEditorPermissoesPessoa();
         mostrarToast(`Permissão de ${origem.nome} copiada pra tela -- confira e clique em Salvar.`);
     }
@@ -6799,10 +6830,13 @@
     // uma vez só (sem passar por Salvar) a permissão que está marcada AGORA
     // na tela pra essa pessoa E pra todo mundo do mesmo cargo nesta bateria,
     // numa única chamada (id=in.(...), PostgREST atualiza todas as linhas
-    // que baterem no filtro). De propósito, NÃO inclui restrito_ao_naipe --
-    // é um interruptor pessoal (cada Diretor de Naipe restringe a SI mesmo),
-    // replicar às cegas podia ligar a restrição em alguém sem considerar se
-    // isso faz sentido pro naipe dele. Pede confirmação antes (mesmo modal
+    // que baterem no filtro). De propósito, NÃO inclui restrito_ao_naipe nem
+    // naipe_permissao_aplicada -- os dois são decisão pessoal por Diretor
+    // (cada um restringe a SI mesmo / tem sua permissão de Naipe aplicada ou
+    // não), replicar às cegas podia ligar isso em alguém sem considerar se
+    // faz sentido pra ele. As capacidades em si (o efeito de já ter marcado
+    // o checkbox antes) continuam indo normalmente, só o checkbox/flag que
+    // fica de fora. Pede confirmação antes (mesmo modal
     // personalizado usado em excluirX) porque sobrescreve o que os outros
     // já tinham configurado.
     async function aplicarPermissoesATodos() {
