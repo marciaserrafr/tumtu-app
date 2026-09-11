@@ -711,6 +711,33 @@
     // celular sem redimensionar facilmente passam de vários MB.
     let fotoBase64 = null;
 
+    // Envia a foto pro Supabase Storage (bucket "fotos-perfil", nome
+    // aleatório e imprevisível) em vez de guardar o texto base64 gigante
+    // direto na tabela pessoas -- migração pra reduzir o peso do banco
+    // (11/set/2026). Se o upload falhar por qualquer motivo, quem chama
+    // continua usando o base64 como já fazia antes -- nunca trava o cadastro.
+    async function uploadFotoParaStorage(dataUrl, token) {
+        try {
+            const blob = await (await fetch(dataUrl)).blob();
+            const ext = blob.type === 'image/png' ? 'png' : 'jpg';
+            const nomeArquivo = `${crypto.randomUUID()}.${ext}`;
+            const resUpload = await fetch(`${SUPABASE_URL}/storage/v1/object/fotos-perfil/${nomeArquivo}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'apikey': SUPABASE_KEY,
+                    'Content-Type': blob.type || 'image/jpeg',
+                },
+                body: blob,
+            });
+            if (!resUpload.ok) return null;
+            return `${SUPABASE_URL}/storage/v1/object/public/fotos-perfil/${nomeArquivo}`;
+        } catch (e) {
+            console.error('Falha ao enviar foto pro Storage, usando base64 como antes:', e);
+            return null;
+        }
+    }
+
     function previewFoto(input) {
         if (!input.files || !input.files[0]) return;
         // Achado real (04/set/2026, suporte -- Luiz Henrique, "tentando há
@@ -1688,6 +1715,10 @@
                 travarFormulario(false);
                 return;
             }
+            if (fotoBase64) {
+                const urlStorage = await uploadFotoParaStorage(fotoBase64, token);
+                if (urlStorage) dados.foto_url = urlStorage;
+            }
             dados.senha = senha;
             dados.consentimento_confirmado = true;
             dados.eh_convidado = modoManualAtual.ehConvidado === true;
@@ -1783,6 +1814,10 @@
         // em pessoas ainda) -- quem já tinha ficha (existe_email) já pegou o
         // pessoaId acima e cai direto pro vínculo novo.
         if (!pessoaId && authUserIdNovo) {
+            if (fotoBase64) {
+                const urlStorage = await uploadFotoParaStorage(fotoBase64, tokenCadastro);
+                if (urlStorage) dados.foto_url = urlStorage;
+            }
             const dadosPessoa = {
                 auth_user_id: authUserIdNovo,
                 foto_url: dados.foto_url,
