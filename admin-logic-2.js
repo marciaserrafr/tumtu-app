@@ -586,6 +586,17 @@
         else if (aba === 'presenca') await iniciarPresencaTab();
         else if (aba === 'historico') await carregarHistoricoEscolaSA();
         else if (aba === 'extras') await iniciarConvidadosAba();
+        // Achado dela, 11/set/2026: marcar presença/entrega em outra aba e
+        // voltar pra Visão Geral mostrava os cartões de resumo desatualizados
+        // -- carregarResumoEntregaFigurino()/carregarResumoEventosAtivos() só
+        // reaproveitam o card se ele já estiver no DOM (procuram
+        // getElementById e saem se não acharem), então marcar em outra aba
+        // não atualiza nada, e só o auto-refresh de 30s corrigia sozinho.
+        // Correção estreita de propósito (ver aviso de 27/ago/2026 logo
+        // acima, mesma área de risco): só esses dois cartões, sem tocar em
+        // todosRitmistas/filtros/fotos, que foi o que causou os 3 problemas
+        // da tentativa anterior.
+        else if (aba === 'visao') await Promise.all([carregarResumoEntregaFigurino(), carregarResumoEventosAtivos()]);
 
         window.scrollTo(0, 0);
         document.querySelectorAll('#mainEscola .painel').forEach(p => p.classList.remove('ativo'));

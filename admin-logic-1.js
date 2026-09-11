@@ -5245,6 +5245,16 @@
         // está aplicado, igual ao login.html/carteirinha.html já fazem.
         mostrarOverlayCarregando();
 
+        // Achado dela, 11/set/2026: se qualquer busca aqui dentro falhar
+        // (rede instável, aba muito tempo parada em segundo plano etc.),
+        // a função parava no meio em silêncio -- o menu já tinha aparecido
+        // (linhas acima), mas o conteúdo nunca chegava, sem nenhum aviso.
+        // Pior: como a escola atual fica salva (salvarEstadoNavegacao),
+        // atualizar a página (F5) só reabria a MESMA escola do MESMO jeito,
+        // reproduzindo a falha de novo. Agora qualquer erro no meio deste
+        // bloco cai aqui, tira o spinner e mostra um estado de erro de
+        // verdade, com botão pra tentar de novo -- em vez de tela travada.
+        try {
         // 25/ago/2026: paraleliza os pedidos ao banco que não dependem um
         // do outro -- antes eram 5 pedidos em fila, cada um esperando o
         // anterior terminar sem precisar (achado dela: "demora muito pra
@@ -5362,6 +5372,19 @@
         preencherFotosRitmistasEmSegundoPlano();
         preencherFotosDiretoriaEmSegundoPlano();
         convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais();
+        } catch (err) {
+            console.error('entrarContextoEscolaSA falhou:', err);
+            logErroCliente('entrarContextoEscolaSA', err);
+            esconderOverlayCarregando();
+            const mainEl = document.getElementById('mainEscola');
+            if (mainEl) {
+                mainEl.innerHTML = `<div class="estado-vazio" style="padding:60px 20px;">
+                    <div class="estado-vazio-icone">⚠️</div>
+                    <div style="margin-bottom:16px">Não deu pra carregar essa bateria agora. Pode ser a conexão -- tenta de novo.</div>
+                    <button class="btn-novo" style="display:inline-flex;margin:0 auto" onclick="entrarContextoEscolaSA(${escolaId})">Tentar de novo</button>
+                </div>`;
+            }
+        }
     }
 
     async function voltarParaEscolasSA() {
