@@ -4812,6 +4812,7 @@
         'figurino': 'ver_figurino',
         'extras': 'ver_extras',
         'presenca': 'ver_eventos',
+        'manual-instrucoes': 'ver_manual_instrucoes',
     };
 
     // A aba "Configurações" aparece se a pessoa tiver QUALQUER capacidade de
@@ -4836,7 +4837,7 @@
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
     // das capacidades dos itens que ela agrupa.
-    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'permissoes', 'historico'];
+    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'permissoes', 'historico', 'manual-instrucoes'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -4926,6 +4927,12 @@
         { aba: 'presenca', label: 'Lista de Presença' },
         { aba: 'permissoes', label: 'Permissões' },
         { aba: 'historico', label: 'Histórico' },
+        // Não abre painel nenhum aqui dentro -- clicar leva pra
+        // /manual-parceiros numa aba nova (ver trocarAba em admin-logic-2.js).
+        // Capacidade própria (ver_manual_instrucoes), sem default nenhum nos
+        // moldes de Permissões Padrão -- Márcia decide manualmente quem
+        // libera (11/set/2026: "somente os parceiros devem ter acesso").
+        { aba: 'manual-instrucoes', label: 'Manual de Instruções' },
         // Só o Super Admin enxerga esse item (ver podeVerAba) -- fica por
         // último de propósito, pedido dela (01/set/2026).
         { aba: 'comercial', label: 'Comercial' },
@@ -6271,6 +6278,14 @@
             { chave: 'editar_naipe_permissao', label: 'Aplicar permissão de Naipe', dependeDe: 'ver_naipe_permissao', subgrupo: 'Diretor de Naipe' },
         ] },
         { grupo: 'Histórico', itens: [{ chave: 'ver_historico', label: 'Visualizar' }] },
+        // Manual de Instruções (11/set/2026) -- link pro guia do painel
+        // (/manual-parceiros), pensado pra reduzir pergunta repetida de
+        // suporte. Capacidade própria, de propósito SEM default em nenhum
+        // molde de Permissões Padrão -- pedido dela: só ela decide, pessoa
+        // por pessoa, quem entre os parceiros já conquistou esse acesso
+        // ("não quero correr o risco de alguém divulgar" o sistema ainda
+        // em construção).
+        { grupo: 'Manual de Instruções', itens: [{ chave: 'ver_manual_instrucoes', label: 'Visualizar' }] },
     ];
     // itens com semFuncionalidade (01/set/2026, pedido dela: "coloque tudo,
     // independente de ter funcionalidade ou não criada... pra mapear todo o

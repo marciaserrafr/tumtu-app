@@ -527,6 +527,9 @@
         // forçar isso via console, os dados não carregam) -- evita cair numa
         // aba vazia/quebrada que a pessoa não tem capacidade pra ver.
         if (!podeVerAba(aba)) return;
+        // Não é um painel interno -- abre o guia (/manual-parceiros) numa
+        // aba nova e não mexe em mais nada da tela atual (11/set/2026).
+        if (aba === 'manual-instrucoes') { window.open('/manual-parceiros', '_blank'); return; }
         // Desliga a câmera do leitor de QR se a pessoa trocar de aba com o
         // scanner aberto -- sem isso, a câmera ficaria ligada em segundo
         // plano (idempotente, não faz nada se já estava fechada).

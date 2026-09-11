@@ -1373,6 +1373,17 @@
             document.getElementById('senha').value = senhaGerada;
             document.getElementById('confirmar_senha').value = senhaGerada;
             document.getElementById('email').value = `convidado.${crypto.randomUUID()}@sem-login.tumtu.com.br`;
+            // Achado real, 11/set/2026: os passos 2/3/5 ficam escondidos
+            // (etapaEscondida) mas os campos deles continuavam com
+            // "required" -- validarCampos() olha TODO input[required] do
+            // documento, visível ou não, então o envio travava em silêncio
+            // (o erro aparecia num campo que ninguém via na tela). Nunca
+            // funcionou desde que "sem carteirinha" foi criado (04/set).
+            ['celular', 'instrumento', 'membro_desde', 'endereco', 'numero', 'cidade', 'estado',
+             'emergencia_nome', 'emergencia_parentesco', 'emergencia_celular'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.required = false;
+            });
         }
 
         // Mesma correção de condição de corrida do cadastro por link fixo
