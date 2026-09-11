@@ -3661,7 +3661,7 @@
             return `
             <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
                 <div style="min-width:0;flex:1;">
-                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ` · <span style="color:#D4AF37;font-style:italic;font-weight:400;">${esc(p.apelido)}</span>` : ''}</div>
+                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ` · <span style="color:#D4AF37;font-style:italic;font-weight:700;">${esc(p.apelido)}</span>` : ''}</div>
                     <div style="font-size:12px;color:var(--cor-texto-muted);">${detalhe}</div>
                 </div>
                 <div class="figurino-tamanho-caixa">${esc(p.tamanho || '—')}</div>
@@ -4514,7 +4514,7 @@
             return `
             <div style="display:flex;align-items:center;gap:32px;padding:12px 0;border-bottom:1px solid #eee;">
                 <div style="min-width:0;flex:1;">
-                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ` · <span style="color:#D4AF37;font-style:italic;font-weight:400;">${esc(p.apelido)}</span>` : ''}</div>
+                    <div style="font-weight:600;font-size:14px;">${esc(p.nome)}${p.apelido ? ` · <span style="color:#D4AF37;font-style:italic;font-weight:700;">${esc(p.apelido)}</span>` : ''}</div>
                     <div style="font-size:12px;color:var(--cor-texto-muted);">${detalhe}</div>
                 </div>
                 <div class="figurino-coluna-acao">${acaoHtml}</div>
