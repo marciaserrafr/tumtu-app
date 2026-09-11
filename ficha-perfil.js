@@ -1477,6 +1477,33 @@ async function fpAbrirSeletorFoto() {
     return false;
 }
 
+// Envia a foto pro Supabase Storage (bucket "fotos-perfil", nome
+// aleatório e imprevisível) em vez de guardar o texto base64 gigante
+// direto na tabela pessoas -- migração pra reduzir o peso do banco
+// (11/set/2026). Se o upload falhar por qualquer motivo, quem chama
+// continua usando o base64 como já fazia antes -- nunca trava o Salvar.
+async function fpUploadFotoParaStorage(dataUrl, token) {
+    try {
+        const blob = await (await fetch(dataUrl)).blob();
+        const ext = blob.type === 'image/png' ? 'png' : 'jpg';
+        const nomeArquivo = `${crypto.randomUUID()}.${ext}`;
+        const resUpload = await fetch(`${SUPABASE_URL}/storage/v1/object/fotos-perfil/${nomeArquivo}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_KEY,
+                'Content-Type': blob.type || 'image/jpeg',
+            },
+            body: blob,
+        });
+        if (!resUpload.ok) return null;
+        return `${SUPABASE_URL}/storage/v1/object/public/fotos-perfil/${nomeArquivo}`;
+    } catch (e) {
+        console.error('Falha ao enviar foto pro Storage, usando base64 como antes:', e);
+        return null;
+    }
+}
+
 // Antes cortava um quadrado central logo no upload, descartando o resto
 // da foto pra sempre — sem imagem sobrando, "arrastar pra reposicionar"
 // não tinha o que fazer (achado real, 14/ago/2026, relato da Márcia de
@@ -1805,6 +1832,10 @@ async function fpSalvar() {
 
     const { data: sessionData } = await sb.auth.getSession();
     const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
+    if (fpFotoBase64 && fpEstado.editaveis.has('foto_url')) {
+        const urlStorage = await fpUploadFotoParaStorage(fpFotoBase64, token);
+        if (urlStorage) payloadPessoa.foto_url = urlStorage;
+    }
     const headers = {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_KEY,
