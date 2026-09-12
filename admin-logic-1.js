@@ -85,6 +85,28 @@
         } catch (e) { /* nunca deixa o log quebrar a tela */ }
     }
 
+    // Registro de AÇÃO de clique (12/set/2026, pedido dela depois do
+    // incidente de figurino_entregas) -- diferente de logErroCliente, não
+    // é erro, é "isso foi clicado, por quem, quando". Junto com
+    // auditoria_alteracoes (gatilho no banco), cobre tanto a intenção
+    // (clique) quanto o resultado (o que realmente foi gravado) -- se um
+    // dia divergirem, é sinal de bug real no meio do caminho.
+    function logAcaoCliente(contexto, detalhe) {
+        try {
+            const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+            fetch(`${SUPABASE_URL}/rest/v1/logs_acoes_cliente`, {
+                method: 'POST',
+                headers: { ...authHeaders, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pessoa_id: u ? u.pessoa_id : null,
+                    contexto,
+                    detalhe: detalhe || null,
+                    user_agent: navigator.userAgent,
+                }),
+            }).catch(() => {});
+        } catch (e) { /* nunca deixa o log quebrar a tela */ }
+    }
+
     let todosRitmistas = [];
     let _ultimoRawLeveRitmistas = null; // {bateriaId, raw} -- ver comentário em carregarRitmistas()
     let listaFiltradaAtual = [];
@@ -3759,6 +3781,7 @@
         // Convidado Simples, quando essa bateria usa esse modo, usa
         // extra_id de verdade). Ver modoConvidadosEspecial().
         const coluna = (tipo === 'extra' && !modoConvidadosEspecial()) ? 'extra_id' : 'vinculo_id';
+        logAcaoCliente('clique_toggle_entrega_figurino', { tipo, id, figurino_item_id: item.id, entregar, coluna });
         if (entregar) {
             await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?on_conflict=${coluna},figurino_item_id`, {
                 method: 'POST',
