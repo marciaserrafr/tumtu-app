@@ -1705,6 +1705,14 @@
                 );
             }
         }
+        // "Com Extra" (12/set/2026, pedido dela: "tanto no contador das
+        // camisas quanto no contador na Visão Geral") -- busca separada,
+        // fora do Promise.all de cima, pra não mexer na posição dos itens
+        // condicionais de Convidados (resto) que já dependem de índice.
+        const resAvulsos = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos?bateria_id=eq.${bateriaId}&figurino_item_id=in.(${itemIds.join(',')})&select=figurino_item_id`, { headers: authHeaders });
+        const avulsos = resAvulsos.ok ? await resAvulsos.json() : [];
+        const avulsosPorItem = {};
+        avulsos.forEach(a => { avulsosPorItem[a.figurino_item_id] = (avulsosPorItem[a.figurino_item_id] || 0) + 1; });
         const [resPessoas, resEntregas, ...resto] = await Promise.all(buscas);
         const pessoas = resPessoas.ok ? await resPessoas.json() : [];
         const entregas = resEntregas.ok ? await resEntregas.json() : [];
@@ -1722,7 +1730,7 @@
             extrasEntregas = (resExtrasEntregas && resExtrasEntregas.ok) ? await resExtrasEntregas.json() : [];
         }
         card.style.display = 'block';
-        renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas, especial);
+        renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas, especial, avulsosPorItem);
     }
 
     // Cada peça, dentro do card, é seu próprio acordeão fechado/aberto
@@ -1736,8 +1744,8 @@
         if (vgFigurinoUltimoRender) renderizarResumoEntregaFigurino(...vgFigurinoUltimoRender);
     }
 
-    function renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas, especial) {
-        vgFigurinoUltimoRender = [itens, pessoas, entregas, extras, extrasEntregas, especial];
+    function renderizarResumoEntregaFigurino(itens, pessoas, entregas, extras, extrasEntregas, especial, avulsosPorItem) {
+        vgFigurinoUltimoRender = [itens, pessoas, entregas, extras, extrasEntregas, especial, avulsosPorItem];
         const div = document.getElementById('vg-figurino');
         if (!div) return;
         const entreguesPorItem = {};
@@ -1815,10 +1823,17 @@
             }
             if (!corpoHtml) corpoHtml = `<div style="color:#bbb;font-size:13px;padding:4px 0 9px;">Ninguém em ${item.publico.map(p => LABEL_PUBLICO_FIGURINO[p]).join(' / ').toLowerCase()} ainda.</div>`;
             const aberto = vgFigurinoAbertos.has(item.id);
+            // "Com Extra" (12/set/2026, pedido dela) -- só aparece se essa
+            // peça tiver pelo menos 1 pessoa na aba Extra. "Faltam" nunca
+            // muda -- Extra é gente fora do cadastro oficial.
+            const avulsosItem = (avulsosPorItem || {})[item.id] || 0;
+            const comExtraHtml = avulsosItem > 0
+                ? `<div style="font-size:11.5px;color:var(--cor-texto-muted);margin-top:2px;">Com Extra: <b>${entreguesGeral + avulsosItem}</b> pegaram · <b>${totalGeral - entreguesGeral}</b> faltam</div>`
+                : '';
             return `
             <div style="${idx === 0 ? '' : 'margin-top:16px;'}">
                 <div class="vg-secao-titulo vg-secao-titulo--clicavel" style="margin-bottom:${aberto ? '8px' : '0'};" onclick="toggleVgFigurinoAberto(${item.id})">
-                    <span class="vg-figurino-peca-titulo">${esc(item.nome)}</span>
+                    <div class="vg-figurino-peca-titulo"><span>${esc(item.nome)}</span>${comExtraHtml}</div>
                     <span class="vg-secao-resumo">
                         ${totalDuploHtml(totalGeral, totalGeral - entreguesGeral, true)}
                         <span class="vg-secao-seta${aberto ? ' aberta' : ''}">›</span>
@@ -3704,6 +3719,11 @@
             }));
         }
         figurinoEntregaPessoasCache = linhasPessoas.concat(linhasExtras);
+        // Carrega Extra aqui também (12/set/2026), não só quando a aba é
+        // aberta -- o totalizador do topo (renderizarEntregasFigurinoLista)
+        // precisa do número de Extra pra somar "Com Extra", mesmo se a
+        // pessoa nunca clicou na aba Extra nesta visita.
+        await carregarFigurinoAvulsos();
         renderizarFiltroLadoFigurino();
         popularFiltroInstrumentoEntregasFigurino();
         renderizarEntregasFigurinoLista();
@@ -3935,7 +3955,18 @@
                     { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.entregue).length },
                 ].filter(g => g.total > 0);
                 const grade = totalGradeHtml(grupos, 'figurino');
-                totalizador.innerHTML = grade.hero;
+                // "Com Extra" (12/set/2026, pedido dela: "tanto no contador
+                // das camisas quanto no contador na Visão Geral") -- linha a
+                // mais só aqui em Figurino (Presença não tem Extra, por isso
+                // isso não entra em totalGradeHtml, que é compartilhada).
+                // "Faltam" nunca muda -- Extra é gente fora do cadastro
+                // oficial, não reduz quem ainda falta receber.
+                const totalOficial = grupos.reduce((s, g) => s + g.total, 0);
+                const feitoOficial = grupos.reduce((s, g) => s + g.feito, 0);
+                const comExtraHtml = figurinoAvulsosCache.length > 0
+                    ? `<div style="font-size:12px;color:var(--cor-texto-muted);margin-top:6px;">Com Extra: <b>${feitoOficial + figurinoAvulsosCache.length}</b> pegaram · <b>${totalOficial - feitoOficial}</b> faltam</div>`
+                    : '';
+                totalizador.innerHTML = grade.hero + comExtraHtml;
                 if (detalheEl) detalheEl.innerHTML = grade.detalhe;
                 travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
             }
