@@ -3497,10 +3497,26 @@
                 );
             }
         }
-        const [resPessoas, resValores, resEntregas, ...resto] = await Promise.all(buscas);
+        let resPessoas, resValores, resEntregas, resto;
+        try {
+            [resPessoas, resValores, resEntregas, ...resto] = await Promise.all(buscas);
+        } catch (e) {
+            logErroCliente('carregar_entregas_figurino_rede', e);
+            if (container) container.innerHTML = '<div class="erro">Não foi possível carregar a lista — confira sua internet e tente de novo.</div>';
+            return;
+        }
+        // resEntregas=falha (rede/servidor) NUNCA pode virar "ninguém
+        // entregue" na tela (12/set/2026) -- achado real: isso é
+        // indistinguível de um apagamento de verdade pra quem está olhando.
+        // Aborta e avisa em vez de desenhar um estado que pode estar errado.
+        if (!resEntregas.ok) {
+            logErroCliente('carregar_entregas_figurino_resposta_falha', new Error(`figurino_entregas respondeu ${resEntregas.status}`));
+            if (container) container.innerHTML = '<div class="erro">Não foi possível confirmar quem já recebeu — confira sua internet e tente de novo (a lista não foi atualizada pra evitar mostrar informação errada).</div>';
+            return;
+        }
         const pessoas = resPessoas.ok ? await resPessoas.json() : [];
         const valores = resValores.ok ? await resValores.json() : [];
-        const entregas = resEntregas.ok ? await resEntregas.json() : [];
+        const entregas = await resEntregas.json();
         const valorPorVinculo = {}; valores.forEach(v => { valorPorVinculo[v.vinculo_id] = v.valor; });
         const entregaPorVinculo = {}; entregas.forEach(e => { entregaPorVinculo[e.vinculo_id] = e; });
         const linhasPessoas = pessoas.map(p => ({
@@ -3782,16 +3798,36 @@
         // extra_id de verdade). Ver modoConvidadosEspecial().
         const coluna = (tipo === 'extra' && !modoConvidadosEspecial()) ? 'extra_id' : 'vinculo_id';
         logAcaoCliente('clique_toggle_entrega_figurino', { tipo, id, figurino_item_id: item.id, entregar, coluna });
-        if (entregar) {
-            await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?on_conflict=${coluna},figurino_item_id`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates', ...authHeaders },
-                body: JSON.stringify([{ [coluna]: id, figurino_item_id: item.id, entregue_em: new Date().toISOString(), confirmado_por: u ? u.pessoa_id : null }]),
-            });
-        } else {
-            await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?${coluna}=eq.${id}&figurino_item_id=eq.${item.id}`, {
-                method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ entregue_em: null, confirmado_por: null }),
-            });
+        // Tratamento de falha de rede (12/set/2026) -- antes, sem internet
+        // (ou qualquer erro do servidor), o clique simplesmente não tinha
+        // efeito nenhum, sem nenhum aviso -- parecia a tela "travada", sem
+        // pista de que nada tinha sido salvo. Agora avisa e não mexe no
+        // estado local se a gravação não foi confirmada de verdade.
+        let ok = false;
+        try {
+            let res;
+            if (entregar) {
+                res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?on_conflict=${coluna},figurino_item_id`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates', ...authHeaders },
+                    body: JSON.stringify([{ [coluna]: id, figurino_item_id: item.id, entregue_em: new Date().toISOString(), confirmado_por: u ? u.pessoa_id : null }]),
+                });
+            } else {
+                res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_entregas?${coluna}=eq.${id}&figurino_item_id=eq.${item.id}`, {
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ entregue_em: null, confirmado_por: null }),
+                });
+            }
+            ok = res.ok;
+        } catch (e) {
+            ok = false;
+            logErroCliente('toggle_entrega_figurino_rede', e);
+        }
+        if (!ok) {
+            alert('Não foi possível salvar — confira sua internet e tente de novo. Nada foi alterado.');
+            const pessoaFalha = figurinoEntregaPessoasCache.find(p => p.tipo === tipo && p.id === id);
+            if (pessoaFalha) pessoaFalha.confirmando = false;
+            renderizarEntregasFigurinoLista();
+            return;
         }
         const pessoa = figurinoEntregaPessoasCache.find(p => p.tipo === tipo && p.id === id);
         if (pessoa) { pessoa.entregue = entregar; pessoa.confirmando = false; }
