@@ -5372,6 +5372,7 @@
         if (aba === 'dashboard') await carregarDashboard();
         else if (aba === 'escolas') await carregarEscolas();
         else if (aba === 'privacidade') await carregarPrivacidade();
+        else if (aba === 'logs') await carregarLogs();
 
         window.scrollTo(0, 0);
         saAbaAtual = aba;
@@ -8073,6 +8074,46 @@
                         ${esc(ex.resumo)} · autorizado por ${esc(ex.decisor?.nome || '—')} · ${histDataHora(ex.criado_em)}
                         ${ex.solicitado_por ? ` · pedido por ${esc(ex.solicitado_por)}` : ''}${ex.motivo ? ` · "${esc(ex.motivo)}"` : ''}
                     </div>
+                </div>
+            </div>`).join('');
+    }
+
+    // Logs (12/set/2026) -- pedido dela depois do incidente de
+    // figurino_entregas sem rastro nenhum: tela pra ela conferir sozinha o
+    // que a auditoria nova (auditoria_alteracoes/logs_acoes_cliente)
+    // registrou, sem precisar pedir consulta no banco toda vez. Mesmo
+    // padrão de carregarLogExclusoes acima -- só leitura.
+    const LABEL_OPERACAO_LOG = { INSERT: 'criou', UPDATE: 'alterou', DELETE: 'apagou' };
+    async function carregarLogs() {
+        await Promise.all([carregarLogAlteracoes(), carregarLogAcoes()]);
+    }
+    async function carregarLogAlteracoes() {
+        const container = document.getElementById('logs-alteracoes-lista');
+        const url = `${SUPABASE_URL}/rest/v1/auditoria_alteracoes?select=*&order=alterado_em.desc&limit=200`;
+        const res = await fetch(url, { headers: authHeaders });
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio">Não foi possível carregar.</div>'; return; }
+        const lista = await res.json();
+        if (!lista.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🗒️</div>Nenhuma alteração registrada ainda.</div>'; return; }
+        container.innerHTML = lista.map(l => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(l.tabela)}<span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · ${esc(LABEL_OPERACAO_LOG[l.operacao] || l.operacao)}</span></div>
+                    <div class="item-detalhe" style="margin-top:5px">registro #${l.registro_id ?? '—'} · ${histDataHora(l.alterado_em)}</div>
+                </div>
+            </div>`).join('');
+    }
+    async function carregarLogAcoes() {
+        const container = document.getElementById('logs-acoes-lista');
+        const url = `${SUPABASE_URL}/rest/v1/logs_acoes_cliente?select=*,pessoa:pessoa_id(nome)&order=criado_em.desc&limit=200`;
+        const res = await fetch(url, { headers: authHeaders });
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio">Não foi possível carregar.</div>'; return; }
+        const lista = await res.json();
+        if (!lista.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🖱️</div>Nenhuma ação registrada ainda.</div>'; return; }
+        container.innerHTML = lista.map(l => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(l.pessoa?.nome || 'Desconhecido')}<span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · ${esc(l.contexto)}</span></div>
+                    <div class="item-detalhe" style="margin-top:5px">${histDataHora(l.criado_em)}</div>
                 </div>
             </div>`).join('');
     }
