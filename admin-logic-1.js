@@ -1780,12 +1780,19 @@
                     </span>
                     <span style="font-size:11px;font-weight:700;color:var(--cor-texto-muted);min-width:28px;text-align:right;">${pct}%</span>
                 </span>`;
+            // Coluna "Faltam X" com largura fixa e sempre presente (mesmo
+            // vazia) -- antes só aparecia quando faltam>0 e com largura de
+            // texto variável, o que empurrava a barra/porcentagem pro lado
+            // linha a linha (achado dela, 12/set/2026: "está bagunçado").
+            // Largura fixa faz a barra, o % e essa coluna alinharem como
+            // 2 colunas de verdade, de cima a baixo.
+            const faltamHtml = `<span class="vg-instrumento-faltam" style="display:inline-block;width:64px;text-align:right;">${faltam > 0 ? `${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}` : ''}</span>`;
             return `
             <div class="vg-instrumento-linha${ehGrupo ? ' vg-instrumento-linha--grupo' : ''}">
                 <span class="vg-instrumento-linha-nome">${ehGrupo ? '<sup class="vg-instrumento-linha-asterisco">*</sup>' : ''}${esc(nome)}</span>
                 <span style="display:flex;align-items:center;gap:14px;">
                     ${barraHtml}
-                    ${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}
+                    ${faltamHtml}
                     <span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}">${entregues} / ${total}</span>
                 </span>
             </div>`;
