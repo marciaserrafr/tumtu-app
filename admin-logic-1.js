@@ -22,7 +22,13 @@
         // vez que o supabase-js renova o token sozinho, então authHeaders
         // nunca mais fica desatualizado enquanto a aba estiver aberta.
         sb.auth.onAuthStateChange((_event, session) => {
-            if (session) authHeaders['Authorization'] = `Bearer ${session.access_token}`;
+            if (session) { authHeaders['Authorization'] = `Bearer ${session.access_token}`; return; }
+            // Sessão sumiu de verdade (12/set/2026, pedido dela: "muito
+            // grilada com isso" depois do incidente) -- só avisa se NÃO foi
+            // ela clicando em "Sair" (ver saindoManualmente em sair()),
+            // senão apareceria "sessão expirou" bem na hora que ela mesma
+            // está saindo de propósito.
+            if (!saindoManualmente) mostrarAvisoSessaoExpirada();
         });
     });
 
@@ -73,6 +79,31 @@
         const { data: sessionData } = await sb.auth.getSession();
         if (sessionData.session) authHeaders['Authorization'] = `Bearer ${sessionData.session.access_token}`;
     }
+
+    // Avisos de sessão/conexão (12/set/2026, pedido dela: "estou muito
+    // grilada com isso" depois do incidente) -- dois banners fixos no topo,
+    // impossíveis de não notar. "Sessão expirada" só aparece quando a
+    // sessão sumir de verdade (dias sem abrir o app, ver
+    // sb.auth.onAuthStateChange acima) -- nunca no uso normal, já que o
+    // token é renovado sozinho por baixo dos panos (12/set/2026, correção
+    // anterior). "Sem internet" usa os eventos nativos do navegador
+    // (online/offline).
+    let saindoManualmente = false;
+    function mostrarAvisoSessaoExpirada() {
+        const el = document.getElementById('avisoSessaoExpirada');
+        if (el) el.style.display = 'block';
+    }
+    function mostrarAvisoOffline() {
+        const el = document.getElementById('avisoOffline');
+        if (el) el.style.display = 'block';
+    }
+    function esconderAvisoOffline() {
+        const el = document.getElementById('avisoOffline');
+        if (el) el.style.display = 'none';
+    }
+    window.addEventListener('online', esconderAvisoOffline);
+    window.addEventListener('offline', mostrarAvisoOffline);
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) mostrarAvisoOffline();
 
     // Registro de erro real do navegador (06/set/2026) -- achado dela ao
     // vivo: trocar de aba "não faz nada" em momentos imprevisíveis, sem
@@ -1935,6 +1966,7 @@
     });
 
     async function sair() {
+        saindoManualmente = true;
         await sb.auth.signOut();
         localStorage.removeItem('ritmista');
         localStorage.removeItem('tumtu_admin_estado');
@@ -3950,9 +3982,16 @@
     function renderizarFigurinoAvulsosLista() {
         const contador = document.getElementById('figurino-avulsos-contador');
         if (contador) {
-            contador.innerHTML = figurinoAvulsosCache.length
+            // Soma à parte (12/set/2026, pedido dela): Ritmistas que já
+            // receberam + Extra, sem contar Diretoria -- número informativo,
+            // não mexe na meta oficial (que continua só com quem está
+            // cadastrado, ver totalGradeHtml).
+            const ritmistasEntregues = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === 'ritmista' && p.entregue).length;
+            const somaRitmistasEExtra = ritmistasEntregues + figurinoAvulsosCache.length;
+            const linhaExtra = figurinoAvulsosCache.length
                 ? `<b>${figurinoAvulsosCache.length}</b> pessoa${figurinoAvulsosCache.length > 1 ? 's' : ''} registrada${figurinoAvulsosCache.length > 1 ? 's' : ''} aqui — não entra${figurinoAvulsosCache.length > 1 ? 'm' : ''} na meta oficial`
                 : '';
+            contador.innerHTML = `${linhaExtra}${linhaExtra ? '<br>' : ''}Ritmistas + Extra: <b>${ritmistasEntregues}</b> + <b>${figurinoAvulsosCache.length}</b> = <b>${somaRitmistasEExtra}</b>`;
         }
         const container = document.getElementById('figurino-avulsos-lista');
         if (!container) return;
