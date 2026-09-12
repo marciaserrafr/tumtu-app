@@ -2796,6 +2796,7 @@
              LISTA mostra -- o totalizador acima sempre soma os dois lados
              separados, quando existem os dois. -->
         <div class="figurino-tabs-lado" id="figurino-filtro-lado" style="display:none;"></div>
+        <div id="figurino-entregas-normal">
         <input type="text" id="figurino-entregas-busca" placeholder="Buscar por nome ou apelido..." oninput="renderizarEntregasFigurinoLista()"
             style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;font-style:italic;outline:none;">
         <div style="text-align:right;margin:2px 0 10px;">
@@ -2832,6 +2833,37 @@
             <span style="width:96px;">Status</span>
         </div>
         <div id="figurino-entregas-lista"></div>
+        </div>
+
+        <!-- Aba "Extra" (12/set/2026) -- pessoas que já receberam a peça mas
+             ainda não têm cadastro no sistema (fase de teste). Não entra na
+             meta oficial de entrega (totalizador acima) -- registro à parte,
+             de propósito (decisão dela). Nome interno "avulsos" evita a
+             palavra "extra", que já significa Convidado em outro lugar do
+             código (ver figurinoAvulsosCache/carregarFigurinoAvulsos). -->
+        <div id="figurino-avulsos-painel" style="display:none;">
+            <div class="config-sub-desc" style="margin:0 0 16px;background:#fbf6e8;border:1px solid #e9d99a;border-radius:10px;padding:12px 14px;color:#5a4b1f;">Pra pessoas que já receberam a peça mas ainda não estão cadastradas no sistema (fase de teste). Isso não afeta o cadastro delas — é só um registro de que a peça foi entregue.</div>
+            <div id="figurino-avulsos-contador" style="font-size:12px;color:var(--cor-texto-muted);margin-bottom:16px;"></div>
+            <div style="border:1.5px dashed var(--cor-borda-forte);border-radius:14px;padding:16px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;background:#fcfcff;">
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                    <label style="font-size:10.5px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;">Nome</label>
+                    <input type="text" id="figurino-avulso-nome" placeholder="Nome da pessoa" style="border:1.5px solid #e0e0e0;border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13.5px;min-width:190px;">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                    <label style="font-size:10.5px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;">Naipe</label>
+                    <select id="figurino-avulso-instrumento" class="figurino-pill-select" style="border-radius:10px;min-width:130px;"></select>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                    <label style="font-size:10.5px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;">Tamanho</label>
+                    <select id="figurino-avulso-tamanho" class="figurino-pill-select" style="border-radius:10px;min-width:90px;">
+                        <option value="">Selecione...</option>
+                        <option>PP</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option><option>XGG</option>
+                    </select>
+                </div>
+                <button type="button" class="btn-ficha btn-ficha-editar" style="margin:0;" onclick="adicionarFigurinoAvulso()">+ Adicionar</button>
+            </div>
+            <div id="figurino-avulsos-lista" class="lista-cards"></div>
+        </div>
     </div>
 
 </div>
@@ -3566,7 +3598,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=17" defer></script>
+<script src="admin-logic-1.js?v=18" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

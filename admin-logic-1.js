@@ -3695,10 +3695,14 @@
         if (cobreRitmista) lados.push('ritmista');
         if (cobreDiretoria) lados.push('diretoria');
         if (temConvidados) lados.push('convidados');
+        // "Extra" (12/set/2026) sempre disponível, independente de haver
+        // dados -- é cadastro manual (pessoa fora do sistema), não um
+        // filtro de quem já existe na bateria.
+        lados.push('avulsos');
         if (!lados.includes(figurinoEntregaLadoAtual)) figurinoEntregaLadoAtual = lados[0] || 'ritmista';
         if (lados.length <= 1) { el.style.display = 'none'; el.innerHTML = ''; return; }
         el.style.display = '';
-        const LABEL_LADO_FIGURINO = { ritmista: 'Ritmista', diretoria: 'Diretoria', convidados: 'Convidados' };
+        const LABEL_LADO_FIGURINO = { ritmista: 'Ritmista', diretoria: 'Diretoria', convidados: 'Convidados', avulsos: 'Extra' };
         el.innerHTML = lados.map(lado =>
             `<button type="button" class="${figurinoEntregaLadoAtual === lado ? 'ativo' : ''}" onclick="mudarLadoFigurino('${lado}')">${LABEL_LADO_FIGURINO[lado]}</button>`
         ).join('');
@@ -3706,7 +3710,7 @@
     function mudarLadoFigurino(lado) {
         figurinoEntregaLadoAtual = lado;
         renderizarFiltroLadoFigurino();
-        popularFiltroInstrumentoEntregasFigurino();
+        if (lado !== 'avulsos') popularFiltroInstrumentoEntregasFigurino();
         renderizarEntregasFigurinoLista();
     }
 
@@ -3757,6 +3761,20 @@
     function renderizarEntregasFigurinoLista() {
         const container = document.getElementById('figurino-entregas-lista');
         if (!container) return;
+        // Aba "Extra" (12/set/2026) é uma UI totalmente separada (cadastro
+        // manual, não filtro de quem já existe) -- desvia pra ela aqui e
+        // sai, antes de qualquer lógica de busca/filtro/toggle abaixo, que
+        // não faz sentido nessa aba.
+        const normalEl = document.getElementById('figurino-entregas-normal');
+        const avulsosEl = document.getElementById('figurino-avulsos-painel');
+        if (figurinoEntregaLadoAtual === 'avulsos') {
+            if (normalEl) normalEl.style.display = 'none';
+            if (avulsosEl) avulsosEl.style.display = '';
+            carregarFigurinoAvulsos();
+            return;
+        }
+        if (normalEl) normalEl.style.display = '';
+        if (avulsosEl) avulsosEl.style.display = 'none';
         const item = figurinoEntregaItemAtual;
         // Filtro de lado -- Ritmista, Diretoria e Convidados (29/ago/2026,
         // virou aba própria) nunca aparecem misturados na mesma lista. O
@@ -3890,6 +3908,77 @@
                 travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
             }
         }
+    }
+
+    // Aba "Extra" de Entrega de Figurino (12/set/2026) -- pessoas que já
+    // receberam a peça mas ainda não têm cadastro no sistema (fase de
+    // teste). Fica de fora do totalizador oficial de propósito (decisão
+    // dela). Nome interno "avulsos" -- "extra" já significa Convidado em
+    // outro lugar do código (tipo==='extra', tabela `extras`).
+    let figurinoAvulsosCache = [];
+    async function carregarFigurinoAvulsos() {
+        const item = figurinoEntregaItemAtual;
+        const bateriaId = bateriaIdContexto();
+        if (!item || !bateriaId) return;
+        const selectInst = document.getElementById('figurino-avulso-instrumento');
+        if (selectInst && !selectInst.dataset.preenchido) {
+            selectInst.innerHTML = '<option value="">Selecione...</option>'
+                + instrumentosAtivosDaBateria().map(i => `<option value="${i.id}">${esc(i.nome)}</option>`).join('');
+            selectInst.dataset.preenchido = '1';
+        }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos?bateria_id=eq.${bateriaId}&figurino_item_id=eq.${item.id}&select=*,instrumento:bateria_instrumento_id(nome)&order=criado_em.desc`, { headers: authHeaders });
+        figurinoAvulsosCache = res.ok ? await res.json() : [];
+        renderizarFigurinoAvulsosLista();
+    }
+    function renderizarFigurinoAvulsosLista() {
+        const contador = document.getElementById('figurino-avulsos-contador');
+        if (contador) {
+            contador.innerHTML = figurinoAvulsosCache.length
+                ? `<b>${figurinoAvulsosCache.length}</b> pessoa${figurinoAvulsosCache.length > 1 ? 's' : ''} registrada${figurinoAvulsosCache.length > 1 ? 's' : ''} aqui — não entra${figurinoAvulsosCache.length > 1 ? 'm' : ''} na meta oficial`
+                : '';
+        }
+        const container = document.getElementById('figurino-avulsos-lista');
+        if (!container) return;
+        if (!figurinoAvulsosCache.length) { container.innerHTML = '<div class="estado-vazio">Nenhuma pessoa registrada aqui ainda.</div>'; return; }
+        container.innerHTML = figurinoAvulsosCache.map(a => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-nome">${esc(a.nome)}</div>
+                    <div class="item-detalhe">${a.instrumento ? 'Naipe: ' + esc(a.instrumento.nome) : 'Sem naipe informado'}</div>
+                </div>
+                <div class="item-acoes">
+                    <span class="figurino-tamanho-caixa">${esc(a.tamanho)}</span>
+                    <button type="button" class="btn-ficha btn-ficha-danger" style="padding:6px 12px;font-size:12px;" onclick="removerFigurinoAvulso(${a.id})">Remover</button>
+                </div>
+            </div>`).join('');
+    }
+    async function adicionarFigurinoAvulso() {
+        const item = figurinoEntregaItemAtual;
+        const bateriaId = bateriaIdContexto();
+        const nomeEl = document.getElementById('figurino-avulso-nome');
+        const instEl = document.getElementById('figurino-avulso-instrumento');
+        const tamanhoEl = document.getElementById('figurino-avulso-tamanho');
+        const nome = nomeEl.value.trim();
+        if (!nome || !instEl.value || !tamanhoEl.value) {
+            alert('Preencha nome, naipe e tamanho antes de adicionar.');
+            return;
+        }
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        logAcaoCliente('adicionar_figurino_avulso', { figurino_item_id: item.id, nome });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ bateria_id: bateriaId, figurino_item_id: item.id, nome, bateria_instrumento_id: Number(instEl.value), tamanho: tamanhoEl.value, criado_por: u ? u.pessoa_id : null }),
+        });
+        if (!res.ok) { alert('Não foi possível salvar — confira sua internet e tente de novo.'); return; }
+        nomeEl.value = ''; instEl.value = ''; tamanhoEl.value = '';
+        await carregarFigurinoAvulsos();
+    }
+    async function removerFigurinoAvulso(id) {
+        logAcaoCliente('remover_figurino_avulso', { id });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+        if (!res.ok) { alert('Não foi possível remover — confira sua internet e tente de novo.'); return; }
+        await carregarFigurinoAvulsos();
     }
 
     // Marcar exige confirmação de propósito (26/ago/2026, pedido dela): um
