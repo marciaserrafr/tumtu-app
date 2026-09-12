@@ -142,6 +142,16 @@
         const res = await fetch(url, {
             headers: authHeaders
         });
+        // Mesmo achado grave de carregarRitmistas() (12/set/2026) -- faltava
+        // checar res.ok. Sessão vencida (401) virava lista vazia em
+        // silêncio, sem nenhum aviso. Agora acende o aviso de sessão
+        // expirada na hora.
+        if (!res.ok) {
+            logErroCliente('carregarDiretoria', new Error('HTTP ' + res.status));
+            if (res.status === 401) mostrarAvisoSessaoExpirada();
+            diretoriaCarregada = true;
+            return;
+        }
         const novosAdmins = (await res.json()) || [];
         // Mesma rede de segurança de carregarRitmistas() -- um erro do
         // banco (ex: 500) vem como objeto, não lista; sem essa checagem,

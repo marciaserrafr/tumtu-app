@@ -407,6 +407,20 @@
         const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&select=${select}&order=created_at.desc`, {
             headers: authHeaders
         });
+        // Achado grave, 12/set/2026 (ela reportou ao vivo: "nenhum ritmista
+        // aparecendo... eu fui deslogada e não avisada"): faltava checar
+        // res.ok aqui. Uma sessão vencida (401) chegava igual a qualquer
+        // outra resposta -- como o corpo de erro não é uma lista, caía na
+        // rede de segurança logo abaixo (mantém o que já estava na tela)
+        // SEM avisar nada. Na primeira carga da aba (todosRitmistas ainda
+        // vazio) isso é indistinguível de "não tem ritmista nenhum" --
+        // exatamente o que aconteceu. Agora um 401 acende o aviso de
+        // sessão expirada na hora.
+        if (!res.ok) {
+            logErroCliente('carregarRitmistas', new Error('HTTP ' + res.status));
+            if (res.status === 401) mostrarAvisoSessaoExpirada();
+            return;
+        }
         const novos = await res.json();
         // Rede de segurança real, 27/ago/2026: o banco respondeu com erro
         // 500 nessa consulta (achado dela, via print do Console) e a
