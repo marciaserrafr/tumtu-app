@@ -2587,6 +2587,108 @@
         if (marcarTudoEl) marcarTudoEl.textContent = filtroInstrumentosSelecionados.length === 0 ? 'Marcar todos' : 'Limpar';
     }
 
+    // Fábrica genérica de filtro multi-seleção "estilo Excel" (12/set/2026)
+    // -- pedido dela: o mesmo filtro de Ritmistas (marcar vários
+    // instrumentos ao mesmo tempo) também em Entrega de Figurino e Lista
+    // de Presença. Em vez de copiar os 4 handlers de novo em cada tela,
+    // essa fábrica cria uma instância isolada por tela (cada uma com seu
+    // próprio estado "selecionados") -- Ritmistas continua com a
+    // implementação própria acima, intocada, zero risco de regressão ali.
+    // Mesma rede de segurança do "Aplicar" de Ritmistas (não reage só ao
+    // onchange do checkbox, exige clique explícito).
+    function criarFiltroMultiSelect(cfg) {
+        const inst = {
+            selecionados: [],
+            opcoes: [],
+            labelTodos: cfg.labelTodos,
+            construir(opcoes, labelTodos) {
+                inst.opcoes = opcoes;
+                inst.labelTodos = labelTodos || cfg.labelTodos;
+                const dropdown = document.getElementById(cfg.dropdownId);
+                dropdown.innerHTML = '';
+                opcoes.forEach(o => {
+                    const label = document.createElement('label');
+                    label.className = 'multi-select-option';
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = o.valor;
+                    cb.checked = true;
+                    cb.addEventListener('change', inst.onCheck);
+                    label.appendChild(cb);
+                    label.appendChild(document.createTextNode(' ' + o.label));
+                    dropdown.appendChild(label);
+                });
+                const rodape = document.createElement('div');
+                rodape.style.cssText = 'border-top:1px solid #eee;margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;';
+                const link = document.createElement('span');
+                link.id = cfg.marcarTudoId;
+                link.textContent = 'Limpar';
+                link.style.cssText = 'font-size:12px;color:#888;cursor:pointer;font-weight:500;';
+                link.onclick = inst.toggleMarcarTudo;
+                rodape.appendChild(link);
+                const btnAplicar = document.createElement('button');
+                btnAplicar.type = 'button';
+                btnAplicar.className = 'btn-ficha';
+                btnAplicar.textContent = 'Aplicar';
+                btnAplicar.style.cssText = 'padding:4px 12px;font-size:12px;';
+                btnAplicar.onclick = () => { inst.onCheck(); cfg.onAplicar && cfg.onAplicar(); };
+                rodape.appendChild(btnAplicar);
+                dropdown.appendChild(rodape);
+                inst.selecionados = opcoes.map(o => o.valor);
+                const labelEl = document.getElementById(cfg.labelId);
+                if (labelEl) labelEl.textContent = inst.labelTodos;
+                document.getElementById(cfg.triggerId)?.classList.remove('ativo');
+            },
+            toggle() {
+                const dd = document.getElementById(cfg.dropdownId);
+                const arrow = document.getElementById(cfg.arrowId);
+                const aberto = dd.style.display !== 'none';
+                dd.style.display = aberto ? 'none' : 'block';
+                arrow.textContent = aberto ? '▼' : '▲';
+            },
+            onCheck() {
+                const checks = document.querySelectorAll(`#${cfg.dropdownId} input[type=checkbox]:checked`);
+                inst.selecionados = Array.from(checks).map(c => c.value);
+                const label = document.getElementById(cfg.labelId);
+                if (inst.selecionados.length === inst.opcoes.length) {
+                    label.textContent = inst.labelTodos;
+                } else if (inst.selecionados.length === 0) {
+                    label.textContent = cfg.labelNenhum || 'Nenhum';
+                } else {
+                    label.textContent = inst.opcoes.filter(o => inst.selecionados.includes(o.valor)).map(o => o.label).join(', ');
+                }
+                document.getElementById(cfg.triggerId).classList.toggle('ativo', inst.selecionados.length > 0 && inst.selecionados.length < inst.opcoes.length);
+                const marcarTudoEl = document.getElementById(cfg.marcarTudoId);
+                if (marcarTudoEl) marcarTudoEl.textContent = inst.selecionados.length === 0 ? 'Marcar todos' : 'Limpar';
+            },
+            toggleMarcarTudo() {
+                const marcados = document.querySelectorAll(`#${cfg.dropdownId} input[type=checkbox]:checked`).length;
+                const novoEstado = marcados === 0;
+                document.querySelectorAll(`#${cfg.dropdownId} input[type=checkbox]`).forEach(c => c.checked = novoEstado);
+                inst.onCheck();
+            },
+            fechar() {
+                const dd = document.getElementById(cfg.dropdownId);
+                if (dd) { dd.style.display = 'none'; const a = document.getElementById(cfg.arrowId); if (a) a.textContent = '▼'; }
+            },
+        };
+        return inst;
+    }
+
+    const filtroInstFigurino = criarFiltroMultiSelect({
+        dropdownId: 'figFiltroInstrumentoDropdown', triggerId: 'figFiltroInstrumentoTrigger',
+        labelId: 'figFiltroInstrumentoLabel', arrowId: 'figFiltroInstrumentoArrow', marcarTudoId: 'figFiltroInstrumentoMarcarTudo',
+        labelTodos: 'Todos', labelNenhum: 'Nenhum', onAplicar: () => renderizarEntregasFigurinoLista(),
+    });
+    function toggleFiltroInstrumentoFigurino() { filtroInstFigurino.toggle(); }
+
+    const filtroTipoPresenca = criarFiltroMultiSelect({
+        dropdownId: 'presFiltroTipoDropdown', triggerId: 'presFiltroTipoTrigger',
+        labelId: 'presFiltroTipoLabel', arrowId: 'presFiltroTipoArrow', marcarTudoId: 'presFiltroTipoMarcarTudo',
+        labelTodos: 'Todos', labelNenhum: 'Nenhum', onAplicar: () => renderizarPresencaLista(),
+    });
+    function toggleFiltroTipoPresenca() { filtroTipoPresenca.toggle(); }
+
     // Fecha dropdowns ao clicar fora
     document.addEventListener('click', function(e) {
         if (!document.getElementById('multiSelectWrap')?.contains(e.target)) {
@@ -2605,6 +2707,8 @@
             const dd = document.getElementById('statusDiretoriaSelectDropdown');
             if (dd) { dd.style.display = 'none'; document.getElementById('statusDiretoriaSelectArrow').textContent = '▼'; }
         }
+        if (!document.getElementById('figFiltroInstrumentoWrap')?.contains(e.target)) filtroInstFigurino.fechar();
+        if (!document.getElementById('presFiltroTipoWrap')?.contains(e.target)) filtroTipoPresenca.fechar();
     });
 
     // Configurações -> capacidades de "ver" e "editar" por sub-tela (Reforma
@@ -3606,28 +3710,36 @@
         renderizarEntregasFigurinoLista();
     }
 
-    // Mesma pílula serve pra Ritmista/Diretoria (27/ago/2026) -- Ritmista
-    // filtra por instrumento, Diretoria filtra por tipo de pessoa (Mestre/
-    // Diretor de Bateria/Diretoria (Apoio)). Convidados (29/ago/2026, agora
-    // aba própria) não usa esse filtro -- a divisão por Ritmista/Diretor de
-    // Bateria/Diretoria (Apoio) já aparece como título de seção na lista.
+    // Mesma pílula serve pra Ritmista/Diretoria/Convidados (12/set/2026,
+    // estendido a Convidados pra não ficar diferente das outras duas --
+    // antes Convidados não tinha filtro nenhum aqui) -- Ritmista filtra por
+    // instrumento, Diretoria e Convidados filtram por tipo de pessoa
+    // (Mestre/Diretor de Bateria/Diretoria (Apoio), ou o grupo de origem no
+    // caso de Convidados). Virou filtro "estilo Excel" (marcar vários ao
+    // mesmo tempo), mesmo padrão de Ritmistas -- ver criarFiltroMultiSelect.
     function popularFiltroInstrumentoEntregasFigurino() {
-        const select = document.getElementById('figurino-entregas-filtro-instrumento');
-        if (!select) return;
-        const valorAtual = select.value;
-        const doLado = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
-        if (figurinoEntregaLadoAtual === 'ritmista') {
-            const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-            select.innerHTML = '<option value="">Todos os instrumentos</option>'
-                + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
-        } else if (figurinoEntregaLadoAtual === 'diretoria') {
-            const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
-            select.innerHTML = '<option value="">Todos - Diretoria</option>'
-                + tipos.map(p => `<option value="${p}">${LABEL_PUBLICO_FIGURINO[p]}</option>`).join('');
+        const wrap = document.getElementById('figFiltroInstrumentoWrap');
+        if (!wrap) return;
+        let opcoes = [];
+        let labelTodos = 'Todos';
+        if (figurinoEntregaLadoAtual === 'convidados') {
+            const doLado = figurinoEntregaPessoasCache.filter(p => p.tipo === 'extra');
+            const tipos = ['ritmista', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
+            opcoes = tipos.map(p => ({ valor: p, label: LABEL_PUBLICO_FIGURINO[p] }));
+            labelTodos = 'Todos - Convidados';
         } else {
-            select.innerHTML = '<option value="">Todos</option>';
+            const doLado = figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
+            if (figurinoEntregaLadoAtual === 'ritmista') {
+                const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+                opcoes = instrumentos.map(i => ({ valor: i, label: i }));
+                labelTodos = 'Todos os instrumentos';
+            } else if (figurinoEntregaLadoAtual === 'diretoria') {
+                const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
+                opcoes = tipos.map(p => ({ valor: p, label: LABEL_PUBLICO_FIGURINO[p] }));
+                labelTodos = 'Todos - Diretoria';
+            }
         }
-        select.value = valorAtual;
+        filtroInstFigurino.construir(opcoes, labelTodos);
     }
 
     const LABEL_PERFIL_FIGURINO = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)', ritmista: null };
@@ -3647,28 +3759,27 @@
         if (!container) return;
         const item = figurinoEntregaItemAtual;
         // Filtro de lado -- Ritmista, Diretoria e Convidados (29/ago/2026,
-        // virou aba própria) nunca aparecem misturados na mesma lista. A
-        // pílula de Instrumento/Tipo só existe pra Ritmista/Diretoria --
-        // Convidados nunca usa (ver popularFiltroInstrumentoEntregasFigurino).
+        // virou aba própria) nunca aparecem misturados na mesma lista. O
+        // filtro multi-seleção (12/set/2026) agora existe nas 3 abas --
+        // ver popularFiltroInstrumentoEntregasFigurino.
         const doLado = figurinoEntregaLadoAtual === 'convidados'
             ? figurinoEntregaPessoasCache.filter(p => p.tipo === 'extra')
             : figurinoEntregaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === figurinoEntregaLadoAtual);
-        const filtroInstrumentoEl = document.getElementById('figurino-entregas-filtro-instrumento');
-        const mostrarFiltroInstrumento = figurinoEntregaLadoAtual !== 'convidados'
-            && (figurinoEntregaLadoAtual === 'ritmista' ? doLado.some(p => p.instrumento_nome) : doLado.length > 0);
-        filtroInstrumentoEl.style.display = mostrarFiltroInstrumento ? '' : 'none';
+        const filtroInstrumentoWrap = document.getElementById('figFiltroInstrumentoWrap');
+        const mostrarFiltroInstrumento = figurinoEntregaLadoAtual === 'ritmista' ? doLado.some(p => p.instrumento_nome) : doLado.length > 0;
+        filtroInstrumentoWrap.style.display = mostrarFiltroInstrumento ? '' : 'none';
         // Busca sem depender de acento (06/set/2026, achado dela: seu
         // próprio nome, "Márcia", só aparecia digitando o acento certinho
         // -- mesmo padrão de semAcento() já usado em Ritmistas).
         const busca = semAcento(document.getElementById('figurino-entregas-busca').value || '');
-        const instrumentoFiltro = mostrarFiltroInstrumento ? filtroInstrumentoEl.value : '';
+        const selecionados = mostrarFiltroInstrumento ? filtroInstFigurino.selecionados : null;
         const statusFiltro = document.getElementById('figurino-entregas-filtro-status').value;
         const filtrada = doLado.filter(p => {
             if (busca && !(semAcento(p.nome).includes(busca) || semAcento(p.apelido).includes(busca))) return false;
-            if (instrumentoFiltro) {
+            if (selecionados) {
                 if (figurinoEntregaLadoAtual === 'ritmista') {
-                    if (p.instrumento_nome !== instrumentoFiltro) return false;
-                } else if (p.perfil !== instrumentoFiltro) return false;
+                    if (!selecionados.includes(p.instrumento_nome)) return false;
+                } else if (!selecionados.includes(p.perfil)) return false;
             }
             if (statusFiltro === 'pendentes' && p.entregue) return false;
             if (statusFiltro === 'entregues' && !p.entregue) return false;
@@ -4388,7 +4499,7 @@
 
     // Mesmo rótulo já usado em Figurino/Eventos pro mesmo tipo de perfil de
     // Diretoria (LABEL_PERFIL_FIGURINO/LABEL_PERFIL_DIRETORIA_EVENTO).
-    const LABEL_PERFIL_DIRETORIA_PRESENCA = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
+    const LABEL_PERFIL_DIRETORIA_PRESENCA = { mestre: 'Mestre de Bateria', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)', ritmista: 'Ritmistas' };
 
     async function carregarPresencaPessoas() {
         const evento = presencaEventoAtual;
@@ -4474,27 +4585,34 @@
         renderizarPresencaLista();
     }
 
-    // Mesma pílula serve pra Ritmista/Diretoria (filtra por Instrumento ou
-    // por Tipo de pessoa) -- Convidados (29/ago/2026, agora aba própria)
-    // não usa esse filtro, a divisão por Ritmista/Diretor de Bateria/
-    // Diretoria (Apoio) já aparece como título de seção na lista.
+    // Mesma pílula serve pra Ritmista/Diretoria/Convidados (12/set/2026,
+    // estendido a Convidados pra não ficar diferente das outras duas --
+    // antes Convidados não tinha filtro nenhum aqui). Virou filtro "estilo
+    // Excel" (marcar vários ao mesmo tempo), mesmo padrão de Ritmistas e de
+    // Entrega de Figurino -- ver criarFiltroMultiSelect.
     function popularFiltroTipoPresenca() {
-        const select = document.getElementById('presenca-filtro-tipo');
-        if (!select) return;
-        const valorAtual = select.value;
-        const doLado = presencaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === presencaLadoAtual);
-        if (presencaLadoAtual === 'ritmista') {
-            const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-            select.innerHTML = '<option value="">Todos os instrumentos</option>'
-                + instrumentos.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
-        } else if (presencaLadoAtual === 'diretoria') {
-            const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
-            select.innerHTML = '<option value="">Todos - Diretoria</option>'
-                + tipos.map(p => `<option value="${p}">${LABEL_PERFIL_DIRETORIA_PRESENCA[p]}</option>`).join('');
+        const wrap = document.getElementById('presFiltroTipoWrap');
+        if (!wrap) return;
+        let opcoes = [];
+        let labelTodos = 'Todos';
+        if (presencaLadoAtual === 'convidados') {
+            const doLado = presencaPessoasCache.filter(p => p.tipo === 'extra');
+            const tipos = ['ritmista', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
+            opcoes = tipos.map(p => ({ valor: p, label: LABEL_PERFIL_DIRETORIA_PRESENCA[p] }));
+            labelTodos = 'Todos - Convidados';
         } else {
-            select.innerHTML = '<option value="">Todos</option>';
+            const doLado = presencaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === presencaLadoAtual);
+            if (presencaLadoAtual === 'ritmista') {
+                const instrumentos = Array.from(new Set(doLado.map(p => p.instrumento_nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+                opcoes = instrumentos.map(i => ({ valor: i, label: i }));
+                labelTodos = 'Todos os instrumentos';
+            } else if (presencaLadoAtual === 'diretoria') {
+                const tipos = ['mestre', 'diretor', 'apoio'].filter(p => doLado.some(x => x.perfil === p));
+                opcoes = tipos.map(p => ({ valor: p, label: LABEL_PERFIL_DIRETORIA_PRESENCA[p] }));
+                labelTodos = 'Todos - Diretoria';
+            }
         }
-        select.value = valorAtual;
+        filtroTipoPresenca.construir(opcoes, labelTodos);
     }
 
     // Mesmo padrão de Entrega de Figurino, refeito 29/ago/2026 pra caber
@@ -4537,20 +4655,19 @@
         const doLado = presencaLadoAtual === 'convidados'
             ? presencaPessoasCache.filter(p => p.tipo === 'extra')
             : presencaPessoasCache.filter(p => p.tipo === 'vinculo' && ladoDoPerfil(p.perfil) === presencaLadoAtual);
-        const filtroTipoEl = document.getElementById('presenca-filtro-tipo');
-        const mostrarFiltroTipo = presencaLadoAtual !== 'convidados'
-            && (presencaLadoAtual === 'ritmista' ? doLado.some(p => p.instrumento_nome) : doLado.length > 0);
-        filtroTipoEl.style.display = mostrarFiltroTipo ? '' : 'none';
+        const filtroTipoWrap = document.getElementById('presFiltroTipoWrap');
+        const mostrarFiltroTipo = presencaLadoAtual === 'ritmista' ? doLado.some(p => p.instrumento_nome) : doLado.length > 0;
+        filtroTipoWrap.style.display = mostrarFiltroTipo ? '' : 'none';
         // Busca sem depender de acento (06/set/2026, mesmo achado/correção
         // de Entrega de Figurino).
         const busca = semAcento(document.getElementById('presenca-busca').value || '');
-        const tipoFiltro = mostrarFiltroTipo ? filtroTipoEl.value : '';
+        const selecionados = mostrarFiltroTipo ? filtroTipoPresenca.selecionados : null;
         const statusFiltro = document.getElementById('presenca-filtro-status').value;
         const filtrada = doLado.filter(p => {
             if (busca && !(semAcento(p.nome).includes(busca) || semAcento(p.apelido).includes(busca))) return false;
-            if (tipoFiltro) {
-                if (presencaLadoAtual === 'ritmista') { if (p.instrumento_nome !== tipoFiltro) return false; }
-                else if (p.perfil !== tipoFiltro) return false;
+            if (selecionados) {
+                if (presencaLadoAtual === 'ritmista') { if (!selecionados.includes(p.instrumento_nome)) return false; }
+                else if (!selecionados.includes(p.perfil)) return false;
             }
             if (statusFiltro === 'presentes' && !p.presente) return false;
             if (statusFiltro === 'ausentes' && p.presente) return false;
