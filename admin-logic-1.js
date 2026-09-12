@@ -3926,8 +3926,21 @@
                 + instrumentosAtivosDaBateria().map(i => `<option value="${i.id}">${esc(i.nome)}</option>`).join('');
             selectInst.dataset.preenchido = '1';
         }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos?bateria_id=eq.${bateriaId}&figurino_item_id=eq.${item.id}&select=*,instrumento:bateria_instrumento_id(nome)&order=criado_em.desc`, { headers: authHeaders });
-        figurinoAvulsosCache = res.ok ? await res.json() : [];
+        // Achado dela ao vivo (12/set/2026): o nome do naipe não é uma
+        // coluna de banco -- é calculado no navegador
+        // (nomeExibicaoBateriaInstrumento, combina categoria+nomenclatura+
+        // composição). Pedir via embed do PostgREST (like antes) sempre
+        // dava erro 400 em silêncio, e a lista ficava sempre vazia mesmo
+        // com gente salva. Busca sem embed; o nome é resolvido abaixo, em
+        // renderizarFigurinoAvulsosLista, com o mesmo cache já carregado
+        // pra Ritmistas.
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos?bateria_id=eq.${bateriaId}&figurino_item_id=eq.${item.id}&order=criado_em.desc`, { headers: authHeaders });
+        if (!res.ok) {
+            logErroCliente('carregar_figurino_avulsos', new Error(`figurino_avulsos respondeu ${res.status}`));
+            figurinoAvulsosCache = [];
+        } else {
+            figurinoAvulsosCache = await res.json();
+        }
         renderizarFigurinoAvulsosLista();
     }
     function renderizarFigurinoAvulsosLista() {
@@ -3940,17 +3953,21 @@
         const container = document.getElementById('figurino-avulsos-lista');
         if (!container) return;
         if (!figurinoAvulsosCache.length) { container.innerHTML = '<div class="estado-vazio">Nenhuma pessoa registrada aqui ainda.</div>'; return; }
-        container.innerHTML = figurinoAvulsosCache.map(a => `
+        container.innerHTML = figurinoAvulsosCache.map(a => {
+            const inst = bateriaInstrumentosCache.find(bi => bi.id === a.bateria_instrumento_id);
+            const nomeInst = inst ? nomeExibicaoBateriaInstrumento(inst) : null;
+            return `
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(a.nome)}</div>
-                    <div class="item-detalhe">${a.instrumento ? 'Naipe: ' + esc(a.instrumento.nome) : 'Sem naipe informado'}</div>
+                    <div class="item-detalhe">${nomeInst ? 'Naipe: ' + esc(nomeInst) : 'Sem naipe informado'}</div>
                 </div>
                 <div class="item-acoes">
                     <span class="figurino-tamanho-caixa">${esc(a.tamanho)}</span>
                     <button type="button" class="btn-ficha btn-ficha-danger" style="padding:6px 12px;font-size:12px;" onclick="removerFigurinoAvulso(${a.id})">Remover</button>
                 </div>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     }
     async function adicionarFigurinoAvulso() {
         const item = figurinoEntregaItemAtual;
