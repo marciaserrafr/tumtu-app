@@ -3982,7 +3982,24 @@
                 const comExtraHtml = figurinoAvulsosCache.length > 0
                     ? `<div style="font-size:12px;color:var(--cor-texto-muted);margin-top:6px;">Com Extra: <b>${feitoOficial + figurinoAvulsosCache.length}</b> pegaram · <b>${totalOficial - feitoOficial}</b> faltam</div>`
                     : '';
-                totalizador.innerHTML = grade.hero + comExtraHtml;
+                // 3º número "Pegaram" (12/set/2026, pedido dela: "tem espaço
+                // para isso") -- só aqui em Figurino (Presença continua com
+                // 2 números só, mesmo componente compartilhado). Reconstrói
+                // o hero em vez de usar grade.hero (que só tem Total/Faltam)
+                // -- mesmas classes/estrutura de totalGradeHtml, só com uma
+                // célula a mais no meio.
+                const heroComPegaram = grupos.length <= 1 ? grade.hero : `<div class="pres-hero-bloco">
+                    <div class="pres-hero-numeros">
+                        <div class="celula-hero"><div class="total-duplo-numero total">${totalOficial}</div><div class="total-duplo-rotulo">Total</div></div>
+                        <div class="celula-hero"><div class="total-duplo-numero" style="color:var(--cor-sucesso);">${feitoOficial}</div><div class="total-duplo-rotulo">Pegaram</div></div>
+                        <div class="celula-hero"><div class="total-duplo-numero faltam">${totalOficial - feitoOficial}</div><div class="total-duplo-rotulo">${(totalOficial - feitoOficial) === 1 ? 'Falta' : 'Faltam'}</div></div>
+                    </div>
+                    <button type="button" onclick="toggleTotalizadorDetalhe('figurino')" style="background:none;border:none;padding:4px 0 2px;margin:0;font-family:inherit;font-size:11px;font-weight:700;color:var(--cor-texto-muted);cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
+                        <span id="totalizador-toggle-rotulo-figurino">${totalizadorDetalheEstaAberto('figurino') ? 'Ver menos' : 'Ver por grupo'}</span>
+                        <span class="vg-secao-seta ${totalizadorDetalheEstaAberto('figurino') ? 'aberta' : ''}" id="totalizador-toggle-seta-figurino" style="font-size:12px;">›</span>
+                    </button>
+                </div>`;
+                totalizador.innerHTML = heroComPegaram + comExtraHtml;
                 if (detalheEl) detalheEl.innerHTML = grade.detalhe;
                 travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
             }
