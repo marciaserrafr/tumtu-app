@@ -11,6 +11,19 @@
     let sb;
     document.addEventListener('DOMContentLoaded', () => {
         sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Achado grave (12/set/2026): authHeaders só era preenchido uma vez,
+        // em iniciarSessaoAuth() -- o supabase-js renova o login sozinho por
+        // baixo dos panos (a cada ~1h), mas isso nunca atualizava o header
+        // usado em TODAS as chamadas do arquivo. Depois de ~1h de uso
+        // contínuo (sem sair/voltar da tela), todo fetch passava a usar um
+        // token vencido e falhava em silêncio -- indistinguível de "os dados
+        // sumiram" pra quem está olhando (uma lista que depende de GET pode
+        // aparecer vazia sem nenhum aviso). onAuthStateChange dispara toda
+        // vez que o supabase-js renova o token sozinho, então authHeaders
+        // nunca mais fica desatualizado enquanto a aba estiver aberta.
+        sb.auth.onAuthStateChange((_event, session) => {
+            if (session) authHeaders['Authorization'] = `Bearer ${session.access_token}`;
+        });
     });
 
     // Experimento consciente do notch, 06/set/2026 (ver comentário completo
