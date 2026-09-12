@@ -1787,13 +1787,19 @@
             // Largura fixa faz a barra, o % e essa coluna alinharem como
             // 2 colunas de verdade, de cima a baixo.
             const faltamHtml = `<span class="vg-instrumento-faltam" style="display:inline-block;width:64px;text-align:right;">${faltam > 0 ? `${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}` : ''}</span>`;
+            // Pílula "X / Y" também precisa de largura FIXA (não só mínima)
+            // -- min-width sozinho deixava a pílula crescer com o texto
+            // ("55 / 78" mais larga que "1 / 6"), o que empurrava a barra/%
+            // de novo (achado dela, 12/set/2026, 2ª rodada: "não tá alinhado
+            // direito não"). width fixa + nowrap trava o tamanho sempre igual.
+            const qtdHtml = `<span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}" style="width:72px;white-space:nowrap;">${entregues} / ${total}</span>`;
             return `
             <div class="vg-instrumento-linha${ehGrupo ? ' vg-instrumento-linha--grupo' : ''}">
                 <span class="vg-instrumento-linha-nome">${ehGrupo ? '<sup class="vg-instrumento-linha-asterisco">*</sup>' : ''}${esc(nome)}</span>
                 <span style="display:flex;align-items:center;gap:14px;">
                     ${barraHtml}
                     ${faltamHtml}
-                    <span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}">${entregues} / ${total}</span>
+                    ${qtdHtml}
                 </span>
             </div>`;
         };
