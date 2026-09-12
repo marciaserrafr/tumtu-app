@@ -129,6 +129,32 @@
         } catch (e) { /* nunca deixa o log quebrar a tela */ }
     }
 
+    // Varredura completa, 12/set/2026 -- achado dela ao vivo (bug real,
+    // "nenhum ritmista aparecendo... fui deslogada e não avisada"): dezenas
+    // de fetch() pro banco nunca checavam res.ok. Uma sessão vencida (401)
+    // virava lista vazia/contador zerado/cache quebrado em silêncio, sem
+    // nenhum aviso -- indistinguível de "não tem dado nenhum" pra quem
+    // está olhando. Helper único pra tratar toda falha de fetch do mesmo
+    // jeito: registra o erro e, se for 401, acende o aviso fixo de sessão
+    // expirada na hora (mesmo banner criado ontem, que só estava ligado
+    // em 2 das dezenas de telas que precisavam dele).
+    function tratarRespostaFalha(contexto, res) {
+        logErroCliente(contexto, new Error('HTTP ' + res.status));
+        if (res.status === 401) mostrarAvisoSessaoExpirada();
+    }
+    // Mesmo espírito, só que pra ações de SALVAR (não carregar) -- registra,
+    // acende o aviso se for sessão vencida, e avisa quem está usando que a
+    // ação NÃO foi salva (sem isso, um toggle/checkbox mudava na tela mas
+    // nunca ia pro banco, e voltava ao normal sozinho no próximo F5, sem
+    // explicação nenhuma). Retorna true quando falhou (chamar quem usa com
+    // `if (await falhouAoSalvar(...)) return;`).
+    async function falhouAoSalvar(contexto, res) {
+        if (res.ok) return false;
+        tratarRespostaFalha(contexto, res);
+        alert(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar. Tente de novo.');
+        return true;
+    }
+
     // Registro de AÇÃO de clique (12/set/2026, pedido dela depois do
     // incidente de figurino_entregas) -- diferente de logErroCliente, não
     // é erro, é "isso foi clicado, por quem, quando". Junto com
@@ -490,6 +516,7 @@
             const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?or=(perfil.eq.ritmista,perfil.is.null)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&select=id,foto_url&order=created_at.desc&limit=${LOTE}&offset=${offset}`, {
                 headers: authHeaders
             });
+            if (!res.ok) { tratarRespostaFalha('preencherFotosRitmistasEmSegundoPlano', res); break; }
             const lote = await res.json();
             if (!Array.isArray(lote) || lote.length === 0) break;
             const fotosPorId = {};
@@ -515,6 +542,7 @@
             const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&eh_convidado=eq.true&select=id,foto_url&order=perfil.asc,nome.asc&limit=${LOTE}&offset=${offset}`, {
                 headers: authHeaders
             });
+            if (!res.ok) { tratarRespostaFalha('preencherFotosConvidadosEspeciaisEmSegundoPlano', res); break; }
             const lote = await res.json();
             if (!Array.isArray(lote) || lote.length === 0) break;
             const fotosPorId = {};
@@ -763,11 +791,16 @@
         const body = { status };
         if (motivo !== null) body.motivo_status = motivo;
         if (status === 'aprovado') body.motivo_status = null;
-        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify(body)
         });
+        if (!res.ok) {
+            tratarRespostaFalha('atualizarStatus', res);
+            alert(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar essa mudança de status. Tente de novo.');
+            return;
+        }
         if (status === 'aprovado') notificarAprovacao(id, tipoAprovacao);
         else if (status === 'rejeitado') notificarAprovacao(id, 'rejeitado');
         await recarregar();
@@ -2079,11 +2112,13 @@
             fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?order=ordem`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?order=ordem`, { headers: authHeaders })
         ]);
+        if (!resCat.ok || !resNom.ok) { tratarRespostaFalha('carregarBibliotecaInstrumentos', resCat.ok ? resNom : resCat); return; }
         const categorias = await resCat.json();
         const nomenclaturas = await resNom.json();
-        bibliotecaInstrumentos = (categorias || []).map(c => ({
+        if (!Array.isArray(categorias) || !Array.isArray(nomenclaturas)) { logErroCliente('carregarBibliotecaInstrumentos', new Error('resposta não é lista')); return; }
+        bibliotecaInstrumentos = categorias.map(c => ({
             ...c,
-            nomenclaturas: (nomenclaturas || []).filter(n => n.categoria_id === c.id)
+            nomenclaturas: nomenclaturas.filter(n => n.categoria_id === c.id)
         }));
     }
 
@@ -2091,7 +2126,10 @@
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { bateriaInstrumentosCache = []; return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?bateria_id=eq.${bateriaId}`, { headers: authHeaders });
-        bateriaInstrumentosCache = await res.json();
+        if (!res.ok) { tratarRespostaFalha('carregarBateriaInstrumentos', res); return; }
+        const dados = await res.json();
+        if (!Array.isArray(dados)) { logErroCliente('carregarBateriaInstrumentos', new Error('resposta não é lista')); return; }
+        bateriaInstrumentosCache = dados;
     }
 
     function nomeExibicaoBateriaInstrumento(bi) {
@@ -2412,11 +2450,13 @@
         // capacidades pra ele (antes, só Super Admin via essas abas). Esse
         // pedido (resB) já saiu junto com os outros 4 acima -- só o que
         // depende de já saber o escola_id (a busca da escola em si) espera.
-        const bs = await resB.json();
+        if (!resB.ok) tratarRespostaFalha('iniciarUsuario:baterias', resB);
+        const bs = resB.ok ? await resB.json() : null;
         bateriaAtualData = Array.isArray(bs) && bs[0] ? bs[0] : null;
         if (bateriaAtualData && bateriaAtualData.escola_id) {
             const resE = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateriaAtualData.escola_id}`, { headers: authHeaders });
-            const es = await resE.json();
+            if (!resE.ok) tratarRespostaFalha('iniciarUsuario:escolas', resE);
+            const es = resE.ok ? await resE.json() : null;
             escolaAtualData = Array.isArray(es) && es[0] ? es[0] : null;
         }
         renderizarDadosEscolaTab();
@@ -2489,6 +2529,7 @@
         if (!bateriaId) return;
         try {
             const resBateria = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=eq.${bateriaId}&select=nome,escola_id,codigo_convite`, { headers: authHeaders });
+            if (!resBateria.ok) { tratarRespostaFalha('carregarNomeEscolaBateria:baterias', resBateria); return; }
             const baterias = await resBateria.json();
             const bateria = Array.isArray(baterias) && baterias[0] ? baterias[0] : null;
             if (!bateria) return;
@@ -2496,6 +2537,7 @@
             codigoConviteBateria = bateria.codigo_convite || bateriaId;
             if (bateria.escola_id) {
                 const resEscola = await fetch(`${SUPABASE_URL}/rest/v1/escolas?id=eq.${bateria.escola_id}&select=nome,sigla,nome_curto,cor_primaria,cor_secundaria,cor_terciaria,cor_quaternaria,logo_url,tema_personalizado_ativo`, { headers: authHeaders });
+                if (!resEscola.ok) { tratarRespostaFalha('carregarNomeEscolaBateria:escolas', resEscola); return; }
                 const escolas = await resEscola.json();
                 const escola = Array.isArray(escolas) && escolas[0] ? escolas[0] : null;
                 configEscola.nomeEscola = escola ? (escola.sigla || escola.nome || '') : '';
@@ -2947,11 +2989,17 @@
     }
 
     async function salvarOcultoSoloInstrumento(bateriaInstrumentoId, oculto) {
-        await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${bateriaInstrumentoId}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${bateriaInstrumentoId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ oculto_solo: oculto })
         });
+        if (!res.ok) {
+            tratarRespostaFalha('salvarOcultoSoloInstrumento', res);
+            alert(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar. Tente de novo.');
+            renderizarConfigVagas();
+            return;
+        }
         const item = bateriaInstrumentosCache.find(bi => bi.id === bateriaInstrumentoId);
         if (item) item.oculto_solo = oculto;
         renderizarConfigVagas();
@@ -2962,10 +3010,11 @@
         if (!bateriaId) return;
         const existente = bateriaInstrumentosCache.find(bi => bi.categoria_id === categoriaId);
 
+        let res;
         if (existente) {
             const payload = { ativo };
             if (nomenclaturaId !== undefined) payload.nomenclatura_id = nomenclaturaId ? Number(nomenclaturaId) : null;
-            await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${existente.id}`, {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${existente.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify(payload)
@@ -2973,11 +3022,16 @@
         } else {
             const cat = bibliotecaInstrumentos.find(c => c.id === categoriaId);
             const nomenclaturaPadrao = cat && cat.nomenclaturas.length > 0 ? cat.nomenclaturas[0].id : null;
-            await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos`, {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ bateria_id: bateriaId, categoria_id: categoriaId, nomenclatura_id: nomenclaturaPadrao, ativo, vagas: 0 })
             });
+        }
+        if (!res.ok) {
+            tratarRespostaFalha('salvarInstrumentoBateria', res);
+            alert(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar. Tente de novo.');
+            return;
         }
         await carregarBateriaInstrumentos();
         renderizarConfigInstrumentos();
@@ -3018,11 +3072,17 @@
     }
 
     async function salvarComposicaoAtiva(id, ativo) {
-        await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ ativo })
         });
+        if (!res.ok) {
+            tratarRespostaFalha('salvarComposicaoAtiva', res);
+            alert(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar. Tente de novo.');
+            renderizarComposicaoLista();
+            return;
+        }
         const item = bateriaInstrumentosCache.find(bi => bi.id === id);
         if (item) item.ativo = ativo;
         renderizarConfigVagas();
@@ -3113,18 +3173,20 @@
                 headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ bateria_id: bateriaId, eh_composicao: true, categoria_id: null, nome_composicao: nome, instrumentos_componentes: ids, vagas: 0, ativo: true })
             });
-            if (!res.ok) { mostrarToast('Não foi possível criar a composição.', 'erro'); return; }
+            if (!res.ok) { tratarRespostaFalha('salvarComposicao', res); mostrarToast('Não foi possível criar a composição.', 'erro'); return; }
             // "Só usar dentro de composição" nos instrumentos que viraram
             // peça dessa composição -- checkbox marcado por padrão (pedido
             // dela, 09/set/2026). Continuam ativos (a composição depende
             // disso), mas deixam de ser oferecidos sozinhos em qualquer
             // lugar (cadastro, Vagas, ficha, Naipe).
             if (esconderIndividuais) {
-                await Promise.all(ids.map(id => fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${id}`, {
+                const resultadosOculto = await Promise.all(ids.map(id => fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', ...authHeaders },
                     body: JSON.stringify({ oculto_solo: true })
                 })));
+                const falhou = resultadosOculto.find(r => !r.ok);
+                if (falhou) { tratarRespostaFalha('salvarComposicao:ocultarIndividuais', falhou); mostrarToast('Composição criada, mas nem todos os instrumentos foram ocultados individualmente. Ajuste em "Vagas de Ritmistas".', 'erro'); }
             }
             mostrarToast('Composição criada! Defina a vaga dela em "Vagas de Ritmistas".');
             composicaoEditando = null;
@@ -3183,11 +3245,17 @@
 
     async function salvarVaga(bateriaInstrumentoId, valor) {
         const vagas = parseInt(valor) || 0;
-        await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${bateriaInstrumentoId}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_instrumentos?id=eq.${bateriaInstrumentoId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ vagas })
         });
+        if (!res.ok) {
+            tratarRespostaFalha('salvarVaga', res);
+            alert(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar. Tente de novo.');
+            renderizarConfigVagas();
+            return;
+        }
         const item = bateriaInstrumentosCache.find(bi => bi.id === bateriaInstrumentoId);
         if (item) item.vagas = vagas;
         renderizarConfigVagas();
@@ -3201,11 +3269,13 @@
 
     async function carregarBibliotecaMedidas() {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders });
+        if (!res.ok) { tratarRespostaFalha('carregarBibliotecaMedidas', res); return; }
         bibliotecaMedidas = await res.json();
     }
 
     async function carregarBibliotecaMedidaTipos() {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders });
+        if (!res.ok) { tratarRespostaFalha('carregarBibliotecaMedidaTipos', res); return; }
         bibliotecaMedidaTipos = await res.json();
     }
 
@@ -3213,6 +3283,7 @@
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { bateriaMedidasCache = []; return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?bateria_id=eq.${bateriaId}`, { headers: authHeaders });
+        if (!res.ok) { tratarRespostaFalha('carregarBateriaMedidas', res); return; }
         bateriaMedidasCache = await res.json();
     }
 
@@ -3224,18 +3295,21 @@
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { bateriaMedidaTiposCache = []; return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}`, { headers: authHeaders });
+        if (!res.ok) { tratarRespostaFalha('carregarBateriaMedidaTipos', res); return; }
         bateriaMedidaTiposCache = await res.json();
     }
 
     async function carregarBibliotecaFigurino() {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?ativo=eq.true&order=ordem`, { headers: authHeaders });
-        bibliotecaFigurino = res.ok ? await res.json() : [];
+        if (!res.ok) { tratarRespostaFalha('carregarBibliotecaFigurino', res); return; }
+        bibliotecaFigurino = await res.json();
     }
     async function carregarBateriaFigurino() {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { bateriaFigurinoCache = []; return; }
         const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?bateria_id=eq.${bateriaId}`, { headers: authHeaders });
-        bateriaFigurinoCache = res.ok ? await res.json() : [];
+        if (!res.ok) { tratarRespostaFalha('carregarBateriaFigurino', res); return; }
+        bateriaFigurinoCache = await res.json();
     }
 
     // Redesenhado em 22/ago/2026 (2ª versão -- achado dela na 1ª: "Esta
@@ -3323,19 +3397,21 @@
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) return;
         const existente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipoId);
+        let res;
         if (existente) {
-            await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ ativo })
             });
         } else {
-            await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos`, {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ bateria_id: bateriaId, tipo_id: tipoId, ativo })
             });
         }
+        if (await falhouAoSalvar('salvarMedidaTipo', res)) return;
         await carregarBateriaMedidaTipos();
         renderizarConfigMedidas();
     }
@@ -3348,11 +3424,12 @@
         if (!existente) return;
         const atual = publicoMedidaTipo(existente);
         const novo = checked ? [...new Set([...atual, perfil])] : atual.filter(p => p !== perfil);
-        await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ publico: novo })
         });
+        if (await falhouAoSalvar('salvarMedidaTipoPublico', res)) return;
         await carregarBateriaMedidaTipos();
         renderizarConfigMedidas();
     }
@@ -3362,19 +3439,21 @@
         if (!bateriaId) return;
         const existente = bateriaMedidasCache.find(bm => bm.tamanho_id === tamanhoId);
 
+        let res;
         if (existente) {
-            await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?id=eq.${existente.id}`, {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas?id=eq.${existente.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ ativo })
             });
         } else {
-            await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas`, {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medidas`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ bateria_id: bateriaId, tamanho_id: tamanhoId, ativo })
             });
         }
+        if (await falhouAoSalvar('salvarMedidaBateria', res)) return;
         await carregarBateriaMedidas();
         renderizarConfigMedidas();
     }
@@ -3468,15 +3547,17 @@
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) return;
         const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === figurinoItemMestreId);
+        let res;
         if (existente) {
-            await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
                 method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ ativo })
             });
         } else {
-            await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens`, {
+            res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, figurino_item_mestre_id: figurinoItemMestreId, ativo })
             });
         }
+        if (await falhouAoSalvar('salvarFigurinoBateria', res)) return;
         await carregarBateriaFigurino();
         renderizarConfigFigurino();
     }
@@ -3488,18 +3569,20 @@
         const atual = publicoFigurinoBateria(existente);
         const novo = checked ? [...new Set([...atual, perfil])] : atual.filter(p => p !== perfil);
         if (novo.length === 0) { mostrarToast('Mantenha pelo menos um público marcado.', 'erro'); renderizarConfigFigurino(); return; }
-        await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
             method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ publico: novo })
         });
+        if (await falhouAoSalvar('salvarFigurinoPublico', res)) { renderizarConfigFigurino(); return; }
         await carregarBateriaFigurino();
         renderizarConfigFigurino();
     }
     async function salvarFigurinoIncluiExtras(figurinoItemMestreId, checked) {
         const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === figurinoItemMestreId);
         if (!existente) return;
-        await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
             method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ inclui_extras: checked })
         });
+        if (await falhouAoSalvar('salvarFigurinoIncluiExtras', res)) { renderizarConfigFigurino(); return; }
         await carregarBateriaFigurino();
         renderizarConfigFigurino();
     }
@@ -3655,13 +3738,21 @@
         if (!item) return;
         const existente = bateriaFigurinoCache.find(bf => bf.figurino_item_mestre_id === item.id);
         if (!existente) return;
+        const valorAnterior = existente[campo];
         existente[campo] = valor;
         // Botão de marcar entrega depende desse interruptor (04/set/2026) --
         // re-renderiza na hora, sem precisar sair e voltar da tela.
         renderizarEntregasFigurinoLista();
-        await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?id=eq.${existente.id}`, {
             method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ [campo]: valor })
         });
+        if (await falhouAoSalvar('salvarFlagFigurinoEntrega', res)) {
+            // Desfaz a mudança otimista (04/set/2026) -- sem isso, o
+            // interruptor ficava "ligado" na tela mesmo sem ter sido salvo.
+            existente[campo] = valorAnterior;
+            renderizarEntregasFigurinoLista();
+            return;
+        }
         carregarResumoEntregaFigurino();
     }
     function toggleMostraVisaoGeral(ligado) { salvarFlagFigurinoEntrega('mostra_visao_geral', ligado); }
@@ -4615,11 +4706,13 @@
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         salvandoEvento = true;
         try {
+            let res;
             if (eventoEditando.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras }) });
             } else {
-                await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, criado_por: u ? u.pessoa_id : null }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, criado_por: u ? u.pessoa_id : null }) });
             }
+            if (!res.ok) { tratarRespostaFalha('salvarEvento', res); mostrarToast(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar o evento.', 'erro'); return; }
             mostrarToast(eventoEditando.id ? 'Evento atualizado!' : 'Evento criado!');
             eventoEditando = null;
             await carregarEventosBateria();
@@ -4720,14 +4813,24 @@
     async function salvarFlagEvento(campo, valor) {
         const evento = presencaEventoAtual;
         if (!evento) return;
+        const valorAnterior = evento[campo];
         evento[campo] = valor;
         renderPresencaTrilhos();
         // Botão de marcar presença depende desse interruptor (04/set/2026) --
         // re-renderiza na hora, sem precisar sair e voltar da tela.
         renderizarPresencaLista();
-        await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${evento.id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${evento.id}`, {
             method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ [campo]: valor })
         });
+        if (await falhouAoSalvar('salvarFlagEvento', res)) {
+            // Desfaz a mudança otimista, mesmo raciocínio de
+            // salvarFlagFigurinoEntrega -- sem isso, o interruptor ficava
+            // "ligado" na tela mesmo sem ter sido salvo no banco.
+            evento[campo] = valorAnterior;
+            renderPresencaTrilhos();
+            renderizarPresencaLista();
+            return;
+        }
         const emCache = presencaEventosCache.find(e => e.id === evento.id);
         if (emCache) emCache[campo] = valor;
         // Mesmo padrão de salvarFlagFigurinoEntrega -- Iniciado/Finalizado
@@ -5741,6 +5844,12 @@
             carregarBaterias(escolaId),
             carregarBibliotecaInstrumentos(),
         ]);
+        // 12/set/2026: um 401 aqui não LANÇA exceção (fetch resolve normal,
+        // só com res.ok=false) -- sem checar isso, caía direto no
+        // res.json() como se fosse dado de verdade, e a tela ficava sem
+        // escola nenhuma sem passar pelo estado de erro/"Tentar de novo"
+        // logo abaixo. Lançar aqui força cair no mesmo catch.
+        if (!resE.ok) { if (resE.status === 401) mostrarAvisoSessaoExpirada(); throw new Error('HTTP ' + resE.status + ' ao buscar escola'); }
         const dadosE = await resE.json();
         escolaAtualData = Array.isArray(dadosE) && dadosE[0] ? dadosE[0] : null;
 
@@ -5922,9 +6031,12 @@
             fetch(`${SUPABASE_URL}/rest/v1/eventos?iniciado=eq.true&finalizado=eq.false&select=id,bateria_id`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/bateria_figurino_itens?ativo=eq.true&mostra_visao_geral=eq.true&entrega_finalizada=eq.false&select=id,bateria_id`, { headers: authHeaders }),
         ]);
-        const todasEscolas = await resEscolas.json();
-        const todasBaterias = await resBaterias.json();
-        const vinculos = await resVinculos.json();
+        if (!resEscolas.ok) tratarRespostaFalha('carregarDashboard:escolas', resEscolas);
+        if (!resBaterias.ok) tratarRespostaFalha('carregarDashboard:baterias', resBaterias);
+        if (!resVinculos.ok) tratarRespostaFalha('carregarDashboard:vinculos', resVinculos);
+        const todasEscolas = resEscolas.ok ? await resEscolas.json() : [];
+        const todasBaterias = resBaterias.ok ? await resBaterias.json() : [];
+        const vinculos = resVinculos.ok ? await resVinculos.json() : [];
         const pessoasAniv = resAniv.ok ? await resAniv.json() : [];
         const eventosAtivos = resEventosAtivos.ok ? await resEventosAtivos.json() : [];
         const figurinoAtivo = resFigurinoAtivo.ok ? await resFigurinoAtivo.json() : [];
@@ -7606,6 +7718,7 @@
             fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?order=ordem`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?order=ordem`, { headers: authHeaders })
         ]);
+        if (!resCat.ok || !resNom.ok) { tratarRespostaFalha('carregarCategorias', resCat.ok ? resNom : resCat); return; }
         const categorias = await resCat.json();
         const nomenclaturas = await resNom.json();
         categoriasCache = (categorias || []).map(c => ({ ...c, nomenclaturas: (nomenclaturas || []).filter(n => n.categoria_id === c.id) }));
@@ -7698,23 +7811,28 @@
         try {
             let categoriaId = categoriaEditando.id;
             if (categoriaId) {
-                await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?id=eq.${categoriaId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo, ativo }) });
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?id=eq.${categoriaId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, grupo, ativo }) });
+                if (!res.ok) { tratarRespostaFalha('salvarCategoria', res); mostrarToast(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar.', 'erro'); return; }
             } else {
                 const ordem = Math.max(0, ...categoriasCache.map(c => c.ordem || 0)) + 1;
                 const res = await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ nome, grupo, ativo, ordem }) });
+                if (!res.ok) { tratarRespostaFalha('salvarCategoria', res); mostrarToast(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar.', 'erro'); return; }
                 const dados = await res.json();
                 categoriaId = dados[0].id;
             }
-            for (const id of categoriaEditando.removidas) await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+            const respostas = [];
+            for (const id of categoriaEditando.removidas) respostas.push(await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?id=eq.${id}`, { method: 'DELETE', headers: authHeaders }));
             let ordemNom = 1;
             for (const n of categoriaEditando.nomenclaturas) {
                 const nomeNom = (n.nome || '').trim();
                 if (!nomeNom) { ordemNom++; continue; }
-                if (n.id) await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?id=eq.${n.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome: nomeNom, ordem: ordemNom }) });
-                else await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ categoria_id: categoriaId, nome: nomeNom, ordem: ordemNom }) });
+                if (n.id) respostas.push(await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas?id=eq.${n.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome: nomeNom, ordem: ordemNom }) }));
+                else respostas.push(await fetch(`${SUPABASE_URL}/rest/v1/instrumento_nomenclaturas`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ categoria_id: categoriaId, nome: nomeNom, ordem: ordemNom }) }));
                 ordemNom++;
             }
-            mostrarToast(categoriaEditando.id ? 'Categoria atualizada!' : 'Categoria criada!');
+            const falhouNomenclatura = respostas.find(r => !r.ok);
+            if (falhouNomenclatura) { tratarRespostaFalha('salvarCategoria:nomenclaturas', falhouNomenclatura); mostrarToast('Categoria salva, mas alguma nomenclatura não foi salva. Confira a lista.', 'erro'); }
+            else mostrarToast(categoriaEditando.id ? 'Categoria atualizada!' : 'Categoria criada!');
             categoriaEditando = null;
             await carregarCategorias();
             renderizarEditorCategoria();
@@ -7745,6 +7863,7 @@
             fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?order=ordem`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?order=ordem`, { headers: authHeaders }),
         ]);
+        if (!resTipos.ok || !resTam.ok) { tratarRespostaFalha('carregarMedidaTiposSA', resTipos.ok ? resTam : resTipos); return; }
         const tipos = await resTipos.json();
         const tamanhos = await resTam.json();
         medidaTiposCacheSA = (tipos || []).map(t => ({ ...t, tamanhos: (tamanhos || []).filter(x => x.tipo_id === t.id) }));
@@ -7856,23 +7975,28 @@
         try {
             let tipoId = medidaTipoEditando.id;
             if (tipoId) {
-                await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${tipoId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo, grupo }) });
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${tipoId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo, grupo }) });
+                if (!res.ok) { tratarRespostaFalha('salvarMedidaTipoSA', res); mostrarToast(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar.', 'erro'); return; }
             } else {
                 const ordem = Math.max(0, ...medidaTiposCacheSA.map(t => t.ordem || 0)) + 1;
                 const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem, grupo }) });
+                if (!res.ok) { tratarRespostaFalha('salvarMedidaTipoSA', res); mostrarToast(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar.', 'erro'); return; }
                 const dados = await res.json();
                 tipoId = dados[0].id;
             }
-            for (const id of medidaTipoEditando.removidas) await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
+            const respostas = [];
+            for (const id of medidaTipoEditando.removidas) respostas.push(await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders }));
             let ordemTam = 1;
             for (const s of medidaTipoEditando.tamanhos) {
                 const nomeTam = (s.nome || '').trim();
                 if (!nomeTam) { ordemTam++; continue; }
-                if (s.id) await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${s.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome: nomeTam, ordem: ordemTam }) });
-                else await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ tipo_id: tipoId, nome: nomeTam, ordem: ordemTam, ativo: true }) });
+                if (s.id) respostas.push(await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos?id=eq.${s.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome: nomeTam, ordem: ordemTam }) }));
+                else respostas.push(await fetch(`${SUPABASE_URL}/rest/v1/medida_tamanhos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ tipo_id: tipoId, nome: nomeTam, ordem: ordemTam, ativo: true }) }));
                 ordemTam++;
             }
-            mostrarToast(medidaTipoEditando.id ? 'Categoria de figurino atualizada!' : 'Categoria de figurino criada!');
+            const falhouTamanho = respostas.find(r => !r.ok);
+            if (falhouTamanho) { tratarRespostaFalha('salvarMedidaTipoSA:tamanhos', falhouTamanho); mostrarToast('Categoria salva, mas algum tamanho não foi salvo. Confira a lista.', 'erro'); }
+            else mostrarToast(medidaTipoEditando.id ? 'Categoria de figurino atualizada!' : 'Categoria de figurino criada!');
             medidaTipoEditando = null;
             await carregarMedidaTiposSA();
             renderizarEditorMedidaTipo();
@@ -7971,12 +8095,14 @@
         const ativo = document.getElementById('fig-mestre-edit-ativo').value === 'true';
         salvandoFigurinoMestre = true;
         try {
+            let res;
             if (figurinoMestreEditando.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${figurinoMestreEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, nome, ativo }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre?id=eq.${figurinoMestreEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, nome, ativo }) });
             } else {
                 const ordem = Math.max(0, ...figurinoMestreCacheSA.map(i => i.ordem || 0)) + 1;
-                await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, nome, ativo, ordem }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_itens_mestre`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ medida_tipo_id: medidaTipoId, nome, ativo, ordem }) });
             }
+            if (await falhouAoSalvar('salvarFigurinoMestre', res)) return;
             mostrarToast(figurinoMestreEditando.id ? 'Figurino atualizado!' : 'Figurino criado!');
             figurinoMestreEditando = null;
             await carregarFigurinoMestreSA();
@@ -8063,12 +8189,14 @@
         const ativo = document.getElementById('et-edit-ativo').value === 'true';
         salvandoEventoTipo = true;
         try {
+            let res;
             if (eventoTipoEditando.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?id=eq.${eventoTipoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?id=eq.${eventoTipoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo }) });
             } else {
                 const ordem = Math.max(0, ...eventoTiposCacheSA.map(t => t.ordem || 0)) + 1;
-                await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem }) });
             }
+            if (await falhouAoSalvar('salvarEventoTipoSA', res)) return;
             mostrarToast(eventoTipoEditando.id ? 'Tipo de evento atualizado!' : 'Tipo de evento criado!');
             eventoTipoEditando = null;
             await carregarEventoTiposSA();
@@ -8151,12 +8279,14 @@
         const ativo = document.getElementById('tp-edit-ativo').value === 'true';
         salvandoTemporada = true;
         try {
+            let res;
             if (temporadaEditando.id) {
-                await fetch(`${SUPABASE_URL}/rest/v1/temporadas?id=eq.${temporadaEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?id=eq.${temporadaEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo }) });
             } else {
                 const ordem = Math.max(0, ...temporadasCacheSA.map(t => t.ordem || 0)) + 1;
-                await fetch(`${SUPABASE_URL}/rest/v1/temporadas`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, ativo, ordem }) });
             }
+            if (await falhouAoSalvar('salvarTemporadaSA', res)) return;
             mostrarToast(temporadaEditando.id ? 'Temporada atualizada!' : 'Temporada criada!');
             temporadaEditando = null;
             await carregarTemporadasSA();

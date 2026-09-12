@@ -198,6 +198,7 @@
             const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?perfil=in.(mestre,diretor,apoio)&bateria_id=eq.${bateriaId}&eh_convidado=eq.false&order=perfil.asc,nome.asc&select=id,foto_url&limit=${LOTE}&offset=${offset}`, {
                 headers: authHeaders
             });
+            if (!res.ok) { tratarRespostaFalha('preencherFotosDiretoriaEmSegundoPlano', res); break; }
             const lote = await res.json();
             if (!Array.isArray(lote) || lote.length === 0) break;
             const fotosPorId = {};
@@ -395,22 +396,32 @@
 
     async function aprovarDiretor(id) {
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ status: 'aprovado', aprovado_por: u ? u.pessoa_id : null, motivo_status: null })
         });
+        if (!res.ok) {
+            tratarRespostaFalha('aprovarDiretor', res);
+            alert(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível aprovar. Tente de novo.');
+            return;
+        }
         notificarAprovacao(id);
         diretoriaCarregada = false;
         await carregarDiretoria(true);
     }
 
     async function rejeitarDiretor(id) {
-        await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=eq.${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ status: 'rejeitado' })
         });
+        if (!res.ok) {
+            tratarRespostaFalha('rejeitarDiretor', res);
+            alert(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível rejeitar. Tente de novo.');
+            return;
+        }
         notificarAprovacao(id, 'rejeitado');
         diretoriaCarregada = false;
         await carregarDiretoria(true);
