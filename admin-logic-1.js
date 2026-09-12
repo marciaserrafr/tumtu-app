@@ -3916,6 +3916,7 @@
     // dela). Nome interno "avulsos" -- "extra" já significa Convidado em
     // outro lugar do código (tipo==='extra', tabela `extras`).
     let figurinoAvulsosCache = [];
+    let figurinoAvulsoEditandoId = null;
     async function carregarFigurinoAvulsos() {
         const item = figurinoEntregaItemAtual;
         const bateriaId = bateriaIdContexto();
@@ -3934,12 +3935,15 @@
         // com gente salva. Busca sem embed; o nome é resolvido abaixo, em
         // renderizarFigurinoAvulsosLista, com o mesmo cache já carregado
         // pra Ritmistas.
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos?bateria_id=eq.${bateriaId}&figurino_item_id=eq.${item.id}&order=criado_em.desc`, { headers: authHeaders });
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos?bateria_id=eq.${bateriaId}&figurino_item_id=eq.${item.id}`, { headers: authHeaders });
         if (!res.ok) {
             logErroCliente('carregar_figurino_avulsos', new Error(`figurino_avulsos respondeu ${res.status}`));
             figurinoAvulsosCache = [];
         } else {
-            figurinoAvulsosCache = await res.json();
+            // Ordem alfabética por nome (12/set/2026, pedido dela) --
+            // localeCompare com 'pt-BR' pra acento ordenar certo, mesmo
+            // padrão já usado em instrumentosAtivosDaBateria().
+            figurinoAvulsosCache = (await res.json()).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
         }
         renderizarFigurinoAvulsosLista();
     }
@@ -3964,10 +3968,40 @@
                 </div>
                 <div class="item-acoes">
                     <span class="figurino-tamanho-caixa">${esc(a.tamanho)}</span>
+                    <button type="button" class="btn-ficha" style="padding:6px 12px;font-size:12px;" onclick="editarFigurinoAvulso(${a.id})">Editar</button>
                     <button type="button" class="btn-ficha btn-ficha-danger" style="padding:6px 12px;font-size:12px;" onclick="removerFigurinoAvulso(${a.id})">Remover</button>
                 </div>
             </div>`;
         }).join('');
+    }
+    // Editar (12/set/2026, pedido dela: "pra editar o nome eu vou precisar
+    // excluir... não tem cabimento") -- reaproveita o mesmo formulário do
+    // topo em vez de duplicar campos: preenche com os dados da pessoa,
+    // troca "+ Adicionar" por "Salvar edição" e guarda o id em
+    // figurinoAvulsoEditandoId. adicionarFigurinoAvulso() decide sozinho
+    // entre POST (criar) e PATCH (salvar edição) olhando essa variável.
+    function editarFigurinoAvulso(id) {
+        const a = figurinoAvulsosCache.find(x => x.id === id);
+        if (!a) return;
+        figurinoAvulsoEditandoId = id;
+        document.getElementById('figurino-avulso-nome').value = a.nome;
+        document.getElementById('figurino-avulso-instrumento').value = a.bateria_instrumento_id || '';
+        document.getElementById('figurino-avulso-tamanho').value = a.tamanho;
+        const btn = document.getElementById('figurino-avulso-btn-adicionar');
+        if (btn) btn.textContent = 'Salvar edição';
+        const cancelar = document.getElementById('figurino-avulso-btn-cancelar');
+        if (cancelar) cancelar.style.display = '';
+        document.getElementById('figurino-avulso-nome').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function cancelarEdicaoFigurinoAvulso() {
+        figurinoAvulsoEditandoId = null;
+        document.getElementById('figurino-avulso-nome').value = '';
+        document.getElementById('figurino-avulso-instrumento').value = '';
+        document.getElementById('figurino-avulso-tamanho').value = '';
+        const btn = document.getElementById('figurino-avulso-btn-adicionar');
+        if (btn) btn.textContent = '+ Adicionar';
+        const cancelar = document.getElementById('figurino-avulso-btn-cancelar');
+        if (cancelar) cancelar.style.display = 'none';
     }
     async function adicionarFigurinoAvulso() {
         const item = figurinoEntregaItemAtual;
@@ -3980,21 +4014,34 @@
             alert('Preencha nome, naipe e tamanho antes de adicionar.');
             return;
         }
-        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
-        logAcaoCliente('adicionar_figurino_avulso', { figurino_item_id: item.id, nome });
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...authHeaders },
-            body: JSON.stringify({ bateria_id: bateriaId, figurino_item_id: item.id, nome, bateria_instrumento_id: Number(instEl.value), tamanho: tamanhoEl.value, criado_por: u ? u.pessoa_id : null }),
-        });
-        if (!res.ok) { alert('Não foi possível salvar — confira sua internet e tente de novo.'); return; }
-        nomeEl.value = ''; instEl.value = ''; tamanhoEl.value = '';
+        const editandoId = figurinoAvulsoEditandoId;
+        const corpo = { nome, bateria_instrumento_id: Number(instEl.value), tamanho: tamanhoEl.value };
+        let res;
+        if (editandoId) {
+            logAcaoCliente('editar_figurino_avulso', { id: editandoId, nome });
+            res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos?id=eq.${editandoId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify(corpo),
+            });
+        } else {
+            const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+            logAcaoCliente('adicionar_figurino_avulso', { figurino_item_id: item.id, nome });
+            res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ ...corpo, bateria_id: bateriaId, figurino_item_id: item.id, criado_por: u ? u.pessoa_id : null }),
+            });
+        }
+        if (!res.ok) { alert(`Não foi possível ${editandoId ? 'salvar' : 'adicionar'} — confira sua internet e tente de novo.`); return; }
+        cancelarEdicaoFigurinoAvulso();
         await carregarFigurinoAvulsos();
     }
     async function removerFigurinoAvulso(id) {
         logAcaoCliente('remover_figurino_avulso', { id });
         const res = await fetch(`${SUPABASE_URL}/rest/v1/figurino_avulsos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { alert('Não foi possível remover — confira sua internet e tente de novo.'); return; }
+        if (figurinoAvulsoEditandoId === id) cancelarEdicaoFigurinoAvulso();
         await carregarFigurinoAvulsos();
     }
 

@@ -2859,7 +2859,8 @@
                         <option>PP</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option><option>XGG</option>
                     </select>
                 </div>
-                <button type="button" class="btn-ficha btn-ficha-editar" style="margin:0;" onclick="adicionarFigurinoAvulso()">+ Adicionar</button>
+                <button type="button" id="figurino-avulso-btn-adicionar" class="btn-ficha btn-ficha-editar" style="margin:0;" onclick="adicionarFigurinoAvulso()">+ Adicionar</button>
+                <span id="figurino-avulso-btn-cancelar" onclick="cancelarEdicaoFigurinoAvulso()" style="display:none;font-size:12px;color:#888;cursor:pointer;font-weight:500;text-decoration:underline;">Cancelar edição</span>
             </div>
             <div id="figurino-avulsos-lista" class="lista-cards"></div>
         </div>
@@ -3597,7 +3598,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=19" defer></script>
+<script src="admin-logic-1.js?v=20" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">
