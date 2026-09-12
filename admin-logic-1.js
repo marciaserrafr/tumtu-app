@@ -30,6 +30,36 @@
             // está saindo de propósito.
             if (!saindoManualmente) mostrarAvisoSessaoExpirada();
         });
+
+        // Renovação pró-ativa ao voltar pra aba (12/set/2026, achado dela ao
+        // vivo: "não está se logando sozinho por trás" depois da aba ficar
+        // >1h em segundo plano) -- o navegador pausa o relógio de renovação
+        // automática do supabase-js enquanto a aba não está visível, então o
+        // login pode já estar vencido no exato momento em que ela volta.
+        // Sem isso, o primeiro clique dispara um fetch com o token velho
+        // ANTES da renovação (que só recomeça quando a aba fica visível de
+        // novo) terminar -- o aviso de sessão expirada aparecia mesmo com a
+        // renovação automática "funcionando" por baixo dos panos. Ao voltar
+        // pra aba, checa se o login está vencido (ou perto disso) e renova
+        // na hora, antes de qualquer clique -- o próprio onAuthStateChange
+        // acima já atualiza authHeaders assim que a renovação termina.
+        let renovandoAoVoltar = null;
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState !== 'visible' || renovandoAoVoltar) return;
+            renovandoAoVoltar = (async () => {
+                try {
+                    const { data } = await sb.auth.getSession();
+                    const sessao = data.session;
+                    if (!sessao) return;
+                    const expiraEmMs = (sessao.expires_at || 0) * 1000 - Date.now();
+                    if (expiraEmMs < 60000) await sb.auth.refreshSession();
+                } catch (e) {
+                    logErroCliente('renovarSessaoAoVoltar', e);
+                } finally {
+                    renovandoAoVoltar = null;
+                }
+            })();
+        });
     });
 
     // Experimento consciente do notch, 06/set/2026 (ver comentário completo
