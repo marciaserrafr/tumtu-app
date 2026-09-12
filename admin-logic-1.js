@@ -1763,12 +1763,28 @@
                 extrasEntreguesPorItem[e.figurino_item_id].add(e.extra_id);
             });
         }
+        // Barra de porcentagem (12/set/2026, pedido dela: "acho que isso é
+        // legal para visualizar") -- só nas linhas de instrumento de
+        // verdade (!ehGrupo), não nas linhas agregadas "Diretoria"/
+        // "Convidados". Local a essa função de propósito (ela escolheu
+        // "só Entrega de Figurino" quando perguntada) -- não mexe no
+        // componente .vg-instrumento-linha usado em Ritmistas por
+        // Instrumento/Vagas/Presença, que têm sua própria cópia da função.
         const linhaHtml = (nome, entregues, total, ehGrupo) => {
             const faltam = total - entregues;
+            const pct = total > 0 ? Math.round((entregues / total) * 100) : 0;
+            const barraHtml = !ehGrupo ? `
+                <span style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                    <span style="width:56px;height:6px;background:#eee;border-radius:3px;overflow:hidden;display:inline-block;">
+                        <span style="display:block;width:${pct}%;height:100%;background:var(--cor-destaque);"></span>
+                    </span>
+                    <span style="font-size:11px;font-weight:700;color:var(--cor-texto-muted);min-width:28px;text-align:right;">${pct}%</span>
+                </span>` : '';
             return `
             <div class="vg-instrumento-linha${ehGrupo ? ' vg-instrumento-linha--grupo' : ''}">
                 <span class="vg-instrumento-linha-nome">${ehGrupo ? '<sup class="vg-instrumento-linha-asterisco">*</sup>' : ''}${esc(nome)}</span>
                 <span style="display:flex;align-items:center;gap:14px;">
+                    ${barraHtml}
                     ${faltam > 0 ? `<span class="vg-instrumento-faltam">${faltam === 1 ? 'Falta' : 'Faltam'} ${faltam}</span>` : ''}
                     <span class="vg-instrumento-qtd${faltam === 0 ? ' completo' : ''}">${entregues} / ${total}</span>
                 </span>
