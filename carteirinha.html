@@ -247,8 +247,16 @@
             .carteirinha-esqueleto .es-band span { animation: none; opacity: .75; }
         }
         /* Some junto (o "toque pra virar" só faz sentido com o cartão real
-           pronto) -- mesma classe controla os dois. */
+           pronto) -- mesma classe controla os dois. E o cartão de verdade
+           (.carteirinha-wrap) fica ESCONDIDO enquanto o esqueleto está no
+           ar -- achado dela ao vivo em 13/set/2026 ("aparece o efeito
+           dela sendo montada", nome real visível antes da hora): os dois
+           ficam um em cima do outro, mesma posição absoluta, sem z-index
+           -- e sem essa regra, o cartão real (mais novo no HTML) pinta
+           POR CIMA do esqueleto assim que nome/foto chegam no DOM, mesmo
+           antes do momento "pronto". */
         .carteirinha-scene.montando .c-hint { visibility: hidden; }
+        .carteirinha-scene.montando .carteirinha-wrap { visibility: hidden; }
     </style>
 </head>
 <body>
