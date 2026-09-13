@@ -190,8 +190,19 @@
             #carregandoCarteirinha .tumtu-marca .silaba-2 { animation: none; opacity: 1; }
         }
 
-        /* Esqueleto da carteirinha (13/set/2026, pedido dela: "o esqueleto
-           respira igual à marca" -- mesmo compasso de 1,4s da abertura).
+        /* Esqueleto da carteirinha -- cores e estrutura EXATAS do mockup
+           "A carteirinha abrindo" no documento do Claude Design (Abertura
+           e Esperas - TumTu.dc.html, seção 13/set/2026 turno 2), não mais
+           inventadas por mim (a 1a tentativa usou roxo à toa, rejeitada
+           por ela: "não tá como o Design falou... coloque nas cores
+           exatas que ela passou e não mude para roxo"). O mockup usa
+           branco translúcido em camadas sobre o MESMO fundo escuro do
+           app (rgba(255,255,255,.05/.09/.1/.08/.11/.12) sobre #12101a),
+           não tons de roxo -- e segue a forma real do cartão (barra fina
+           no topo, foto, 3 linhas de texto no meio -- escola/bateria/CPF
+           --, rodapé com o círculo do logo à direita), não uma lista
+           genérica de avatar+nome.
+
            A marca de tela cheia (#carregandoCarteirinha) esconde bem cedo
            agora -- só cobre o instante de "o app tá abrindo", não mais a
            busca de dado inteira. Esse molde, do TAMANHO EXATO do cartão
@@ -201,50 +212,50 @@
            position/scale de .carteirinha-wrap), então quando troca pro
            cartão pronto não há nenhum salto de posição -- só troca
            instantânea, sem fade (regra de 17/jul/2026 que continua
-           valendo: o cartão nunca aparece pela metade, só o "algo que
-           falta" mudou de forma -- de tela escura pra molde do cartão). */
+           valendo: o cartão nunca aparece pela metade). */
+        @keyframes es-brilho { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
         .carteirinha-esqueleto {
             position: absolute; top: 0; left: 0; width: 300px; height: 540px;
             transform-origin: top left;
             transform: scale(var(--fator-zoom-carteirinha, 1));
             border-radius: 22px; overflow: hidden;
-            background: #17141d;
+            background: rgba(255,255,255,.05);
             display: flex; flex-direction: column;
         }
+        .carteirinha-esqueleto .es-topbar {
+            height: 5px; flex-shrink: 0; background: rgba(255,255,255,.12);
+        }
         .carteirinha-esqueleto .es-foto {
-            position: relative; height: 278px; flex-shrink: 0; background: #1c1826;
-        }
-        .carteirinha-esqueleto .es-avatar {
-            position: absolute; left: 18px; top: 24px; width: 46px; height: 46px;
-            border-radius: 50%; background: #2b2438;
-        }
-        .carteirinha-esqueleto .es-cargo {
-            position: absolute; left: 18px; bottom: 40px; width: 70px; height: 8px; border-radius: 4px; background: #2b2438;
-        }
-        .carteirinha-esqueleto .es-nome {
-            position: absolute; left: 18px; bottom: 18px; width: 150px; height: 16px; border-radius: 5px; background: #332b45;
+            position: relative; height: 278px; flex-shrink: 0; background: rgba(255,255,255,.09); overflow: hidden;
         }
         .carteirinha-esqueleto .es-mid {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 0 30px;
         }
-        .carteirinha-esqueleto .es-mid span { border-radius: 4px; background: #241f30; }
+        .carteirinha-esqueleto .es-linha {
+            position: relative; overflow: hidden; display: block; width: 100%; border-radius: 5px; background: rgba(255,255,255,.1);
+        }
+        .carteirinha-esqueleto .es-linha:nth-child(2),
+        .carteirinha-esqueleto .es-linha:nth-child(3) {
+            background: rgba(255,255,255,.08);
+        }
         .carteirinha-esqueleto .es-band {
-            height: 108px; flex-shrink: 0; background: #1c1826; display: flex; align-items: center; padding: 0 22px;
+            position: relative; height: 108px; flex-shrink: 0; background: rgba(255,255,255,.09);
+            display: flex; align-items: center; justify-content: flex-end; padding: 0 18px; overflow: hidden;
         }
-        .carteirinha-esqueleto .es-band span { display: block; border-radius: 4px; background: #2b2438; }
-        .carteirinha-esqueleto .es-avatar,
-        .carteirinha-esqueleto .es-cargo,
-        .carteirinha-esqueleto .es-nome,
-        .carteirinha-esqueleto .es-mid span,
-        .carteirinha-esqueleto .es-band span {
-            animation: tumtu-batida 1.4s cubic-bezier(.3,.7,.3,1) infinite;
+        .carteirinha-esqueleto .es-logo {
+            display: block; width: 86px; height: 86px; border-radius: 50%; background: rgba(255,255,255,.11);
+        }
+        .carteirinha-esqueleto .es-foto::after,
+        .carteirinha-esqueleto .es-linha::after,
+        .carteirinha-esqueleto .es-band::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(212,175,55,.09), transparent);
+            animation: es-brilho 1.4s ease-in-out infinite;
         }
         @media (prefers-reduced-motion: reduce) {
-            .carteirinha-esqueleto .es-avatar,
-            .carteirinha-esqueleto .es-cargo,
-            .carteirinha-esqueleto .es-nome,
-            .carteirinha-esqueleto .es-mid span,
-            .carteirinha-esqueleto .es-band span { animation: none; opacity: .75; }
+            .carteirinha-esqueleto .es-foto::after,
+            .carteirinha-esqueleto .es-linha::after,
+            .carteirinha-esqueleto .es-band::after { animation: none; }
         }
         /* Some junto (o "toque pra virar" só faz sentido com o cartão real
            pronto) -- mesma classe controla os dois. E o cartão de verdade
@@ -288,17 +299,15 @@
 
     <div class="carteirinha-zoom" id="carteirinhaZoom">
     <div class="carteirinha-esqueleto" id="carteirinhaEsqueleto" style="display:none;">
-        <div class="es-foto">
-            <div class="es-avatar"></div>
-            <div class="es-cargo"></div>
-            <div class="es-nome"></div>
-        </div>
+        <div class="es-topbar"></div>
+        <div class="es-foto"></div>
         <div class="es-mid">
-            <span style="width:140px;height:10px;"></span>
-            <span style="width:90px;height:8px;"></span>
+            <span class="es-linha" style="width:80%;height:9px;"></span>
+            <span class="es-linha" style="width:56%;height:8px;"></span>
+            <span class="es-linha" style="width:66%;height:8px;"></span>
         </div>
         <div class="es-band">
-            <span style="width:80px;height:26px;"></span>
+            <span class="es-logo"></span>
         </div>
     </div>
     <div class="carteirinha-wrap" onclick="virarCarteirinha()">
