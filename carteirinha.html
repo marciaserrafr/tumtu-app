@@ -189,6 +189,66 @@
             #carregandoCarteirinha .tumtu-marca .silaba-1,
             #carregandoCarteirinha .tumtu-marca .silaba-2 { animation: none; opacity: 1; }
         }
+
+        /* Esqueleto da carteirinha (13/set/2026, pedido dela: "o esqueleto
+           respira igual à marca" -- mesmo compasso de 1,4s da abertura).
+           A marca de tela cheia (#carregandoCarteirinha) esconde bem cedo
+           agora -- só cobre o instante de "o app tá abrindo", não mais a
+           busca de dado inteira. Esse molde, do TAMANHO EXATO do cartão
+           de verdade (300x540, mesma regra fixa de sempre -- nunca mudar),
+           ocupa o lugar dele enquanto nome/foto/cor da escola ainda estão
+           chegando. Fica no MESMO lugar do cartão real (mesmo
+           position/scale de .carteirinha-wrap), então quando troca pro
+           cartão pronto não há nenhum salto de posição -- só troca
+           instantânea, sem fade (regra de 17/jul/2026 que continua
+           valendo: o cartão nunca aparece pela metade, só o "algo que
+           falta" mudou de forma -- de tela escura pra molde do cartão). */
+        .carteirinha-esqueleto {
+            position: absolute; top: 0; left: 0; width: 300px; height: 540px;
+            transform-origin: top left;
+            transform: scale(var(--fator-zoom-carteirinha, 1));
+            border-radius: 22px; overflow: hidden;
+            background: #17141d;
+            display: flex; flex-direction: column;
+        }
+        .carteirinha-esqueleto .es-foto {
+            position: relative; height: 278px; flex-shrink: 0; background: #1c1826;
+        }
+        .carteirinha-esqueleto .es-avatar {
+            position: absolute; left: 18px; top: 24px; width: 46px; height: 46px;
+            border-radius: 50%; background: #2b2438;
+        }
+        .carteirinha-esqueleto .es-cargo {
+            position: absolute; left: 18px; bottom: 40px; width: 70px; height: 8px; border-radius: 4px; background: #2b2438;
+        }
+        .carteirinha-esqueleto .es-nome {
+            position: absolute; left: 18px; bottom: 18px; width: 150px; height: 16px; border-radius: 5px; background: #332b45;
+        }
+        .carteirinha-esqueleto .es-mid {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+        }
+        .carteirinha-esqueleto .es-mid span { border-radius: 4px; background: #241f30; }
+        .carteirinha-esqueleto .es-band {
+            height: 108px; flex-shrink: 0; background: #1c1826; display: flex; align-items: center; padding: 0 22px;
+        }
+        .carteirinha-esqueleto .es-band span { display: block; border-radius: 4px; background: #2b2438; }
+        .carteirinha-esqueleto .es-avatar,
+        .carteirinha-esqueleto .es-cargo,
+        .carteirinha-esqueleto .es-nome,
+        .carteirinha-esqueleto .es-mid span,
+        .carteirinha-esqueleto .es-band span {
+            animation: tumtu-batida 1.4s cubic-bezier(.3,.7,.3,1) infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .carteirinha-esqueleto .es-avatar,
+            .carteirinha-esqueleto .es-cargo,
+            .carteirinha-esqueleto .es-nome,
+            .carteirinha-esqueleto .es-mid span,
+            .carteirinha-esqueleto .es-band span { animation: none; opacity: .75; }
+        }
+        /* Some junto (o "toque pra virar" só faz sentido com o cartão real
+           pronto) -- mesma classe controla os dois. */
+        .carteirinha-scene.montando .c-hint { visibility: hidden; }
     </style>
 </head>
 <body>
@@ -214,11 +274,25 @@
      fpRenderizarAvisoDadosProprios em ficha-perfil.js. -->
 <div id="avisoDadosProprios" class="aviso-dados-proprios" style="display:none" onclick="abrirPerfil()"></div>
 
-<div class="carteirinha-scene">
+<div class="carteirinha-scene" id="carteirinhaScene">
 
     <div class="c-hint">↺ toque para virar</div>
 
     <div class="carteirinha-zoom" id="carteirinhaZoom">
+    <div class="carteirinha-esqueleto" id="carteirinhaEsqueleto" style="display:none;">
+        <div class="es-foto">
+            <div class="es-avatar"></div>
+            <div class="es-cargo"></div>
+            <div class="es-nome"></div>
+        </div>
+        <div class="es-mid">
+            <span style="width:140px;height:10px;"></span>
+            <span style="width:90px;height:8px;"></span>
+        </div>
+        <div class="es-band">
+            <span style="width:80px;height:26px;"></span>
+        </div>
+    </div>
     <div class="carteirinha-wrap" onclick="virarCarteirinha()">
         <div class="carteirinha-inner" id="carteirinhaInner">
 
@@ -389,6 +463,26 @@
     function esconderCarregandoCarteirinha() {
         const el = document.getElementById('carregandoCarteirinha');
         if (el) el.style.display = 'none';
+    }
+
+    // Esqueleto da carteirinha (13/set/2026) -- ver CSS de
+    // .carteirinha-esqueleto pro raciocínio completo. Chamar assim que se
+    // sabe que vai montar o cartão de alguém (antes de renderCarteirinha),
+    // no lugar de deixar a marca de tela cheia em cima até tudo pronto.
+    function mostrarEsqueletoCarteirinha() {
+        esconderCarregandoCarteirinha();
+        const esqueleto = document.getElementById('carteirinhaEsqueleto');
+        if (esqueleto) esqueleto.style.display = 'flex';
+        const scene = document.getElementById('carteirinhaScene');
+        if (scene) scene.classList.add('montando');
+    }
+    // Troca instantânea do esqueleto pro cartão pronto -- mesma regra de
+    // sempre (17/jul/2026): nunca aparece pela metade, sem fade lento.
+    function revelarCartaoPronto() {
+        const esqueleto = document.getElementById('carteirinhaEsqueleto');
+        if (esqueleto) esqueleto.style.display = 'none';
+        const scene = document.getElementById('carteirinhaScene');
+        if (scene) scene.classList.remove('montando');
     }
 
     async function renderCarteirinha(ritmista) {
@@ -758,13 +852,14 @@
                     return;
                 }
                 const ritmista = rows[0];
+                mostrarEsqueletoCarteirinha();
                 await renderCarteirinha(ritmista);
                 renderMestres(ritmista.bateria_id);
                 const cacheado = lerConfigCache(ritmista.bateria_id);
                 if (cacheado) { aplicarConfigEscola(cacheado); aplicarLogosEscola(cacheado); }
                 const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                 aplicarConfigEscola(cfg);
-                esconderCarregandoCarteirinha();
+                revelarCartaoPronto();
                 carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(logos => {
                     aplicarLogosEscola(logos);
                     salvarConfigCache(ritmista.bateria_id, cfg, logos);
@@ -792,6 +887,7 @@
             verificarPresencaPendente(ritmista);
             const cacheado = lerConfigCache(ritmista.bateria_id);
             (async () => {
+                mostrarEsqueletoCarteirinha();
                 await renderCarteirinha(ritmista);
                 const { data: sessionData } = await sb.auth.getSession();
                 const token = sessionData.session ? sessionData.session.access_token : SUPABASE_KEY;
@@ -802,7 +898,7 @@
                     aplicarConfigEscola(cacheado);
                     aplicarLogosEscola(cacheado);
                     if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(ritmista, 'avisoDadosProprios');
-                    esconderCarregandoCarteirinha();
+                    revelarCartaoPronto();
                     const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                     aplicarConfigEscola(cfg);
                     carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(logos => {
@@ -816,7 +912,7 @@
                     const cfg = await carregarConfigEscola(ritmista.bateria_id, token);
                     aplicarConfigEscola(cfg);
                     if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(ritmista, 'avisoDadosProprios');
-                    esconderCarregandoCarteirinha();
+                    revelarCartaoPronto();
                     carregarLogosEscola(ritmista.bateria_id, cfg.escolaId, token).then(logos => {
                         aplicarLogosEscola(logos);
                         salvarConfigCache(ritmista.bateria_id, cfg, logos);
