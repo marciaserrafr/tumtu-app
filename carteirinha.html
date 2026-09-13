@@ -265,9 +265,15 @@
            ficam um em cima do outro, mesma posição absoluta, sem z-index
            -- e sem essa regra, o cartão real (mais novo no HTML) pinta
            POR CIMA do esqueleto assim que nome/foto chegam no DOM, mesmo
-           antes do momento "pronto". */
+           antes do momento "pronto". Usa display:none, não
+           visibility:hidden -- a 1ª tentativa com visibility:hidden não
+           funcionou porque .carteirinha-face (o mecanismo de virar
+           frente/verso) define visibility:visible direto nela mesma
+           (carteirinha-tumtu-novo.css), e uma regra explícita no próprio
+           elemento sempre vence a herdada do pai. display:none não tem
+           essa brecha -- ninguém dentro consegue "se religar" sozinho. */
         .carteirinha-scene.montando .c-hint { visibility: hidden; }
-        .carteirinha-scene.montando .carteirinha-wrap { visibility: hidden; }
+        .carteirinha-scene.montando .carteirinha-wrap { display: none; }
     </style>
 </head>
 <body>
