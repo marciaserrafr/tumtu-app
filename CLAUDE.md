@@ -73,6 +73,7 @@ Este projeto tem documentação de produto detalhada em `docs/` — **leia o doc
 - Explicar tudo do zero absoluto — o que é cada ferramenta, por que está sendo usada, cada passo em linguagem simples. Nunca assumir conhecimento técnico prévio, inclusive sobre onde clicar em painéis externos (Supabase, GitHub, Vercel).
 - Ela fica ansiosa com telas desconhecidas (painel de controle de versão, opções administrativas do Supabase) — tranquilizar primeiro ("nada quebrou, nada foi feito errado") antes de explicar o próximo passo.
 - Ela está aos poucos aprendendo a se organizar (pastas, versionamento) — reforçar positivamente esses avanços, sem forçar demais de uma vez.
+- **Antes de propor ou implementar uma decisão técnica ou de design, trazer como o mercado já resolve o mesmo problema** (apps de verdade que ela conhece, práticas já estabelecidas), não só a solução isolada. Pedido dela, 13/set/2026: "peço que inclua isso no claude.md, para você buscar a melhor experiência no mercado... e trazer para a nossa conversa... visto que eu ainda não tenho a experiência completa sobre esse tipo de desenvolvimento" — como ela não tem bagagem técnica própria pra avaliar se uma proposta minha é o padrão normal ou algo inventado na hora, essa comparação é o que dá a ela uma base real pra decidir. Motivou o pedido: expliquei por que o app abre devagar comparando com o jeito que apps que ela usa (Neon, WhatsApp, Instagram) tratam abertura instantânea vs. atualização de conteúdo — e isso ajudou ela a decidir com confiança.
 
 ---
 
