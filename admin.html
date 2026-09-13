@@ -2005,6 +2005,25 @@
         </span>
     </div>
 </div>
+<script>
+    // Sincroniza o início do piscar com o primeiro paint de verdade -- ver
+    // comentário completo em login.html (mesmo raciocínio, mesma marca
+    // copiada de propósito). reiniciarPulsoMarca() é reaproveitada em
+    // mostrarOverlayCarregando(), pra sempre recomeçar do "Tum" apagando
+    // toda vez que a marca aparece de novo (não só na abertura fria).
+    function reiniciarPulsoMarca() {
+        const els = document.querySelectorAll('#overlayCarregandoEscola .tumtu-marca .silaba-1, #overlayCarregandoEscola .tumtu-marca .silaba-2');
+        els.forEach(el => { el.style.animation = 'none'; });
+        void document.body.offsetWidth;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            els.forEach(el => { el.style.animation = ''; });
+        }));
+    }
+    document.querySelectorAll('#overlayCarregandoEscola .tumtu-marca .silaba-1, #overlayCarregandoEscola .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'paused'; });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.querySelectorAll('#overlayCarregandoEscola .tumtu-marca .silaba-1, #overlayCarregandoEscola .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'running'; });
+    }));
+</script>
 
 <div class="header" id="pageHeader">
     <div class="header-esquerda">
@@ -3603,7 +3622,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=34" defer></script>
+<script src="admin-logic-1.js?v=35" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

@@ -295,6 +295,17 @@
         </span>
     </div>
 </div>
+<script>
+    // Sincroniza o início do piscar com o primeiro paint de verdade -- ver
+    // comentário completo em login.html (mesmo raciocínio, mesma marca
+    // copiada de propósito). Aqui a marca só aparece na abertura fria
+    // (nunca reaparece durante a sessão), então não precisa de uma função
+    // reiniciarPulsoMarca reaproveitável -- só o pulso inicial.
+    document.querySelectorAll('#carregandoCarteirinha .tumtu-marca .silaba-1, #carregandoCarteirinha .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'paused'; });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.querySelectorAll('#carregandoCarteirinha .tumtu-marca .silaba-1, #carregandoCarteirinha .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'running'; });
+    }));
+</script>
 
 <div class="topo">
     <div class="topo-conteudo">

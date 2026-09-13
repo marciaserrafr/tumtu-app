@@ -96,6 +96,7 @@
     function mostrarOverlayCarregando() {
         overlayCarregandoMostradoEm = performance.now();
         document.getElementById('overlayCarregandoEscola').classList.remove('escondida');
+        if (typeof reiniciarPulsoMarca === 'function') reiniciarPulsoMarca();
     }
     function esconderOverlayCarregando() {
         // Sem esmaecer (06/set/2026, achado dela com vídeo real, quadro a

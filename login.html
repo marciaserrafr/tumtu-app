@@ -166,6 +166,33 @@
         </span>
     </div>
 </div>
+<script>
+    // Sincroniza o início do piscar com o primeiro paint de verdade
+    // (13/set/2026, achado dela ao vivo: "o Tum nasce aceso e o Tu é que
+    // acende e aparece mais"). Sem isso, o relógio da animação CSS conta
+    // desde o instante em que o navegador LÊ o CSS -- que pode ser bem
+    // antes da tela ficar visível de verdade pros olhos (rede lenta,
+    // aparelho mais devagar). Nesse caso, quando a pessoa finalmente VÊ
+    // alguma coisa, "Tum" já passou pelo acender rápido dele (invisível) e
+    // "Tu" é que está no meio do ciclo dele, visível -- parece o contrário
+    // do que devia. Pausa a animação já no primeiro instante (antes de
+    // qualquer paint), e só solta (2x requestAnimationFrame = depois de
+    // um paint confirmado) quando há certeza que alguém pode ver --
+    // reiniciarPulsoMarca() é reaproveitada sempre que a marca aparece de
+    // novo (não só na abertura fria), pra sempre recomeçar do "Tum" apagando.
+    function reiniciarPulsoMarca() {
+        const els = document.querySelectorAll('#containerCarregando .tumtu-marca .silaba-1, #containerCarregando .tumtu-marca .silaba-2');
+        els.forEach(el => { el.style.animation = 'none'; });
+        void document.body.offsetWidth;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            els.forEach(el => { el.style.animation = ''; });
+        }));
+    }
+    document.querySelectorAll('#containerCarregando .tumtu-marca .silaba-1, #containerCarregando .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'paused'; });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.querySelectorAll('#containerCarregando .tumtu-marca .silaba-1, #containerCarregando .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'running'; });
+    }));
+</script>
 
 <div class="auth-container" id="containerLogin" style="display:none;">
     <div class="logo">
@@ -292,6 +319,7 @@
     // por clareza no resto do arquivo.
     function abrirOverlayCarregando() {
         document.getElementById('containerCarregando').style.display = 'flex';
+        reiniciarPulsoMarca();
     }
 
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
