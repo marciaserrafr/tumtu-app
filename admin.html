@@ -1785,7 +1785,17 @@
             display: inline-flex; align-items: baseline;
             animation: tumtu-batida 1.4s cubic-bezier(.3,.7,.3,1) infinite;
         }
-        #overlayCarregandoEscola .tumtu-marca .silaba-2 { animation-delay: .7s; }
+        /* animation-fill-mode:backwards (13/set/2026) -- achado dela ao vivo:
+           "assim que ele realmente aparece, já fica a luz do Tu acesa e não
+           do Tum". Sem isso, durante os 0,7s de espera antes da sílaba-2
+           começar a animar, o navegador mostra o "Tu" na opacidade NORMAL
+           (1, aceso) em vez da opacidade inicial do próprio keyframe (0%,
+           .5, apagado) -- então no instante em que a marca aparece, o "Tu"
+           já está aceso à toa, e o "Tum" (que já começou a animar) é que
+           está subindo do apagado. backwards aplica o quadro 0% (.5,
+           apagado) durante a espera, corrigindo a ordem visual certa: Tum
+           acende primeiro, Tu continua apagado até a vez dele chegar. */
+        #overlayCarregandoEscola .tumtu-marca .silaba-2 { animation-delay: .7s; animation-fill-mode: backwards; }
         #overlayCarregandoEscola .tumtu-marca .t { color: #D4AF37; }
         #overlayCarregandoEscola .tumtu-marca .u { color: #fff; }
         #overlayCarregandoEscola .tumtu-marca .m { position: relative; color: #fff; }
