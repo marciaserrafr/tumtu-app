@@ -83,9 +83,16 @@
     // só "pisca" (não dá tempo nem de completar meio ciclo) e o
     // desaparecimento seco quebra a sensação de intenção da tela.
     let overlayCarregandoMostradoEm = performance.now(); // já visível desde o HTML puro
+    // "tumtu:abertura-tocada" é a MESMA chave de login.html (sessionStorage,
+    // por sessão de aba) -- se ela já viu a marca parada + surdos entrando
+    // no login, entrar numa escola/trocar de bateria logo em seguida pula
+    // direto pro par de surdos já batendo, sem repetir a sequência inteira
+    // (13/set/2026, achado dela ao vivo: virava um loop visível).
     function mostrarOverlayCarregando() {
         overlayCarregandoMostradoEm = performance.now();
         const el = document.getElementById('overlayCarregandoEscola');
+        el.classList.toggle('sem-intro', sessionStorage.getItem('tumtu:abertura-tocada') === '1');
+        sessionStorage.setItem('tumtu:abertura-tocada', '1');
         el.classList.remove('escondida');
     }
     function esconderOverlayCarregando() {
@@ -2091,6 +2098,7 @@
         await sb.auth.signOut();
         localStorage.removeItem('ritmista');
         localStorage.removeItem('tumtu_admin_estado');
+        sessionStorage.removeItem('tumtu:abertura-tocada');
         window.location.href = 'login';
     }
 

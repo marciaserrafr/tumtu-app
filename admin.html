@@ -1767,33 +1767,36 @@
         }
         /* Abertura em sequência (13/set/2026, spec do Claude Design em
            "Abertura e Esperas - TumTu.dc.html"): a marca "TumTu" entra
-           parada, sozinha, e só depois de ~700ms sai de cena pro par de
-           surdos bater no MESMO centro -- nunca os dois juntos como era
-           antes. .abertura-centro é o ponto fixo que os dois compartilham
-           (position:absolute um sobre o outro), do tamanho da batida (a
-           maior das duas peças). Texto "Afinando a bateria" e a barrinha
-           de compasso saíram de propósito -- a marca já diz "é este app",
-           quem fala de tempo depois é só o par de surdos batendo. */
+           parada, sozinha, e sai de cena pro par de surdos bater no MESMO
+           centro -- nunca os dois juntos como era antes. .abertura-centro
+           é o ponto fixo que os dois compartilham (position:absolute um
+           sobre o outro), do tamanho da batida (a maior das duas peças).
+           Texto "Afinando a bateria" e a barrinha de compasso saíram de
+           propósito -- a marca já diz "é este app", quem fala de tempo
+           depois é só o par de surdos batendo. Pausa parada encurtada de
+           .7s pra .2s (13/set/2026, mesmo dia: 700ms sem nenhum movimento
+           passava sensação de travado, justo na semana em que ela já
+           reclamou do app "demorando pra abrir"). */
         #overlayCarregandoEscola .abertura-centro { position: relative; width: 170px; height: 130px; }
         #overlayCarregandoEscola .batida {
             position: absolute; inset: 0; opacity: 0;
-            animation: tt-batida-entra .35s ease-out forwards; animation-delay: .7s;
+            animation: tt-batida-entra .3s ease-out forwards; animation-delay: .2s;
         }
         #overlayCarregandoEscola .onda {
             position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
-            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite; animation-delay: .7s;
+            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite; animation-delay: .2s;
         }
         #overlayCarregandoEscola .tum {
             position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
-            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .7s;
+            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .2s;
         }
         #overlayCarregandoEscola .tu {
             position: absolute; left: 106px; top: 78px; width: 38px; height: 38px; border-radius: 50%;
-            border: 2px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .85s;
+            border: 2px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .35s;
         }
         #overlayCarregandoEscola .marca-abertura {
             position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-            animation: tt-nome-sai .3s ease-in forwards; animation-delay: .7s;
+            animation: tt-nome-sai .25s ease-in forwards; animation-delay: .2s;
         }
         #overlayCarregandoEscola .marca-abertura .nome {
             display: flex; align-items: baseline; font-size: 34px; font-weight: 800; letter-spacing: 0.5px;
@@ -1804,6 +1807,17 @@
         #overlayCarregandoEscola .marca-abertura .nome .m::after {
             content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: #7c2d12;
         }
+        /* "1x por sessão" de verdade (13/set/2026, achado dela ao vivo: a
+           sequência tocava de novo repetidas vezes, cada troca de escola/
+           bateria reiniciando do zero, parecendo um loop travado). Classe
+           aplicada por JS (mostrarOverlayCarregando(), mesma chave
+           sessionStorage de login.html) sempre que essa tela reabre
+           depois da primeira vez nessa aba/sessão. */
+        #overlayCarregandoEscola.sem-intro .marca-abertura { display: none; }
+        #overlayCarregandoEscola.sem-intro .batida { opacity: 1; animation: none; }
+        #overlayCarregandoEscola.sem-intro .tum, #overlayCarregandoEscola.sem-intro .tu, #overlayCarregandoEscola.sem-intro .onda {
+            animation-delay: 0s;
+        }
         @keyframes tt-nome-sai { to { opacity: 0; } }
         @keyframes tt-batida-entra { to { opacity: 1; } }
         @keyframes tt-tum { 0% { transform: scale(1); } 7% { transform: scale(1.15); } 30% { transform: scale(1); } 100% { transform: scale(1); } }
@@ -1811,7 +1825,7 @@
         @keyframes tt-onda { 0% { transform: scale(.75); opacity: .5; } 70% { transform: scale(2.1); opacity: 0; } 100% { transform: scale(2.1); opacity: 0; } }
         @keyframes tt-girar { to { transform: rotate(360deg); } }
         @media (prefers-reduced-motion: reduce) {
-            #overlayCarregandoEscola .tum, #overlayCarregandoEscola .tu { animation: tt-batida-entra .35s ease-out forwards; animation-delay: .7s; }
+            #overlayCarregandoEscola .tum, #overlayCarregandoEscola .tu { animation: tt-batida-entra .3s ease-out forwards; animation-delay: .2s; }
             /* A onda é só movimento (some ao expandir) -- sem animação ela
                ficaria parada como um anel sólido, sem sentido. Some de vez. */
             #overlayCarregandoEscola .onda { display: none; }
@@ -3613,7 +3627,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=31" defer></script>
+<script src="admin-logic-1.js?v=32" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

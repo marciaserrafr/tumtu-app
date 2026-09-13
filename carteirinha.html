@@ -153,33 +153,36 @@
         }
         /* Abertura em sequência (13/set/2026, spec do Claude Design em
            "Abertura e Esperas - TumTu.dc.html"): a marca "TumTu" entra
-           parada, sozinha, e só depois de ~700ms sai de cena pro par de
-           surdos bater no MESMO centro -- nunca os dois juntos como era
-           antes. Precisa continuar IDÊNTICO a login.html/admin.html --
-           senão a troca de tela mostra dois formatos diferentes em
-           sequência. Texto "Afinando a bateria" e a barrinha de compasso
-           saíram de propósito -- a marca já diz "é este app", quem fala
-           de tempo depois é só o par de surdos batendo. */
+           parada, sozinha, e sai de cena pro par de surdos bater no MESMO
+           centro -- nunca os dois juntos como era antes. Precisa continuar
+           IDÊNTICO a login.html/admin.html -- senão a troca de tela mostra
+           dois formatos diferentes em sequência. Texto "Afinando a
+           bateria" e a barrinha de compasso saíram de propósito -- a marca
+           já diz "é este app", quem fala de tempo depois é só o par de
+           surdos batendo. Pausa parada encurtada de .7s pra .2s (13/set/
+           2026, mesmo dia: 700ms sem nenhum movimento passava sensação de
+           travado, justo na semana em que ela já reclamou do app
+           "demorando pra abrir"). */
         #carregandoCarteirinha .abertura-centro { position: relative; width: 170px; height: 130px; }
         #carregandoCarteirinha .batida {
             position: absolute; inset: 0; opacity: 0;
-            animation: tt-batida-entra .35s ease-out forwards; animation-delay: .7s;
+            animation: tt-batida-entra .3s ease-out forwards; animation-delay: .2s;
         }
         #carregandoCarteirinha .onda {
             position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
-            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite; animation-delay: .7s;
+            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite; animation-delay: .2s;
         }
         #carregandoCarteirinha .tum {
             position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
-            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .7s;
+            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .2s;
         }
         #carregandoCarteirinha .tu {
             position: absolute; left: 106px; top: 78px; width: 38px; height: 38px; border-radius: 50%;
-            border: 2px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .85s;
+            border: 2px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .35s;
         }
         #carregandoCarteirinha .marca-abertura {
             position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-            animation: tt-nome-sai .3s ease-in forwards; animation-delay: .7s;
+            animation: tt-nome-sai .25s ease-in forwards; animation-delay: .2s;
         }
         #carregandoCarteirinha .marca-abertura .nome { display: flex; align-items: baseline; font-size: 34px; font-weight: 800; letter-spacing: 0.5px; }
         #carregandoCarteirinha .marca-abertura .nome .t { color: #D4AF37; }
@@ -188,13 +191,22 @@
         #carregandoCarteirinha .marca-abertura .nome .m::after {
             content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: #7c2d12;
         }
+        /* "1x por sessão" de verdade (13/set/2026, mesma chave sessionStorage
+           de login.html/admin.html) -- quem chega aqui vindo do login (modo
+           Carteirinha) já viu a marca parada + surdos entrando lá, então
+           essa tela pula direto pro par de surdos já batendo. */
+        #carregandoCarteirinha.sem-intro .marca-abertura { display: none; }
+        #carregandoCarteirinha.sem-intro .batida { opacity: 1; animation: none; }
+        #carregandoCarteirinha.sem-intro .tum, #carregandoCarteirinha.sem-intro .tu, #carregandoCarteirinha.sem-intro .onda {
+            animation-delay: 0s;
+        }
         @keyframes tt-nome-sai { to { opacity: 0; } }
         @keyframes tt-batida-entra { to { opacity: 1; } }
         @keyframes tt-tum { 0% { transform: scale(1); } 7% { transform: scale(1.15); } 30% { transform: scale(1); } 100% { transform: scale(1); } }
         @keyframes tt-tu { 0% { transform: scale(1); opacity: .75; } 7% { transform: scale(1.09); opacity: 1; } 34% { transform: scale(1); opacity: .75; } 100% { transform: scale(1); opacity: .75; } }
         @keyframes tt-onda { 0% { transform: scale(.75); opacity: .5; } 70% { transform: scale(2.1); opacity: 0; } 100% { transform: scale(2.1); opacity: 0; } }
         @media (prefers-reduced-motion: reduce) {
-            #carregandoCarteirinha .tum, #carregandoCarteirinha .tu { animation: tt-batida-entra .35s ease-out forwards; animation-delay: .7s; }
+            #carregandoCarteirinha .tum, #carregandoCarteirinha .tu { animation: tt-batida-entra .3s ease-out forwards; animation-delay: .2s; }
             #carregandoCarteirinha .onda { display: none; }
         }
     </style>
@@ -384,6 +396,16 @@
     // cliente (sb = ...) e todo código que depende dele ficam dentro do
     // listener de DOMContentLoaded lá embaixo, não aqui no topo.
     let sb;
+
+    // "1x por sessão" de verdade (13/set/2026, mesma chave sessionStorage
+    // de login.html/admin.html) -- essa tela já nasce visível no HTML (sem
+    // esperar JS nenhum), então essa checagem precisa rodar aqui em cima,
+    // de forma síncrona, antes de qualquer pintura da tela.
+    if (sessionStorage.getItem('tumtu:abertura-tocada') === '1') {
+        document.getElementById('carregandoCarteirinha').classList.add('sem-intro');
+    } else {
+        sessionStorage.setItem('tumtu:abertura-tocada', '1');
+    }
 
     function mostrarToast(msg, tipo = 'ok') {
         const t = document.getElementById('cToast');
@@ -902,6 +924,7 @@
     async function sair() {
         await sb.auth.signOut();
         localStorage.removeItem('ritmista');
+        sessionStorage.removeItem('tumtu:abertura-tocada');
         window.location.href = 'login';
     }
 

@@ -103,25 +103,30 @@
            de compasso saíram de propósito -- a marca já diz "é este app",
            quem fala de tempo depois é só o par de surdos batendo. */
         #containerCarregando .abertura-centro { position: relative; width: 170px; height: 130px; }
+        /* Pausa parada encurtada de .7s pra .2s (13/set/2026, pedido dela
+           depois de ver o link de teste): 700ms sem nenhum movimento
+           passava sensação de travado, justo na semana em que ela já
+           reclamou do app "demorando pra abrir" -- ver
+           feedback_abertura_parada_le_como_travado na memória. */
         #containerCarregando .batida {
             position: absolute; inset: 0; opacity: 0;
-            animation: tt-batida-entra .35s ease-out forwards; animation-delay: .7s;
+            animation: tt-batida-entra .3s ease-out forwards; animation-delay: .2s;
         }
         #containerCarregando .onda {
             position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
-            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite; animation-delay: .7s;
+            border: 1px solid #D4AF37; animation: tt-onda 1.05s cubic-bezier(.2,.6,.3,1) infinite; animation-delay: .2s;
         }
         #containerCarregando .tum {
             position: absolute; left: 6px; top: 16px; width: 88px; height: 88px; border-radius: 50%;
-            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .7s;
+            background: #D4AF37; animation: tt-tum 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .2s;
         }
         #containerCarregando .tu {
             position: absolute; left: 106px; top: 78px; width: 38px; height: 38px; border-radius: 50%;
-            border: 2px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .85s;
+            border: 2px solid #7c2d12; animation: tt-tu 1.05s cubic-bezier(.16,.8,.3,1) infinite; animation-delay: .35s;
         }
         #containerCarregando .marca-abertura {
             position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-            animation: tt-nome-sai .3s ease-in forwards; animation-delay: .7s;
+            animation: tt-nome-sai .25s ease-in forwards; animation-delay: .2s;
         }
         #containerCarregando .marca-abertura .nome { display: flex; align-items: baseline; font-size: 34px; font-weight: 800; letter-spacing: 0.5px; }
         #containerCarregando .marca-abertura .nome .t { color: #D4AF37; }
@@ -130,13 +135,25 @@
         #containerCarregando .marca-abertura .nome .m::after {
             content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: #7c2d12;
         }
+        /* "1x por sessão" de verdade (13/set/2026, achado dela ao vivo: a
+           sequência tocava de novo no meio do próprio login -- uma vez
+           conferindo se já tinha sessão, outra vez ao enviar o formulário
+           --, parecendo um loop travado). Classe aplicada por JS
+           (abrirOverlayCarregando()) sempre que essa tela reabre depois da
+           primeira vez nessa aba/sessão: pula direto pro par de surdos já
+           batendo, sem repetir a marca parada. */
+        #containerCarregando.sem-intro .marca-abertura { display: none; }
+        #containerCarregando.sem-intro .batida { opacity: 1; animation: none; }
+        #containerCarregando.sem-intro .tum, #containerCarregando.sem-intro .tu, #containerCarregando.sem-intro .onda {
+            animation-delay: 0s;
+        }
         @keyframes tt-nome-sai { to { opacity: 0; } }
         @keyframes tt-batida-entra { to { opacity: 1; } }
         @keyframes tt-tum { 0% { transform: scale(1); } 7% { transform: scale(1.15); } 30% { transform: scale(1); } 100% { transform: scale(1); } }
         @keyframes tt-tu { 0% { transform: scale(1); opacity: .75; } 7% { transform: scale(1.09); opacity: 1; } 34% { transform: scale(1); opacity: .75; } 100% { transform: scale(1); opacity: .75; } }
         @keyframes tt-onda { 0% { transform: scale(.75); opacity: .5; } 70% { transform: scale(2.1); opacity: 0; } 100% { transform: scale(2.1); opacity: 0; } }
         @media (prefers-reduced-motion: reduce) {
-            #containerCarregando .tum, #containerCarregando .tu { animation: tt-batida-entra .35s ease-out forwards; animation-delay: .7s; }
+            #containerCarregando .tum, #containerCarregando .tu { animation: tt-batida-entra .3s ease-out forwards; animation-delay: .2s; }
             #containerCarregando .onda { display: none; }
         }
     </style>
@@ -267,6 +284,28 @@
 <a href="#" class="rodape-suporte" onclick="return abrirSuporteLogin()">Fale com o suporte</a>
 
 <script>
+    // Abre a tela de carregamento sempre por aqui, nunca setando
+    // .style.display direto (13/set/2026, achado dela ao vivo: a marca
+    // parada + surdos tocava de novo no meio do próprio login -- uma vez
+    // checando se já tinha sessão, outra vez ao enviar o formulário --
+    // parecendo um loop travado). "tumtu:abertura-tocada" é por SESSÃO de
+    // navegador (sessionStorage, não localStorage) -- a primeira vez que
+    // essa tela aparece nessa aba (o próprio HTML já nasce com ela
+    // visível, antes de qualquer JS rodar) toca a sequência completa;
+    // qualquer reabertura depois disso (nesta página ou em admin.html,
+    // mesma chave) pula direto pro par de surdos já batendo. sair() limpa
+    // essa chave, pra tocar de novo do zero no próximo login.
+    if (sessionStorage.getItem('tumtu:abertura-tocada') === '1') {
+        document.getElementById('containerCarregando').classList.add('sem-intro');
+    } else {
+        sessionStorage.setItem('tumtu:abertura-tocada', '1');
+    }
+    function abrirOverlayCarregando() {
+        const el = document.getElementById('containerCarregando');
+        el.classList.add('sem-intro');
+        el.style.display = 'flex';
+    }
+
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
     // Fica só declarado aqui — o script do Supabase agora carrega com
@@ -306,7 +345,7 @@
         btn.textContent = 'Desbloquear';
         if (!ok) { erro.style.display = 'block'; return; }
         document.getElementById('containerFaceId').style.display = 'none';
-        document.getElementById('containerCarregando').style.display = 'flex';
+        abrirOverlayCarregando();
         document.querySelector('.rodape-suporte').classList.remove('visivel');
         const cache = JSON.parse(localStorage.getItem('ritmista') || 'null');
         const { data: { session } } = await sb.auth.getSession();
@@ -719,7 +758,7 @@
             if (!lerConfigCache(vinculo.bateria_id)) {
                 document.getElementById('containerLogin').style.display = 'none';
                 document.getElementById('containerEscolherBateria').style.display = 'none';
-                document.getElementById('containerCarregando').style.display = 'flex';
+                abrirOverlayCarregando();
                 document.querySelector('.rodape-suporte').classList.remove('visivel');
                 const { data: { session } } = await sb.auth.getSession();
                 await prefetchConfigEscola(vinculo.bateria_id, session ? session.access_token : null);
@@ -734,7 +773,7 @@
         }
         document.getElementById('containerLogin').style.display = 'none';
         document.getElementById('containerEscolherBateria').style.display = 'none';
-        document.getElementById('containerCarregando').style.display = 'flex';
+        abrirOverlayCarregando();
         document.querySelector('.rodape-suporte').classList.remove('visivel');
         const { data: { session } } = await sb.auth.getSession();
         await prefetchConfigEscola(vinculo.bateria_id, session ? session.access_token : null);
@@ -829,7 +868,7 @@
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
         e.preventDefault();
         document.getElementById('containerLogin').style.display = 'none';
-        document.getElementById('containerCarregando').style.display = 'flex';
+        abrirOverlayCarregando();
         // "Fale com o suporte" mora fora dos containers que trocam de tela --
         // sem isso, ficava "esquecido" visível por cima do spinner sempre que
         // um erro anterior (senha errada, por exemplo) tinha deixado ele
