@@ -469,20 +469,34 @@
     // .carteirinha-esqueleto pro raciocínio completo. Chamar assim que se
     // sabe que vai montar o cartão de alguém (antes de renderCarteirinha),
     // no lugar de deixar a marca de tela cheia em cima até tudo pronto.
+    //
+    // Tempo mínimo de exibição (~600ms, achado dela ao vivo em 13/set/2026:
+    // "é tão rápido que tá parecendo uma sugeira do sistema") -- mesma
+    // regra e mesmo valor já usados na tela "Passaporte" do admin.html
+    // (05/set/2026): numa conexão rápida, o esqueleto podia sumir antes de
+    // completar nem meio ciclo da respiração, e o piscar rápido lia como
+    // erro/glitch, não como intenção.
+    let esqueletoMostradoEm = null;
     function mostrarEsqueletoCarteirinha() {
         esconderCarregandoCarteirinha();
+        esqueletoMostradoEm = performance.now();
         const esqueleto = document.getElementById('carteirinhaEsqueleto');
         if (esqueleto) esqueleto.style.display = 'flex';
         const scene = document.getElementById('carteirinhaScene');
         if (scene) scene.classList.add('montando');
     }
-    // Troca instantânea do esqueleto pro cartão pronto -- mesma regra de
-    // sempre (17/jul/2026): nunca aparece pela metade, sem fade lento.
+    // Troca instantânea do esqueleto pro cartão pronto (sem fade lento,
+    // mesma regra de sempre de 17/jul/2026: nunca aparece pela metade) --
+    // só espera o tempo mínimo passar antes de trocar.
     function revelarCartaoPronto() {
-        const esqueleto = document.getElementById('carteirinhaEsqueleto');
-        if (esqueleto) esqueleto.style.display = 'none';
-        const scene = document.getElementById('carteirinhaScene');
-        if (scene) scene.classList.remove('montando');
+        const decorrido = esqueletoMostradoEm ? performance.now() - esqueletoMostradoEm : 600;
+        const espera = Math.max(0, 600 - decorrido);
+        setTimeout(() => {
+            const esqueleto = document.getElementById('carteirinhaEsqueleto');
+            if (esqueleto) esqueleto.style.display = 'none';
+            const scene = document.getElementById('carteirinhaScene');
+            if (scene) scene.classList.remove('montando');
+        }, espera);
     }
 
     async function renderCarteirinha(ritmista) {
