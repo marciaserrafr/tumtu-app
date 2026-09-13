@@ -259,6 +259,19 @@
 <a href="#" class="rodape-suporte" onclick="return abrirSuporteLogin()">Fale com o suporte</a>
 
 <script>
+    // Pula a marca de abertura quando esta carga da página foi um
+    // recarregamento AUTOMÁTICO nosso (pwa-register.js, ao assumir uma
+    // versão nova por baixo dos panos) -- achado real dela, 13/set/2026:
+    // "um spinner pra entrar no login e outro pra esperar a tela ser
+    // montada... a tela dá um salto". A pessoa não pediu esse
+    // recarregamento, não devia ver a marca de novo por causa dele.
+    // Precisa rodar AQUI, o mais cedo possível (antes de qualquer outra
+    // coisa), porque a tela de carregamento já nasce visível no HTML puro.
+    if (sessionStorage.getItem('tumtu:sw-reload') === '1') {
+        sessionStorage.removeItem('tumtu:sw-reload');
+        document.getElementById('containerCarregando').style.display = 'none';
+    }
+
     // Abre a tela de carregamento sempre por aqui (13/set/2026). Antes
     // disso precisava de uma lógica de "já mostrei uma vez nessa sessão"
     // (sessionStorage), porque a animação antiga tinha começo/meio/fim e

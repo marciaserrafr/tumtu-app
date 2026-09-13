@@ -12,6 +12,15 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (jaRecarregou) return;
     jaRecarregou = true;
+    // Achado real dela, 13/set/2026: esse recarregamento automático é uma
+    // ação NOSSA, não da pessoa -- ela via a marca de abertura, a tela
+    // "pulava", e a marca aparecia de novo antes de cair na tela de
+    // verdade (ela descreveu certo: "um spinner pra entrar no login e
+    // outro pra esperar a tela ser montada"). Essa chave avisa a próxima
+    // carga da página (login/admin/carteirinha) pra pular a marca de
+    // abertura dessa vez -- a pessoa já viu o app abrindo há um instante,
+    // isso aqui é só a gente trocando de versão por baixo, invisível.
+    sessionStorage.setItem('tumtu:sw-reload', '1');
     window.location.reload();
   });
 

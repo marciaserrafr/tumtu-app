@@ -1,3 +1,13 @@
+    // Pula a marca de abertura quando esta carga da página foi um
+    // recarregamento AUTOMÁTICO nosso (pwa-register.js, ao assumir uma
+    // versão nova por baixo dos panos) -- ver comentário completo em
+    // login.html. Roda aqui em cima, antes de qualquer outra coisa.
+    if (sessionStorage.getItem('tumtu:sw-reload') === '1') {
+        sessionStorage.removeItem('tumtu:sw-reload');
+        const overlayReload = document.getElementById('overlayCarregandoEscola');
+        if (overlayReload) overlayReload.classList.add('escondida');
+    }
+
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
     // sb declarado aqui (escopo do <script> inteiro, todas as funções do
