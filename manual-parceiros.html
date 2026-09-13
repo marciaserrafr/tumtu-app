@@ -69,6 +69,17 @@
     border-right: 1px solid var(--border);
     padding: 28px 20px 60px;
   }
+  .toc-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--azul-strong);
+    text-decoration: none;
+    margin-bottom: 18px;
+  }
+  .toc-voltar:hover { text-decoration: underline; }
   .toc-brand {
     display: flex;
     align-items: baseline;
@@ -347,6 +358,7 @@
 
 <div class="shell">
   <aside class="toc">
+    <a href="/admin" id="voltarApp" class="toc-voltar">← Voltar para o TumTu</a>
     <div class="toc-brand"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
     <div class="toc-sub">Manual do painel administrativo</div>
 
@@ -843,6 +855,22 @@
 </div>
 
 <script>
+  // "Voltar pra o TumTu" (13/set/2026, achado dela no celular: "não é
+  // possível voltar... não tem opção pra retornar pro app") -- o manual
+  // abre numa aba nova (window.open, decisão de 11/set pra não mexer na
+  // tela de baixo), mas no celular isso deixa a pessoa "presa": sem barra
+  // de navegador visível (instalado como app) ou sem saber trocar de aba,
+  // não tinha nenhum jeito óbvio de sair daqui. window.close() só funciona
+  // em aba aberta por script (é o nosso caso) -- se fechar, volta sozinho
+  // pra tela de baixo; se o navegador bloquear o fechamento (ex: aba não
+  // foi aberta por script, like alguém entrou direto pelo link), cai no
+  // reserva: navega esta mesma aba pro painel.
+  document.getElementById('voltarApp').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.close();
+    setTimeout(() => { window.location.href = '/admin'; }, 300);
+  });
+
   // realça no sumário a seção visível
   const links = [...document.querySelectorAll('.toc nav a')];
   const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
