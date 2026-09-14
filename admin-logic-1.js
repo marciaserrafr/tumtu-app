@@ -33,12 +33,28 @@
         // nunca mais fica desatualizado enquanto a aba estiver aberta.
         sb.auth.onAuthStateChange((_event, session) => {
             if (session) { authHeaders['Authorization'] = `Bearer ${session.access_token}`; return; }
-            // Sessão sumiu de verdade (12/set/2026, pedido dela: "muito
-            // grilada com isso" depois do incidente) -- só avisa se NÃO foi
-            // ela clicando em "Sair" (ver saindoManualmente em sair()),
-            // senão apareceria "sessão expirou" bem na hora que ela mesma
-            // está saindo de propósito.
-            if (!saindoManualmente) mostrarAvisoSessaoExpirada();
+            if (saindoManualmente) return;
+            // Achado (14/set/2026, ela reportou o aviso aparecendo mesmo
+            // depois da renovação pró-ativa acima): esse evento pode disparar
+            // com sessão nula por uma corrida perdida por pouco (ex: dois
+            // pedidos de renovação acontecendo quase juntos, ou um soluço de
+            // rede num instante ruim) -- não necessariamente porque o login
+            // morreu de verdade. Antes de assustar com o aviso vermelho,
+            // tenta renovar mais uma vez em silêncio; só mostra o aviso se
+            // essa última tentativa também falhar (aí sim é sessão vencida
+            // de verdade, ex: dias sem abrir o app).
+            (async () => {
+                try {
+                    const { data } = await sb.auth.refreshSession();
+                    if (data.session) {
+                        authHeaders['Authorization'] = `Bearer ${data.session.access_token}`;
+                        return;
+                    }
+                } catch (e) {
+                    logErroCliente('renovarSessaoAntesDoAviso', e);
+                }
+                mostrarAvisoSessaoExpirada();
+            })();
         });
 
         // Renovação pró-ativa ao voltar pra aba (12/set/2026, achado dela ao
