@@ -5588,26 +5588,32 @@
 
     // Lista lançadora da aba "Administrativo" -- cada linha só aparece se a
     // pessoa tiver a capacidade daquele módulo (Super Admin vê todas).
+    // "grupo" (14/set/2026, Camada 0 item 0.5) -- mesmas 3 categorias do
+    // documento da Design (Cadastros/Operação/Ajustes), usadas pra desenhar
+    // a folha do "Mais" no celular (ver abrirFolhaMais). Não muda nada do
+    // acordeão do computador (renderizarMaisSubmenu), que continua uma
+    // lista só, sem seção.
     const ADMINISTRATIVO_ITENS = [
         // 'dados-escola'/'dados-bateria' saíram daqui em 14/set/2026 --
         // agora moram dentro de "Configurações" (pedido dela: "tudo se
         // trata de Configuração, faz parte do mesmo conjunto").
-        { aba: 'configuracoes', label: 'Configurações' },
-        { aba: 'extras', label: 'Convidados' },
-        { aba: 'figurino', label: 'Entrega de Figurino' },
-        { aba: 'presenca', label: 'Lista de Presença' },
-        { aba: 'permissoes', label: 'Permissões' },
-        { aba: 'historico', label: 'Histórico' },
+        { aba: 'configuracoes', label: 'Configurações', grupo: 'Ajustes' },
+        { aba: 'extras', label: 'Convidados', grupo: 'Cadastros' },
+        { aba: 'figurino', label: 'Entrega de Figurino', grupo: 'Operação' },
+        { aba: 'presenca', label: 'Lista de Presença', grupo: 'Operação' },
+        { aba: 'permissoes', label: 'Permissões', grupo: 'Ajustes' },
+        { aba: 'historico', label: 'Histórico', grupo: 'Operação' },
         // Não abre painel nenhum aqui dentro -- clicar leva pra
         // /manual-parceiros numa aba nova (ver trocarAba em admin-logic-2.js).
         // Capacidade própria (ver_manual_instrucoes), sem default nenhum nos
         // moldes de Permissões Padrão -- Márcia decide manualmente quem
         // libera (11/set/2026: "somente os parceiros devem ter acesso").
-        { aba: 'manual-instrucoes', label: 'Manual de Instruções' },
+        { aba: 'manual-instrucoes', label: 'Manual de Instruções', grupo: 'Ajustes' },
         // Só o Super Admin enxerga esse item (ver podeVerAba) -- fica por
         // último de propósito, pedido dela (01/set/2026).
-        { aba: 'comercial', label: 'Comercial' },
+        { aba: 'comercial', label: 'Comercial', grupo: 'Ajustes' },
     ];
+    const GRUPOS_ADMINISTRATIVO_ORDEM = ['Cadastros', 'Operação', 'Ajustes'];
     function itensAdministrativoVisiveis() {
         return ADMINISTRATIVO_ITENS.filter(i => souSuperAdmin || podeVerAba(i.aba));
     }
@@ -5682,6 +5688,61 @@
         if (_folhaAbertaPorHistorico) fecharFolha(true);
     });
 
+    // Arrasto pra baixo (14/set/2026, pedido dela na hora -- "não quero
+    // ficar deixando muitas coisas para trás") -- 4º jeito de fechar a
+    // folha, que tinha ficado de fora da 1ª versão por agilidade. Só a
+    // alça e o cabeçalho são "pegáveis" (não a lista rolável de baixo,
+    // senão brigaria com o gesto de rolar a lista). Passa de ~110px
+    // arrastado (ou solta mais da metade do caminho) e fecha; solta antes
+    // disso e volta pro lugar. Pointer Events cobre touch e mouse com o
+    // mesmo código (mouse é só pra eu conseguir testar aqui pelo
+    // navegador -- no celular de verdade quem usa é o dedo).
+    (function configurarArrastoFolha() {
+        const folha = document.getElementById('folha');
+        const overlay = document.getElementById('folhaOverlay');
+        if (!folha || !overlay) return;
+        const alvo = [folha.querySelector('.folha-alca'), folha.querySelector('.folha-cabecalho')];
+        let arrastando = false, inicioY = 0, deltaY = 0;
+        function inicio(e) {
+            arrastando = true;
+            inicioY = e.clientY;
+            folha.style.transition = 'none';
+        }
+        function mover(e) {
+            if (!arrastando) return;
+            deltaY = Math.max(0, e.clientY - inicioY);
+            folha.style.transform = `translateY(${deltaY}px)`;
+            overlay.style.opacity = String(Math.max(0, 1 - deltaY / 300));
+        }
+        function fim() {
+            if (!arrastando) return;
+            arrastando = false;
+            const fechar = deltaY > 110;
+            folha.style.transition = 'transform 200ms ease';
+            overlay.style.transition = 'opacity 200ms ease';
+            if (fechar) {
+                folha.style.transform = 'translateY(100%)';
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    folha.style.transition = ''; folha.style.transform = '';
+                    overlay.style.transition = ''; overlay.style.opacity = '';
+                    fecharFolha();
+                }, 200);
+            } else {
+                folha.style.transform = ''; overlay.style.opacity = '';
+                setTimeout(() => { folha.style.transition = ''; overlay.style.transition = ''; }, 200);
+            }
+            deltaY = 0;
+        }
+        alvo.forEach(el => {
+            if (!el) return;
+            el.addEventListener('pointerdown', (e) => { inicio(e); el.setPointerCapture(e.pointerId); });
+            el.addEventListener('pointermove', mover);
+            el.addEventListener('pointerup', fim);
+            el.addEventListener('pointercancel', fim);
+        });
+    })();
+
     // Rodapé do Super Admin no celular (Camada 0, item 0.5, 14/set/2026) --
     // "Mais" abre a folha com o que não coube nos 3 slots fixos
     // (Dashboard/Escolas/Mais). No computador esse botão nem aparece
@@ -5703,15 +5764,40 @@
 
     // "Mais" no computador: acordeão que abre ali mesmo na barra lateral
     // (pedido da Márcia, 20/ago/2026: "pensei em colocar uma seta e esse
-    // menu abrir para baixo"). No celular (rodapé, sem espaço vertical pra
-    // abrir inline) continua indo pra tela própria de sempre.
+    // menu abrir para baixo"). No celular (rodapé) abre a folha
+    // compartilhada (Camada 0, item 0.5, 14/set/2026, ver abrirFolha) --
+    // antes ia pra uma tela própria com os 8 itens soltos, sem grupo.
     function onClickMais(el) {
-        if (window.innerWidth <= 560) { trocarAba('administrativo', el); return; }
+        if (window.innerWidth <= 560) { abrirFolhaMais(el); return; }
         const submenu = document.getElementById('abaMaisSubmenu');
         const abrir = !submenu.classList.contains('aberto');
         if (abrir) renderizarMaisSubmenu();
         submenu.classList.toggle('aberto', abrir);
         el.classList.toggle('aberto', abrir);
+    }
+    // Monta a folha do "Mais" de dentro de uma bateria, agrupada em
+    // Cadastros/Operação/Ajustes (ver ADMINISTRATIVO_ITENS acima). Passa o
+    // próprio botão "Mais" (#btnMais) pra trocarAba() em cada item -- o
+    // "if (btn) btn.classList.add('ativa')" que já existe lá (admin-
+    // logic-2.js) acende o "Mais" do rodapé sozinho, sem precisar duplicar
+    // essa lógica aqui (mesmo padrão do id 'btnMais' que o acordeão do
+    // computador já dependia).
+    function abrirFolhaMais(el) {
+        const itens = itensAdministrativoVisiveis();
+        const pendConv = pendentesConvidadosEspeciaisCount();
+        const grupos = GRUPOS_ADMINISTRATIVO_ORDEM.map(titulo => ({
+            titulo,
+            itens: itens.filter(i => i.grupo === titulo).map(i => ({
+                label: i.label,
+                badge: (i.aba === 'extras' && pendConv > 0) ? pendConv : null,
+                onClick: () => trocarAba(i.aba, el),
+            })),
+        })).filter(g => g.itens.length > 0);
+        if (!grupos.length) {
+            abrirFolha('Mais opções', [{ titulo: '', itens: [{ label: 'Nenhum módulo disponível pra você aqui.', onClick: () => {} }] }]);
+            return;
+        }
+        abrirFolha('Mais opções', grupos);
     }
     function renderizarMaisSubmenu() {
         const div = document.getElementById('abaMaisSubmenu');
