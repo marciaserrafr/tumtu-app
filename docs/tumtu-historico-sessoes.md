@@ -926,3 +926,66 @@ Ela pediu, ao final, um plano de teste mais amplo — não só pro cadastro, mas
 - Quando ela responde uma pergunta de diagnóstico (ex: "celular ou computador?"), e a resposta seguinte contradiz — não discutir quem disse o quê, só recolher a informação corrigida e seguir; ela mesma reconheceu a troca.
 
 **Lição maior desta sessão, sobre colaboração externa**: uma segunda opinião de fora (sem acesso ao código real) pode trazer ângulos novos genuinamente valiosos (a pergunta "a carteirinha pisca?" nunca tinha sido feita tão diretamente) — mas cada afirmação técnica específica dela precisa ser VERIFICADA contra o código real antes de agir, nunca aceita por autoridade ou por estar bem escrita. Duas das afirmações técnicas específicas (env(safe-area-inset-bottom) "faltando", carteirinha "sempre foi toda escura") eram factualmente erradas quando checadas — mas o raciocínio estrutural por trás delas (separar os dois problemas, usar a carteirinha como grupo de controle) continuou correto e foi decisivo.
+
+(Sessões de 10 a 12/set/2026 não foram registradas neste diário em detalhe — ver `MEMORY.md`/memória de longo prazo pra essas datas: Permissões reorganizada em menu próprio, bug de sessão expirada zerando telas ~40 pontos, RLS de Medidas pra Diretoria, cadastro manual sem permissão padrão, Manual do Sistema publicado 19/19 telas, entre outros.)
+
+## Sessão de 13/set/2026 — Camada 0 avança: abertura vira "Variante A" + esqueleto na carteirinha
+
+### Abertura fria: da sequência nome→surdos pra marca piscando em sílabas ("Variante A")
+
+Ela levou o problema pro Claude Design (ferramenta externa que usa pra decisões visuais) depois de reportar repetição da animação de abertura no meio do próprio login. Duas rodadas com a Design: 1ª tentativa (nome parado → surdos batendo) ainda tinha começo/meio/fim, então cortava "no meio de uma frase" quando o dado chegava rápido — lia como bug. 2ª rodada ("Variante A", decidida e fechada 13/set): a marca "TumTu" inteira fica parada no centro, com "Tum" e "Tu" piscando em compasso de 1,4s — um loop sem começo/meio/fim, corta em qualquer instante sem nunca parecer quebrado. Aplicada idêntica em `login.html`/`admin.html`/`carteirinha.html`. Simplificação real: toda a lógica de "já mostrei uma vez nessa sessão" (sessionStorage, criada pra remendar o bug da 1ª tentativa) virou desnecessária e foi removida dos 4 arquivos.
+
+Ícone do app trocado junto (pedido dela): só o "T", dourado, com o risco terracota embaixo — gerado renderizando o desenho real (CSS + fonte) no navegador e recortando com precisão, não desenhado à mão, garantindo que bate exatamente com a tipografia da marca.
+
+**Bug real achado por ela ao vivo, "o salto"/2 spinners**: ao entrar no login, via a marca duas vezes com um salto no meio. Causa raiz nº1 (real, mas parcial): `pwa-register.js` recarrega a página sozinho quando uma versão nova do service worker assume — como ela testou o mesmo link várias vezes seguidas enquanto eu publicava correções, isso disparava toda hora. Corrigido com uma chave de sessionStorage que pula a marca nesse recarregamento específico. **Causa raiz nº2, a de verdade** (só descoberta depois dela insistir — "já falamos várias vezes sobre esse comportamento... acho que vc tá me enrolando muito com isso"): o formulário de login reabre a marca de tela cheia no envio e ela fica lá, contínua, até a tela de destino estar 100% pronta — sem esqueleto, esse trecho final é "cego" (a pessoa só vê a marca de novo, sem saber que já entrou numa espera mais longa). Isso motivou a decisão de implementar o esqueleto (abaixo).
+
+**Bug fino, achado por ela num nível de detalhe que exigiu duas rodadas de correção**: "assim que ele realmente aparece, já fica a luz do Tu acesa e não do Tum". 1ª correção (`animation-fill-mode:backwards` na sílaba-2) foi real mas insuficiente — ela testou e disse "não está acontecendo". Causa de verdade: o relógio da animação CSS conta desde que o navegador LÊ o código, que pode ser bem antes da tela ficar visível de verdade pros olhos (rede lenta, aparelho devagar) — o acender rápido do "Tum" podia acontecer inteiro, invisível, antes do primeiro paint. Corrigido pausando a animação já no primeiro instante e só soltando via `requestAnimationFrame` duplo (garante que já houve um paint confirmado antes de contar o tempo). Ela confirmou ao vivo: "Ficou perfeito."
+
+### Esqueleto de carregamento na carteirinha — cores/estrutura exatas do handoff, dois bugs reais no caminho
+
+Ela pediu pra seguir o plano já traçado (Esqueleto → Cores fixas do admin.html → Botões) pra fechar a Camada 0. Escolhida `carteirinha.html` primeiro (formato fixo, 300×540, caso mais claro). 1ª versão implementada com cores inventadas (tons de roxo) — ela rejeitou firme: "não tá como o Design falou... coloque nas cores exatas que ela passou e não mude para roxo". Reli o documento inteiro de novo (a pedido dela) e achei uma seção NOVA que a Design tinha acrescentado no mesmo dia ("A carteirinha abrindo") com o mockup exato — erro meu não ter lido o documento inteiro antes de implementar, não falta de spec da Design. Cores certas: branco translúcido em camadas sobre o mesmo fundo escuro do app; estrutura seguindo a forma real do cartão (barra fina no topo, foto lisa, 3 linhas de texto no meio, rodapé com círculo do logo à direita); animação trocada do pulso de opacidade (que é o sinal da marca) pro brilho deslizante documentado como o sinal próprio do esqueleto.
+
+**Dois bugs reais corrigidos no caminho:**
+1. Tempo de exibição rápido demais numa conexão rápida — "é tão rápido que tá parecendo uma sugeira do sistema". Corrigido com um tempo mínimo de exibição de 600ms, reaproveitando a mesma regra já usada na tela "Passaporte" do admin.html.
+2. O cartão real pintava por cima do esqueleto assim que nome/foto chegavam no DOM — ela descreveu como "o efeito dela sendo montada". 1ª tentativa de correção (`visibility:hidden` no cartão real) não funcionou de verdade: `.carteirinha-face` (mecanismo de virar frente/verso) define `visibility:visible` direto nela mesma, e uma regra explícita no próprio elemento sempre vence a herdada do pai — só descoberto inspecionando o estilo computado ao vivo no link de teste. Corrigido com `display:none`, que não tem essa brecha.
+
+### Navegação mobile: achado que o item já estava fechado pela Design, dentro da Camada 0
+
+Bug de UX real reportado (botão flutuante Super Admin/Trocar de Bateria sobrepõe conteúdo no mobile, menu "Mais" só cresce) — escrito um prompt detalhado pra Design redesenhar, a pedido dela, em vez de eu implementar direto. No mesmo dia a Design já tinha respondido com proposta fechada (`docs/Navegacao Mobile - Proposta.dc.html`): rodapé com 4 espaços fixos (quarto sempre "Mais"), Trocar de Bateria/Super Admin saindo do balão flutuante pro cabeçalho + uma seção "Contexto" dentro de uma folha. Eu tinha dito a ela mais cedo (sem ainda ter lido esse documento) que isso viria DEPOIS da Camada 0 — corrigido na hora que achei o documento: "Entra na Camada 0 — antes de Ritmistas, porque é o rodapé que as telas da Etapa 1 herdam." Vira item 0.5, único que precisa da aprovação dela no celular antes de publicar (os outros sobem direto).
+
+### Lições registradas nesta sessão
+
+- Antes de dizer "a Design não especificou isso, preciso perguntar", reler o documento INTEIRO de novo (pode ter sido atualizado por fora, sem eu saber) — não confiar só na memória de uma leitura anterior.
+- `visibility:hidden` num elemento pai pode ser "desligado" por qualquer descendente que declare `visibility:visible` na própria regra (comum em componentes que já usam visibility pra outra coisa, como cartões que viram) — `display:none` não tem essa brecha.
+- Ao testar uma correção nova via `javascript_exec` no link de preview, sempre fazer um `navigate` de verdade ANTES de testar de novo — uma aba que já estava aberta antes do último `git push` continua com a versão anterior na memória, mesmo que o servidor já tenha a nova.
+- Observações finas dela sobre timing de animação (qual sílaba acende primeiro) mereceram investigação séria, mesmo parecendo sutis no começo — a causa real (relógio da animação começando antes do paint) era um bug de verdade, não impressão.
+
+## Sessão de 14/set/2026 — Trava de prontidão pro cadastro (achado real: Jacarezinho sem Categoria de Figurino)
+
+### Investigação: Jacarezinho nunca teve Medidas configuradas
+
+Pedido dela: verificar se a bateria do Jacarezinho (escola real, bateria "Show Mil", `bateria_id=16`, criada 08/set) já teve Medidas configuradas e depois removidas, ou nunca teve. Achado no banco: nunca teve — zero linhas em `bateria_medida_tipos`/`bateria_medidas` desde a criação, e também zero em `bateria_figurino_itens` e o campo "Mestre de Bateria" vazio na ficha da bateria. Comparado com outras baterias criadas na mesma época (Fla Manguaça, Cadência de Niterói, ambas 10/set) — as duas já tinham tudo configurado desde a criação; o Jacarezinho ficou pra trás sozinho. Impacto real: 91 pessoas aprovadas + 23 pendentes sem nenhum tamanho de Medida pra escolher.
+
+### Processo desenhado com ela: trava de prontidão pro cadastro
+
+Proposta dela: travar qualquer cadastro (inclusive Mestre) até a bateria ter um mínimo configurado. Desenhamos o processo junto, com 3 rodadas de ajuste a partir de feedback real dela:
+- 1ª versão minha incluía "Mestre de Bateria" preenchido como obrigatório — ela corrigiu com evidência operacional real: "já aconteceu duas vezes do mestre demorar muito a se cadastrar e a gente conseguir iniciar o cadastro dos diretores, e depois que o mestre se cadastrou o nome da carteirinha apareceu normalmente. Isso não impede novos cadastros." Removido da lista.
+- 1ª versão também incluía "Figurino" (peças de evento) como obrigatório — ela corrigiu: "Figurino não é essencial, mas sim Categoria de Figurino. Figurino não é obrigatório para o cadastro." Removido — Figurino não afeta o formulário de cadastro, só entrega depois.
+
+Critérios finais: Dados da escola (nome+cor), Dados da bateria (nome), Instrumentos (≥1 ativo), Categoria de Figurino/Medidas (≥1 tipo com ≥1 tamanho ativo). Vale pra qualquer tipo de cadastro (link fixo/público e manual).
+
+### Implementação e publicação
+
+`cadastro_dados_bateria` (função no banco já compartilhada pelos dois caminhos de cadastro) ganhou colunas `pronto`/`pendencias`, calculadas uma vez só — sem duplicar a lógica em JS. `cadastro.html` checa `bateria.pronto` nos dois pontos de entrada; se falso, esconde o formulário e mostra mensagem amigável em vez de detalhe técnico. Não afeta ninguém já cadastrado, só cadastro novo dali pra frente.
+
+Junto (pedido dela, "tudo se trata de Configuração, faz parte do mesmo conjunto"): Dados da Escola/Bateria saíram de itens soltos dentro de "Mais" e viraram sub-telas de Configurações — mesmas capacidades de sempre, só mudou onde moram no menu. Novo resumo de prontidão dentro de Configurações (reaproveita a mesma faixa clicável já usada pra "dado próprio incompleto"), chamando a MESMA função do banco — nunca diverge do que realmente bloqueia.
+
+Ela mesma configurou a Categoria de Figurino do Jacarezinho antes de eu terminar de implementar (pra poder mandar o link do Mestre logo) — confirmado depois no banco: 4 tipos ativos, 39 tamanhos, igual ao padrão das outras baterias recentes.
+
+Testado ao vivo (Super Admin no Jacarezinho: Dados da Escola abre certinho dentro de Configurações, cadastro de Ritmista abre normal pra bateria pronta) antes de publicar direto na `main` (ela pediu: "Pode publicar").
+
+### Lições registradas nesta sessão
+
+- Relato de problema junto com uma correção já feita por ela mesma (ela configurou o Jacarezinho antes de eu terminar) ainda merece confirmação explícita no banco antes de eu dar como certo — não assumir que "ela disse que fez" é suficiente sem checar.
+- Quando ela dá um exemplo operacional real e específico pra contestar um critério que propus (o caso do Mestre demorando a se cadastrar), isso vale mais que meu raciocínio teórico — ajustar a proposta na hora, sem insistir.
+- Reaproveitar a MESMA função do banco (não recalcular em JS) pro resumo visual e pra trava de verdade evita que as duas divirjam com o tempo — vale como padrão geral pra qualquer indicador que reflita uma regra que já existe em outro lugar.
