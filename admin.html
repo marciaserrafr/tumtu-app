@@ -2741,17 +2741,14 @@
              Só aparece quando falta algo (ver renderizarResumoProntidao em
              admin-logic-1.js); pronto = nunca aparece. -->
         <div id="config-resumo-prontidao" class="aviso-dados-proprios" style="display:none;margin:0 -20px 16px;"></div>
-        <!-- Dados da Escola/Bateria entraram aqui (14/set/2026, pedido dela:
-             "tudo se trata de Configuração, faz parte do mesmo conjunto") --
-             antes eram itens soltos dentro de "Mais". -->
-        <div id="config-item-dados-escola" class="config-item" onclick="abrirConfigTela('dados-escola')">
-            <span>Dados da Escola</span>
-            <span class="config-item-seta">›</span>
-        </div>
-        <div id="config-item-dados-bateria" class="config-item" onclick="abrirConfigTela('dados-bateria')">
-            <span>Dados da Bateria</span>
-            <span class="config-item-seta">›</span>
-        </div>
+        <!-- Dados da Escola/Bateria: item da LISTA removido daqui em
+             14/set/2026 (mesmo dia, sessão seguinte) -- ela achou errado
+             aparecer duplicado (atalho direto em Mais > Cadastros E aqui).
+             As sub-telas (#config-tela-dados-escola/-bateria, mais abaixo)
+             continuam existindo -- abrirConfigTela('dados-escola'/'dados-
+             bateria') ainda é chamada, só que exclusivamente a partir do
+             atalho em Mais (ver navegarItemAdministrativo em
+             admin-logic-1.js), nunca mais a partir desta lista. -->
         <div id="config-item-instrumentos" class="config-item" onclick="abrirConfigTela('instrumentos')">
             <span>Instrumentos</span>
             <span class="config-item-seta">›</span>
