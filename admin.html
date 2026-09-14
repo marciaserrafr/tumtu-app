@@ -315,6 +315,14 @@
            essa terceira receita "suja" (submenu "Mais") só tinha sido
            achada testando ao vivo na prévia, 22/ago/2026. */
         .aba-sub-btn.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
+        /* Título de seção dentro do acordeão (14/set/2026, mesmo
+           agrupamento Cadastros/Operação/Ajustes da folha do celular,
+           pedido dela: "acho válida" a mesma separação no computador). */
+        .aba-sub-secao-titulo {
+            display: block; padding: 10px 10px 4px; font-size: 10px; font-weight: 700;
+            letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.35);
+        }
+        .aba-sub-secao-titulo:first-child { padding-top: 2px; }
 
         /* BARRA DE PROGRESSO NA TROCA DE ABA (Camada 0 -- "Estados de
            Carregamento", 07/set/2026). Fininha, sempre ABAIXO do header
@@ -3725,7 +3733,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=41" defer></script>
+<script src="admin-logic-1.js?v=42" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

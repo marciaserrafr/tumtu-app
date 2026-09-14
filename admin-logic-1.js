@@ -5594,10 +5594,16 @@
     // acordeão do computador (renderizarMaisSubmenu), que continua uma
     // lista só, sem seção.
     const ADMINISTRATIVO_ITENS = [
-        // 'dados-escola'/'dados-bateria' saíram daqui em 14/set/2026 --
-        // agora moram dentro de "Configurações" (pedido dela: "tudo se
-        // trata de Configuração, faz parte do mesmo conjunto").
         { aba: 'configuracoes', label: 'Configurações', grupo: 'Ajustes' },
+        // Dados da Escola/Bateria voltaram a aparecer direto no "Mais"
+        // (14/set/2026, pedido dela) -- moram fisicamente dentro de
+        // Configurações (ver CAPACIDADE_CONFIG_SUBTELA/abrirConfigTela),
+        // mas ela quer o atalho direto no grupo Cadastros, sem precisar
+        // passar pela lista de Configurações primeiro. Ver
+        // navegarItemAdministrativo() mais abaixo -- são as 2 únicas
+        // entradas desta lista que não são uma "aba" de verdade.
+        { aba: 'dados-escola', label: 'Dados da Escola', grupo: 'Cadastros' },
+        { aba: 'dados-bateria', label: 'Dados da Bateria', grupo: 'Cadastros' },
         { aba: 'extras', label: 'Convidados', grupo: 'Cadastros' },
         { aba: 'figurino', label: 'Entrega de Figurino', grupo: 'Operação' },
         { aba: 'presenca', label: 'Lista de Presença', grupo: 'Operação' },
@@ -5615,7 +5621,24 @@
     ];
     const GRUPOS_ADMINISTRATIVO_ORDEM = ['Cadastros', 'Operação', 'Ajustes'];
     function itensAdministrativoVisiveis() {
-        return ADMINISTRATIVO_ITENS.filter(i => souSuperAdmin || podeVerAba(i.aba));
+        return ADMINISTRATIVO_ITENS.filter(i => {
+            if (i.aba === 'dados-escola' || i.aba === 'dados-bateria') return souSuperAdmin || podeVerConfigSubtela(i.aba);
+            return souSuperAdmin || podeVerAba(i.aba);
+        });
+    }
+    // Dados da Escola/Bateria não são uma "aba" de verdade (ver comentário
+    // em ADMINISTRATIVO_ITENS) -- clicar neles precisa entrar em
+    // Configurações primeiro e só depois pular direto pra sub-tela certa
+    // (abrirConfigTela), em vez do trocarAba(aba) normal que quebraria
+    // (não existe #painel-dados-escola). Único ponto usado tanto pelo
+    // acordeão do computador (clicarSubMais) quanto pela folha do celular
+    // (abrirFolhaMais) -- uma correção vale nos dois lugares de uma vez.
+    function navegarItemAdministrativo(aba, btnAtivar) {
+        if (aba === 'dados-escola' || aba === 'dados-bateria') {
+            trocarAba('configuracoes', btnAtivar).then(() => abrirConfigTela(aba));
+        } else {
+            trocarAba(aba, btnAtivar);
+        }
     }
     function renderizarAdministrativoLista() {
         const div = document.getElementById('admListaConteudo');
@@ -5625,7 +5648,7 @@
         if (!itens.length) { div.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">🔒</div>Nenhum módulo disponível pra você aqui.</div>'; return; }
         const pendConv = pendentesConvidadosEspeciaisCount();
         div.innerHTML = itens.map(i => `
-            <div class="config-item" onclick="trocarAba('${i.aba}', document.querySelector('.aba-btn[data-aba=administrativo]'))">
+            <div class="config-item" onclick="navegarItemAdministrativo('${i.aba}', document.querySelector('.aba-btn[data-aba=administrativo]'))">
                 <span>${i.label}${i.aba === 'extras' && pendConv > 0 ? `<span class="config-item-badge">${pendConv}</span>` : ''}</span>
                 <span class="config-item-seta">›</span>
             </div>`).join('');
@@ -5790,7 +5813,7 @@
             itens: itens.filter(i => i.grupo === titulo).map(i => ({
                 label: i.label,
                 badge: (i.aba === 'extras' && pendConv > 0) ? pendConv : null,
-                onClick: () => trocarAba(i.aba, el),
+                onClick: () => navegarItemAdministrativo(i.aba, el),
             })),
         })).filter(g => g.itens.length > 0);
         if (!grupos.length) {
@@ -5799,16 +5822,28 @@
         }
         abrirFolha('Mais opções', grupos);
     }
+    // Agrupado em Cadastros/Operação/Ajustes (14/set/2026, pedido dela:
+    // "e depois implemente essa separação para a versão do Computador. Eu
+    // acho que é válida.") -- mesmo agrupamento da folha do celular
+    // (GRUPOS_ADMINISTRATIVO_ORDEM), só que como títulos de seção dentro
+    // do próprio acordeão, sem mudar o comportamento de abrir/fechar.
     function renderizarMaisSubmenu() {
         const div = document.getElementById('abaMaisSubmenu');
         const itens = itensAdministrativoVisiveis();
         const pendConv = pendentesConvidadosEspeciaisCount();
-        div.innerHTML = itens.length
-            ? itens.map(i => `<button type="button" class="aba-sub-btn" onclick="clicarSubMais('${i.aba}', this)">${i.label}${i.aba === 'extras' && pendConv > 0 ? `<span class="config-item-badge">${pendConv}</span>` : ''}</button>`).join('')
+        const grupos = GRUPOS_ADMINISTRATIVO_ORDEM.map(titulo => ({
+            titulo,
+            itens: itens.filter(i => i.grupo === titulo),
+        })).filter(g => g.itens.length > 0);
+        div.innerHTML = grupos.length
+            ? grupos.map(g => `
+                <span class="aba-sub-secao-titulo">${g.titulo}</span>
+                ${g.itens.map(i => `<button type="button" class="aba-sub-btn" onclick="clicarSubMais('${i.aba}', this)">${i.label}${i.aba === 'extras' && pendConv > 0 ? `<span class="config-item-badge">${pendConv}</span>` : ''}</button>`).join('')}
+            `).join('')
             : '<div style="padding:8px 10px;font-size:12px;color:rgba(255,255,255,0.45);">Nenhum módulo disponível.</div>';
     }
     function clicarSubMais(aba, el) {
-        trocarAba(aba, null);
+        navegarItemAdministrativo(aba, null);
         el.classList.add('ativa');
     }
 
