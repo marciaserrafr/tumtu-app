@@ -2334,23 +2334,10 @@
     <div id="admListaConteudo"></div>
 </div>
 
-<!-- PAINEL DADOS DA ESCOLA (dentro de Administrativo) -->
-<div class="painel" id="painel-dados-escola">
-    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-    <div class="painel-titulo">Dados da Escola</div>
-    <div id="dadosEscolaConteudo">
-        <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
-    </div>
-</div>
-
-<!-- PAINEL DADOS DA BATERIA (dentro de Administrativo) -->
-<div class="painel" id="painel-dados-bateria">
-    <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-    <div class="painel-titulo">Dados da Bateria</div>
-    <div id="dadosBateriaConteudo">
-        <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
-    </div>
-</div>
+<!-- Dados da Escola/Bateria saíram daqui e entraram dentro de
+     "Configurações" (14/set/2026, pedido dela: "tudo se trata de
+     Configuração, faz parte do mesmo conjunto") -- ver #config-tela-dados-
+     escola/#config-tela-dados-bateria dentro de #painel-configuracoes. -->
 
 <!-- PAINEL COMERCIAL (dentro de Administrativo — decisão comercial, nunca junto de "Dados da Bateria") -->
 <div class="painel" id="painel-comercial">
@@ -2659,6 +2646,22 @@
     <div id="config-lista">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
         <div class="painel-titulo">Configurações</div>
+        <!-- Resumo de prontidão pro cadastro (14/set/2026) -- mesma faixa
+             clicável já usada em #avisoDadosProprios, reaproveitada aqui.
+             Só aparece quando falta algo (ver renderizarResumoProntidao em
+             admin-logic-1.js); pronto = nunca aparece. -->
+        <div id="config-resumo-prontidao" class="aviso-dados-proprios" style="display:none;margin:0 -20px 16px;"></div>
+        <!-- Dados da Escola/Bateria entraram aqui (14/set/2026, pedido dela:
+             "tudo se trata de Configuração, faz parte do mesmo conjunto") --
+             antes eram itens soltos dentro de "Mais". -->
+        <div id="config-item-dados-escola" class="config-item" onclick="abrirConfigTela('dados-escola')">
+            <span>Dados da Escola</span>
+            <span class="config-item-seta">›</span>
+        </div>
+        <div id="config-item-dados-bateria" class="config-item" onclick="abrirConfigTela('dados-bateria')">
+            <span>Dados da Bateria</span>
+            <span class="config-item-seta">›</span>
+        </div>
         <div id="config-item-instrumentos" class="config-item" onclick="abrirConfigTela('instrumentos')">
             <span>Instrumentos</span>
             <span class="config-item-seta">›</span>
@@ -2678,6 +2681,24 @@
         <div id="config-item-eventos" class="config-item" onclick="abrirConfigTela('eventos')">
             <span>Eventos</span>
             <span class="config-item-seta">›</span>
+        </div>
+    </div>
+
+    <!-- Sub-tela: Dados da Escola (movida de "Mais" em 14/set/2026) -->
+    <div id="config-tela-dados-escola" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
+        <div class="painel-titulo">Dados da Escola</div>
+        <div id="dadosEscolaConteudo">
+            <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+        </div>
+    </div>
+
+    <!-- Sub-tela: Dados da Bateria (movida de "Mais" em 14/set/2026) -->
+    <div id="config-tela-dados-bateria" class="config-subtela" style="display:none;">
+        <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
+        <div class="painel-titulo">Dados da Bateria</div>
+        <div id="dadosBateriaConteudo">
+            <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
         </div>
     </div>
 
@@ -3622,7 +3643,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=35" defer></script>
+<script src="admin-logic-1.js?v=36" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">
@@ -3633,6 +3654,6 @@
     </div>
 </div>
 
-<script src="admin-logic-2.js?v=6" defer></script>
+<script src="admin-logic-2.js?v=7" defer></script>
 </body>
 </html>

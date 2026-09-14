@@ -1171,6 +1171,21 @@
             return;
         }
 
+        // Trava de prontidão (14/set/2026): a bateria precisa ter o mínimo
+        // configurado (dados da escola/bateria, instrumentos, categoria de
+        // figurino) antes de aceitar qualquer cadastro -- achado real: o
+        // Jacarezinho ficou sem Categoria de Figurino configurada, e quem se
+        // cadastrava não tinha NENHUM tamanho pra escolher. `pronto` vem
+        // pronto do banco (cadastro_dados_bateria), sem detalhe técnico aqui
+        // -- quem preenche não precisa saber o motivo interno.
+        if (!bateria.pronto) {
+            document.getElementById('conteudo-cadastro').style.display = 'none';
+            const erroBox = document.getElementById('convite-erro-box');
+            erroBox.textContent = 'Essa bateria ainda está sendo configurada. Tente novamente mais tarde ou fale com quem te convidou.';
+            erroBox.style.display = 'block';
+            return;
+        }
+
         const perfil = cargoParam === 'mestre' ? 'mestre' : cargoParam === 'diretor' ? 'diretor' : cargoParam === 'apoio' ? 'apoio' : 'ritmista';
         linkFixoAtual = { perfil, bateriaId: bateria.bateria_id, ehConvidadoEspecial };
         atualizarCampoInstrumento(perfil);
@@ -1329,6 +1344,20 @@
         });
         const linhasBateria = resBat.ok ? await resBat.json() : [];
         const bateria = linhasBateria[0];
+
+        // Trava de prontidão (14/set/2026) -- mesmo critério do cadastro por
+        // link fixo (ver inicializarLinkFixo), aplicada aqui também porque
+        // ela vale pra QUALQUER tipo de cadastro, inclusive manual e de
+        // Mestre (pedido dela: "sem essas opções, não pode liberar nenhum
+        // cadastro, nem de mestre").
+        if (!bateria || !bateria.pronto) {
+            document.getElementById('conteudo-cadastro').style.display = 'none';
+            const erroBox = document.getElementById('convite-erro-box');
+            erroBox.textContent = 'Essa bateria ainda está sendo configurada. Complete Dados da Escola, Dados da Bateria, Instrumentos e Categoria de Figurino antes de cadastrar alguém.';
+            erroBox.style.display = 'block';
+            return;
+        }
+
         const ehConvidadoSemCarteirinha = ehConvidado && !(bateria && bateria.convidado_tem_carteirinha);
 
         modoManualAtual = { cargo, bateriaId: Number(bateriaId), criadoPorId: usuarioLogado.id, ehConvidado, ehConvidadoSemCarteirinha };

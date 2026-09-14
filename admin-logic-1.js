@@ -2889,6 +2889,12 @@
     // tela normal, mas com tudo travado/acinzentado (aplicarSomenteLeitura
     // ConfigTela) -- nunca clicável e falhando escondido.
     const CAPACIDADE_CONFIG_SUBTELA = {
+        // Dados da Escola/Bateria entraram aqui em 14/set/2026 (antes eram
+        // "abas" soltas dentro de "Mais", com seu próprio mapa em
+        // CAPACIDADE_DA_ABA) -- mesmas capacidades de sempre (ver_dados_
+        // escola/editar_dados_escola etc.), só mudou ONDE moram no menu.
+        'dados-escola': { ver: 'ver_dados_escola', editar: 'editar_dados_escola' },
+        'dados-bateria': { ver: 'ver_dados_bateria', editar: 'editar_dados_bateria' },
         instrumentos: { ver: 'ver_instrumentos', editar: 'editar_instrumentos' },
         vagas: { ver: 'ver_vagas', editar: 'editar_vagas' },
         medidas: { ver: 'ver_medidas', editar: 'editar_medidas' },
@@ -2931,6 +2937,8 @@
         document.getElementById('config-lista').style.display = 'none';
         document.querySelectorAll('#painel-configuracoes .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('config-tela-' + nome).style.display = 'block';
+        if (nome === 'dados-escola') renderizarDadosEscolaTab(false);
+        if (nome === 'dados-bateria') renderizarDadosBateriaTab(false);
         if (nome === 'instrumentos') { renderizarConfigInstrumentos(); fecharEditorComposicao(); renderizarComposicaoLista(); }
         if (nome === 'vagas') renderizarConfigVagas();
         if (nome === 'medidas') renderizarConfigMedidas();
@@ -2964,6 +2972,36 @@
             bibliotecaTemporadas.length === 0 ? carregarBibliotecaTemporadas() : Promise.resolve(),
             carregarEventosBateria(),
         ]);
+        renderizarResumoProntidao();
+    }
+
+    // Resumo de prontidão pro cadastro (14/set/2026) -- mesmo critério que
+    // trava o cadastro de verdade (cadastro_dados_bateria, ver cadastro.html
+    // inicializarLinkFixo/inicializarModoManual), reaproveitado aqui via a
+    // mesma função no banco em vez de recalcular tudo em JS -- garante que a
+    // tela nunca diverge do que realmente bloqueia. Só aparece quando falta
+    // algo; pronto = some sozinho.
+    async function renderizarResumoProntidao() {
+        const el = document.getElementById('config-resumo-prontidao');
+        if (!el) return;
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { el.style.display = 'none'; return; }
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/cadastro_dados_bateria`, {
+                method: 'POST',
+                headers: { ...authHeaders, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ p_identificador: String(bateriaId) })
+            });
+            if (!res.ok) { el.style.display = 'none'; return; }
+            const linhas = await res.json();
+            const dados = linhas && linhas[0];
+            if (!dados || dados.pronto || !dados.pendencias || !dados.pendencias.length) {
+                el.style.display = 'none';
+                return;
+            }
+            el.textContent = `⚠️ Cadastro bloqueado até completar: ${dados.pendencias.join(', ')}.`;
+            el.style.display = 'block';
+        } catch (e) { el.style.display = 'none'; }
     }
 
     // "Nome usado" mora na MESMA linha do título de cada grupo (Tradicionais/
@@ -5417,8 +5455,9 @@
     // Mapa aba -> capacidade de "ver" exigida. Abas fora deste mapa (Meu
     // Perfil) ficam sempre visíveis, pra qualquer pessoa logada.
     const CAPACIDADE_DA_ABA = {
-        'dados-escola': 'ver_dados_escola',
-        'dados-bateria': 'ver_dados_bateria',
+        // 'dados-escola'/'dados-bateria' saíram daqui em 14/set/2026 --
+        // viraram sub-telas de Configurações (ver CAPACIDADE_CONFIG_SUBTELA),
+        // não são mais "abas" soltas.
         'visao': 'ver_visao_geral',
         'ritmistas': 'ver_ritmistas',
         'diretoria': 'ver_acessos',
@@ -5452,7 +5491,7 @@
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
     // das capacidades dos itens que ela agrupa.
-    const ABAS_ADMINISTRATIVO = ['dados-escola', 'dados-bateria', 'comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'permissoes', 'historico', 'manual-instrucoes'];
+    const ABAS_ADMINISTRATIVO = ['comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'permissoes', 'historico', 'manual-instrucoes'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -5534,8 +5573,9 @@
     // Lista lançadora da aba "Administrativo" -- cada linha só aparece se a
     // pessoa tiver a capacidade daquele módulo (Super Admin vê todas).
     const ADMINISTRATIVO_ITENS = [
-        { aba: 'dados-escola', label: 'Dados da Escola' },
-        { aba: 'dados-bateria', label: 'Dados da Bateria' },
+        // 'dados-escola'/'dados-bateria' saíram daqui em 14/set/2026 --
+        // agora moram dentro de "Configurações" (pedido dela: "tudo se
+        // trata de Configuração, faz parte do mesmo conjunto").
         { aba: 'configuracoes', label: 'Configurações' },
         { aba: 'extras', label: 'Convidados' },
         { aba: 'figurino', label: 'Entrega de Figurino' },

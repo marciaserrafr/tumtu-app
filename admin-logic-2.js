@@ -637,8 +637,9 @@
         if (aba === 'diretoria') carregarDiretoria();
         if (aba === 'meu-perfil') iniciarMeuPerfilAba();
         if (aba === 'configuracoes') iniciarConfiguracoesAba();
-        if (aba === 'dados-escola') renderizarDadosEscolaTab(false);
-        if (aba === 'dados-bateria') renderizarDadosBateriaTab(false);
+        // 'dados-escola'/'dados-bateria' saíram daqui em 14/set/2026 --
+        // viraram sub-telas de Configurações (abrirConfigTela cuida delas
+        // agora), não são mais roteadas por aqui.
         if (aba === 'comercial') renderizarComercialTab();
         if (aba === 'permissoes') { permissoesPessoaEditando = null; voltarPermissoesLista(); renderizarEditorPermissoesPessoa(); carregarPermissoesEscola(); }
         if (aba === 'administrativo') renderizarAdministrativoLista();
