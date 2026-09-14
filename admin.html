@@ -1519,6 +1519,11 @@
            os dois menus usavam a mesma receita "suja", achado da Márcia,
            22/ago/2026. */
         .sa-sidebar-item.ativa { color: #12101a; background: var(--cor-destaque); font-weight: 700; }
+        /* "Mais" do Super Admin (Camada 0, item 0.5, 14/set/2026) -- só
+           existe no rodapé do celular (ver media query mais abaixo); no
+           computador a barra lateral continua mostrando Configurações/
+           Privacidade/Logs direto, sem essa aba extra. */
+        #btnSaMais { display: none; }
 
         /* Mesmo padrão de .main -- 1200px máximo, centralizado de verdade,
            sem nunca estourar a tela (ver comentário completo em .main).
@@ -1828,6 +1833,56 @@
             .spinner-mini { animation-duration: 2.2s; }
         }
 
+        /* Folha "Mais opções" (Camada 0, item 0.5, 14/set/2026) -- gaveta
+           que sobe por cima do conteúdo no celular, spec de
+           docs/Navegacao Mobile - Proposta.dc.html ("Decidido 13/set").
+           Componente único, reaproveitado pelo Super Admin (primeiro teste,
+           ver onClickSaMais) e depois pela bateria -- só entra em uso via
+           abrirFolha()/fecharFolha() em admin-logic-1.js, então não precisa
+           estar dentro de nenhuma media query aqui (o JS decide QUANDO
+           chamar, sempre em largura de celular). */
+        .folha-overlay {
+            position: fixed; inset: 0; background: rgba(18,16,26,0.55);
+            opacity: 0; visibility: hidden; transition: opacity 240ms ease;
+            z-index: 1500;
+        }
+        .folha-overlay.aberta { opacity: 1; visibility: visible; }
+        .folha {
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 1501;
+            background: #fff; border-radius: 20px 20px 0 0;
+            max-height: 80vh; display: flex; flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 240ms cubic-bezier(.3,.7,.3,1);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .folha.aberta { transform: translateY(0); }
+        .folha-alca { display: flex; justify-content: center; padding: 9px 0 0; flex-shrink: 0; }
+        .folha-alca span { width: 38px; height: 4px; border-radius: 3px; background: #e8e6f0; }
+        .folha-cabecalho {
+            padding: 8px 16px 10px; display: flex; align-items: center;
+            justify-content: space-between; gap: 10px; flex-shrink: 0;
+        }
+        .folha-titulo { color: #12101a; font-size: 19px; font-weight: 800; }
+        .folha-fechar {
+            width: 32px; height: 32px; border-radius: 50%; background: #f7f6fb;
+            border: 1px solid #e8e6f0; display: flex; align-items: center;
+            justify-content: center; color: #5a5770; font-size: 14px; font-weight: 700;
+            flex-shrink: 0; cursor: pointer; padding: 0;
+        }
+        .folha-conteudo { flex: 1; overflow-y: auto; padding: 0 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+        .folha-secao { display: flex; flex-direction: column; gap: 2px; }
+        .folha-secao-titulo {
+            color: #5a5770; font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+            text-transform: uppercase; padding-bottom: 6px;
+        }
+        .folha-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            padding: 13px 2px; border-top: 1px solid #e8e6f0;
+            min-height: 48px; box-sizing: border-box;
+            color: #12101a; font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+        .folha-item-seta { color: #8b88a0; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+
         @media (max-width: 560px) {
             .sa-sidebar {
                 flex-direction: row; padding: 6px 4px;
@@ -1853,6 +1908,14 @@
             .sa-sidebar-item .sa-ic { font-size: 18px; width: auto; }
             /* Mesmo ajuste de .aba-btn.ativa mais abaixo -- ver comentário lá. */
             .sa-sidebar-item.ativa { background: none; color: var(--cor-destaque); }
+            /* Camada 0, item 0.5 (14/set/2026) -- regra "no máximo 4 slots,
+               o último é sempre Mais" (docs/Navegacao Mobile - Proposta.dc.html,
+               "Decidido 13/set"). No celular, Configurações/Privacidade/Logs
+               saem do rodapé (iam pra 5 itens, "Configurações" apertava) e
+               entram na folha que abre pelo "Mais" -- ver onClickSaMais().
+               No computador continuam exatamente onde estavam. */
+            .sa-item-ajustes-desktop { display: none; }
+            #btnSaMais { display: flex; }
             .sa-main { margin-left: 0; width: 100%; padding: 16px 12px 82px; }
             /* Sem espaço pra assinatura no rodapé-em-fileira-de-ícones do
                celular -- o cabeçalho já mostra "TumTu" no topo, cobre a
@@ -1994,6 +2057,21 @@
     📡 Sem conexão com a internet — o que você fizer agora pode não salvar.
 </div>
 
+<!-- Folha "Mais opções" (Camada 0, item 0.5, 14/set/2026) -- componente
+     único e compartilhado, ver comentário completo do CSS (.folha/
+     .folha-overlay) e das funções abrirFolha()/fecharFolha() em
+     admin-logic-1.js. Primeiro uso: onClickSaMais() (rodapé do Super
+     Admin no celular). -->
+<div class="folha-overlay" id="folhaOverlay" onclick="fecharFolha()"></div>
+<div class="folha" id="folha" role="dialog" aria-modal="true" aria-labelledby="folhaTitulo">
+    <div class="folha-alca"><span></span></div>
+    <div class="folha-cabecalho">
+        <span class="folha-titulo" id="folhaTitulo">Mais opções</span>
+        <button type="button" class="folha-fechar" onclick="fecharFolha()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="folha-conteudo" id="folhaConteudo"></div>
+</div>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <symbol id="tt-spinner-caminho" viewBox="0 0 56 56"><path d="M 33.81 4.71 L 36.68 5.63 L 39.42 6.89 L 41.98 8.49 L 44.32 10.40 L 46.40 12.59 L 48.18 15.02 L 49.65 17.65 L 50.78 20.45 L 51.55 23.37 L 51.94 26.36 L 51.96 29.38 L 51.60 32.37 L 50.86 35.30 L 49.77 38.11 L 48.33 40.76 L 46.56 43.21 L 44.51 45.42 L 42.19 47.35 L 39.65 48.98 L 36.93 50.28 L 34.06 51.22 L 31.10 51.80 L 28.09 52.00 L 25.08 51.82 L 22.11 51.27 L 19.24 50.34 L 16.50 49.07 L 13.95 47.46 L 11.62 45.54 L 9.55 43.35 L 7.77 40.91 L 6.31 38.27 L 5.19 35.47 L 4.43 32.55 L 4.05 29.55 L 4.04 26.53 L 4.42 23.54 L 5.16 20.62 L 6.27 17.81 L 7.72 15.16 L 9.49 12.72 L 11.56 10.52 L 13.88 8.59 L 16.43 6.98 L 19.16 5.69 L 22.02 4.76 L 24.99 4.19 L 28.00 4.00 A 4.00 4.00 0 0 1 28.00 12.00 L 25.96 11.89 L 23.90 12.04 L 21.84 12.47 L 19.83 13.16 L 17.90 14.12 L 16.09 15.34 L 14.43 16.80 L 12.95 18.47 L 11.68 20.35 L 10.66 22.39 L 9.89 24.58 L 9.40 26.86 L 9.21 29.22 L 9.33 31.60 L 9.75 33.97 L 10.48 36.30 L 11.51 38.52 L 12.82 40.62 L 14.41 42.55 L 16.24 44.28 L 18.30 45.77 L 20.55 46.99 L 22.95 47.93 L 25.48 48.55 L 28.08 48.85 L 30.71 48.82 L 33.34 48.45 L 35.91 47.74 L 38.39 46.70 L 40.72 45.35 L 42.88 43.70 L 44.82 41.79 L 46.51 39.62 L 47.92 37.25 L 49.02 34.71 L 49.78 32.04 L 50.21 29.28 L 50.28 26.47 L 49.98 23.68 L 49.34 20.93 L 48.34 18.28 L 47.01 15.77 L 45.36 13.45 L 43.43 11.35 L 41.24 9.52 L 38.84 7.97 L 36.24 6.75 L 33.52 5.88 Z" fill="#D4AF37"></path></symbol>
 </svg>
@@ -2056,9 +2134,13 @@
 <div class="sa-sidebar" id="saSidebar" style="display:none">
     <button type="button" class="sa-sidebar-item ativa" data-sa="dashboard" onclick="trocarSaAba('dashboard',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span><span>Dashboard</span></button>
     <button type="button" class="sa-sidebar-item" data-sa="escolas" onclick="trocarSaAba('escolas',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M18 4.933V21"/><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"/><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"/><path d="M6 4.933V21"/><circle cx="12" cy="9" r="2"/></svg></span><span>Escolas</span></button>
-    <button type="button" class="sa-sidebar-item" data-sa="configuracoes-globais" onclick="trocarSaAba('configuracoes-globais',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg></span><span>Configurações</span></button>
-    <button type="button" class="sa-sidebar-item" data-sa="privacidade" onclick="trocarSaAba('privacidade',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span>Privacidade</span></button>
-    <button type="button" class="sa-sidebar-item" data-sa="logs" onclick="trocarSaAba('logs',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></span><span>Logs</span></button>
+    <!-- Camada 0, item 0.5 (14/set/2026) -- só existe no rodapé do celular
+         (ver #btnSaMais no CSS). Abre a folha com Configurações/Privacidade/
+         Logs dentro (ver onClickSaMais em admin-logic-1.js). -->
+    <button type="button" class="sa-sidebar-item" id="btnSaMais" onclick="onClickSaMais(this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></span><span>Mais</span></button>
+    <button type="button" class="sa-sidebar-item sa-item-ajustes-desktop" data-sa="configuracoes-globais" onclick="trocarSaAba('configuracoes-globais',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg></span><span>Configurações</span></button>
+    <button type="button" class="sa-sidebar-item sa-item-ajustes-desktop" data-sa="privacidade" onclick="trocarSaAba('privacidade',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span>Privacidade</span></button>
+    <button type="button" class="sa-sidebar-item sa-item-ajustes-desktop" data-sa="logs" onclick="trocarSaAba('logs',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></span><span>Logs</span></button>
     <div class="sidebar-assinatura">
         <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
         <span class="sidebar-assinatura-tagline">Sistema de gestão de bateria</span>
@@ -3643,7 +3725,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=37" defer></script>
+<script src="admin-logic-1.js?v=38" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

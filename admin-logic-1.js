@@ -5626,6 +5626,81 @@
         if (abaAdmBtn) abaAdmBtn.classList.add('ativa');
     }
 
+    // Folha "Mais opções" (Camada 0, item 0.5, 14/set/2026) -- gaveta
+    // compartilhada que sobe por cima do conteúdo no celular, spec de
+    // docs/Navegacao Mobile - Proposta.dc.html ("Decidido 13/set").
+    // abrirFolha(titulo, secoes) recebe secoes = [{ titulo, itens:
+    // [{ label, badge, onClick }] }] e desenha tudo de uma vez. Primeiro
+    // uso: onClickSaMais() (rodapé do Super Admin). A tela de "Mais" de
+    // dentro de uma bateria continua com o comportamento de sempre por
+    // enquanto -- entra nessa mesma folha só numa rodada seguinte, depois
+    // dela aprovar esse primeiro teste no Super Admin.
+    //
+    // Fecha no X, no toque fora (overlay) e no botão "voltar" do
+    // Android/navegador: ao abrir, empurra uma marca boba no histórico
+    // (history.pushState) -- padrão comum em PWA pra um modal reagir ao
+    // gesto de voltar sem precisar navegar de verdade pra lugar nenhum.
+    let _folhaAbertaPorHistorico = false;
+    function abrirFolha(titulo, secoes) {
+        const overlay = document.getElementById('folhaOverlay');
+        const folha = document.getElementById('folha');
+        if (!overlay || !folha) return;
+        document.getElementById('folhaTitulo').textContent = titulo;
+        const conteudo = document.getElementById('folhaConteudo');
+        conteudo.innerHTML = secoes.map((sec, si) => `
+            <div class="folha-secao">
+                <span class="folha-secao-titulo">${sec.titulo}</span>
+                ${sec.itens.map((it, ii) => `
+                    <div class="folha-item" data-secao="${si}" data-item="${ii}">
+                        <span>${it.label}${it.badge ? `<span class="config-item-badge">${it.badge}</span>` : ''}</span>
+                        <span class="folha-item-seta">›</span>
+                    </div>
+                `).join('')}
+            </div>
+        `).join('');
+        conteudo.querySelectorAll('.folha-item').forEach(el => {
+            const si = +el.dataset.secao, ii = +el.dataset.item;
+            el.addEventListener('click', () => { fecharFolha(); secoes[si].itens[ii].onClick(); });
+        });
+        overlay.classList.add('aberta');
+        folha.classList.add('aberta');
+        document.body.style.overflow = 'hidden';
+        history.pushState({ folhaAberta: true }, '');
+        _folhaAbertaPorHistorico = true;
+    }
+    function fecharFolha(viaHistorico) {
+        const overlay = document.getElementById('folhaOverlay');
+        const folha = document.getElementById('folha');
+        if (overlay) overlay.classList.remove('aberta');
+        if (folha) folha.classList.remove('aberta');
+        document.body.style.overflow = '';
+        const precisaVoltarHistorico = _folhaAbertaPorHistorico && !viaHistorico;
+        _folhaAbertaPorHistorico = false;
+        if (precisaVoltarHistorico) history.back();
+    }
+    window.addEventListener('popstate', () => {
+        if (_folhaAbertaPorHistorico) fecharFolha(true);
+    });
+
+    // Rodapé do Super Admin no celular (Camada 0, item 0.5, 14/set/2026) --
+    // "Mais" abre a folha com o que não coube nos 3 slots fixos
+    // (Dashboard/Escolas/Mais). No computador esse botão nem aparece
+    // (#btnSaMais fica escondido, ver CSS) -- a barra lateral continua
+    // mostrando os 3 itens direto, sem essa aba extra.
+    function onClickSaMais(el) {
+        // Não marca "ativa" ao abrir -- "Mais" não é um destino, é uma
+        // ação (a aba de verdade continua sendo a que já estava selecionada
+        // por baixo da folha). Só acende quando ela escolher algo lá
+        // dentro (ver onClick de cada item abaixo).
+        abrirFolha('Mais opções', [
+            { titulo: 'Ajustes', itens: [
+                { label: 'Configurações', onClick: () => { trocarSaAba('configuracoes-globais', document.querySelector('.sa-sidebar-item[data-sa="configuracoes-globais"]')); el.classList.add('ativa'); } },
+                { label: 'Privacidade', onClick: () => { trocarSaAba('privacidade', document.querySelector('.sa-sidebar-item[data-sa="privacidade"]')); el.classList.add('ativa'); } },
+                { label: 'Logs', onClick: () => { trocarSaAba('logs', document.querySelector('.sa-sidebar-item[data-sa="logs"]')); el.classList.add('ativa'); } },
+            ] },
+        ]);
+    }
+
     // "Mais" no computador: acordeão que abre ali mesmo na barra lateral
     // (pedido da Márcia, 20/ago/2026: "pensei em colocar uma seta e esse
     // menu abrir para baixo"). No celular (rodapé, sem espaço vertical pra
