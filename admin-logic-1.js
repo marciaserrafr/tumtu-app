@@ -5963,17 +5963,16 @@
     function mostrarShellSA() {
         dentroDeEscolaSA = false;
         resetTemaHeaderPadrao();
-        // Logo do TumTu no cabeçalho do Super Admin (14/set/2026, pedido
-        // dela: "acho mais bonito o nome TumTu da logo sozinho... fica mais
-        // padronizado") -- reaproveita 100% o mesmo componente visual já
-        // usado pra logo de escola (.header-marca-logo-wrap/.com-logo-
-        // escola, ver aplicarConfigEscola), só que com o ícone do próprio
-        // TumTu (o "T" isolado criado 13/set pro ícone do PWA, já com a
-        // margem de segurança certa pra um círculo) e anel dourado -- não é
-        // cor de escola nenhuma, é a cor da própria marca.
-        const marca = document.getElementById('headerMarca');
+        // "Super Admin" ao lado do nome TumTu, igual nome de escola ao lado
+        // da logo (14/set/2026, pedido dela) -- corrigido no mesmo dia:
+        // primeira tentativa trocou a marca pelo ícone "T" isolado num
+        // círculo, que ela rejeitou ("não pedi isso... eu pedi o nome TumTu
+        // mesmo, sem borda"). Marca continua o wordmark de sempre (já
+        // resetado pra isso por resetTemaHeaderPadrao(), linha acima) --
+        // só o layout muda pra linha (.com-logo-escola cuida disso: marca à
+        // esquerda, badge maior ao lado, mesma proporção do nome de
+        // escola/bateria), sem nenhum ícone/imagem/borda nova.
         const headerEsquerda = document.querySelector('.header-esquerda');
-        if (marca) marca.innerHTML = '<div class="header-marca-logo-wrap" style="box-shadow:0 0 0 2px #D4AF37;"><img src="/icons/icon-maskable-512.png" class="header-marca-logo" alt="TumTu"></div>';
         if (headerEsquerda) headerEsquerda.classList.add('com-logo-escola');
         document.getElementById('saSidebar').style.display = 'flex';
         document.getElementById('saMain').style.display = 'flex';
