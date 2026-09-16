@@ -6018,6 +6018,17 @@
         document.getElementById('headerEscolaNome').style.display = '';
         document.getElementById('headerBateriaNome').textContent = '';
         document.getElementById('headerBateriaNome').style.display = 'none';
+        // Remede o cabeçalho DEPOIS de trocar o conteúdo dele de volta pro
+        // padrão (16/set/2026) -- achado dela, print real: saindo de dentro
+        // de uma escola pelo botão flutuante "Super Admin" (voltarParaEscolasSA,
+        // que chama trocarSaAba ANTES desta função), a barra lateral ficava
+        // presa na altura do cabeçalho da ESCOLA (mais alto, com logo/tema
+        // próprio) porque só trocarSaAba remedia, e isso acontecia antes do
+        // cabeçalho voltar ao normal aqui embaixo -- sobrava um vão branco
+        // entre o cabeçalho real (mais baixo) e a barra. Medir de novo aqui,
+        // depois da troca de conteúdo, fecha esse vão em qualquer caminho que
+        // chame mostrarShellSA(), não só o botão flutuante.
+        ajustarAlturaHeaderAdmin();
         // #saSidebar passou a precisar dessa medida de verdade também
         // (05/set/2026, ver comentário em ajustarAlturaNavMobile) -- antes
         // usava bottom:0, que não dependia disso.
