@@ -1499,7 +1499,7 @@ async function fpUploadFotoParaStorage(dataUrl, token) {
                 'Authorization': `Bearer ${token}`,
                 'apikey': SUPABASE_KEY,
                 'Content-Type': blob.type || 'image/jpeg',
-                'cache-control': '31536000',
+                'cache-control': 'max-age=31536000',
             },
             body: blob,
         });
