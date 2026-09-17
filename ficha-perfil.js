@@ -1482,6 +1482,12 @@ async function fpAbrirSeletorFoto() {
 // direto na tabela pessoas -- migração pra reduzir o peso do banco
 // (11/set/2026). Se o upload falhar por qualquer motivo, quem chama
 // continua usando o base64 como já fazia antes -- nunca trava o Salvar.
+// cache-control de 1 ano (16/set/2026): cada nome de arquivo é único e
+// nunca é reaproveitado (trocar de foto sempre gera um nome novo), então
+// é seguro dizer pro navegador "isso nunca muda, guarda pra sempre" --
+// achado real: sem isso, toda vez que alguém abre uma lista, as fotos de
+// todo mundo são baixadas de novo, e isso sozinho já estourou a cota
+// gratuita de tráfego do Supabase (ver docs/tumtu-historico-sessoes.md).
 async function fpUploadFotoParaStorage(dataUrl, token) {
     try {
         const blob = await (await fetch(dataUrl)).blob();
@@ -1493,6 +1499,7 @@ async function fpUploadFotoParaStorage(dataUrl, token) {
                 'Authorization': `Bearer ${token}`,
                 'apikey': SUPABASE_KEY,
                 'Content-Type': blob.type || 'image/jpeg',
+                'cache-control': '31536000',
             },
             body: blob,
         });
