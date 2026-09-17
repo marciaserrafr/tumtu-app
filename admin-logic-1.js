@@ -5480,7 +5480,6 @@
         'permissoes': 'ver_permissoes',
         'historico': 'ver_historico',
         'figurino': 'ver_figurino',
-        'extras': 'ver_extras',
         'presenca': 'ver_eventos',
         'manual-instrucoes': 'ver_manual_instrucoes',
     };
@@ -5496,10 +5495,9 @@
     function podeVerAba(aba) {
         if (aba === 'comercial') return souSuperAdmin;
         if (aba === 'configuracoes') return Object.keys(CAPACIDADE_CONFIG_SUBTELA).some(nome => podeVerConfigSubtela(nome));
-        // "Convidados" (31/ago/2026) roteia sozinho pro modelo ativo da
-        // bateria (Simples ou Especial, ver modoConvidadosEspecial) -- a
-        // capacidade exigida depende de qual dos dois está em uso.
-        if (aba === 'extras') return modoConvidadosEspecial() ? tenhoCapacidade('ver_convidados_especiais') : tenhoCapacidade('ver_extras');
+        // "Convidados" (31/ago/2026) -- desde a unificação dos dois modelos
+        // (04/set/2026), toda bateria usa sempre o modelo Especial.
+        if (aba === 'extras') return tenhoCapacidade('ver_convidados_especiais');
         const capacidadeExigida = CAPACIDADE_DA_ABA[aba];
         return !capacidadeExigida || tenhoCapacidade(capacidadeExigida);
     }
@@ -7132,15 +7130,11 @@
         // sendo exatamente quem deveria poder marcar presença. Capacidade
         // solta, sem depender de nada -- mesmo padrão de ver_carteirinha_outros.
         { grupo: 'Lista de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
-        // Convidados (25/ago/2026, reorganizado 31/ago/2026): por trás são 2
-        // modelos -- Simples (extras, sem login) e Especial (vinculos, com
-        // login/carteirinha) -- mas cada bateria só usa UM por vez (escolhido
-        // em Comercial → Convidado Especial). `modoConvidados` marca qual é
-        // qual; renderizarEditorPermissoesPessoa/permissoesResumoDetalhado
-        // mostram só o grupo do modelo ativo, os dois rotulados "Convidados"
-        // -- pra quem usa o app, nunca fica visível que existem 2 modelos.
-        { grupo: 'Convidados (modelo Simples)', modoConvidados: 'simples', itens: [{ chave: 'ver_extras', label: 'Visualizar' }, { chave: 'editar_extras', label: 'Cadastrar e editar', dependeDe: 'ver_extras' }] },
-        { grupo: 'Convidados (modelo Especial)', modoConvidados: 'especial', itens: [
+        // Convidados (25/ago/2026, reorganizado 31/ago/2026, modelo Simples
+        // removido de vez em 16/set/2026 -- desde a unificação de 04/set,
+        // toda bateria usa sempre o modelo Especial, então só existe 1 grupo
+        // aqui agora, sem precisar mais filtrar por `modoConvidados`).
+        { grupo: 'Convidados', itens: [
             { chave: 'ver_convidados_especiais', label: 'Visualizar lista (nome, cargo, status)', subgrupo: 'Lista' },
             { chave: 'aprovar_convidados_especiais', label: 'Aprovar, rejeitar, suspender, desligar e reativar', dependeDe: 'ver_convidados_especiais', subgrupo: 'Lista' },
             { chave: 'exportar_convidados_especiais', label: 'Exportar pra Excel', dependeDe: 'ver_convidados_especiais', subgrupo: 'Lista' },
@@ -7156,7 +7150,7 @@
         // (editar_convidados_especiais, que já bundlava instrumento+medidas
         // antes desse mapa existir) -- todo o resto é sem funcionalidade
         // própria ainda, igual boa parte de Perfil do Ritmista/Diretor.
-        { grupo: 'Perfil do Convidado', modoConvidados: 'especial', itens: [
+        { grupo: 'Perfil do Convidado', itens: [
             { semFuncionalidade: true, nota: 'Sem funcionalidade ainda', subgrupo: 'Foto' },
             { semFuncionalidade: true, nota: 'Sem permissão própria ainda — quem vê a lista já vê esses dados', subgrupo: 'Dados Pessoais' },
             { chave: 'editar_convidados_especiais', label: 'Editar ficha (instrumento, medidas)', dependeDe: 'ver_convidados_especiais', subgrupo: 'Instrumento' },
@@ -7223,15 +7217,11 @@
     const DEPENDE_DE = {};
     GRUPOS_CAPACIDADES.forEach(g => g.itens.forEach(i => { if (i.dependeDe) DEPENDE_DE[i.chave] = i.dependeDe; }));
 
-    // "Convidados" tem 2 grupos internamente (modoConvidados: 'simples'/
-    // 'especial', ver GRUPOS_CAPACIDADES), mas a bateria só usa um por vez --
-    // essa lista tira o grupo do modelo que não está em uso, pra nunca
-    // aparecer duas seções "Convidados" (ou uma inútil) na tela.
-    // "Convidados (modelo Simples)" fica congelado, nunca mais visível --
-    // desde a unificação (04/set/2026) toda bateria usa o mesmo modelo
-    // (vinculos, eh_convidado), com ou sem carteirinha.
+    // Só existia esse filtro pra esconder o grupo "Convidados (modelo
+    // Simples)" -- removido de vez em 16/set/2026 (o grupo nem existe mais
+    // em GRUPOS_CAPACIDADES), então essa função agora só repassa a lista.
     function gruposCapacidadesVisiveis() {
-        return GRUPOS_CAPACIDADES.filter(g => g.modoConvidados !== 'simples');
+        return GRUPOS_CAPACIDADES;
     }
 
     let permissoesPessoaCache = [];
@@ -7874,10 +7864,9 @@
     // no banco, não código daqui). Reaproveita o MESMO editor de checkboxes
     // já usado pra pessoa (GRUPOS_CAPACIDADES/togglePermissaoSecao/
     // esc/mostrarToast) -- só troca onde lê e onde salva. Usa
-    // GRUPOS_CAPACIDADES direto (não gruposCapacidadesVisiveis, que filtra
-    // pelo modo de Convidados da bateria ATUAL carregada) -- molde global
-    // não tem "bateria atual", então mostra os dois modelos de Convidados
-    // possíveis, já que baterias diferentes podem usar modelos diferentes.
+    // GRUPOS_CAPACIDADES direto -- desde 16/set/2026 é o mesmo conteúdo de
+    // gruposCapacidadesVisiveis() (só existia 1 modelo de Convidados pra
+    // filtrar antes disso), mantido em separado só por já estar assim.
     let permissoesPadraoCache = [];
     let permissaoPadraoEditando = null;
     const LABEL_PERMISSAO_PADRAO = { mestre: 'Mestre', diretor_admin: 'Diretor Admin', diretor_naipe: 'Diretor de Naipe', diretor: 'Diretor de Bateria', apoio: 'Diretor (Apoio)' };
@@ -7943,7 +7932,7 @@
                 </div>
                 </div>
             </div>
-            ${GRUPOS_CAPACIDADES.filter(g => g.modoConvidados !== 'simples').map(g => `
+            ${GRUPOS_CAPACIDADES.map(g => `
                 <div class="ficha-secao">
                     <div class="ficha-secao-titulo-pai" onclick="togglePermissaoSecao(this)"><span class="ficha-secao-titulo-pai-tracinho"></span>${esc(g.grupo)}<span class="ficha-secao-seta">▸</span></div>
                     <div class="ficha-secao-corpo" style="display:none;">
