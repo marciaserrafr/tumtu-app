@@ -6014,13 +6014,14 @@
         document.getElementById('btnVoltarEscolasNav').style.display = 'none';
         document.getElementById('headerEscolaNome').textContent = 'Super Admin';
         document.getElementById('headerEscolaNome').style.display = '';
-        // Vazia, mas visível (17/set/2026) -- igual ao que aplicarConfigEscola()
-        // já faz pra bateria de verdade (2ª linha sempre ocupa o espaço dela,
-        // mesmo sem texto). Antes essa linha sumia de vez (display:none), e
-        // como o cabeçalho de uma escola sempre tem 2 linhas de texto, o do
-        // Super Admin (só 1 linha) ficava mais baixo -- achado dela, print
-        // real comparando os dois cabeçalhos.
-        document.getElementById('headerBateriaNome').textContent = '';
+        // Espaço invisível, não vazio de verdade (17/set/2026, correção da
+        // 1ª tentativa) -- um <div> com textContent totalmente vazio não
+        // gera nenhuma linha de texto, então o navegador não reserva altura
+        // nenhuma pra ele (display:'' sozinho não bastava, ela reportou
+        // "continua menor"). Um espaço invisível ( ) força a linha a
+        // existir, com a MESMA altura da 2ª linha de uma escola de verdade,
+        // sem mostrar nada visível.
+        document.getElementById('headerBateriaNome').textContent = ' ';
         document.getElementById('headerBateriaNome').style.display = '';
         // Remede o cabeçalho DEPOIS de trocar o conteúdo dele de volta pro
         // padrão (16/set/2026) -- achado dela, print real: saindo de dentro
