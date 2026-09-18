@@ -161,7 +161,14 @@
            lado do nome (não empilhado como o wordmark "TumTu" original) --
            achado da Márcia, 18/ago/2026, primeiro teste real: a logo pequena
            empilhada "ficou perdida". */
-        .header-esquerda.com-logo-escola { flex-direction: row; align-items: center; gap: 14px; }
+        /* min-height:52px (17/set/2026) -- mesma altura da logo redonda da
+           escola (.header-marca-logo-wrap, linha abaixo). O Super Admin não
+           tem essa logo (só o texto "TumTu", decisão dela de 14/set: "eu
+           pedi o nome TumTu mesmo, sem borda") -- sem essa altura mínima, a
+           linha da marca ficava mais baixa sem a logo, e o cabeçalho inteiro
+           encolhia junto (achado dela comparando os 2 cabeçalhos ao vivo).
+           Reserva o mesmo espaço nos dois casos, com ou sem logo. */
+        .header-esquerda.com-logo-escola { flex-direction: row; align-items: center; gap: 14px; min-height: 52px; }
         .header-esquerda.com-logo-escola .header-badge { margin-top: 0; }
         .header-marca { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
         /* Redonda, com anel na cor real da escola -- mesma identidade e
