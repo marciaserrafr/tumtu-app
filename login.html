@@ -24,9 +24,17 @@
     <!-- Não-bloqueante (ver comentário completo em admin.html) -- mesma
          correção, mesmo motivo: a transição nativa entre páginas espera
          essa fonte externa carregar antes de pintar a tela, causando a
-         piscada intermitente que ela reportou. -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+         piscada intermitente que ela reportou. URL idêntica em
+         login/admin/carteirinha (17/set/2026) -- antes cada uma pedia um
+         conjunto de pesos diferente, então o navegador nunca reaproveitava
+         a fonte já baixada de uma tela pra outra, e a marca "TumTu" da
+         abertura piscava numa fonte padrão antes de trocar pela Plus
+         Jakarta Sans de verdade. Com a mesma URL nas 3, uma vez baixada
+         numa tela fica pronta pras outras. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=32">
     <script src="config-escola.js?v=4" defer></script>

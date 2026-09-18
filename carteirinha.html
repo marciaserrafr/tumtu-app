@@ -17,7 +17,18 @@
          painel da própria Vercel (Project Settings -> Analytics). -->
     <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
     <script defer src="/_vercel/insights/script.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
+    <!-- Corrigido 17/set/2026: era um <link rel="stylesheet"> normal
+         (bloqueava a 1ª pintura) com uma URL diferente de login.html/
+         admin.html (pesos diferentes) -- então essa fonte nunca estava
+         pronta quando vinha do Super Admin/painel, e a marca "TumTu" do
+         esqueleto de carregamento piscava numa fonte errada antes de trocar
+         pela Plus Jakarta Sans de verdade. Agora usa a mesma URL e a mesma
+         técnica não-bloqueante (preload + trocar rel) das outras 2 telas
+         que têm a mesma marca -- ver comentário completo em login.html. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=32">
     <link rel="stylesheet" href="styles/carteirinha-tumtu-novo.css?v=36">
