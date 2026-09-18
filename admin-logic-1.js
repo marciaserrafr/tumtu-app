@@ -6014,15 +6014,18 @@
         document.getElementById('btnVoltarEscolasNav').style.display = 'none';
         document.getElementById('headerEscolaNome').textContent = 'Super Admin';
         document.getElementById('headerEscolaNome').style.display = '';
-        // Espaço invisível, não vazio de verdade (17/set/2026, correção da
-        // 1ª tentativa) -- um <div> com textContent totalmente vazio não
-        // gera nenhuma linha de texto, então o navegador não reserva altura
-        // nenhuma pra ele (display:'' sozinho não bastava, ela reportou
-        // "continua menor"). Um espaço invisível ( ) força a linha a
-        // existir, com a MESMA altura da 2ª linha de uma escola de verdade,
-        // sem mostrar nada visível.
-        document.getElementById('headerBateriaNome').textContent = ' ';
-        document.getElementById('headerBateriaNome').style.display = '';
+        // De volta a display:none (17/set/2026, 3ª correção do dia) -- as
+        // 2 tentativas anteriores tentavam bater a altura FAZENDO a 2ª
+        // linha existir (vazia, depois com espaço invisível), mas isso
+        // deixava "Super Admin" preso no topo do badge, em vez de
+        // centralizado como a marca "TumTu" ao lado -- achado dela, print
+        // real. A altura do cabeçalho já está garantida de outro jeito:
+        // min-height:52px em .header-esquerda.com-logo-escola (CSS,
+        // admin.html) -- essa linha aqui não precisa mais fingir ter altura,
+        // só esconder de vez, e o badge (só 1 linha real) fica centralizado
+        // certinho dentro do espaço de 52px reservado pela linha inteira.
+        document.getElementById('headerBateriaNome').textContent = '';
+        document.getElementById('headerBateriaNome').style.display = 'none';
         // Remede o cabeçalho DEPOIS de trocar o conteúdo dele de volta pro
         // padrão (16/set/2026) -- achado dela, print real: saindo de dentro
         // de uma escola pelo botão flutuante "Super Admin" (voltarParaEscolasSA,
