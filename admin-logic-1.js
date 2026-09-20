@@ -8816,16 +8816,29 @@
 
     // Edições em dados de pessoa (20/set/2026) -- pedido dela depois da
     // investigação da final da Imperatriz (18-19/set): saber exatamente o
-    // que mudou (foto, medida, nome, celular...), quem editou (a própria
-    // pessoa ou outra) e quando (Brasília, via histDataHora -- já converte
-    // sozinho pro fuso do navegador de quem está vendo). Os gatilhos
-    // trg_auditoria_pessoas/vinculos/vinculos_medidas (mesma migração,
-    // 20/set/2026) alimentam a MESMA auditoria_alteracoes usada em
-    // carregarLogAlteracoes logo abaixo -- essa seção aqui só monta um
-    // resumo legível (campo por campo) em cima do dado técnico cru. Só
-    // UPDATE -- cadastro novo (INSERT) não é "edição".
+    // que mudou (foto, medida, nome, celular...), quem fez -- nome E CPF,
+    // não só nome (correção dela, mesmo dia: "quero o nome e cpf de quem
+    // REALIZOU a alteração") -- e quando (Brasília, via histDataHora --
+    // já converte sozinho pro fuso do navegador de quem está vendo). Os
+    // gatilhos trg_auditoria_pessoas/vinculos/vinculos_medidas alimentam a
+    // MESMA auditoria_alteracoes usada em carregarLogAlteracoes logo
+    // abaixo -- essa seção aqui só monta um resumo legível em cima do dado
+    // técnico cru. Cobre INSERT (cadastro novo, categoria própria "novo
+    // cadastro" -- correção dela: "não seria uma edição... um novo
+    // registro") e UPDATE (edição de quem já existia).
+    //
+    // "Quem realizou" nem sempre é auth.uid() (alterado_por): cadastro
+    // MANUAL feito por um Mestre/Diretor/Super Admin passa pela Edge
+    // Function admin-create-user, que roda com a service_role key -- sem
+    // auth.uid() de quem chamou. Por isso dois reforços: 1) a própria Edge
+    // Function agora grava pessoas.criado_por_pessoa_id (quem cadastrou),
+    // 2) vinculos.aprovado_por (que já existia, pra outro motivo) também
+    // serve de pista de quem processou aquele vínculo. autocadastro
+    // (cadastro.html) não precisa de nada disso -- lá a própria pessoa já
+    // está logada na própria sessão nova, então alterado_por já é ela.
     const LABEL_TABELA_EDICAO_LOG = { pessoas: 'Dados pessoais', vinculos: 'Vínculo com a bateria', vinculos_medidas: 'Medida' };
-    const CAMPOS_IGNORADOS_EDICAO_LOG = new Set(['id', 'created_at', 'auth_user_id', 'qr_token']);
+    const LABEL_OPERACAO_EDICAO_LOG = { INSERT: 'Novo cadastro', UPDATE: 'Edição' };
+    const CAMPOS_IGNORADOS_EDICAO_LOG = new Set(['id', 'created_at', 'criado_em', 'auth_user_id', 'qr_token', 'criado_por_pessoa_id']);
     const LABEL_CAMPO_EDICAO_LOG = {
         nome: 'Nome', apelido: 'Apelido', cpf: 'CPF', tipo_documento: 'Tipo de documento', numero_documento: 'Número do documento',
         nascimento: 'Nascimento', nacionalidade: 'Nacionalidade', estrangeiro: 'Estrangeiro', email: 'E-mail', celular: 'Celular',
@@ -8836,20 +8849,20 @@
         responsavel_nome: 'Nome do responsável', responsavel_cpf: 'CPF do responsável', responsavel_celular: 'Celular do responsável',
         perfil: 'Perfil', status: 'Status', bateria_instrumento_id: 'Instrumento', naipe: 'Naipe', repique_bossa: 'Repique de Bossa',
         nao_desfila: 'Não desfila', observacoes: 'Observações', capacidades: 'Permissões', eh_admin_bateria: 'Admin da Bateria',
-        valor: 'Tamanho', medida_tipo_id: 'Categoria de Figurino',
+        valor: 'Tamanho', tipo_id: 'Categoria de Figurino',
     };
     let logEdicoesPessoaisCache = [];
     async function carregarLogEdicoesPessoais() {
         const container = document.getElementById('logs-edicoes-pessoais-lista');
-        const url = `${SUPABASE_URL}/rest/v1/auditoria_alteracoes?select=*&tabela=in.(pessoas,vinculos,vinculos_medidas)&operacao=eq.UPDATE&order=alterado_em.desc&limit=300`;
+        const url = `${SUPABASE_URL}/rest/v1/auditoria_alteracoes?select=*&tabela=in.(pessoas,vinculos,vinculos_medidas)&operacao=in.(INSERT,UPDATE)&order=alterado_em.desc&limit=300`;
         const res = await fetch(url, { headers: authHeaders });
         if (!res.ok) { container.innerHTML = '<div class="estado-vazio">Não foi possível carregar.</div>'; return; }
         const lista = await res.json();
-        if (!lista.length) { logEdicoesPessoaisCache = []; container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">✏️</div>Nenhuma edição registrada ainda.</div>'; return; }
+        if (!lista.length) { logEdicoesPessoaisCache = []; container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">✏️</div>Nenhum cadastro ou edição registrado ainda.</div>'; return; }
 
         // Resolve de quem é o dado (pessoa_id direto, ou vinculo_id ->
-        // vinculos.pessoa_id no caso de medida) e quem editou (auth_user_id)
-        // -- no máximo 2 buscas extras no total, nunca uma por linha.
+        // vinculos.pessoa_id no caso de medida) -- no máximo 1 busca extra
+        // no total, nunca uma por linha.
         const vinculoIdsParaResolver = [...new Set(lista.filter(l => l.tabela === 'vinculos_medidas').map(l => (l.dados_depois || l.dados_antes)?.vinculo_id).filter(Boolean))];
         let vinculoParaPessoa = {};
         if (vinculoIdsParaResolver.length) {
@@ -8862,7 +8875,18 @@
             if (l.tabela === 'vinculos') return d.pessoa_id;
             return vinculoParaPessoa[d.vinculo_id];
         });
-        const idsPessoas = new Set(pessoaIdPorLinha.filter(Boolean));
+        // Quem realizou: alterado_por (auth_user_id) quando existe; senão,
+        // pistas gravadas no próprio dado -- criado_por_pessoa_id (cadastro
+        // manual, pessoas) ou aprovado_por (vínculo processado por alguém).
+        // Essas duas são id de pessoa direto, não auth_user_id.
+        const idPorLinhaFallback = lista.map(l => {
+            if (l.alterado_por) return null;
+            const d = l.dados_depois || l.dados_antes || {};
+            if (l.tabela === 'pessoas' && d.criado_por_pessoa_id) return d.criado_por_pessoa_id;
+            if (l.tabela === 'vinculos' && d.aprovado_por) return d.aprovado_por;
+            return null;
+        });
+        const idsPessoas = new Set([...pessoaIdPorLinha, ...idPorLinhaFallback].filter(Boolean));
         const authIdsEditores = new Set(lista.map(l => l.alterado_por).filter(Boolean));
         let pessoasInfo = {};
         if (idsPessoas.size || authIdsEditores.size) {
@@ -8881,20 +8905,27 @@
             const depois = l.dados_depois || {};
             const campos = new Set([...Object.keys(antes), ...Object.keys(depois)]);
             const alteracoes = [];
-            campos.forEach(campo => {
-                if (CAMPOS_IGNORADOS_EDICAO_LOG.has(campo)) return;
-                const de = antes[campo];
-                const para = depois[campo];
-                const deStr = de === null || de === undefined ? '' : (typeof de === 'object' ? JSON.stringify(de) : String(de));
-                const paraStr = para === null || para === undefined ? '' : (typeof para === 'object' ? JSON.stringify(para) : String(para));
-                if (deStr !== paraStr) alteracoes.push({ campo, de, para });
-            });
+            // Cadastro novo (INSERT) não tem "antes" -- listar campo a campo
+            // não ajuda (é tudo novo por definição), só polui. O resumo no
+            // cabeçalho (nome/CPF + "Novo cadastro") já basta.
+            if (l.operacao === 'UPDATE') {
+                campos.forEach(campo => {
+                    if (CAMPOS_IGNORADOS_EDICAO_LOG.has(campo)) return;
+                    const de = antes[campo];
+                    const para = depois[campo];
+                    const deStr = de === null || de === undefined ? '' : (typeof de === 'object' ? JSON.stringify(de) : String(de));
+                    const paraStr = para === null || para === undefined ? '' : (typeof para === 'object' ? JSON.stringify(para) : String(para));
+                    if (deStr !== paraStr) alteracoes.push({ campo, de, para });
+                });
+            }
             const pessoaId = pessoaIdPorLinha[i];
             const pessoa = pessoaId ? pessoasInfo[`id:${pessoaId}`] : null;
-            const editor = l.alterado_por ? pessoasInfo[`auth:${l.alterado_por}`] : null;
+            let editor = l.alterado_por ? pessoasInfo[`auth:${l.alterado_por}`] : null;
+            let editorFonte = editor ? 'direto' : null;
+            if (!editor && idPorLinhaFallback[i]) { editor = pessoasInfo[`id:${idPorLinhaFallback[i]}`]; editorFonte = editor ? 'indireto' : null; }
             const proprio = !!(editor && pessoaId && editor.id === pessoaId);
-            return { ...l, alteracoes, pessoa, editor, proprio };
-        }).filter(l => l.alteracoes.length > 0);
+            return { ...l, alteracoes, pessoa, editor, editorFonte, proprio };
+        }).filter(l => l.operacao === 'INSERT' || l.alteracoes.length > 0);
 
         renderizarLogEdicoesPessoais(logEdicoesPessoaisCache);
     }
@@ -8914,16 +8945,24 @@
     }
     function renderizarLogEdicoesPessoais(lista) {
         const container = document.getElementById('logs-edicoes-pessoais-lista');
-        if (!lista.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">✏️</div>Nenhuma edição encontrada.</div>'; return; }
+        if (!lista.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">✏️</div>Nenhum cadastro ou edição encontrado.</div>'; return; }
         container.innerHTML = lista.map(l => {
             const nomePessoa = l.pessoa?.nome || 'Pessoa não encontrada';
             const cpfPessoa = l.pessoa?.cpf || '—';
-            const quemEditou = l.proprio ? 'a própria pessoa' : (l.editor?.nome ? esc(l.editor.nome) : 'desconhecido');
+            const verbo = l.operacao === 'INSERT' ? 'cadastrado' : 'editado';
+            let quemRealizou;
+            if (l.proprio) {
+                quemRealizou = `pela própria pessoa (${esc(nomePessoa)}, CPF ${esc(cpfPessoa)})`;
+            } else if (l.editor) {
+                quemRealizou = `por ${esc(l.editor.nome)}, CPF ${esc(l.editor.cpf || '—')}`;
+            } else {
+                quemRealizou = 'por autor não identificado (ver registro técnico abaixo)';
+            }
             return `
             <div class="item-card" style="align-items:flex-start;">
                 <div class="item-info">
-                    <div class="item-nome">${esc(nomePessoa)}<span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · CPF ${esc(cpfPessoa)} · ${esc(LABEL_TABELA_EDICAO_LOG[l.tabela] || l.tabela)}</span></div>
-                    <div class="item-detalhe" style="margin-top:3px;">editado por ${quemEditou} · ${histDataHora(l.alterado_em)}</div>
+                    <div class="item-nome">${esc(nomePessoa)}<span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · CPF ${esc(cpfPessoa)} · ${esc(LABEL_TABELA_EDICAO_LOG[l.tabela] || l.tabela)} · ${esc(LABEL_OPERACAO_EDICAO_LOG[l.operacao] || l.operacao)}</span></div>
+                    <div class="item-detalhe" style="margin-top:3px;">${verbo} ${quemRealizou} · ${histDataHora(l.alterado_em)}</div>
                     ${l.alteracoes.map(a => renderizarCampoLogEdicao(a)).join('')}
                 </div>
             </div>`;
@@ -8933,7 +8972,8 @@
         const t = termo.trim().toLowerCase();
         if (!t) { renderizarLogEdicoesPessoais(logEdicoesPessoaisCache); return; }
         const filtrado = logEdicoesPessoaisCache.filter(l =>
-            (l.pessoa?.nome || '').toLowerCase().includes(t) || (l.pessoa?.cpf || '').includes(t)
+            (l.pessoa?.nome || '').toLowerCase().includes(t) || (l.pessoa?.cpf || '').includes(t) ||
+            (l.editor?.nome || '').toLowerCase().includes(t) || (l.editor?.cpf || '').includes(t)
         );
         renderizarLogEdicoesPessoais(filtrado);
     }
