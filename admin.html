@@ -2343,7 +2343,21 @@
         <div class="painel-titulo">Logs</div>
         <div class="config-sub-desc" style="margin:0 0 20px;">Registro técnico de alterações e ações no sistema — só leitura, ninguém edita nem apaga.</div>
 
-        <div class="ficha-secao-titulo">Alterações no banco de dados</div>
+        <!-- Edições em dados de pessoa (20/set/2026) -- pedido dela depois
+             da investigação da final da Imperatriz (18-19/set): saber
+             exatamente o que mudou (foto, medida, nome, celular...), de
+             quem, editado por quem (a própria pessoa ou outra), e quando
+             (Brasília). Cobre pessoas/vinculos/vinculos_medidas -- reaproveita
+             o mesmo auditoria_alteracoes de baixo, só com um resumo legível
+             em cima (diferença campo a campo) em vez do dado técnico cru. -->
+        <div class="ficha-secao-titulo">Edições em dados de pessoa</div>
+        <div class="config-sub-desc" style="margin:0 0 10px;">Toda alteração em dados de pessoa, vínculo com a bateria ou medida — de qualquer perfil, na própria ficha ou na de outra pessoa. Cadastro novo não entra aqui, só edição de quem já existia.</div>
+        <input type="text" id="logs-edicoes-busca" class="fc-input" style="display:block;max-width:360px;margin-bottom:12px;" placeholder="Buscar por nome ou CPF..." oninput="filtrarLogEdicoesPessoais(this.value)">
+        <div id="logs-edicoes-pessoais-lista" class="lista-cards">
+            <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
+        </div>
+
+        <div class="ficha-secao-titulo" style="margin-top:24px;">Alterações no banco de dados</div>
         <div class="config-sub-desc" style="margin:0 0 10px;">Toda inserção, atualização ou apagamento nas tabelas de Entrega de Figurino e Presença.</div>
         <div id="logs-alteracoes-lista" class="lista-cards">
             <div class="estado-vazio"><div class="estado-vazio-icone"><svg class="spinner-mini" viewBox="0 0 56 56" role="status" aria-label="Carregando"><use href="#tt-spinner-caminho"></use></svg></div></div>
@@ -3743,7 +3757,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=47" defer></script>
+<script src="admin-logic-1.js?v=48" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

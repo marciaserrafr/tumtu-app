@@ -8811,7 +8811,131 @@
     // padrão de carregarLogExclusoes acima -- só leitura.
     const LABEL_OPERACAO_LOG = { INSERT: 'criou', UPDATE: 'alterou', DELETE: 'apagou' };
     async function carregarLogs() {
-        await Promise.all([carregarLogAlteracoes(), carregarLogAcoes()]);
+        await Promise.all([carregarLogEdicoesPessoais(), carregarLogAlteracoes(), carregarLogAcoes()]);
+    }
+
+    // Edições em dados de pessoa (20/set/2026) -- pedido dela depois da
+    // investigação da final da Imperatriz (18-19/set): saber exatamente o
+    // que mudou (foto, medida, nome, celular...), quem editou (a própria
+    // pessoa ou outra) e quando (Brasília, via histDataHora -- já converte
+    // sozinho pro fuso do navegador de quem está vendo). Os gatilhos
+    // trg_auditoria_pessoas/vinculos/vinculos_medidas (mesma migração,
+    // 20/set/2026) alimentam a MESMA auditoria_alteracoes usada em
+    // carregarLogAlteracoes logo abaixo -- essa seção aqui só monta um
+    // resumo legível (campo por campo) em cima do dado técnico cru. Só
+    // UPDATE -- cadastro novo (INSERT) não é "edição".
+    const LABEL_TABELA_EDICAO_LOG = { pessoas: 'Dados pessoais', vinculos: 'Vínculo com a bateria', vinculos_medidas: 'Medida' };
+    const CAMPOS_IGNORADOS_EDICAO_LOG = new Set(['id', 'created_at', 'auth_user_id', 'qr_token']);
+    const LABEL_CAMPO_EDICAO_LOG = {
+        nome: 'Nome', apelido: 'Apelido', cpf: 'CPF', tipo_documento: 'Tipo de documento', numero_documento: 'Número do documento',
+        nascimento: 'Nascimento', nacionalidade: 'Nacionalidade', estrangeiro: 'Estrangeiro', email: 'E-mail', celular: 'Celular',
+        foto_url: 'Foto', foto_pos_x: 'Posição da foto', foto_pos_y: 'Posição da foto',
+        endereco: 'Endereço', numero: 'Número', complemento: 'Complemento', bairro: 'Bairro', cidade: 'Cidade', estado: 'Estado', pais: 'País',
+        emergencia_nome: 'Contato de emergência', emergencia_parentesco: 'Parentesco (emergência)', emergencia_celular: 'Celular de emergência',
+        tipo_sanguineo: 'Tipo sanguíneo', genero: 'Gênero', genero_personalizado: 'Gênero (personalizado)',
+        responsavel_nome: 'Nome do responsável', responsavel_cpf: 'CPF do responsável', responsavel_celular: 'Celular do responsável',
+        perfil: 'Perfil', status: 'Status', bateria_instrumento_id: 'Instrumento', naipe: 'Naipe', repique_bossa: 'Repique de Bossa',
+        nao_desfila: 'Não desfila', observacoes: 'Observações', capacidades: 'Permissões', eh_admin_bateria: 'Admin da Bateria',
+        valor: 'Tamanho', medida_tipo_id: 'Categoria de Figurino',
+    };
+    let logEdicoesPessoaisCache = [];
+    async function carregarLogEdicoesPessoais() {
+        const container = document.getElementById('logs-edicoes-pessoais-lista');
+        const url = `${SUPABASE_URL}/rest/v1/auditoria_alteracoes?select=*&tabela=in.(pessoas,vinculos,vinculos_medidas)&operacao=eq.UPDATE&order=alterado_em.desc&limit=300`;
+        const res = await fetch(url, { headers: authHeaders });
+        if (!res.ok) { container.innerHTML = '<div class="estado-vazio">Não foi possível carregar.</div>'; return; }
+        const lista = await res.json();
+        if (!lista.length) { logEdicoesPessoaisCache = []; container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">✏️</div>Nenhuma edição registrada ainda.</div>'; return; }
+
+        // Resolve de quem é o dado (pessoa_id direto, ou vinculo_id ->
+        // vinculos.pessoa_id no caso de medida) e quem editou (auth_user_id)
+        // -- no máximo 2 buscas extras no total, nunca uma por linha.
+        const vinculoIdsParaResolver = [...new Set(lista.filter(l => l.tabela === 'vinculos_medidas').map(l => (l.dados_depois || l.dados_antes)?.vinculo_id).filter(Boolean))];
+        let vinculoParaPessoa = {};
+        if (vinculoIdsParaResolver.length) {
+            const resV = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?id=in.(${vinculoIdsParaResolver.join(',')})&select=id,pessoa_id`, { headers: authHeaders });
+            if (resV.ok) (await resV.json()).forEach(v => { vinculoParaPessoa[v.id] = v.pessoa_id; });
+        }
+        const pessoaIdPorLinha = lista.map(l => {
+            const d = l.dados_depois || l.dados_antes || {};
+            if (l.tabela === 'pessoas') return l.registro_id;
+            if (l.tabela === 'vinculos') return d.pessoa_id;
+            return vinculoParaPessoa[d.vinculo_id];
+        });
+        const idsPessoas = new Set(pessoaIdPorLinha.filter(Boolean));
+        const authIdsEditores = new Set(lista.map(l => l.alterado_por).filter(Boolean));
+        let pessoasInfo = {};
+        if (idsPessoas.size || authIdsEditores.size) {
+            const filtros = [];
+            if (idsPessoas.size) filtros.push(`id.in.(${[...idsPessoas].join(',')})`);
+            if (authIdsEditores.size) filtros.push(`auth_user_id.in.(${[...authIdsEditores].join(',')})`);
+            const resP = await fetch(`${SUPABASE_URL}/rest/v1/pessoas?select=id,nome,cpf,auth_user_id&or=(${filtros.join(',')})`, { headers: authHeaders });
+            if (resP.ok) (await resP.json()).forEach(p => {
+                pessoasInfo[`id:${p.id}`] = p;
+                if (p.auth_user_id) pessoasInfo[`auth:${p.auth_user_id}`] = p;
+            });
+        }
+
+        logEdicoesPessoaisCache = lista.map((l, i) => {
+            const antes = l.dados_antes || {};
+            const depois = l.dados_depois || {};
+            const campos = new Set([...Object.keys(antes), ...Object.keys(depois)]);
+            const alteracoes = [];
+            campos.forEach(campo => {
+                if (CAMPOS_IGNORADOS_EDICAO_LOG.has(campo)) return;
+                const de = antes[campo];
+                const para = depois[campo];
+                const deStr = de === null || de === undefined ? '' : (typeof de === 'object' ? JSON.stringify(de) : String(de));
+                const paraStr = para === null || para === undefined ? '' : (typeof para === 'object' ? JSON.stringify(para) : String(para));
+                if (deStr !== paraStr) alteracoes.push({ campo, de, para });
+            });
+            const pessoaId = pessoaIdPorLinha[i];
+            const pessoa = pessoaId ? pessoasInfo[`id:${pessoaId}`] : null;
+            const editor = l.alterado_por ? pessoasInfo[`auth:${l.alterado_por}`] : null;
+            const proprio = !!(editor && pessoaId && editor.id === pessoaId);
+            return { ...l, alteracoes, pessoa, editor, proprio };
+        }).filter(l => l.alteracoes.length > 0);
+
+        renderizarLogEdicoesPessoais(logEdicoesPessoaisCache);
+    }
+    function renderizarCampoLogEdicao(alt) {
+        const label = LABEL_CAMPO_EDICAO_LOG[alt.campo] || alt.campo;
+        if (alt.campo === 'foto_url') {
+            const antesImg = alt.de ? `<img src="${esc(alt.de)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` : '<span style="font-size:11px;color:var(--cor-texto-muted)">sem foto</span>';
+            const depoisImg = alt.para ? `<img src="${esc(alt.para)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` : '<span style="font-size:11px;color:var(--cor-texto-muted)">sem foto</span>';
+            return `<div style="display:flex;align-items:center;gap:8px;margin-top:5px;"><b>${esc(label)}:</b> ${antesImg} <span style="color:var(--cor-texto-muted);">→</span> ${depoisImg}</div>`;
+        }
+        if (alt.campo === 'capacidades') {
+            return `<div style="margin-top:5px;"><b>${esc(label)}:</b> alterada <span style="color:var(--cor-texto-muted);font-size:12px;">(detalhe técnico em "Alterações no banco de dados" abaixo)</span></div>`;
+        }
+        const deTxt = alt.de === null || alt.de === undefined || alt.de === '' ? '—' : String(alt.de);
+        const paraTxt = alt.para === null || alt.para === undefined || alt.para === '' ? '—' : String(alt.para);
+        return `<div style="margin-top:5px;"><b>${esc(label)}:</b> ${esc(deTxt)} → ${esc(paraTxt)}</div>`;
+    }
+    function renderizarLogEdicoesPessoais(lista) {
+        const container = document.getElementById('logs-edicoes-pessoais-lista');
+        if (!lista.length) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">✏️</div>Nenhuma edição encontrada.</div>'; return; }
+        container.innerHTML = lista.map(l => {
+            const nomePessoa = l.pessoa?.nome || 'Pessoa não encontrada';
+            const cpfPessoa = l.pessoa?.cpf || '—';
+            const quemEditou = l.proprio ? 'a própria pessoa' : (l.editor?.nome ? esc(l.editor.nome) : 'desconhecido');
+            return `
+            <div class="item-card" style="align-items:flex-start;">
+                <div class="item-info">
+                    <div class="item-nome">${esc(nomePessoa)}<span style="font-size:12px;font-weight:600;color:var(--cor-texto-muted)"> · CPF ${esc(cpfPessoa)} · ${esc(LABEL_TABELA_EDICAO_LOG[l.tabela] || l.tabela)}</span></div>
+                    <div class="item-detalhe" style="margin-top:3px;">editado por ${quemEditou} · ${histDataHora(l.alterado_em)}</div>
+                    ${l.alteracoes.map(a => renderizarCampoLogEdicao(a)).join('')}
+                </div>
+            </div>`;
+        }).join('');
+    }
+    function filtrarLogEdicoesPessoais(termo) {
+        const t = termo.trim().toLowerCase();
+        if (!t) { renderizarLogEdicoesPessoais(logEdicoesPessoaisCache); return; }
+        const filtrado = logEdicoesPessoaisCache.filter(l =>
+            (l.pessoa?.nome || '').toLowerCase().includes(t) || (l.pessoa?.cpf || '').includes(t)
+        );
+        renderizarLogEdicoesPessoais(filtrado);
     }
     async function carregarLogAlteracoes() {
         const container = document.getElementById('logs-alteracoes-lista');
