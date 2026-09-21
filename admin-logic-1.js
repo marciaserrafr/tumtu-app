@@ -4732,13 +4732,13 @@
     function abrirNovoEvento() {
         if (bibliotecaEventoTipos.length === 0) { mostrarToast('Nenhum Tipo de Evento cadastrado ainda — fale com o Super Admin.', 'erro'); return; }
         if (bibliotecaTemporadas.length === 0) { mostrarToast('Nenhuma Temporada cadastrada ainda — fale com o Super Admin.', 'erro'); return; }
-        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, perfis_diretoria_inclusos: [], temporada_id: bibliotecaTemporadas[0].id, inclui_extras: false };
+        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, perfis_diretoria_inclusos: [], temporada_id: bibliotecaTemporadas[0].id, inclui_extras: false, controle_portaria: false };
         renderizarEditorEvento();
     }
     function abrirEditarEvento(id) {
         const ev = eventosBateriaCache.find(x => x.id === id);
         if (!ev) return;
-        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, perfis_diretoria_inclusos: [...(ev.perfis_diretoria_inclusos || [])], temporada_id: ev.temporada_id || null, inclui_extras: !!ev.inclui_extras };
+        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, perfis_diretoria_inclusos: [...(ev.perfis_diretoria_inclusos || [])], temporada_id: ev.temporada_id || null, inclui_extras: !!ev.inclui_extras, controle_portaria: !!ev.controle_portaria };
         renderizarEditorEvento();
     }
     function renderizarEditorEvento() {
@@ -4772,6 +4772,18 @@
                     <input type="checkbox" id="ev-edit-inclui-extras" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.inclui_extras ? 'checked' : ''}>
                     <label for="ev-edit-inclui-extras" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Inclui Convidados (entram na lista de presença dos grupos marcados acima)</label>
                 </div>
+                <!-- Controle de portaria (21/set/2026) -- separa evento comum
+                     (ritmista confirma sozinho pela própria carteirinha) de
+                     evento com conferência na porta (só a verificação
+                     confirma; autoconfirmação fica desligada nesse evento,
+                     senão anularia a conferência visual). -->
+                <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="ev-edit-controle-portaria" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.controle_portaria ? 'checked' : ''}>
+                    <label for="ev-edit-controle-portaria" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Evento com controle de portaria</label>
+                </div>
+                <div class="campo campo-full" style="margin-top:-12px;">
+                    <p style="font-size:12px;color:var(--cor-texto-muted);margin:0;">Pra eventos com verificação de entrada por alguém na porta (ex: uma final) — desliga a confirmação de presença pelo próprio ritmista nesse evento (fica só com quem faz a verificação) e libera o botão "Link de Verificação de Entrada" na tela de Lista de Presença. Deixe desmarcado pra ensaio comum, onde o ritmista confirma a própria presença normalmente.</p>
+                </div>
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -4796,15 +4808,16 @@
         const temporada_id = Number(temporadaVal);
         const perfis_diretoria_inclusos = [...document.querySelectorAll('.ev-edit-perfil-diretoria:checked')].map(el => el.value);
         const inclui_extras = document.getElementById('ev-edit-inclui-extras').checked;
+        const controle_portaria = document.getElementById('ev-edit-controle-portaria').checked;
         const bateriaId = bateriaIdContexto();
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         salvandoEvento = true;
         try {
             let res;
             if (eventoEditando.id) {
-                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, controle_portaria }) });
             } else {
-                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, criado_por: u ? u.pessoa_id : null }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, controle_portaria, criado_por: u ? u.pessoa_id : null }) });
             }
             if (!res.ok) { tratarRespostaFalha('salvarEvento', res); mostrarToast(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar o evento.', 'erro'); return; }
             mostrarToast(eventoEditando.id ? 'Evento atualizado!' : 'Evento criado!');
@@ -4854,6 +4867,7 @@
         fecharScannerPresenca();
         fecharQrEvento();
         fecharQrFigurino();
+        fecharLinkVerificacaoEvento();
         document.querySelectorAll('#painel-presenca .config-subtela').forEach(el => el.style.display = 'none');
         document.getElementById('presenca-lista').style.display = 'block';
     }
@@ -4909,12 +4923,24 @@
         if (!evento) return;
         const valorAnterior = evento[campo];
         evento[campo] = valor;
+        // Finalizar o evento derruba o link de verificação de portaria na
+        // hora (21/set/2026) -- sem prazo escondido nenhum (decisão dela: já
+        // sofremos com expiração de sessão surpresa, não pode se repetir
+        // aqui), só expira quando ELA mesma finaliza o evento. Qualquer
+        // aparelho que já tinha o link aberto para de funcionar assim que o
+        // evento é marcado Finalizado.
+        const corpo = { [campo]: valor };
+        if (campo === 'finalizado' && valor === true) {
+            evento.token_verificacao_portaria = null;
+            corpo.token_verificacao_portaria = null;
+        }
         renderPresencaTrilhos();
+        renderizarBotaoVerificacaoPortaria();
         // Botão de marcar presença depende desse interruptor (04/set/2026) --
         // re-renderiza na hora, sem precisar sair e voltar da tela.
         renderizarPresencaLista();
         const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${evento.id}`, {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ [campo]: valor })
+            method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify(corpo)
         });
         if (await falhouAoSalvar('salvarFlagEvento', res)) {
             // Desfaz a mudança otimista, mesmo raciocínio de
@@ -4967,6 +4993,7 @@
         if (trilhosWrap) trilhosWrap.style.display = podeEditarEvento ? 'flex' : 'none';
         const qrBtns = document.getElementById('pres-qr-btns');
         if (qrBtns) qrBtns.style.display = podeMarcarPresenca ? 'flex' : 'none';
+        renderizarBotaoVerificacaoPortaria();
         // Risquinhos de separação -- só aparecem entre 2 blocos que estão
         // os DOIS visíveis (pedido dela, 30/ago/2026: "ajuda a separar o
         // que é cada coisa").
@@ -4991,7 +5018,7 @@
         // Diretoria (mesmo raciocínio de carregarRitmistas()).
         const especial = modoConvidadosEspecial();
         const buscas = [
-            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&eh_convidado=eq.false&perfil=in.(${perfis.join(',')})&order=nome&select=id,pessoa_id,nome,apelido,perfil,instrumento_nome,qr_token`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&eh_convidado=eq.false&perfil=in.(${perfis.join(',')})&order=nome&select=id,pessoa_id,nome,apelido,perfil,instrumento_nome,qr_token,foto_url`, { headers: authHeaders }),
             fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${evento.id}&vinculo_id=not.is.null`, { headers: authHeaders }),
         ];
         // Convidados (Extras) -- pedido dela, 29/ago/2026: "na configuração
@@ -5003,7 +5030,7 @@
         const gruposExtras = evento.inclui_extras ? gruposExtraDoPublico(perfis) : [];
         if (gruposExtras.length > 0) {
             if (especial) {
-                buscas.push(fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&eh_convidado=eq.true&perfil=in.(${gruposExtras.join(',')})&order=nome&select=id,pessoa_id,nome,apelido,perfil,qr_token`, { headers: authHeaders }));
+                buscas.push(fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?bateria_id=eq.${bateriaId}&status=eq.aprovado&eh_convidado=eq.true&perfil=in.(${gruposExtras.join(',')})&order=nome&select=id,pessoa_id,nome,apelido,perfil,qr_token,foto_url`, { headers: authHeaders }));
             } else {
                 buscas.push(
                     fetch(`${SUPABASE_URL}/rest/v1/extras?bateria_id=eq.${bateriaId}&grupo=in.(${gruposExtras.join(',')})&order=nome`, { headers: authHeaders }),
@@ -5015,14 +5042,14 @@
         const pessoas = resPessoas.ok ? await resPessoas.json() : [];
         const presencas = resPresencas.ok ? await resPresencas.json() : [];
         const presentesSet = new Set(presencas.map(p => p.vinculo_id));
-        const linhasPessoas = pessoas.map(p => ({ tipo: 'vinculo', id: p.id, pessoa_id: p.pessoa_id, nome: p.nome, apelido: p.apelido, perfil: p.perfil, instrumento_nome: p.instrumento_nome || null, qr_token: p.qr_token, presente: presentesSet.has(p.id) }));
+        const linhasPessoas = pessoas.map(p => ({ tipo: 'vinculo', id: p.id, pessoa_id: p.pessoa_id, nome: p.nome, apelido: p.apelido, perfil: p.perfil, instrumento_nome: p.instrumento_nome || null, qr_token: p.qr_token, foto_url: p.foto_url || null, presente: presentesSet.has(p.id) }));
         let linhasExtras = [];
         if (gruposExtras.length > 0 && especial) {
             const [resConvidados] = resto;
             const convidados = resConvidados.ok ? await resConvidados.json() : [];
             // Convidado Especial é vínculo de verdade -- presença dele já
             // está em presentesSet acima (mesma tabela/coluna vinculo_id).
-            linhasExtras = convidados.map(c => ({ tipo: 'extra', id: c.id, pessoa_id: c.pessoa_id, nome: c.nome, apelido: c.apelido, perfil: c.perfil, instrumento_nome: null, qr_token: c.qr_token, presente: presentesSet.has(c.id) }));
+            linhasExtras = convidados.map(c => ({ tipo: 'extra', id: c.id, pessoa_id: c.pessoa_id, nome: c.nome, apelido: c.apelido, perfil: c.perfil, instrumento_nome: null, qr_token: c.qr_token, foto_url: c.foto_url || null, presente: presentesSet.has(c.id) }));
         } else if (gruposExtras.length > 0) {
             const [resExtras, resExtrasPresencas] = resto;
             const extras = resExtras.ok ? await resExtras.json() : [];
@@ -5306,6 +5333,43 @@
         }
     }
 
+    // Link de Verificação de Entrada (21/set/2026) -- só aparece em eventos
+    // marcados "controle de portaria". Quem fiscaliza a porta em evento
+    // grande é a segurança da PRÓPRIA escola, sem login no TumTu -- esse
+    // link, aberto uma vez no celular de quem está na porta, libera aquele
+    // aparelho a ver foto + confirmar entrada ao ler o QR de cada
+    // carteirinha com a câmera comum (qr.html cuida disso). Mesma
+    // capacidade de quem liga Iniciado/Finalizado (editar_eventos) -- gerar
+    // esse link é uma decisão de segurança do evento, não uma marcação de
+    // presença do dia a dia.
+    function renderizarBotaoVerificacaoPortaria() {
+        const btn = document.getElementById('presenca-btn-link-portaria');
+        if (!btn) return;
+        const evento = presencaEventoAtual;
+        const podeEditarEvento = souSuperAdmin || tenhoCapacidade('editar_eventos');
+        btn.style.display = (evento && evento.controle_portaria && podeEditarEvento) ? 'inline-flex' : 'none';
+    }
+    async function abrirLinkVerificacaoEvento() {
+        const evento = presencaEventoAtual;
+        if (!evento) return;
+        let token = evento.token_verificacao_portaria;
+        if (!token) {
+            token = crypto.randomUUID();
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${evento.id}`, {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ token_verificacao_portaria: token })
+            });
+            if (!res.ok) { mostrarToast('Não foi possível gerar o link.', 'erro'); return; }
+            evento.token_verificacao_portaria = token;
+        }
+        const url = `${window.location.origin}/qr?v=${token}`;
+        document.getElementById('portaria-link-evento').textContent = evento.nome;
+        document.getElementById('portaria-link-input').value = url;
+        document.getElementById('portaria-link-overlay').style.display = 'flex';
+    }
+    function fecharLinkVerificacaoEvento() {
+        document.getElementById('portaria-link-overlay').style.display = 'none';
+    }
+
     // QR do próprio evento (29/ago/2026) -- o Diretor abre/projeta essa
     // tela, cada Ritmista escaneia com a câmera do PRÓPRIO celular (fora do
     // app) e cai em presenca.html, que confirma sozinho -- sem o Diretor
@@ -5426,13 +5490,30 @@
             feedback.innerHTML = `<div style="color:#e2986e;font-weight:700;">QR não reconhecido pra este evento.</div>`;
             return;
         }
+        // Foto vem direto do banco, agora, na hora do escaneamento -- nunca
+        // da tela de quem está entrando (achado dela, 20-21/set/2026,
+        // depois da suspeita real de foto trocada/impressa por cima da tela
+        // na final da Imperatriz). Quem confere é a Diretoria, olhando essa
+        // foto fresca na TELA DELA, comparando com o rosto de quem está na
+        // portaria -- print/edição na tela de quem tenta entrar não muda
+        // nada aqui, o dado vem sempre do banco.
+        const fotoHtml = fotoScannerPresencaHtml(pessoa);
         if (pessoa.presente) {
-            feedback.innerHTML = `<div style="color:#D4AF37;font-weight:700;">${esc(pessoa.nome)} já estava presente.</div>`;
+            feedback.innerHTML = `${fotoHtml}<div style="color:#D4AF37;font-weight:700;">já estava presente.</div>`;
             return;
         }
-        feedback.innerHTML = `<div style="color:#8d88a3;">Marcando ${esc(pessoa.nome)}...</div>`;
+        feedback.innerHTML = `${fotoHtml}<div style="color:#8d88a3;">marcando presença...</div>`;
         await marcarPresenca('vinculo', pessoa.id);
-        feedback.innerHTML = `<div style="color:#5cb85c;font-weight:700;font-size:16px;">✓ ${esc(pessoa.nome)} — presença marcada!</div>`;
+        feedback.innerHTML = `${fotoHtml}<div style="color:#5cb85c;font-weight:700;font-size:16px;">✓ presença marcada!</div>`;
+    }
+    function fotoScannerPresencaHtml(pessoa) {
+        const inicial = esc((pessoa.apelido || pessoa.nome || '?').trim().charAt(0).toUpperCase());
+        const miolo = pessoa.foto_url
+            ? `<img src="${esc(pessoa.foto_url)}" style="width:100%;height:100%;object-fit:cover;">`
+            : `<span style="font-size:26px;font-weight:800;color:#8d88a3;">${inicial}</span>`;
+        return `<div style="width:72px;height:72px;border-radius:50%;overflow:hidden;margin:0 auto 10px;background:#1c1a28;display:flex;align-items:center;justify-content:center;border:2px solid #D4AF37;">${miolo}</div>
+            <div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:2px;">${esc(pessoa.nome)}</div>
+            <div style="font-size:12px;color:#8d88a3;margin-bottom:8px;text-transform:capitalize;">${esc(pessoa.perfil)}${pessoa.instrumento_nome ? ' · ' + esc(pessoa.instrumento_nome) : ''}</div>`;
     }
 
     // ══════════════════════════════════════════════════════════════════

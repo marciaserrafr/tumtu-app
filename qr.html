@@ -12,6 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="TumTu">
     <script src="pwa-register.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/tokens.css?v=4">
     <link rel="stylesheet" href="styles/components.css?v=32">
@@ -112,6 +113,65 @@
             padding: 16px 0;
             font-style: italic;
         }
+
+        /* Verificação de entrada na portaria (21/set/2026) -- ver
+           admin-logic-1.js (renderizarBotaoVerificacaoPortaria/
+           abrirLinkVerificacaoEvento) pra como o link nasce. */
+        .foto-portaria {
+            width: 84px; height: 84px; border-radius: 50%; overflow: hidden;
+            margin: 0 auto 12px; background: #f4f3f8; display: flex;
+            align-items: center; justify-content: center;
+            border: 3px solid var(--cor-destaque);
+        }
+        .foto-portaria img { width: 100%; height: 100%; object-fit: cover; }
+        .foto-portaria span { font-size: 30px; font-weight: 800; color: var(--cor-texto-muted); }
+        .nome-portaria { text-align: center; font-size: 19px; font-weight: 800; color: var(--cor-texto-principal); margin-bottom: 2px; }
+        .sub-portaria { text-align: center; font-size: 13px; color: var(--cor-texto-muted); text-transform: capitalize; margin-bottom: 18px; }
+        .btn-confirmar-entrada {
+            display: block; width: 100%; padding: 16px; background: #2e7d32; color: #fff;
+            font-size: 16px; font-weight: 800; font-family: inherit; border: none; border-radius: 12px;
+            cursor: pointer; text-align: center;
+        }
+        .btn-confirmar-entrada:hover { background: #256428; }
+        .aviso-ja-entrou {
+            background: #fdecea; border: 1.5px solid #e57373; color: #c62828;
+            border-radius: 12px; padding: 14px 16px; text-align: center;
+            font-size: 15px; font-weight: 800;
+        }
+        .sucesso-entrada {
+            background: #e8f5e9; border: 1.5px solid #81c784; color: #256428;
+            border-radius: 12px; padding: 14px 16px; text-align: center;
+            font-size: 15px; font-weight: 800;
+        }
+        .erro-inline { color: var(--cor-erro); font-weight: 700; font-size: 14px; }
+        .link-discreto {
+            display: block; text-align: center; margin-top: 16px; font-size: 12px;
+            color: var(--cor-texto-muted); text-decoration: underline; cursor: pointer;
+            background: none; border: none; font-family: inherit;
+        }
+
+        /* Scanner embutido, tela cheia -- mesmo padrão visual do scanner de
+           Presença da Diretoria em admin.html, só que sem exigir login
+           nenhum (a autorização é o token guardado no localStorage). */
+        #scannerOverlay { display: none; position: fixed; inset: 0; z-index: 2000; background: #0b0a12; }
+        #scannerOverlay .topo { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; flex-shrink: 0; }
+        #scannerOverlay .rotulo { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #D4AF37; font-weight: 700; }
+        #scannerOverlay .evento-nome { font-size: 16px; font-weight: 800; color: #fff; }
+        #scannerOverlay .btn-fechar {
+            background: transparent; border: 1.5px solid rgba(255,255,255,0.3); color: #fff;
+            border-radius: 20px; padding: 8px 18px; cursor: pointer; font-family: inherit;
+            font-size: 13px; font-weight: 600;
+        }
+        #scannerVideoWrap { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #scannerVideo { width: 100%; height: 100%; object-fit: cover; }
+        #scannerMoldura {
+            position: absolute; width: min(70vw,320px); height: min(70vw,320px);
+            border: 3px solid #D4AF37; border-radius: 20px; box-shadow: 0 0 0 2000px rgba(0,0,0,0.45);
+            pointer-events: none;
+        }
+        #scannerFeedback { padding: 22px 20px; text-align: center; min-height: 76px; flex-shrink: 0; }
+        #scannerFeedback .nome-portaria, #scannerFeedback .sub-portaria { color: #fff; }
+        #scannerFeedback .sub-portaria { color: #8d88a3; }
     </style>
 </head>
 <body>
@@ -120,47 +180,84 @@
     <div id="conteudo"><div class="carregando">Carregando...</div></div>
 </div>
 
+<div id="scannerOverlay">
+    <div style="display:flex;flex-direction:column;height:100%;">
+        <div class="topo">
+            <div>
+                <div class="rotulo">Verificação de entrada</div>
+                <div class="evento-nome" id="scannerEventoNome"></div>
+            </div>
+            <button type="button" class="btn-fechar" onclick="fecharScannerEmbutido()">Fechar</button>
+        </div>
+        <div id="scannerVideoWrap">
+            <video id="scannerVideo" playsinline muted></video>
+            <div id="scannerMoldura"></div>
+        </div>
+        <div id="scannerFeedback">Aponte a câmera pro QR da carteirinha.</div>
+        <canvas id="scannerCanvas" style="display:none;"></canvas>
+    </div>
+</div>
+
 <script>
     const SUPABASE_URL = 'https://pkvzsgrkylrkyzligeim.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrdnpzZ3JreWxya3l6bGlnZWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg0NjAsImV4cCI6MjA5ODIwNDQ2MH0.jASGzRUdZWzUwOHDww3XSDPtzw8_JU_OfTCoCpJEWBM';
+    const RPC_HEADERS = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
+
+    // Verificação de entrada na portaria (21/set/2026) -- ver
+    // migração "verificacao_entrada_portaria" no banco. O token fica
+    // guardado só no localStorage DESSE aparelho -- nenhum login,
+    // nenhuma sessão do Supabase Auth envolvida (por pedido dela: não
+    // pode correr risco de "sessão expirada" durante um evento grande).
+    // Só para de funcionar quando o evento é marcado Finalizado (o
+    // token some do banco -- toda chamada às funções abaixo já checa
+    // isso de novo, do zero, a cada leitura).
+    const LS_TOKEN = 'tumtu_portaria_token';
+    const LS_NOME = 'tumtu_portaria_evento_nome';
 
     const params = new URLSearchParams(window.location.search);
-    const token = params.get('t');
+    const vParam = params.get('v');
+    const tParam = params.get('t');
 
-    async function carregar() {
+    function escHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function horaFormatada(iso) {
+        if (!iso) return '';
+        return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+    function desativarVerificacaoNesteAparelho() {
+        localStorage.removeItem(LS_TOKEN);
+        localStorage.removeItem(LS_NOME);
+        window.location.href = '/qr';
+    }
+    function fotoPortariaHtml(pessoa) {
+        const inicial = escHtml((pessoa.apelido || pessoa.nome || '?').trim().charAt(0).toUpperCase());
+        const miolo = pessoa.foto_url
+            ? `<img src="${escHtml(pessoa.foto_url)}">`
+            : `<span>${inicial}</span>`;
+        return `<div class="foto-portaria">${miolo}</div>
+            <div class="nome-portaria">${escHtml(pessoa.nome)}</div>
+            <div class="sub-portaria">${escHtml(pessoa.perfil)}${pessoa.instrumento_nome ? ' · ' + escHtml(pessoa.instrumento_nome) : ''}</div>`;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Página de emergência pública (comportamento original, 28/ago/2026)
+    // -- sem token de verificação ativo neste aparelho, é só isso que
+    // qualquer pessoa vê ao ler o QR de uma carteirinha.
+    // ══════════════════════════════════════════════════════════════
+    async function carregarEmergencia(token) {
         const div = document.getElementById('conteudo');
-
-        if (!token) {
-            div.innerHTML = '<div class="erro">QR code inválido.</div>';
-            return;
-        }
-
-        // Função em vez de view direta (28/ago/2026, correção de segurança
-        // real) -- uma view aceita ser consultada SEM filtro nenhum
-        // (devolvendo todo mundo), uma função com parâmetro obrigatório não.
-        // Ver docs/tumtu-documentacao-tecnica.md, seção da varredura.
-        const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/rpc/buscar_emergencia_por_qr`,
-            {
-                method: 'POST',
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ p_qr_token: token }),
-            }
-        );
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buscar_emergencia_por_qr`, {
+            method: 'POST', headers: RPC_HEADERS, body: JSON.stringify({ p_qr_token: token }),
+        });
         const dados = res.ok ? await res.json() : [];
-
-        if (!dados.length) {
-            div.innerHTML = '<div class="erro">Ritmista não encontrado.</div>';
-            return;
-        }
-
+        if (!dados.length) { div.innerHTML = '<div class="erro">Ritmista não encontrado.</div>'; return; }
         const r = dados[0];
         const temEmergencia = r.emergencia_nome || r.emergencia_celular;
-
         div.innerHTML = `
             <div class="secao">Ritmista</div>
-            <div class="nome-ritmista">${r.nome}</div>
-            ${r.tipo_sanguineo ? `<div class="campo"><div class="campo-label">Tipo sanguíneo</div><div class="campo-valor" style="color:var(--cor-erro);font-size:22px;">${r.tipo_sanguineo}</div></div>` : ''}
+            <div class="nome-ritmista">${escHtml(r.nome)}</div>
+            ${r.tipo_sanguineo ? `<div class="campo"><div class="campo-label">Tipo sanguíneo</div><div class="campo-valor" style="color:var(--cor-erro);font-size:22px;">${escHtml(r.tipo_sanguineo)}</div></div>` : ''}
             <div class="divisor"></div>
             <div class="secao">Contato de emergência</div>
             ${temEmergencia ? `
@@ -174,17 +271,191 @@
                     </span>
                     <span>Em caso de emergência durante ensaio ou desfile, entre em contato com:</span>
                 </div>
-                ${r.emergencia_nome ? `<div class="campo"><div class="campo-label">Nome</div><div class="campo-valor">${r.emergencia_nome}</div></div>` : ''}
-                ${r.emergencia_parentesco ? `<div class="campo"><div class="campo-label">Parentesco</div><div class="campo-valor">${r.emergencia_parentesco}</div></div>` : ''}
+                ${r.emergencia_nome ? `<div class="campo"><div class="campo-label">Nome</div><div class="campo-valor">${escHtml(r.emergencia_nome)}</div></div>` : ''}
+                ${r.emergencia_parentesco ? `<div class="campo"><div class="campo-label">Parentesco</div><div class="campo-valor">${escHtml(r.emergencia_parentesco)}</div></div>` : ''}
                 ${r.emergencia_celular ? `
-                    <div class="campo"><div class="campo-label">Celular</div><div class="campo-valor">${r.emergencia_celular}</div></div>
+                    <div class="campo"><div class="campo-label">Celular</div><div class="campo-valor">${escHtml(r.emergencia_celular)}</div></div>
                     <a class="btn-ligar" href="tel:${r.emergencia_celular.replace(/\D/g,'')}">📞 Ligar agora</a>
                 ` : ''}
             ` : '<div class="sem-emergencia">Contato de emergência não cadastrado.</div>'}
         `;
     }
 
-    carregar();
+    // ══════════════════════════════════════════════════════════════
+    // Ativação do link de verificação (?v=) -- link de uso único que a
+    // Diretoria manda pra quem vai fiscalizar a porta (sem login).
+    // ══════════════════════════════════════════════════════════════
+    async function ativarVerificacao(token) {
+        const div = document.getElementById('conteudo');
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/iniciar_verificacao_portaria`, {
+            method: 'POST', headers: RPC_HEADERS, body: JSON.stringify({ p_token: token }),
+        });
+        const dados = res.ok ? await res.json() : [];
+        if (!dados.length) {
+            div.innerHTML = '<div class="erro">Esse link não é válido ou o evento não está mais ativo. Peça um link novo pra Diretoria.</div>';
+            return;
+        }
+        localStorage.setItem(LS_TOKEN, token);
+        localStorage.setItem(LS_NOME, dados[0].evento_nome);
+        div.innerHTML = `
+            <div class="secao">Verificação ativada</div>
+            <div class="nome-ritmista">${escHtml(dados[0].evento_nome)}</div>
+            <p class="sem-emergencia" style="font-style:normal;">Este celular já está autorizado a conferir a entrada nesse evento. Agora é só apontar a câmera pro QR de cada carteirinha.</p>
+            <button class="btn-ligar" onclick="abrirScannerEmbutido('${token}')">📷 Começar a escanear</button>
+        `;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Consulta (só leitura) e confirmação de entrada -- a foto vem
+    // SEMPRE do banco, buscada agora, nunca da tela de quem está
+    // tentando entrar. Quem confere é a pessoa que segura ESTE
+    // aparelho, olhando ESTA tela.
+    // ══════════════════════════════════════════════════════════════
+    async function buscarPessoaPortaria(qrToken, portariaToken) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/consultar_qr_portaria`, {
+            method: 'POST', headers: RPC_HEADERS, body: JSON.stringify({ p_qr_token: qrToken, p_evento_token: portariaToken }),
+        });
+        const dados = res.ok ? await res.json() : [];
+        return dados.length ? dados[0] : null;
+    }
+    async function confirmarEntradaPortaria(vinculoId, portariaToken) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/confirmar_entrada_portaria`, {
+            method: 'POST', headers: RPC_HEADERS, body: JSON.stringify({ p_vinculo_id: vinculoId, p_evento_token: portariaToken }),
+        });
+        const dados = res.ok ? await res.json() : [];
+        return dados.length ? dados[0] : null;
+    }
+
+    // Tela cheia (sem params, ?t= aberto por fora, ou "Continuar
+    // escaneando") -- usada tanto na tela principal quanto dentro do
+    // scanner embutido, por isso recebe o container como parâmetro.
+    function renderizarResultadoPortaria(container, pessoa, portariaToken, dentroDoScanner) {
+        if (!pessoa) {
+            container.innerHTML = dentroDoScanner
+                ? '<span class="erro-inline">QR não reconhecido pra esse evento.</span>'
+                : '<div class="erro">Ritmista não encontrado, ou a verificação não está mais ativa.</div>';
+            return;
+        }
+        if (pessoa.ja_confirmado) {
+            const hora = horaFormatada(pessoa.presente_em);
+            container.innerHTML = `${fotoPortariaHtml(pessoa)}<div class="aviso-ja-entrou">⚠️ JÁ ENTROU${hora ? ' às ' + hora : ''}</div>`
+                + (dentroDoScanner ? '' : `<button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Continuar escaneando</button>`);
+            return;
+        }
+        container.innerHTML = `${fotoPortariaHtml(pessoa)}<button class="btn-confirmar-entrada" onclick="confirmarEEsconder(this, ${pessoa.vinculo_id}, '${portariaToken}', ${dentroDoScanner})">✓ Confirmar Entrada</button>`;
+    }
+    async function confirmarEEsconder(btn, vinculoId, portariaToken, dentroDoScanner) {
+        const container = btn.closest('#conteudo, #scannerFeedback');
+        container.innerHTML = '<div class="carregando" style="padding:0;">Confirmando...</div>';
+        const r = await confirmarEntradaPortaria(vinculoId, portariaToken);
+        if (!r || !r.ok) {
+            container.innerHTML = '<span class="erro-inline">Não foi possível confirmar. Tenta de novo.</span>'
+                + (dentroDoScanner ? '' : `<button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Voltar a escanear</button>`);
+            return;
+        }
+        if (r.ja_confirmado) {
+            container.innerHTML = `<div class="aviso-ja-entrou">⚠️ JÁ ENTROU antes</div>`
+                + (dentroDoScanner ? '' : `<button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Continuar escaneando</button>`);
+            return;
+        }
+        container.innerHTML = `<div class="sucesso-entrada">✓ ${escHtml(r.nome)} — entrada confirmada!</div>`
+            + (dentroDoScanner ? '' : `<button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Continuar escaneando</button>`);
+    }
+
+    async function mostrarResultadoPortaria(qrToken, portariaToken) {
+        const div = document.getElementById('conteudo');
+        div.innerHTML = '<div class="carregando">Carregando...</div>';
+        const pessoa = await buscarPessoaPortaria(qrToken, portariaToken);
+        renderizarResultadoPortaria(div, pessoa, portariaToken, false);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Scanner embutido -- fica na página, câmera acesa, lendo QR após
+    // QR sem precisar sair pra outro app (jsQR, mesmo padrão já usado
+    // no scanner de Presença da Diretoria em admin-logic-1.js).
+    // ══════════════════════════════════════════════════════════════
+    let scannerStream = null, scannerAnimId = null, scannerUltimoToken = null, scannerUltimoTs = 0;
+
+    async function abrirScannerEmbutido(portariaToken) {
+        if (typeof jsQR !== 'function') { alert('O leitor de QR ainda não carregou -- tenta de novo em alguns segundos.'); return; }
+        const overlay = document.getElementById('scannerOverlay');
+        document.getElementById('scannerEventoNome').textContent = localStorage.getItem(LS_NOME) || '';
+        document.getElementById('scannerFeedback').innerHTML = 'Aponte a câmera pro QR da carteirinha.';
+        scannerUltimoToken = null;
+        overlay.style.display = 'block';
+        try {
+            scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        } catch (e) {
+            document.getElementById('scannerFeedback').innerHTML = '<span class="erro-inline">Não consegui acessar a câmera -- confira a permissão do navegador.</span>';
+            return;
+        }
+        const video = document.getElementById('scannerVideo');
+        video.srcObject = scannerStream;
+        await video.play();
+        loopScanner(portariaToken);
+    }
+    function fecharScannerEmbutido() {
+        document.getElementById('scannerOverlay').style.display = 'none';
+        if (scannerAnimId) cancelAnimationFrame(scannerAnimId);
+        scannerAnimId = null;
+        if (scannerStream) { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
+    }
+    function loopScanner(portariaToken) {
+        const video = document.getElementById('scannerVideo');
+        if (!video || document.getElementById('scannerOverlay').style.display === 'none') return;
+        if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+            scannerAnimId = requestAnimationFrame(() => loopScanner(portariaToken));
+            return;
+        }
+        const canvas = document.getElementById('scannerCanvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imagem = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const codigo = jsQR(imagem.data, imagem.width, imagem.height);
+        if (codigo && codigo.data) processarLeituraScanner(codigo.data, portariaToken);
+        scannerAnimId = requestAnimationFrame(() => loopScanner(portariaToken));
+    }
+    function extrairQrTokenDeTexto(texto) {
+        try { const url = new URL(texto); const t = url.searchParams.get('t'); if (t) return t; } catch (e) { /* token puro abaixo */ }
+        return (texto || '').trim();
+    }
+    async function processarLeituraScanner(textoLido, portariaToken) {
+        const token = extrairQrTokenDeTexto(textoLido);
+        const agora = Date.now();
+        if (token === scannerUltimoToken && (agora - scannerUltimoTs) < 3000) return;
+        scannerUltimoToken = token;
+        scannerUltimoTs = agora;
+        const feedback = document.getElementById('scannerFeedback');
+        feedback.innerHTML = 'Verificando...';
+        const pessoa = await buscarPessoaPortaria(token, portariaToken);
+        renderizarResultadoPortaria(feedback, pessoa, portariaToken, true);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    async function iniciar() {
+        if (vParam) { await ativarVerificacao(vParam); return; }
+        const portariaToken = localStorage.getItem(LS_TOKEN);
+        if (tParam) {
+            if (portariaToken) { await mostrarResultadoPortaria(tParam, portariaToken); }
+            else { await carregarEmergencia(tParam); }
+            return;
+        }
+        if (portariaToken) {
+            const div = document.getElementById('conteudo');
+            div.innerHTML = `
+                <div class="secao">Verificação ativa</div>
+                <div class="nome-ritmista">${escHtml(localStorage.getItem(LS_NOME) || '')}</div>
+                <button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Começar a escanear</button>
+                <button type="button" class="link-discreto" onclick="desativarVerificacaoNesteAparelho()">Desativar verificação neste aparelho</button>
+            `;
+            return;
+        }
+        document.getElementById('conteudo').innerHTML = '<div class="erro">QR code inválido.</div>';
+    }
+
+    iniciar();
 </script>
 </body>
 </html>

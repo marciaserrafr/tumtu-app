@@ -1099,7 +1099,10 @@
         try {
             const token = await tokenAtual();
             const hdrs = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` };
-            const resEventos = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${ritmista.bateria_id}&iniciado=eq.true&finalizado=eq.false&select=id,perfis_diretoria_inclusos`, { headers: hdrs });
+            // controle_portaria=eq.false (21/set/2026): evento com
+            // verificação na porta nunca entra aqui -- autoconfirmação pelo
+            // próprio ritmista anularia a conferência visual da portaria.
+            const resEventos = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${ritmista.bateria_id}&iniciado=eq.true&finalizado=eq.false&controle_portaria=eq.false&select=id,perfis_diretoria_inclusos`, { headers: hdrs });
             const eventos = resEventos.ok ? await resEventos.json() : [];
             const elegiveis = eventos.filter(e => ritmista.perfil === 'ritmista' || (e.perfis_diretoria_inclusos || []).includes(ritmista.perfil));
             if (!elegiveis.length) return;
@@ -1205,7 +1208,7 @@
             // volta inteira até o banco (achado real da Márcia, 31/ago/2026:
             // "demorou pra registrar", testando ao vivo).
             const [resEvento, resJa] = await Promise.all([
-                fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoId}&select=id,nome,bateria_id,perfis_diretoria_inclusos,iniciado,finalizado`, { headers: hdrs }),
+                fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoId}&select=id,nome,bateria_id,perfis_diretoria_inclusos,iniciado,finalizado,controle_portaria`, { headers: hdrs }),
                 fetch(`${SUPABASE_URL}/rest/v1/evento_presencas?evento_id=eq.${eventoId}&vinculo_id=eq.${ritmista.id}&select=id`, { headers: hdrs }),
             ]);
             const eventos = resEvento.ok ? await resEvento.json() : [];
@@ -1223,6 +1226,13 @@
             }
             if (!evento.iniciado || evento.finalizado) {
                 feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">Esse evento não está ativo no momento.</span>';
+                return;
+            }
+            // 21/set/2026: evento com controle de portaria só confirma pela
+            // verificação da porta -- nunca por autoconfirmação, mesmo que
+            // alguém escaneie o QR do evento direto.
+            if (evento.controle_portaria) {
+                feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">Esse evento usa verificação na portaria — sua entrada é confirmada por lá.</span>';
                 return;
             }
 

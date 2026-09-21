@@ -3164,6 +3164,7 @@
                 <div class="pres-qr-btns" id="pres-qr-btns" style="display:none;">
                     <button type="button" id="presenca-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrEvento()">🎫 Mostrar QR do Evento</button>
                     <button type="button" id="presenca-btn-escanear" class="btn-contorno" onclick="abrirScannerPresenca()">📷 Escanear</button>
+                    <button type="button" id="presenca-btn-link-portaria" class="btn-contorno" style="display:none;" onclick="abrirLinkVerificacaoEvento()">🔗 Link de Verificação de Entrada</button>
                 </div>
             </div>
             <div id="presenca-grupos-detalhe"></div>
@@ -3237,6 +3238,34 @@
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;">
             <div id="presenca-qr-codigo" style="background:#fff;padding:20px;border-radius:16px;"></div>
             <div id="presenca-qr-instrucao" class="oculta-impressao" style="color:#b3aec8;font-size:14px;text-align:center;max-width:320px;">Peça pra cada pessoa escanear com a câmera do próprio celular pra confirmar a própria presença.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Link de Verificação de Entrada (21/set/2026) -- pra eventos com
+     controle de portaria. Não é um QR pra escanear -- é um link pra
+     mandar (WhatsApp, etc.) pra quem vai ficar na porta, sem login
+     nenhum no TumTu. Abrir esse link UMA VEZ no celular de quem vai
+     fiscalizar libera aquele aparelho a ver foto + confirmar entrada ao
+     ler o QR de cada carteirinha com a própria câmera (ver qr.html). -->
+<div id="portaria-link-overlay" style="display:none;position:fixed;inset:0;z-index:2000;background:#0b0a12;">
+    <div style="display:flex;flex-direction:column;height:100%;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;flex-shrink:0;">
+            <div>
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#D4AF37;font-weight:700;">Link de verificação de entrada</div>
+                <div id="portaria-link-evento" style="font-size:16px;font-weight:800;color:#fff;"></div>
+            </div>
+            <button type="button" onclick="fecharLinkVerificacaoEvento()" style="background:transparent;border:1.5px solid rgba(255,255,255,0.3);color:#fff;border-radius:20px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">Fechar</button>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;">
+            <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:440px;">
+                <p style="font-size:13px;color:#5a5770;margin:0 0 14px;">Mande esse link pra quem vai fiscalizar a entrada (ex: segurança da escola). Ela abre UMA VEZ no próprio celular, antes do evento começar — depois disso, é só escanear o QR de cada carteirinha com a câmera normal do celular, quantas vezes precisar. Sem login, sem instalar nada.</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <input type="text" id="portaria-link-input" readonly style="flex:1;min-width:200px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;color:#333;">
+                    <button class="btn-modal-confirmar verde" onclick="copiarLinkCadastroAdmin(this)">Copiar</button>
+                </div>
+                <p style="font-size:12px;color:var(--cor-texto-muted);margin:14px 0 0;">Esse link para de funcionar sozinho quando você marcar este evento como "Evento Finalizado" — não tem prazo escondido antes disso.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -3757,7 +3786,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=49" defer></script>
+<script src="admin-logic-1.js?v=50" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">
