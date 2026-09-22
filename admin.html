@@ -72,7 +72,7 @@
     <!-- defer (06/set/2026) -- nenhuma das duas executa nada sozinha ao
          carregar, só define função pra usar depois (conferido no código
          das duas), então não corre risco nenhum de rodar antes da hora. -->
-    <script src="ficha-perfil.js?v=74" defer></script>
+    <script src="ficha-perfil.js?v=75" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
         /* Desligada de novo (06/set/2026, mesma sessão -- teste de
@@ -3134,14 +3134,14 @@
 <div class="painel" id="painel-presenca">
     <div id="presenca-lista">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <div class="painel-titulo">Lista de Presença</div>
+        <div class="painel-titulo">Presença</div>
         <p class="config-sub-desc">Marque presença por evento. Pra cadastrar um evento novo, use Configurações → Eventos.</p>
         <div id="presenca-eventos-lista" class="lista-cards"></div>
     </div>
 
     <div id="presenca-tela-marcar" class="config-subtela" style="display:none;">
-        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Lista de Presença</button>
-        <div class="painel-titulo" id="presenca-evento-titulo">Lista de Presença</div>
+        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Presença</button>
+        <div class="painel-titulo" id="presenca-evento-titulo">Presença</div>
         <!-- Cartão único: números + Iniciado/Finalizado (interruptor) +
              botões de QR, tudo junto num só .vg-card (30/ago/2026 -- antes
              eram 2 caixas separadas, "cheio de quadrado" na avaliação
@@ -3162,7 +3162,11 @@
                 </div>
                 <div class="pres-divisor-v" id="pres-divisor-2" style="display:none;"></div>
                 <div class="pres-qr-btns" id="pres-qr-btns" style="display:none;">
-                    <button type="button" id="presenca-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrEvento()">🎫 Mostrar QR do Evento</button>
+                    <!-- Ícone de QR desenhado à mão (22/set/2026) -- não existe
+                         emoji de QR code de verdade no teclado; o 🎫 (ticket)
+                         foi liberado pro Controle de Acesso, que combina mais
+                         com a ideia real (catraca/entrada de show). -->
+                    <button type="button" id="presenca-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrEvento()"><svg width="13" height="13" viewBox="0 0 21 21" fill="none"><rect x="0" y="0" width="7" height="7" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="3" height="3" fill="currentColor"/><rect x="14" y="0" width="7" height="7" stroke="currentColor" stroke-width="1.5"/><rect x="16" y="2" width="3" height="3" fill="currentColor"/><rect x="0" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="16" width="3" height="3" fill="currentColor"/><rect x="14" y="14" width="3" height="3" fill="currentColor"/><rect x="14" y="18" width="3" height="3" fill="currentColor"/><rect x="18" y="14" width="3" height="3" fill="currentColor"/></svg>Mostrar QR do Evento</button>
                     <button type="button" id="presenca-btn-escanear" class="btn-contorno" onclick="abrirScannerPresenca()">📷 Escanear</button>
                     <button type="button" id="presenca-btn-link-portaria" class="btn-contorno" style="display:none;" onclick="abrirLinkVerificacaoEvento()">🔗 Link de Verificação de Entrada</button>
                 </div>
@@ -3786,7 +3790,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=50" defer></script>
+<script src="admin-logic-1.js?v=51" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

@@ -484,7 +484,7 @@
 
 <div class="c-toast" id="cToast"></div>
 
-<script src="ficha-perfil.js?v=74" defer></script>
+<script src="ficha-perfil.js?v=75" defer></script>
 <script src="faceid.js?v=2" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
 <script>
@@ -1232,7 +1232,7 @@
             // verificação da porta -- nunca por autoconfirmação, mesmo que
             // alguém escaneie o QR do evento direto.
             if (evento.controle_portaria) {
-                feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">Esse evento usa verificação na portaria — sua entrada é confirmada por lá.</span>';
+                feedback.innerHTML = '<span style="color:var(--cor-terracota-clara);font-weight:700;">Esse evento usa Controle de Acesso — sua entrada é confirmada na hora, por lá.</span>';
                 return;
             }
 

@@ -4688,11 +4688,27 @@
         const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?ativo=eq.true&order=ordem`, { headers: authHeaders });
         bibliotecaTemporadas = res.ok ? await res.json() : [];
     }
+    let souMestreOuAdminBateria = false;
     async function carregarEventosBateria() {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { eventosBateriaCache = []; return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&order=data.desc`, { headers: authHeaders });
-        eventosBateriaCache = res.ok ? await res.json() : [];
+        if (!bateriaId) { eventosBateriaCache = []; souMestreOuAdminBateria = false; return; }
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        const [resEventos, resVinculo] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&order=data.desc`, { headers: authHeaders }),
+            (souSuperAdmin || !u || !u.pessoa_id)
+                ? Promise.resolve(null)
+                : fetch(`${SUPABASE_URL}/rest/v1/vinculos?pessoa_id=eq.${u.pessoa_id}&bateria_id=eq.${bateriaId}&status=eq.aprovado&select=perfil,eh_admin_bateria`, { headers: authHeaders }),
+        ]);
+        eventosBateriaCache = resEventos.ok ? await resEventos.json() : [];
+        // Trava de Edição (22/set/2026) -- só Mestre/Admin da Bateria/Super
+        // Admin podem ligar/desligar (ver aplicar_matriz_edicao_vinculos e
+        // aplicar_matriz_edicao_pessoas, que travam a edição de TODO MUNDO
+        // durante o evento, exceto esses três perfis).
+        if (souSuperAdmin) { souMestreOuAdminBateria = true; }
+        else {
+            const vinculos = (resVinculo && resVinculo.ok) ? await resVinculo.json() : [];
+            souMestreOuAdminBateria = vinculos.some(v => v.perfil === 'mestre' || v.eh_admin_bateria === true);
+        }
     }
     function nomeTipoEvento(id) {
         const t = bibliotecaEventoTipos.find(x => x.id === id);
@@ -4723,7 +4739,7 @@
         container.innerHTML = eventosBateriaCache.map(ev => `
             <div class="item-card">
                 <div class="item-info">
-                    <div class="item-nome">${esc(ev.nome)}</div>
+                    <div class="item-nome">${ev.controle_portaria ? '🎫' : '✅'}${ev.trava_edicao ? ' 🔒' : ''} ${esc(ev.nome)}</div>
                     <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${ev.inclui_extras ? ' · Convidados' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
                 </div>
                 ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEvento(${ev.id})">Editar</button></div>` : ''}
@@ -4732,13 +4748,13 @@
     function abrirNovoEvento() {
         if (bibliotecaEventoTipos.length === 0) { mostrarToast('Nenhum Tipo de Evento cadastrado ainda — fale com o Super Admin.', 'erro'); return; }
         if (bibliotecaTemporadas.length === 0) { mostrarToast('Nenhuma Temporada cadastrada ainda — fale com o Super Admin.', 'erro'); return; }
-        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, perfis_diretoria_inclusos: [], temporada_id: bibliotecaTemporadas[0].id, inclui_extras: false, controle_portaria: false };
+        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, perfis_diretoria_inclusos: [], temporada_id: bibliotecaTemporadas[0].id, inclui_extras: false, controle_portaria: false, trava_edicao: false };
         renderizarEditorEvento();
     }
     function abrirEditarEvento(id) {
         const ev = eventosBateriaCache.find(x => x.id === id);
         if (!ev) return;
-        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, perfis_diretoria_inclusos: [...(ev.perfis_diretoria_inclusos || [])], temporada_id: ev.temporada_id || null, inclui_extras: !!ev.inclui_extras, controle_portaria: !!ev.controle_portaria };
+        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, perfis_diretoria_inclusos: [...(ev.perfis_diretoria_inclusos || [])], temporada_id: ev.temporada_id || null, inclui_extras: !!ev.inclui_extras, controle_portaria: !!ev.controle_portaria, trava_edicao: !!ev.trava_edicao };
         renderizarEditorEvento();
     }
     function renderizarEditorEvento() {
@@ -4772,18 +4788,37 @@
                     <input type="checkbox" id="ev-edit-inclui-extras" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.inclui_extras ? 'checked' : ''}>
                     <label for="ev-edit-inclui-extras" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Inclui Convidados (entram na lista de presença dos grupos marcados acima)</label>
                 </div>
-                <!-- Controle de portaria (21/set/2026) -- separa evento comum
-                     (ritmista confirma sozinho pela própria carteirinha) de
-                     evento com conferência na porta (só a verificação
-                     confirma; autoconfirmação fica desligada nesse evento,
-                     senão anularia a conferência visual). -->
+                <!-- Controle de Acesso / Check-in (21/set/2026, renomeado
+                     22/set/2026 -- nome de mercado, mesmo termo usado pela
+                     Sympla) -- separa evento comum (ritmista confirma
+                     sozinho pela própria carteirinha) de evento com
+                     conferência na porta (só a verificação confirma;
+                     autoconfirmação fica desligada nesse evento, senão
+                     anularia a conferência visual). -->
                 <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
                     <input type="checkbox" id="ev-edit-controle-portaria" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.controle_portaria ? 'checked' : ''}>
-                    <label for="ev-edit-controle-portaria" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Evento com controle de portaria</label>
+                    <label for="ev-edit-controle-portaria" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Evento com Controle de Acesso (Check-in)</label>
                 </div>
                 <div class="campo campo-full" style="margin-top:-12px;">
-                    <p style="font-size:12px;color:var(--cor-texto-muted);margin:0;">Pra eventos com verificação de entrada por alguém na porta (ex: uma final) — desliga a confirmação de presença pelo próprio ritmista nesse evento (fica só com quem faz a verificação) e libera o botão "Link de Verificação de Entrada" na tela de Lista de Presença. Deixe desmarcado pra ensaio comum, onde o ritmista confirma a própria presença normalmente.</p>
+                    <p style="font-size:12px;color:var(--cor-texto-muted);margin:0;">Pra eventos com verificação de entrada por alguém na porta (ex: uma final) — desliga a confirmação de presença pelo próprio ritmista nesse evento (fica só com quem faz a verificação) e libera o botão "Link de Verificação de Entrada" na tela de Presença. Deixe desmarcado pra ensaio comum, onde o ritmista confirma a própria presença normalmente.</p>
                 </div>
+                ${souMestreOuAdminBateria ? `
+                <!-- Trava de Edição (22/set/2026) -- pedido dela depois da
+                     suspeita de fraude na final da Imperatriz: durante um
+                     evento sensível, ninguém edita a própria ficha nem a de
+                     ninguém, exceto Mestre/Admin da Bateria/Super Admin (que
+                     continuam com as permissões normais). Só esses três
+                     perfis veem e mexem neste interruptor -- reforçado no
+                     banco (aplicar_matriz_edicao_pessoas/vinculos +
+                     trg_restringir_trava_edicao_eventos), não só escondido
+                     na tela. -->
+                <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="ev-edit-trava-edicao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.trava_edicao ? 'checked' : ''}>
+                    <label for="ev-edit-trava-edicao" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Trava de Edição</label>
+                </div>
+                <div class="campo campo-full" style="margin-top:-12px;">
+                    <p style="font-size:12px;color:var(--cor-texto-muted);margin:0;">Enquanto ligada, ninguém edita a própria ficha (nem a de outra pessoa) durante este evento -- só Mestre, Admin da Bateria e Super Admin continuam podendo. Você pode ligar e desligar a qualquer momento; ao marcar o evento como Finalizado, desliga sozinha.</p>
+                </div>` : ''}
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -4809,15 +4844,20 @@
         const perfis_diretoria_inclusos = [...document.querySelectorAll('.ev-edit-perfil-diretoria:checked')].map(el => el.value);
         const inclui_extras = document.getElementById('ev-edit-inclui-extras').checked;
         const controle_portaria = document.getElementById('ev-edit-controle-portaria').checked;
+        // Checkbox só existe no HTML pra Mestre/Admin/Super Admin -- pra
+        // qualquer outra pessoa, mantém o valor que já estava carregado
+        // (nunca manda "false" por engano só porque o campo não apareceu).
+        const elTravaEdicao = document.getElementById('ev-edit-trava-edicao');
+        const trava_edicao = elTravaEdicao ? elTravaEdicao.checked : !!eventoEditando.trava_edicao;
         const bateriaId = bateriaIdContexto();
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         salvandoEvento = true;
         try {
             let res;
             if (eventoEditando.id) {
-                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, controle_portaria }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, controle_portaria, trava_edicao }) });
             } else {
-                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, controle_portaria, criado_por: u ? u.pessoa_id : null }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, controle_portaria, trava_edicao, criado_por: u ? u.pessoa_id : null }) });
             }
             if (!res.ok) { tratarRespostaFalha('salvarEvento', res); mostrarToast(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar o evento.', 'erro'); return; }
             mostrarToast(eventoEditando.id ? 'Evento atualizado!' : 'Evento criado!');
@@ -4891,7 +4931,7 @@
         container.innerHTML = presencaEventosCache.map(ev => `
             <div class="item-card item-card-simples" onclick="abrirPresencaEvento(${ev.id})" style="cursor:pointer;">
                 <div class="item-info">
-                    <div class="item-nome">${esc(ev.nome)}</div>
+                    <div class="item-nome">${ev.controle_portaria ? '🎫' : '✅'}${ev.trava_edicao ? ' 🔒' : ''} ${esc(ev.nome)}</div>
                     <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
                 </div>
                 <span class="config-item-seta">›</span>
@@ -5685,7 +5725,7 @@
         { aba: 'dados-bateria', label: 'Dados da Bateria', grupo: 'Cadastros' },
         { aba: 'extras', label: 'Convidados', grupo: 'Cadastros' },
         { aba: 'figurino', label: 'Entrega de Figurino', grupo: 'Operação' },
-        { aba: 'presenca', label: 'Lista de Presença', grupo: 'Operação' },
+        { aba: 'presenca', label: 'Presença', grupo: 'Operação' },
         { aba: 'permissoes', label: 'Permissões', grupo: 'Ajustes' },
         { aba: 'historico', label: 'Histórico', grupo: 'Operação' },
         // Não abre painel nenhum aqui dentro -- clicar leva pra
@@ -5923,6 +5963,7 @@
     }
     function clicarSubMais(aba, el) {
         navegarItemAdministrativo(aba, null);
+        document.querySelectorAll('.aba-sub-btn.ativa').forEach(b => b.classList.remove('ativa'));
         el.classList.add('ativa');
     }
 
@@ -7220,7 +7261,7 @@
         // qualquer Diretor que não tivesse acesso a Configurações, mesmo
         // sendo exatamente quem deveria poder marcar presença. Capacidade
         // solta, sem depender de nada -- mesmo padrão de ver_carteirinha_outros.
-        { grupo: 'Lista de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
+        { grupo: 'Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
         // Convidados (25/ago/2026, reorganizado 31/ago/2026, modelo Simples
         // removido de vez em 16/set/2026 -- desde a unificação de 04/set,
         // toda bateria usa sempre o modelo Especial, então só existe 1 grupo
