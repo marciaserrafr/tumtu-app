@@ -721,13 +721,25 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
         }
     }
 
-    const podeVerNaoDesfila = alvo.perfil === 'ritmista' && !autoedicao && typeof tenhoCapacidade === 'function' && tenhoCapacidade('ver_nao_desfila');
+    // Convidado Especial (23/set/2026): mesmo padrão de "medidas" em
+    // fpCamposEditaveis acima -- só convidado com perfil 'ritmista' (não
+    // 'apoio'), via editar_convidados_especiais, nunca as capacidades
+    // granulares normais de Ritmistas (ver_nao_desfila/editar_nao_desfila).
+    // Motivo: Grade de Tamanhos (Fantasia/Sapato) precisa saber quem não
+    // desfila pra não contar a peça de quem não vai usar -- antes só
+    // Ritmista tinha esse campo, Convidado não tinha onde marcar.
+    const ehConvidadoRitmista = alvo.eh_convidado === true && alvo.perfil === 'ritmista';
+    const podeVerNaoDesfila = !autoedicao && typeof tenhoCapacidade === 'function' && (
+        ehConvidadoRitmista ? tenhoCapacidade('editar_convidados_especiais') : (alvo.perfil === 'ritmista' && tenhoCapacidade('ver_nao_desfila'))
+    );
     const blocoNaoDesfila = fpEl('fp-bloco-nao-desfila');
     if (blocoNaoDesfila) {
         blocoNaoDesfila.style.display = podeVerNaoDesfila ? '' : 'none';
         if (podeVerNaoDesfila) {
             fpEstado.naoDesfilaValor = !!alvo.nao_desfila;
-            fpEstado.naoDesfilaPodeEditar = typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_nao_desfila');
+            fpEstado.naoDesfilaPodeEditar = ehConvidadoRitmista
+                ? true
+                : (typeof tenhoCapacidade === 'function' && tenhoCapacidade('editar_nao_desfila'));
             fpRenderToggleNaoDesfila();
         }
     }

@@ -1088,6 +1088,11 @@
 
         document.getElementById('exportTituloCustom').value = '';
         await carregarGruposMedidaExport();
+        // Garante bateriaMedidaTiposCache fresco antes de exportar (23/set/2026)
+        // -- linhasExportacao() depende de inclui_nao_desfila pra saber quem
+        // sai de Fantasia/Sapato; sem isso, exportar sem nunca ter visitado
+        // Configurações deixava o cache vazio e a exclusão não acontecia.
+        await carregarBateriaMedidaTipos();
 
         document.getElementById('exportFiltrosContainer').style.display = 'block';
         popularFiltrosExportacao();
@@ -1138,13 +1143,19 @@
                 const campo = todosCampos.find(c => c.chave === chave);
                 let valor;
                 if (chave.startsWith('medida_')) {
-                    // "Não Desfila" (28/ago/2026): sai só do pedido de
-                    // fantasia -- continua aparecendo normal em Camisa/
-                    // Calça/Sapato/qualquer outra medida.
-                    if (r.nao_desfila && campo.label.toLowerCase().includes('fantasia')) {
+                    const tipoId = Number(chave.slice('medida_'.length));
+                    // "Inclui quem 'Não Desfila'?" (23/set/2026) -- virou
+                    // configuração por Medida (Configurações → Medidas,
+                    // bateria_medida_tipos.inclui_nao_desfila), não mais
+                    // regra fixa aqui. Antes só existia pra Fantasia, via
+                    // texto do rótulo (campo.label.includes('fantasia')) --
+                    // achado de risco real: escondido, difícil de saber que
+                    // existia, e não cobria Sapato até ela pedir na sessão.
+                    const configTipo = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipoId);
+                    const incluiNaoDesfila = configTipo ? configTipo.inclui_nao_desfila !== false : true;
+                    if (r.nao_desfila && !incluiNaoDesfila) {
                         valor = '';
                     } else {
-                        const tipoId = Number(chave.slice('medida_'.length));
                         const doVinculo = valoresMedidaPorVinculo[r.id];
                         valor = (doVinculo && doVinculo[tipoId]) || '';
                     }
@@ -3442,6 +3453,13 @@
         const tipoAtivo = !!(tipoExistente && tipoExistente.ativo); // sem linha = desligado, mesmo padrão de Instrumentos
         const aberto = medidaTiposAbertos.has(tipo.id);
         const publico = publicoMedidaTipo(tipoExistente);
+        // "Inclui quem não desfila?" (23/set/2026) -- antes era regra fixa em
+        // JS só pra Fantasia/Sapato (achado arriscado, invisível pra ela).
+        // Vira configuração normal, mesmo padrão de "Quem preenche esta
+        // categoria" acima -- só faz sentido pra Medida que inclui Ritmista
+        // no público (Não Desfila é um atributo de ritmista/convidado-
+        // ritmista, não existe pra Mestre/Diretor/Apoio puros).
+        const incluiNaoDesfila = tipoExistente ? tipoExistente.inclui_nao_desfila !== false : true;
         return `
             <div class="item-card config-medida-card">
                 <div class="config-medida-header" onclick="toggleMedidaTipoAberto(${tipo.id})">
@@ -3462,6 +3480,14 @@
                                 </label>`).join('')}
                         </div>
                     </div>
+                    ${publico.includes('ritmista') ? `<div class="config-medida-publico">
+                        <div class="config-medida-publico-itens">
+                            <label class="config-instrumento-check">
+                                <input type="checkbox" ${incluiNaoDesfila ? 'checked' : ''} ${tipoAtivo ? '' : 'disabled'} onchange="salvarMedidaTipoIncluiNaoDesfila(${tipo.id}, this.checked)">
+                                <span>Inclui quem "Não Desfila"</span>
+                            </label>
+                        </div>
+                    </div>` : ''}
                     ${itens.map(t => renderizarLinhaMedida(t)).join('')}
                 </div>` : ''}
             </div>`;
@@ -3524,6 +3550,19 @@
             body: JSON.stringify({ publico: novo })
         });
         if (await falhouAoSalvar('salvarMedidaTipoPublico', res)) return;
+        await carregarBateriaMedidaTipos();
+        renderizarConfigMedidas();
+    }
+
+    async function salvarMedidaTipoIncluiNaoDesfila(tipoId, checked) {
+        const existente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipoId);
+        if (!existente) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ inclui_nao_desfila: checked })
+        });
+        if (await falhouAoSalvar('salvarMedidaTipoIncluiNaoDesfila', res)) return;
         await carregarBateriaMedidaTipos();
         renderizarConfigMedidas();
     }
@@ -5562,6 +5601,7 @@
         'historico': 'ver_historico',
         'figurino': 'ver_figurino',
         'presenca': 'ver_eventos',
+        'grade-tamanhos': 'ver_grade_tamanhos',
         'manual-instrucoes': 'ver_manual_instrucoes',
     };
 
@@ -5586,7 +5626,7 @@
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
     // das capacidades dos itens que ela agrupa.
-    const ABAS_ADMINISTRATIVO = ['comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'permissoes', 'historico', 'manual-instrucoes'];
+    const ABAS_ADMINISTRATIVO = ['comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'grade-tamanhos', 'permissoes', 'historico', 'manual-instrucoes'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -5686,6 +5726,7 @@
         { aba: 'extras', label: 'Convidados', grupo: 'Cadastros' },
         { aba: 'figurino', label: 'Entrega de Figurino', grupo: 'Operação' },
         { aba: 'presenca', label: 'Lista de Presença', grupo: 'Operação' },
+        { aba: 'grade-tamanhos', label: 'Grade de Tamanhos', grupo: 'Operação' },
         { aba: 'permissoes', label: 'Permissões', grupo: 'Ajustes' },
         { aba: 'historico', label: 'Histórico', grupo: 'Operação' },
         // Não abre painel nenhum aqui dentro -- clicar leva pra
@@ -7214,6 +7255,11 @@
             { semFuncionalidade: true, nota: 'Usa a mesma capacidade do menu "Permissões" (mais abaixo na lista) — sem interruptor próprio aqui ainda', subgrupo: 'Permissões' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
+        // Grade de Tamanhos (23/set/2026) -- só visualização, sem "editar"
+        // própria: os números vêm direto de Medidas (já tem sua própria
+        // permissão de quem preenche) e Não Desfila (idem); não tem dado
+        // que se edita dentro dessa tela.
+        { grupo: 'Grade de Tamanhos', itens: [{ chave: 'ver_grade_tamanhos', label: 'Visualizar Grade de Tamanhos' }] },
         // Bug real, 01/set/2026: dependia de "ver_eventos", que é a
         // permissão de CONFIGURAÇÕES (catálogo de tipos de evento) -- nada
         // a ver com marcar presença de verdade. Travava o checkbox pra
