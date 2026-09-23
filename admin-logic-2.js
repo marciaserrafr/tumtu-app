@@ -743,8 +743,14 @@
         container.innerHTML = tiposDaAba.map(({ bmt, tipo }) => {
             const publico = publicoMedidaTipo(bmt);
             const incluiNaoDesfila = bmt.inclui_nao_desfila !== false;
+            // Achado dela ao vivo, 23/set/2026: Camisa vale pra Ritmista +
+            // Diretoria + Convidados ao mesmo tempo (publico da Medida) --
+            // sem cruzar com o público DESSA ABA, o card de Camisa dentro de
+            // "Ritmistas" contava todo mundo junto (222 ritmistas + 19 de
+            // Diretoria + 2 Convidados = 243, em vez de só os ritmistas).
             const elegiveis = gradeTamanhosPessoas.filter(p => {
                 if (!pessoaEstaNoPublico(p, publico)) return false;
+                if (!pessoaEstaNoPublico(p, perfisDaAba)) return false;
                 if (p.nao_desfila && !incluiNaoDesfila) return false;
                 return true;
             });
