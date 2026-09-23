@@ -827,12 +827,18 @@
         if (!card) return;
         const titulo = card.querySelector('.grade-card-titulo').textContent.trim();
         const linhasHtml = card.querySelector('table').innerHTML;
-        const win = window.open('', '_blank', 'width=420,height=600');
+        // Janela maior (23/set/2026) -- achado dela ao vivo, print real: o
+        // painel de impressão do Chrome (pré-visualização + configurações
+        // lado a lado) fica espremido numa janela de 420px, a
+        // pré-visualização quase some. width/height maiores dão espaço pro
+        // Chrome desenhar os dois painéis direito -- o CONTEÚDO impresso
+        // continua compacto (max-width no body), só a JANELA cresce.
+        const win = window.open('', '_blank', 'width=760,height=760');
         if (!win) { mostrarToast('O navegador bloqueou a janela de impressão -- permite pop-ups pro TumTu e tenta de novo.', 'erro'); return; }
         win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(titulo)}</title>
             <style>
                 * { margin:0; padding:0; box-sizing:border-box; }
-                body { font-family: Arial, sans-serif; padding:32px 24px; }
+                body { font-family: Arial, sans-serif; padding:32px 24px; max-width:480px; margin:0 auto; }
                 h1 { font-size:18px; margin-bottom:20px; color:#12101a; }
                 table { width:100%; border-collapse:collapse; font-size:14px; }
                 td { padding:8px 4px; }
