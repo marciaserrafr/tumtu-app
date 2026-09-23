@@ -3489,6 +3489,12 @@
         // no público (Não Desfila é um atributo de ritmista/convidado-
         // ritmista, não existe pra Mestre/Diretor/Apoio puros).
         const incluiNaoDesfila = tipoExistente ? tipoExistente.inclui_nao_desfila !== false : true;
+        // "Aparece no cadastro?" (23/set/2026) -- item-surpresa (ex: Boné,
+        // entregue de presente) não deve aparecer no formulário que a
+        // própria pessoa preenche (cadastro público/manual + Meu Perfil),
+        // mas continua disponível pra Diretoria preencher editando o
+        // perfil de quem já existe.
+        const apareceNoCadastro = tipoExistente ? tipoExistente.aparece_no_cadastro !== false : true;
         return `
             <div class="item-card config-medida-card">
                 <div class="config-medida-header" onclick="toggleMedidaTipoAberto(${tipo.id})">
@@ -3517,6 +3523,14 @@
                             </label>
                         </div>
                     </div>` : ''}
+                    <div class="config-medida-publico">
+                        <div class="config-medida-publico-itens">
+                            <label class="config-instrumento-check">
+                                <input type="checkbox" ${apareceNoCadastro ? 'checked' : ''} ${tipoAtivo ? '' : 'disabled'} onchange="salvarMedidaTipoApareceNoCadastro(${tipo.id}, this.checked)">
+                                <span>Aparece no cadastro (a própria pessoa preenche)</span>
+                            </label>
+                        </div>
+                    </div>
                     ${itens.map(t => renderizarLinhaMedida(t)).join('')}
                 </div>` : ''}
             </div>`;
@@ -3592,6 +3606,19 @@
             body: JSON.stringify({ inclui_nao_desfila: checked })
         });
         if (await falhouAoSalvar('salvarMedidaTipoIncluiNaoDesfila', res)) return;
+        await carregarBateriaMedidaTipos();
+        renderizarConfigMedidas();
+    }
+
+    async function salvarMedidaTipoApareceNoCadastro(tipoId, checked) {
+        const existente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipoId);
+        if (!existente) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ aparece_no_cadastro: checked })
+        });
+        if (await falhouAoSalvar('salvarMedidaTipoApareceNoCadastro', res)) return;
         await carregarBateriaMedidaTipos();
         renderizarConfigMedidas();
     }

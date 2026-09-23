@@ -943,7 +943,13 @@ function fpAuthHeaders() {
 // configurado em Configurações → Categoria de Figurino). Sem público salvo
 // (categoria antiga, de antes dessa mudança), conta como "todo mundo vê" --
 // mesmo default do banco, zero mudança de comportamento pra quem já tinha.
-async function fpCarregarTiposMedidaAtivos(bateriaId, perfil, ehConvidado) {
+// restringirAoCadastro (23/set/2026): true só quando é AUTOEDIÇÃO (a
+// própria pessoa vendo/editando o próprio perfil) -- aí uma Medida com
+// aparece_no_cadastro=false (item-surpresa, ex: Boné entregue de presente)
+// some igual sumiria no formulário de cadastro. Diretoria editando o
+// perfil de outra pessoa continua vendo/editando normalmente (false nesse
+// caso, ou omitido).
+async function fpCarregarTiposMedidaAtivos(bateriaId, perfil, ehConvidado, restringirAoCadastro = false) {
     if (!bateriaId) return [];
     const authHeaders = await fpAuthHeaders();
     // "Sem linha ainda em bateria_medida_tipos" conta como DESLIGADO --
@@ -958,13 +964,20 @@ async function fpCarregarTiposMedidaAtivos(bateriaId, perfil, ehConvidado) {
     const ligados = await resLigados.json();
     const tipos = await resTipos.json();
     const publicoPorTipo = {};
-    ligados.forEach(d => { publicoPorTipo[d.tipo_id] = Array.isArray(d.publico) ? d.publico : ['ritmista', 'mestre', 'diretor', 'apoio', 'extra']; });
+    const apareceNoCadastroPorTipo = {};
+    ligados.forEach(d => {
+        publicoPorTipo[d.tipo_id] = Array.isArray(d.publico) ? d.publico : ['ritmista', 'mestre', 'diretor', 'apoio', 'extra'];
+        apareceNoCadastroPorTipo[d.tipo_id] = d.aparece_no_cadastro !== false;
+    });
     const ligadosIds = new Set(ligados.map(d => d.tipo_id));
     // Convidado Especial (31/ago/2026): mesmo filtro extra do cadastro
     // (cadastro.html) -- reaproveita o checkbox "Convidados" de Categoria
     // de Figurino, senão a ficha mostraria de volta uma Medida que o
     // cadastro dele nunca perguntou.
-    return tipos.filter(t => ligadosIds.has(t.id) && (!perfil || publicoPorTipo[t.id].includes(perfil)) && (!ehConvidado || publicoPorTipo[t.id].includes('extra')));
+    return tipos.filter(t => ligadosIds.has(t.id)
+        && (!perfil || publicoPorTipo[t.id].includes(perfil))
+        && (!ehConvidado || publicoPorTipo[t.id].includes('extra'))
+        && (!restringirAoCadastro || apareceNoCadastroPorTipo[t.id]));
 }
 
 // Valores já preenchidos pra essa pessoa/vínculo, indexados por tipo_id.
@@ -1015,7 +1028,7 @@ async function fpRenderizarMedidas(alvo) {
     grid.innerHTML = '<span style="color:#9993ab;font-size:13px;">Carregando...</span>';
 
     const [tipos, valores] = await Promise.all([
-        fpCarregarTiposMedidaAtivos(alvo.bateria_id, alvo.perfil, alvo.eh_convidado === true),
+        fpCarregarTiposMedidaAtivos(alvo.bateria_id, alvo.perfil, alvo.eh_convidado === true, fpEstado.autoedicao),
         fpCarregarValoresMedidaPessoa(alvo.vinculo_id),
     ]);
 
@@ -1154,7 +1167,7 @@ async function fpAplicarPermissaoRitmistaMedidas(alvo) {
     const bateriaRows = resBateria.ok ? await resBateria.json() : [];
     if (!(bateriaRows[0] && bateriaRows[0].ritmista_pode_editar_medidas)) return;
     const [tipos, valores] = await Promise.all([
-        fpCarregarTiposMedidaAtivos(alvo.bateria_id, alvo.perfil, alvo.eh_convidado === true),
+        fpCarregarTiposMedidaAtivos(alvo.bateria_id, alvo.perfil, alvo.eh_convidado === true, fpEstado.autoedicao),
         fpCarregarValoresMedidaPessoa(alvo.vinculo_id),
     ]);
     const temAlgumEmBranco = tipos.some(t => !valores[t.id]);
@@ -1337,7 +1350,7 @@ async function fpAtivarEdicao() {
 
     if (fpEstado.editaveis.has('medidas')) {
         const [tipos, opcoesPorTipo, valores] = await Promise.all([
-            fpCarregarTiposMedidaAtivos(fpEstado.alvo.bateria_id, fpEstado.alvo.perfil, fpEstado.alvo.eh_convidado === true),
+            fpCarregarTiposMedidaAtivos(fpEstado.alvo.bateria_id, fpEstado.alvo.perfil, fpEstado.alvo.eh_convidado === true, fpEstado.autoedicao),
             fpCarregarOpcoesMedidasPorTipo(fpEstado.alvo.bateria_id),
             fpCarregarValoresMedidaPessoa(fpEstado.alvo.vinculo_id),
         ]);
