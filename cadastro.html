@@ -1102,7 +1102,7 @@
             // ali também tira a Medida do cadastro do Convidado Especial,
             // sem precisar de nenhuma configuração nova.
             if (ehConvidadoEspecial && !publico.includes('extra')) return;
-            if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { nome: o.tipo_nome, grupo: o.tipo_grupo, tamanhos: [] };
+            if (!porTipo[o.tipo_id]) porTipo[o.tipo_id] = { nome: o.tipo_nome, grupo: o.tipo_grupo, obrigatorio: !!o.obrigatorio, tamanhos: [] };
             porTipo[o.tipo_id].tamanhos.push(o.nome_exibicao);
         });
         const tiposAtivos = Object.entries(porTipo); // já vem só com tamanho ativo -- tipo sem nenhum simplesmente não existe aqui
@@ -1112,13 +1112,14 @@
         // Instrumento pra quem não é Ritmista (esconder em vez de
         // deixar título solto sem campo nenhum embaixo).
         if (secao) secao.style.display = tiposAtivos.length === 0 ? 'none' : '';
-        // Categoria "Tradicional" (Camisa/Fantasia/Calça/Sapato) é
-        // obrigatória, "Especial" (ex: Vestido, só ativada pontualmente
-        // por uma bateria) não é -- pedido da Márcia, 24/ago/2026:
-        // categoria pontual criada no meio da temporada não pode forçar
-        // todo mundo a preencher algo que talvez nem seja pra ela.
+        // Categoria "Tradicional" (Camisa/Fantasia/Calça/Sapato) é SEMPRE
+        // obrigatória, regra fixa desde 24/ago/2026 (categoria pontual não
+        // pode forçar todo mundo a preencher algo que talvez nem seja pra
+        // ela). "Especial" agora tem interruptor próprio por bateria
+        // (bateria_medida_tipos.obrigatorio_no_cadastro, 23/set/2026) --
+        // ela decide item por item se é obrigatório quando aparece.
         container.innerHTML = tiposAtivos.map(([tipoId, t]) => {
-            const obrigatoria = t.grupo !== 'especial';
+            const obrigatoria = t.grupo !== 'especial' || t.obrigatorio;
             return `
             <div class="auth-form-group">
                 <label>Tamanho: ${t.nome} ${obrigatoria ? '<span class="obrigatorio">*</span>' : ''}</label>
