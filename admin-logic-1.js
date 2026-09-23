@@ -4739,8 +4739,8 @@
         container.innerHTML = eventosBateriaCache.map(ev => `
             <div class="item-card">
                 <div class="item-info">
-                    <div class="item-nome">${ev.controle_portaria ? '🎫' : '✅'}${ev.trava_edicao ? ' 🔒' : ''} ${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${ev.inclui_extras ? ' · Convidados' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
+                    <div class="item-nome">${esc(ev.nome)}</div>
+                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '🙋 Presença'}${ev.trava_edicao ? ' · 🔒 Trava de Edição' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${ev.inclui_extras ? ' · Convidados' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
                 </div>
                 ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEvento(${ev.id})">Editar</button></div>` : ''}
             </div>`).join('');
@@ -4802,23 +4802,12 @@
                 <div class="campo campo-full" style="margin-top:-12px;">
                     <p style="font-size:12px;color:var(--cor-texto-muted);margin:0;">Pra eventos com verificação de entrada por alguém na porta (ex: uma final) — desliga a confirmação de presença pelo próprio ritmista nesse evento (fica só com quem faz a verificação) e libera o botão "Link de Verificação de Entrada" na tela de Presença. Deixe desmarcado pra ensaio comum, onde o ritmista confirma a própria presença normalmente.</p>
                 </div>
-                ${souMestreOuAdminBateria ? `
-                <!-- Trava de Edição (22/set/2026) -- pedido dela depois da
-                     suspeita de fraude na final da Imperatriz: durante um
-                     evento sensível, ninguém edita a própria ficha nem a de
-                     ninguém, exceto Mestre/Admin da Bateria/Super Admin (que
-                     continuam com as permissões normais). Só esses três
-                     perfis veem e mexem neste interruptor -- reforçado no
-                     banco (aplicar_matriz_edicao_pessoas/vinculos +
-                     trg_restringir_trava_edicao_eventos), não só escondido
-                     na tela. -->
-                <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
-                    <input type="checkbox" id="ev-edit-trava-edicao" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.trava_edicao ? 'checked' : ''}>
-                    <label for="ev-edit-trava-edicao" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Trava de Edição</label>
-                </div>
-                <div class="campo campo-full" style="margin-top:-12px;">
-                    <p style="font-size:12px;color:var(--cor-texto-muted);margin:0;">Enquanto ligada, ninguém edita a própria ficha (nem a de outra pessoa) durante este evento -- só Mestre, Admin da Bateria e Super Admin continuam podendo. Você pode ligar e desligar a qualquer momento; ao marcar o evento como Finalizado, desliga sozinha.</p>
-                </div>` : ''}
+                <!-- Trava de Edição (22/set/2026, movida 23/set/2026 pra
+                     dentro do evento ao vivo -- ver pres-trilho-trava-wrap em
+                     admin.html): ela liga/desliga durante o evento, junto de
+                     Iniciado/Finalizado, não aqui no cadastro. Aqui no
+                     cadastro fica só o que é decidido ANTES do evento
+                     acontecer. -->
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -4844,11 +4833,11 @@
         const perfis_diretoria_inclusos = [...document.querySelectorAll('.ev-edit-perfil-diretoria:checked')].map(el => el.value);
         const inclui_extras = document.getElementById('ev-edit-inclui-extras').checked;
         const controle_portaria = document.getElementById('ev-edit-controle-portaria').checked;
-        // Checkbox só existe no HTML pra Mestre/Admin/Super Admin -- pra
-        // qualquer outra pessoa, mantém o valor que já estava carregado
-        // (nunca manda "false" por engano só porque o campo não apareceu).
-        const elTravaEdicao = document.getElementById('ev-edit-trava-edicao');
-        const trava_edicao = elTravaEdicao ? elTravaEdicao.checked : !!eventoEditando.trava_edicao;
+        // trava_edicao não tem campo neste formulário (mora dentro do evento
+        // ao vivo, na tela de Eventos/Presença, junto de Iniciado/
+        // Finalizado) -- sempre preserva o valor que já estava (nunca reseta
+        // pra false só por editar outro campo do cadastro).
+        const trava_edicao = !!eventoEditando.trava_edicao;
         const bateriaId = bateriaIdContexto();
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         salvandoEvento = true;
@@ -4927,12 +4916,12 @@
     function renderizarPresencaEventosLista() {
         const container = document.getElementById('presenca-eventos-lista');
         if (!container) return;
-        if (presencaEventosCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum evento cadastrado ainda. Crie um em Configurações → Eventos.</div>'; return; }
+        if (presencaEventosCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum evento cadastrado ainda. Crie um em Configurações → Cadastro de Eventos.</div>'; return; }
         container.innerHTML = presencaEventosCache.map(ev => `
             <div class="item-card item-card-simples" onclick="abrirPresencaEvento(${ev.id})" style="cursor:pointer;">
                 <div class="item-info">
-                    <div class="item-nome">${ev.controle_portaria ? '🎫' : '✅'}${ev.trava_edicao ? ' 🔒' : ''} ${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
+                    <div class="item-nome">${esc(ev.nome)}</div>
+                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '🙋 Presença'}${ev.trava_edicao ? ' · 🔒 Trava de Edição' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
                 </div>
                 <span class="config-item-seta">›</span>
             </div>`).join('');
@@ -4957,7 +4946,9 @@
         };
         aplicar('pres-trilho-iniciado', 'pres-trilho-iniciado-label', !!evento.iniciado);
         aplicar('pres-trilho-finalizado', 'pres-trilho-finalizado-label', !!evento.finalizado);
+        aplicar('pres-trilho-trava', 'pres-trilho-trava-label', !!evento.trava_edicao);
     }
+    function toggleTravaEdicao() { salvarFlagEvento('trava_edicao', !presencaEventoAtual.trava_edicao); }
     async function salvarFlagEvento(campo, valor) {
         const evento = presencaEventoAtual;
         if (!evento) return;
@@ -5031,6 +5022,11 @@
         const podeMarcarPresenca = souSuperAdmin || tenhoCapacidade('marcar_presenca');
         const trilhosWrap = document.getElementById('pres-trilhos-wrap');
         if (trilhosWrap) trilhosWrap.style.display = podeEditarEvento ? 'flex' : 'none';
+        // Trava de Edição é mais restrita que Iniciado/Finalizado -- só
+        // Mestre/Admin da Bateria/Super Admin (souMestreOuAdminBateria),
+        // nunca qualquer um com editar_eventos.
+        const trilhoTrava = document.getElementById('pres-trilho-trava-wrap');
+        if (trilhoTrava) trilhoTrava.style.display = souMestreOuAdminBateria ? 'inline-flex' : 'none';
         const qrBtns = document.getElementById('pres-qr-btns');
         if (qrBtns) qrBtns.style.display = podeMarcarPresenca ? 'flex' : 'none';
         renderizarBotaoVerificacaoPortaria();
@@ -5725,7 +5721,7 @@
         { aba: 'dados-bateria', label: 'Dados da Bateria', grupo: 'Cadastros' },
         { aba: 'extras', label: 'Convidados', grupo: 'Cadastros' },
         { aba: 'figurino', label: 'Entrega de Figurino', grupo: 'Operação' },
-        { aba: 'presenca', label: 'Presença', grupo: 'Operação' },
+        { aba: 'presenca', label: 'Eventos', grupo: 'Operação' },
         { aba: 'permissoes', label: 'Permissões', grupo: 'Ajustes' },
         { aba: 'historico', label: 'Histórico', grupo: 'Operação' },
         // Não abre painel nenhum aqui dentro -- clicar leva pra
@@ -7261,7 +7257,7 @@
         // qualquer Diretor que não tivesse acesso a Configurações, mesmo
         // sendo exatamente quem deveria poder marcar presença. Capacidade
         // solta, sem depender de nada -- mesmo padrão de ver_carteirinha_outros.
-        { grupo: 'Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
+        { grupo: 'Eventos', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
         // Convidados (25/ago/2026, reorganizado 31/ago/2026, modelo Simples
         // removido de vez em 16/set/2026 -- desde a unificação de 04/set,
         // toda bateria usa sempre o modelo Especial, então só existe 1 grupo

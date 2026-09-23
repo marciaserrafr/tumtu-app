@@ -2793,7 +2793,7 @@
             <span class="config-item-seta">›</span>
         </div>
         <div id="config-item-eventos" class="config-item" onclick="abrirConfigTela('eventos')">
-            <span>Eventos</span>
+            <span>Cadastro de Eventos</span>
             <span class="config-item-seta">›</span>
         </div>
     </div>
@@ -2862,7 +2862,7 @@
     <!-- Sub-tela: Eventos (módulo de Presença via QR, 29/ago/2026) -->
     <div id="config-tela-eventos" class="config-subtela" style="display:none;">
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
-        <div class="painel-titulo">Eventos</div>
+        <div class="painel-titulo">Cadastro de Eventos</div>
         <p class="config-sub-desc">Cadastre os eventos da sua bateria (ensaios, apresentações...) pra depois marcar presença por QR Code.</p>
         <button id="eventos-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoEvento()">+ Novo Evento</button>
         <div id="eventos-editor" style="display:none;"></div>
@@ -3134,14 +3134,14 @@
 <div class="painel" id="painel-presenca">
     <div id="presenca-lista">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <div class="painel-titulo">Presença</div>
-        <p class="config-sub-desc">Marque presença por evento. Pra cadastrar um evento novo, use Configurações → Eventos.</p>
+        <div class="painel-titulo">Eventos</div>
+        <p class="config-sub-desc">Marque presença por evento. Pra cadastrar um evento novo, use Configurações → Cadastro de Eventos.</p>
         <div id="presenca-eventos-lista" class="lista-cards"></div>
     </div>
 
     <div id="presenca-tela-marcar" class="config-subtela" style="display:none;">
-        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Presença</button>
-        <div class="painel-titulo" id="presenca-evento-titulo">Presença</div>
+        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Eventos</button>
+        <div class="painel-titulo" id="presenca-evento-titulo">Eventos</div>
         <!-- Cartão único: números + Iniciado/Finalizado (interruptor) +
              botões de QR, tudo junto num só .vg-card (30/ago/2026 -- antes
              eram 2 caixas separadas, "cheio de quadrado" na avaliação
@@ -3158,6 +3158,17 @@
                     <label class="trilho" onclick="toggleEventoFinalizado()">
                         <span class="trilho-trecho off" id="pres-trilho-finalizado"><span class="trilho-bolinha"></span></span>
                         <span class="trilho-label off" id="pres-trilho-finalizado-label">Evento Finalizado</span>
+                    </label>
+                    <!-- Trava de Edição (22/set/2026) -- pedido dela: fica
+                         DENTRO do evento ao vivo, junto de Iniciado/
+                         Finalizado (que ela liga/desliga durante o evento),
+                         não dentro do formulário de Cadastro de Eventos. Só
+                         Mestre/Admin da Bateria/Super Admin veem e mexem
+                         (souMestreOuAdminBateria, mais restrito que
+                         editar_eventos). -->
+                    <label class="trilho" id="pres-trilho-trava-wrap" style="display:none;" onclick="toggleTravaEdicao()">
+                        <span class="trilho-trecho off" id="pres-trilho-trava"><span class="trilho-bolinha"></span></span>
+                        <span class="trilho-label off" id="pres-trilho-trava-label">Trava de Edição</span>
                     </label>
                 </div>
                 <div class="pres-divisor-v" id="pres-divisor-2" style="display:none;"></div>
