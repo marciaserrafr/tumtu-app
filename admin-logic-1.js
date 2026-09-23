@@ -4740,7 +4740,7 @@
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '🙋 Presença'}${ev.trava_edicao ? ' · 🔒 Trava de Edição' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${ev.inclui_extras ? ' · Convidados' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
+                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '🙋 Eventos'}${ev.trava_edicao ? ' · 🔒 Perfis Bloqueados' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${ev.inclui_extras ? ' · Convidados' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
                 </div>
                 ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEvento(${ev.id})">Editar</button></div>` : ''}
             </div>`).join('');
@@ -4921,7 +4921,7 @@
             <div class="item-card item-card-simples" onclick="abrirPresencaEvento(${ev.id})" style="cursor:pointer;">
                 <div class="item-info">
                     <div class="item-nome">${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '🙋 Presença'}${ev.trava_edicao ? ' · 🔒 Trava de Edição' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
+                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '🙋 Eventos'}${ev.trava_edicao ? ' · 🔒 Perfis Bloqueados' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
                 </div>
                 <span class="config-item-seta">›</span>
             </div>`).join('');
