@@ -899,10 +899,21 @@
     // reconstruir os arrays inteiros.
     const grupoMedidasExportRitmistas = { grupo: 'Medidas', campos: [] };
     const grupoMedidasExportDiretoria = { grupo: 'Medidas', campos: [] };
+    // Achado dela ao vivo, 23/set/2026: essa lista vinha da biblioteca
+    // MESTRE de Medidas inteira (global, todas as baterias -- "Vestido",
+    // "Boné", "Bucket" de outra escola apareciam pra exportar na
+    // Imperatriz, que nunca cadastrou esses itens). Corrigido cruzando com
+    // bateria_medida_tipos.ativo dessa bateria, mesmo filtro que
+    // Configurações → Medidas e a Grade de Tamanhos já usam.
     async function carregarGruposMedidaExport() {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders });
-        const tipos = res.ok ? await res.json() : [];
-        const campos = tipos.map(t => ({ chave: `medida_${t.id}`, label: `Tamanho: ${t.nome}` }));
+        const bateriaId = bateriaIdContexto();
+        const [resTipos, resBateria] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders }),
+            bateriaId ? fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}&ativo=eq.true&select=tipo_id`, { headers: authHeaders }) : Promise.resolve(null),
+        ]);
+        const tipos = resTipos.ok ? await resTipos.json() : [];
+        const ativosNaBateria = resBateria && resBateria.ok ? new Set((await resBateria.json()).map(x => x.tipo_id)) : new Set();
+        const campos = tipos.filter(t => ativosNaBateria.has(t.id)).map(t => ({ chave: `medida_${t.id}`, label: `Tamanho: ${t.nome}` }));
         grupoMedidasExportRitmistas.campos = campos;
         grupoMedidasExportDiretoria.campos = campos;
     }
