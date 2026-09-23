@@ -1138,10 +1138,13 @@
                 const campo = todosCampos.find(c => c.chave === chave);
                 let valor;
                 if (chave.startsWith('medida_')) {
-                    // "Não Desfila" (28/ago/2026): sai só do pedido de
-                    // fantasia -- continua aparecendo normal em Camisa/
-                    // Calça/Sapato/qualquer outra medida.
-                    if (r.nao_desfila && campo.label.toLowerCase().includes('fantasia')) {
+                    // "Não Desfila" (28/ago/2026, Sapato incluído 23/set/2026):
+                    // sai do pedido de Fantasia E Sapato -- quem não desfila
+                    // não usa a fantasia nem o sapato de desfile, mas
+                    // continua aparecendo normal em Camisa/Calça/qualquer
+                    // outra medida. Só some do RELATÓRIO (exportação) -- o
+                    // valor continua salvo no perfil da pessoa normalmente.
+                    if (r.nao_desfila && (campo.label.toLowerCase().includes('fantasia') || campo.label.toLowerCase().includes('sapato'))) {
                         valor = '';
                     } else {
                         const tipoId = Number(chave.slice('medida_'.length));
@@ -4688,16 +4691,32 @@
         const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?ativo=eq.true&order=ordem`, { headers: authHeaders });
         bibliotecaTemporadas = res.ok ? await res.json() : [];
     }
+    let souMestreOuAdminBateria = false;
     async function carregarEventosBateria() {
         const bateriaId = bateriaIdContexto();
-        if (!bateriaId) { eventosBateriaCache = []; return; }
+        if (!bateriaId) { eventosBateriaCache = []; souMestreOuAdminBateria = false; return; }
+        const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         // select= explícito (23/set/2026) -- nunca inclui token_verificacao_portaria:
         // essa coluna é secreta (autoriza confirmar entrada na portaria sem checar
         // foto) e não pode viajar numa busca que qualquer membro da bateria dispara.
         // Quem precisa do token de verdade usa obter_ou_gerar_token_portaria() (RPC),
         // que confere editar_eventos antes de entregar.
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&order=data.desc&select=id,bateria_id,evento_tipo_id,nome,data,criado_por,criado_em,temporada_id,perfis_diretoria_inclusos,inclui_extras,iniciado,finalizado,controle_portaria`, { headers: authHeaders });
-        eventosBateriaCache = res.ok ? await res.json() : [];
+        const [resEventos, resVinculo] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&order=data.desc&select=id,bateria_id,evento_tipo_id,nome,data,criado_por,criado_em,temporada_id,perfis_diretoria_inclusos,inclui_extras,iniciado,finalizado,controle_portaria,trava_edicao`, { headers: authHeaders }),
+            (souSuperAdmin || !u || !u.pessoa_id)
+                ? Promise.resolve(null)
+                : fetch(`${SUPABASE_URL}/rest/v1/vinculos?pessoa_id=eq.${u.pessoa_id}&bateria_id=eq.${bateriaId}&status=eq.aprovado&select=perfil,eh_admin_bateria`, { headers: authHeaders }),
+        ]);
+        eventosBateriaCache = resEventos.ok ? await resEventos.json() : [];
+        // Trava de Edição (22/set/2026) -- só Mestre/Admin da Bateria/Super
+        // Admin podem ligar/desligar (ver aplicar_matriz_edicao_vinculos e
+        // aplicar_matriz_edicao_pessoas, que travam a edição de TODO MUNDO
+        // durante o evento, exceto esses três perfis).
+        if (souSuperAdmin) { souMestreOuAdminBateria = true; }
+        else {
+            const vinculos = (resVinculo && resVinculo.ok) ? await resVinculo.json() : [];
+            souMestreOuAdminBateria = vinculos.some(v => v.perfil === 'mestre' || v.eh_admin_bateria === true);
+        }
     }
     function nomeTipoEvento(id) {
         const t = bibliotecaEventoTipos.find(x => x.id === id);
@@ -4729,7 +4748,7 @@
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${ev.inclui_extras ? ' · Convidados' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
+                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '🙋 Eventos'}${ev.trava_edicao ? ' · 🔒 Perfis Bloqueados' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${ev.inclui_extras ? ' · Convidados' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
                 </div>
                 ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEvento(${ev.id})">Editar</button></div>` : ''}
             </div>`).join('');
@@ -4737,13 +4756,13 @@
     function abrirNovoEvento() {
         if (bibliotecaEventoTipos.length === 0) { mostrarToast('Nenhum Tipo de Evento cadastrado ainda — fale com o Super Admin.', 'erro'); return; }
         if (bibliotecaTemporadas.length === 0) { mostrarToast('Nenhuma Temporada cadastrada ainda — fale com o Super Admin.', 'erro'); return; }
-        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, perfis_diretoria_inclusos: [], temporada_id: bibliotecaTemporadas[0].id, inclui_extras: false, controle_portaria: false };
+        eventoEditando = { id: null, nome: '', data: '', evento_tipo_id: bibliotecaEventoTipos[0].id, perfis_diretoria_inclusos: [], temporada_id: bibliotecaTemporadas[0].id, inclui_extras: false, controle_portaria: false, trava_edicao: false };
         renderizarEditorEvento();
     }
     function abrirEditarEvento(id) {
         const ev = eventosBateriaCache.find(x => x.id === id);
         if (!ev) return;
-        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, perfis_diretoria_inclusos: [...(ev.perfis_diretoria_inclusos || [])], temporada_id: ev.temporada_id || null, inclui_extras: !!ev.inclui_extras, controle_portaria: !!ev.controle_portaria };
+        eventoEditando = { id: ev.id, nome: ev.nome, data: ev.data, evento_tipo_id: ev.evento_tipo_id, perfis_diretoria_inclusos: [...(ev.perfis_diretoria_inclusos || [])], temporada_id: ev.temporada_id || null, inclui_extras: !!ev.inclui_extras, controle_portaria: !!ev.controle_portaria, trava_edicao: !!ev.trava_edicao };
         renderizarEditorEvento();
     }
     function renderizarEditorEvento() {
@@ -4777,18 +4796,26 @@
                     <input type="checkbox" id="ev-edit-inclui-extras" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.inclui_extras ? 'checked' : ''}>
                     <label for="ev-edit-inclui-extras" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Inclui Convidados (entram na lista de presença dos grupos marcados acima)</label>
                 </div>
-                <!-- Controle de portaria (21/set/2026) -- separa evento comum
-                     (ritmista confirma sozinho pela própria carteirinha) de
-                     evento com conferência na porta (só a verificação
-                     confirma; autoconfirmação fica desligada nesse evento,
-                     senão anularia a conferência visual). -->
+                <!-- Controle de Acesso / Check-in (21/set/2026, renomeado
+                     22/set/2026 -- nome de mercado, mesmo termo usado pela
+                     Sympla) -- separa evento comum (ritmista confirma
+                     sozinho pela própria carteirinha) de evento com
+                     conferência na porta (só a verificação confirma;
+                     autoconfirmação fica desligada nesse evento, senão
+                     anularia a conferência visual). -->
                 <div class="campo campo-full" style="display:flex;align-items:center;gap:8px;">
                     <input type="checkbox" id="ev-edit-controle-portaria" style="width:15px;height:15px;accent-color:#D4AF37;cursor:pointer;" ${ee.controle_portaria ? 'checked' : ''}>
-                    <label for="ev-edit-controle-portaria" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Evento com controle de portaria</label>
+                    <label for="ev-edit-controle-portaria" style="margin:0;font-size:13px;font-weight:700;cursor:pointer;">Evento com Controle de Acesso (Check-in)</label>
                 </div>
                 <div class="campo campo-full" style="margin-top:-12px;">
-                    <p style="font-size:12px;color:var(--cor-texto-muted);margin:0;">Pra eventos com verificação de entrada por alguém na porta (ex: uma final) — desliga a confirmação de presença pelo próprio ritmista nesse evento (fica só com quem faz a verificação) e libera o botão "Link de Verificação de Entrada" na tela de Lista de Presença. Deixe desmarcado pra ensaio comum, onde o ritmista confirma a própria presença normalmente.</p>
+                    <p style="font-size:12px;color:var(--cor-texto-muted);margin:0;">Pra eventos com verificação de entrada por alguém na porta (ex: uma final) — desliga a confirmação de presença pelo próprio ritmista nesse evento (fica só com quem faz a verificação) e libera o botão "Link de Verificação de Entrada" na tela de Presença. Deixe desmarcado pra ensaio comum, onde o ritmista confirma a própria presença normalmente.</p>
                 </div>
+                <!-- Trava de Edição (22/set/2026, movida 23/set/2026 pra
+                     dentro do evento ao vivo -- ver pres-trilho-trava-wrap em
+                     admin.html): ela liga/desliga durante o evento, junto de
+                     Iniciado/Finalizado, não aqui no cadastro. Aqui no
+                     cadastro fica só o que é decidido ANTES do evento
+                     acontecer. -->
             </div>
             <div class="form-rodape">
                 <div class="form-rodape-esq">
@@ -4814,15 +4841,20 @@
         const perfis_diretoria_inclusos = [...document.querySelectorAll('.ev-edit-perfil-diretoria:checked')].map(el => el.value);
         const inclui_extras = document.getElementById('ev-edit-inclui-extras').checked;
         const controle_portaria = document.getElementById('ev-edit-controle-portaria').checked;
+        // trava_edicao não tem campo neste formulário (mora dentro do evento
+        // ao vivo, na tela de Eventos/Presença, junto de Iniciado/
+        // Finalizado) -- sempre preserva o valor que já estava (nunca reseta
+        // pra false só por editar outro campo do cadastro).
+        const trava_edicao = !!eventoEditando.trava_edicao;
         const bateriaId = bateriaIdContexto();
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
         salvandoEvento = true;
         try {
             let res;
             if (eventoEditando.id) {
-                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, controle_portaria }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${eventoEditando.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, controle_portaria, trava_edicao }) });
             } else {
-                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, controle_portaria, criado_por: u ? u.pessoa_id : null }) });
+                res = await fetch(`${SUPABASE_URL}/rest/v1/eventos`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ bateria_id: bateriaId, nome, data, evento_tipo_id, temporada_id, perfis_diretoria_inclusos, inclui_extras, controle_portaria, trava_edicao, criado_por: u ? u.pessoa_id : null }) });
             }
             if (!res.ok) { tratarRespostaFalha('salvarEvento', res); mostrarToast(res.status === 401 ? 'Sua sessão expirou -- entre de novo pra continuar.' : 'Não foi possível salvar o evento.', 'erro'); return; }
             mostrarToast(eventoEditando.id ? 'Evento atualizado!' : 'Evento criado!');
@@ -4892,12 +4924,12 @@
     function renderizarPresencaEventosLista() {
         const container = document.getElementById('presenca-eventos-lista');
         if (!container) return;
-        if (presencaEventosCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum evento cadastrado ainda. Crie um em Configurações → Eventos.</div>'; return; }
+        if (presencaEventosCache.length === 0) { container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📅</div>Nenhum evento cadastrado ainda. Crie um em Configurações → Cadastro de Eventos.</div>'; return; }
         container.innerHTML = presencaEventosCache.map(ev => `
             <div class="item-card item-card-simples" onclick="abrirPresencaEvento(${ev.id})" style="cursor:pointer;">
                 <div class="item-info">
                     <div class="item-nome">${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
+                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '🙋 Eventos'}${ev.trava_edicao ? ' · 🔒 Perfis Bloqueados' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
                 </div>
                 <span class="config-item-seta">›</span>
             </div>`).join('');
@@ -4922,7 +4954,9 @@
         };
         aplicar('pres-trilho-iniciado', 'pres-trilho-iniciado-label', !!evento.iniciado);
         aplicar('pres-trilho-finalizado', 'pres-trilho-finalizado-label', !!evento.finalizado);
+        aplicar('pres-trilho-trava', 'pres-trilho-trava-label', !!evento.trava_edicao);
     }
+    function toggleTravaEdicao() { salvarFlagEvento('trava_edicao', !presencaEventoAtual.trava_edicao); }
     async function salvarFlagEvento(campo, valor) {
         const evento = presencaEventoAtual;
         if (!evento) return;
@@ -4996,6 +5030,11 @@
         const podeMarcarPresenca = souSuperAdmin || tenhoCapacidade('marcar_presenca');
         const trilhosWrap = document.getElementById('pres-trilhos-wrap');
         if (trilhosWrap) trilhosWrap.style.display = podeEditarEvento ? 'flex' : 'none';
+        // Trava de Edição é mais restrita que Iniciado/Finalizado -- só
+        // Mestre/Admin da Bateria/Super Admin (souMestreOuAdminBateria),
+        // nunca qualquer um com editar_eventos.
+        const trilhoTrava = document.getElementById('pres-trilho-trava-wrap');
+        if (trilhoTrava) trilhoTrava.style.display = souMestreOuAdminBateria ? 'inline-flex' : 'none';
         const qrBtns = document.getElementById('pres-qr-btns');
         if (qrBtns) qrBtns.style.display = podeMarcarPresenca ? 'flex' : 'none';
         renderizarBotaoVerificacaoPortaria();
@@ -5691,7 +5730,7 @@
         { aba: 'dados-bateria', label: 'Dados da Bateria', grupo: 'Cadastros' },
         { aba: 'extras', label: 'Convidados', grupo: 'Cadastros' },
         { aba: 'figurino', label: 'Entrega de Figurino', grupo: 'Operação' },
-        { aba: 'presenca', label: 'Lista de Presença', grupo: 'Operação' },
+        { aba: 'presenca', label: 'Eventos', grupo: 'Operação' },
         { aba: 'permissoes', label: 'Permissões', grupo: 'Ajustes' },
         { aba: 'historico', label: 'Histórico', grupo: 'Operação' },
         // Não abre painel nenhum aqui dentro -- clicar leva pra
@@ -5929,6 +5968,7 @@
     }
     function clicarSubMais(aba, el) {
         navegarItemAdministrativo(aba, null);
+        document.querySelectorAll('.aba-sub-btn.ativa').forEach(b => b.classList.remove('ativa'));
         el.classList.add('ativa');
     }
 
@@ -7226,7 +7266,7 @@
         // qualquer Diretor que não tivesse acesso a Configurações, mesmo
         // sendo exatamente quem deveria poder marcar presença. Capacidade
         // solta, sem depender de nada -- mesmo padrão de ver_carteirinha_outros.
-        { grupo: 'Lista de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
+        { grupo: 'Eventos', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
         // Convidados (25/ago/2026, reorganizado 31/ago/2026, modelo Simples
         // removido de vez em 16/set/2026 -- desde a unificação de 04/set,
         // toda bateria usa sempre o modelo Especial, então só existe 1 grupo

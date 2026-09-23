@@ -777,6 +777,10 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     // inteira e pra qualquer tipo de Convidado (Ritmista/Diretor/Apoio),
     // ver fpAplicarPermissaoConvidadoMedidas.
     fpAplicarPermissaoConvidadoMedidas(alvo);
+    // Trava de Edição (22/set/2026) -- some com "Editar" (própria ficha ou
+    // de outra pessoa) se o evento sensível estiver ativo pra essa bateria e
+    // quem está olhando não for Mestre/Admin da Bateria/Super Admin.
+    fpAplicarTravaEdicao(alvo);
 
     // Repique de Bossa (26/ago/2026): campo delicado, começa sempre
     // escondido -- só aparece depois de fpAplicarPermissaoRepiqueBossa
@@ -1169,6 +1173,33 @@ async function fpAplicarPermissaoConvidadoMedidas(alvo) {
     if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
     fpEstado.editaveis.add('medidas');
     if (fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
+}
+
+// Trava de Edição (22/set/2026) -- pedido dela depois da suspeita de fraude
+// na final da Imperatriz: enquanto um evento desta bateria estiver com esse
+// interruptor ligado, NINGUÉM edita NENHUMA ficha (nem a própria, nem a de
+// outra pessoa) -- exceto Mestre, Admin da Bateria e Super Admin, que
+// continuam com as permissões normais. Isso já é travado de verdade no
+// banco (aplicar_matriz_edicao_pessoas/aplicar_matriz_edicao_vinculos); esta
+// checagem aqui só evita o mesmo problema já documentado em
+// fpAplicarPermissaoRitmistaMedidas -- "clica em Editar, Salva, e o banco
+// reverte tudo em silêncio, sem aviso". Fire-and-forget, roda depois do
+// resto da tela já estar pronta -- some com "Editar" só se, ao terminar de
+// checar, a trava estiver realmente ativa e a pessoa não for isenta.
+async function fpAplicarTravaEdicao(alvo) {
+    if (!alvo.bateria_id || fpEstado.meuPerfil === 'super_admin') return;
+    const authHeaders = await fpAuthHeaders();
+    const resEvento = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${alvo.bateria_id}&iniciado=eq.true&finalizado=eq.false&trava_edicao=eq.true&select=id&limit=1`, { headers: authHeaders });
+    const eventosTrava = resEvento.ok ? await resEvento.json() : [];
+    if (eventosTrava.length === 0) return;
+    const resVinculo = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?pessoa_id=eq.${fpEstado.minhaPessoaId}&bateria_id=eq.${alvo.bateria_id}&status=eq.aprovado&select=perfil,eh_admin_bateria`, { headers: authHeaders });
+    const meusVinculos = resVinculo.ok ? await resVinculo.json() : [];
+    const isento = meusVinculos.some(v => v.perfil === 'mestre' || v.eh_admin_bateria === true);
+    if (isento) return;
+    if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
+    fpEstado.editaveis = new Set();
+    if (fpEl('fp-btn-salvar').style.display === 'inline-flex') fpCancelarEdicao();
+    fpEl('fp-btn-editar').style.display = 'none';
 }
 
 // Repique de Bossa (26/ago/2026) -- campo delicado, pedido dela: "impacta

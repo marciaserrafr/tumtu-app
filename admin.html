@@ -72,7 +72,7 @@
     <!-- defer (06/set/2026) -- nenhuma das duas executa nada sozinha ao
          carregar, só define função pra usar depois (conferido no código
          das duas), então não corre risco nenhum de rodar antes da hora. -->
-    <script src="ficha-perfil.js?v=74" defer></script>
+    <script src="ficha-perfil.js?v=75" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
         /* Desligada de novo (06/set/2026, mesma sessão -- teste de
@@ -2793,7 +2793,7 @@
             <span class="config-item-seta">›</span>
         </div>
         <div id="config-item-eventos" class="config-item" onclick="abrirConfigTela('eventos')">
-            <span>Eventos</span>
+            <span>Cadastro de Eventos</span>
             <span class="config-item-seta">›</span>
         </div>
     </div>
@@ -2862,7 +2862,7 @@
     <!-- Sub-tela: Eventos (módulo de Presença via QR, 29/ago/2026) -->
     <div id="config-tela-eventos" class="config-subtela" style="display:none;">
         <button class="btn-voltar-config" onclick="voltarConfigLista()">← Configurações</button>
-        <div class="painel-titulo">Eventos</div>
+        <div class="painel-titulo">Cadastro de Eventos</div>
         <p class="config-sub-desc">Cadastre os eventos da sua bateria (ensaios, apresentações...) pra depois marcar presença por QR Code.</p>
         <button id="eventos-btn-novo" class="btn-novo" style="margin-bottom:20px;" onclick="abrirNovoEvento()">+ Novo Evento</button>
         <div id="eventos-editor" style="display:none;"></div>
@@ -3134,14 +3134,14 @@
 <div class="painel" id="painel-presenca">
     <div id="presenca-lista">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <div class="painel-titulo">Lista de Presença</div>
-        <p class="config-sub-desc">Marque presença por evento. Pra cadastrar um evento novo, use Configurações → Eventos.</p>
+        <div class="painel-titulo">Eventos</div>
+        <p class="config-sub-desc">Marque presença por evento. Pra cadastrar um evento novo, use Configurações → Cadastro de Eventos.</p>
         <div id="presenca-eventos-lista" class="lista-cards"></div>
     </div>
 
     <div id="presenca-tela-marcar" class="config-subtela" style="display:none;">
-        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Lista de Presença</button>
-        <div class="painel-titulo" id="presenca-evento-titulo">Lista de Presença</div>
+        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Eventos</button>
+        <div class="painel-titulo" id="presenca-evento-titulo">Eventos</div>
         <!-- Cartão único: números + Iniciado/Finalizado (interruptor) +
              botões de QR, tudo junto num só .vg-card (30/ago/2026 -- antes
              eram 2 caixas separadas, "cheio de quadrado" na avaliação
@@ -3159,10 +3159,28 @@
                         <span class="trilho-trecho off" id="pres-trilho-finalizado"><span class="trilho-bolinha"></span></span>
                         <span class="trilho-label off" id="pres-trilho-finalizado-label">Evento Finalizado</span>
                     </label>
+                    <!-- Trava de Edição (nome interno da coluna/função; nome
+                         visível confirmado 23/set/2026: "Perfis Bloqueados" --
+                         único candidato que segue o mesmo padrão de "Evento
+                         Iniciado"/"Evento Finalizado" ao lado dele). Fica
+                         DENTRO do evento ao vivo, junto de Iniciado/
+                         Finalizado (que ela liga/desliga durante o evento),
+                         não dentro do formulário de Cadastro de Eventos. Só
+                         Mestre/Admin da Bateria/Super Admin veem e mexem
+                         (souMestreOuAdminBateria, mais restrito que
+                         editar_eventos). -->
+                    <label class="trilho" id="pres-trilho-trava-wrap" style="display:none;" onclick="toggleTravaEdicao()">
+                        <span class="trilho-trecho off" id="pres-trilho-trava"><span class="trilho-bolinha"></span></span>
+                        <span class="trilho-label off" id="pres-trilho-trava-label">Perfis Bloqueados</span>
+                    </label>
                 </div>
                 <div class="pres-divisor-v" id="pres-divisor-2" style="display:none;"></div>
                 <div class="pres-qr-btns" id="pres-qr-btns" style="display:none;">
-                    <button type="button" id="presenca-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrEvento()">🎫 Mostrar QR do Evento</button>
+                    <!-- Ícone de QR desenhado à mão (22/set/2026) -- não existe
+                         emoji de QR code de verdade no teclado; o 🎫 (ticket)
+                         foi liberado pro Controle de Acesso, que combina mais
+                         com a ideia real (catraca/entrada de show). -->
+                    <button type="button" id="presenca-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrEvento()"><svg width="13" height="13" viewBox="0 0 21 21" fill="none"><rect x="0" y="0" width="7" height="7" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="3" height="3" fill="currentColor"/><rect x="14" y="0" width="7" height="7" stroke="currentColor" stroke-width="1.5"/><rect x="16" y="2" width="3" height="3" fill="currentColor"/><rect x="0" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="16" width="3" height="3" fill="currentColor"/><rect x="14" y="14" width="3" height="3" fill="currentColor"/><rect x="14" y="18" width="3" height="3" fill="currentColor"/><rect x="18" y="14" width="3" height="3" fill="currentColor"/></svg>Mostrar QR do Evento</button>
                     <button type="button" id="presenca-btn-escanear" class="btn-contorno" onclick="abrirScannerPresenca()">📷 Escanear</button>
                     <button type="button" id="presenca-btn-link-portaria" class="btn-contorno" style="display:none;" onclick="abrirLinkVerificacaoEvento()">🔗 Link de Verificação de Entrada</button>
                 </div>
