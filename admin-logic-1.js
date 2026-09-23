@@ -8229,6 +8229,11 @@
             else mostrarToast(categoriaEditando.id ? 'Categoria atualizada!' : 'Categoria criada!');
             categoriaEditando = null;
             await carregarCategorias();
+            // Mesmo achado de salvarEventoTipoSA (23/set/2026) -- cache
+            // separado que a tela de Instrumentos, dentro de uma bateria,
+            // usa (bibliotecaInstrumentos) nunca era avisado ao salvar
+            // Categoria/Nomenclatura aqui.
+            bibliotecaInstrumentos = [];
             renderizarEditorCategoria();
             renderizarCategoriasLista();
         } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
@@ -8238,7 +8243,7 @@
         if (!(await tumtuConfirmar('Excluir esta categoria? Isso remove também suas nomenclaturas. Se alguma bateria já usa esse instrumento, prefira marcar como "Inativa".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
-        mostrarToast('Categoria excluída.'); categoriaEditando = null; await carregarCategorias(); renderizarEditorCategoria(); renderizarCategoriasLista();
+        mostrarToast('Categoria excluída.'); categoriaEditando = null; await carregarCategorias(); bibliotecaInstrumentos = []; renderizarEditorCategoria(); renderizarCategoriasLista();
     }
 
     // ── Configurações globais → Medidas (biblioteca mestre) ──────────────
@@ -8393,6 +8398,12 @@
             else mostrarToast(medidaTipoEditando.id ? 'Categoria de figurino atualizada!' : 'Categoria de figurino criada!');
             medidaTipoEditando = null;
             await carregarMedidaTiposSA();
+            // Mesmo achado de salvarEventoTipoSA (23/set/2026) -- os dois
+            // caches que a tela de Medidas, dentro de uma bateria, usa
+            // (bibliotecaMedidaTipos + bibliotecaMedidas) nunca eram
+            // avisados ao salvar/editar uma Categoria de Figurino aqui.
+            bibliotecaMedidaTipos = [];
+            bibliotecaMedidas = [];
             renderizarEditorMedidaTipo();
             renderizarMedidaTiposListaSA();
         } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
@@ -8402,7 +8413,7 @@
         if (!(await tumtuConfirmar('Excluir esta categoria de figurino? Isso remove também sua escala de Medida. Se alguma bateria já usa, prefira marcar como "Inativo".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
-        mostrarToast('Categoria de figurino excluída.'); medidaTipoEditando = null; await carregarMedidaTiposSA(); renderizarEditorMedidaTipo(); renderizarMedidaTiposListaSA();
+        mostrarToast('Categoria de figurino excluída.'); medidaTipoEditando = null; await carregarMedidaTiposSA(); bibliotecaMedidaTipos = []; bibliotecaMedidas = []; renderizarEditorMedidaTipo(); renderizarMedidaTiposListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -8500,6 +8511,10 @@
             mostrarToast(figurinoMestreEditando.id ? 'Figurino atualizado!' : 'Figurino criado!');
             figurinoMestreEditando = null;
             await carregarFigurinoMestreSA();
+            // Mesmo achado de salvarEventoTipoSA (23/set/2026) -- cache
+            // separado que a tela de Figurino, dentro de uma bateria, usa
+            // (bibliotecaFigurino) nunca era avisado.
+            bibliotecaFigurino = [];
             renderizarEditorFigurinoMestre();
             renderizarFigurinoMestreListaSA();
         } finally { salvandoFigurinoMestre = false; }
@@ -8511,6 +8526,7 @@
         mostrarToast('Figurino excluído.');
         figurinoMestreEditando = null;
         await carregarFigurinoMestreSA();
+        bibliotecaFigurino = [];
         renderizarEditorFigurinoMestre();
         renderizarFigurinoMestreListaSA();
     }
@@ -8594,6 +8610,14 @@
             mostrarToast(eventoTipoEditando.id ? 'Tipo de evento atualizado!' : 'Tipo de evento criado!');
             eventoTipoEditando = null;
             await carregarEventoTiposSA();
+            // Achado dela ao vivo, 23/set/2026: criar/editar Tipo de Evento
+            // aqui (Super Admin) nunca avisava o cache SEPARADO que "Novo
+            // Evento" (dentro de uma bateria) usa -- bibliotecaEventoTipos
+            // só carrega 1x por sessão (.length===0), então quem já tinha
+            // aberto Eventos numa bateria antes de ela criar o tipo novo
+            // não via ele, mesmo atualizando a lista aqui. Zerando o cache,
+            // a próxima vez que alguém abrir "Novo Evento" busca de novo.
+            bibliotecaEventoTipos = [];
             renderizarEditorEventoTipo();
             renderizarEventoTiposListaSA();
         } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
@@ -8603,7 +8627,7 @@
         if (!(await tumtuConfirmar('Excluir este tipo de evento? Se alguma bateria já tem Eventos criados com ele, prefira marcar como "Inativo".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
-        mostrarToast('Tipo de evento excluído.'); eventoTipoEditando = null; await carregarEventoTiposSA(); renderizarEditorEventoTipo(); renderizarEventoTiposListaSA();
+        mostrarToast('Tipo de evento excluído.'); eventoTipoEditando = null; await carregarEventoTiposSA(); bibliotecaEventoTipos = []; renderizarEditorEventoTipo(); renderizarEventoTiposListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -8684,6 +8708,9 @@
             mostrarToast(temporadaEditando.id ? 'Temporada atualizada!' : 'Temporada criada!');
             temporadaEditando = null;
             await carregarTemporadasSA();
+            // Mesmo achado de salvarEventoTipoSA -- cache separado que
+            // "Novo Evento" usa (bibliotecaTemporadas) nunca era avisado.
+            bibliotecaTemporadas = [];
             renderizarEditorTemporada();
             renderizarTemporadasListaSA();
         } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
@@ -8693,7 +8720,7 @@
         if (!(await tumtuConfirmar('Excluir esta temporada? Se algum evento já usa ela, prefira marcar como "Inativa".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
-        mostrarToast('Temporada excluída.'); temporadaEditando = null; await carregarTemporadasSA(); renderizarEditorTemporada(); renderizarTemporadasListaSA();
+        mostrarToast('Temporada excluída.'); temporadaEditando = null; await carregarTemporadasSA(); bibliotecaTemporadas = []; renderizarEditorTemporada(); renderizarTemporadasListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════
