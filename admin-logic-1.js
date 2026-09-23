@@ -1081,7 +1081,13 @@
     // Igualado ao formato de Ritmistas, 22/ago/2026 -- Diretoria ganha os
     // mesmos filtros ("Quem exportar") e a mesma opção de separar por
     // grupo (por cargo, no lugar de por instrumento).
-    async function abrirModalExportar(tipo) {
+    // voltarPara (23/set/2026): quando o botão Exportar é aberto a partir de
+    // outra tela (ex: Grade de Tamanhos), que precisa mandar pra Ritmistas/
+    // Diretoria só pra carregar os dados -- sem isso, ela ficava "presa" na
+    // tela de Ritmistas depois de fechar a exportação, achado dela ao vivo.
+    let exportModalVoltarPara = null;
+    async function abrirModalExportar(tipo, voltarPara = null) {
+        exportModalVoltarPara = voltarPara;
         tipoExportacaoAtual = tipo;
         const ehRitmistas = tipo === 'ritmistas';
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
@@ -1274,7 +1280,7 @@
             ? tituloCustom.normalize('NFD').replace(removerAcentos, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '')
             : tipoExportacaoAtual;
         XLSX.writeFile(livro, `${nomeArquivoBase}-${dataHoje}.xlsx`);
-        fecharModal('modalExportarExcel');
+        fecharModalExportar();
     }
 
     // MODAIS
@@ -1311,6 +1317,18 @@
     async function fecharModal(id) {
         if (typeof fpPodeDescartar === 'function' && !(await fpPodeDescartar())) return;
         document.getElementById(id).classList.remove('aberto');
+    }
+
+    // Fecha a modal de exportação e, se ela foi aberta a partir de outra
+    // tela (ex: Grade de Tamanhos), volta pra lá -- ver abrirModalExportar.
+    async function fecharModalExportar() {
+        await fecharModal('modalExportarExcel');
+        if (document.getElementById('modalExportarExcel').classList.contains('aberto')) return; // não fechou de verdade
+        if (exportModalVoltarPara) {
+            const voltarPara = exportModalVoltarPara;
+            exportModalVoltarPara = null;
+            trocarAba(voltarPara);
+        }
     }
 
     let fichaAtualId = null;

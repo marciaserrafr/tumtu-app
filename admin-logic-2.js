@@ -684,6 +684,7 @@
             bibliotecaMedidaTipos.length === 0 ? carregarBibliotecaMedidaTipos() : Promise.resolve(),
             bibliotecaMedidas.length === 0 ? carregarBibliotecaMedidas() : Promise.resolve(),
             carregarBateriaMedidaTipos(),
+            carregarBateriaMedidas(),
             carregarGradeTamanhosPessoas(),
         ]);
         renderizarGradeTamanhosAbas();
@@ -754,7 +755,18 @@
                 if (!valor) { semTamanho++; return; }
                 contagem[valor] = (contagem[valor] || 0) + 1;
             });
-            const tamanhosMestre = bibliotecaMedidas.filter(t => t.tipo_id === tipo.id).sort((a, b) => a.ordem - b.ordem).map(t => t.nome);
+            // Só os tamanhos que ESSA bateria ativou (bateria_medidas.ativo) --
+            // achado dela ao vivo, 23/set/2026: a biblioteca mestre de
+            // tamanhos (bibliotecaMedidas) é GLOBAL, compartilhada por todas
+            // as baterias; mostrar ela inteira aqui despejava tamanho de
+            // outra escola (ex: PP/Especial/EXG/EEXG) que a Imperatriz nunca
+            // configurou, tudo com 0 -- mesmo filtro que Configurações →
+            // Medidas já usa (renderizarLinhaMedida).
+            const tamanhosMestre = bibliotecaMedidas
+                .filter(t => t.tipo_id === tipo.id)
+                .filter(t => bateriaMedidasCache.some(bm => bm.tamanho_id === t.id && bm.ativo))
+                .sort((a, b) => a.ordem - b.ordem)
+                .map(t => t.nome);
             const tamanhosExtras = Object.keys(contagem).filter(t => !tamanhosMestre.includes(t));
             const ordem = [...tamanhosMestre, ...tamanhosExtras];
             const total = elegiveis.length;
@@ -796,7 +808,7 @@
         const [abaDestino, tipoExport] = mapa[aba] || [];
         if (!abaDestino) return;
         await trocarAba(abaDestino);
-        await abrirModalExportar(tipoExport);
+        await abrirModalExportar(tipoExport, 'grade-tamanhos');
     }
 
     // Janela nova mínima, mesmo padrão já usado por imprimirQrEmJanela --
