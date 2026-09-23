@@ -1138,10 +1138,13 @@
                 const campo = todosCampos.find(c => c.chave === chave);
                 let valor;
                 if (chave.startsWith('medida_')) {
-                    // "Não Desfila" (28/ago/2026): sai só do pedido de
-                    // fantasia -- continua aparecendo normal em Camisa/
-                    // Calça/Sapato/qualquer outra medida.
-                    if (r.nao_desfila && campo.label.toLowerCase().includes('fantasia')) {
+                    // "Não Desfila" (28/ago/2026, Sapato incluído 23/set/2026):
+                    // sai do pedido de Fantasia E Sapato -- quem não desfila
+                    // não usa a fantasia nem o sapato de desfile, mas
+                    // continua aparecendo normal em Camisa/Calça/qualquer
+                    // outra medida. Só some do RELATÓRIO (exportação) -- o
+                    // valor continua salvo no perfil da pessoa normalmente.
+                    if (r.nao_desfila && (campo.label.toLowerCase().includes('fantasia') || campo.label.toLowerCase().includes('sapato'))) {
                         valor = '';
                     } else {
                         const tipoId = Number(chave.slice('medida_'.length));
