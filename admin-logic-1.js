@@ -4691,7 +4691,12 @@
     async function carregarEventosBateria() {
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { eventosBateriaCache = []; return; }
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&order=data.desc`, { headers: authHeaders });
+        // select= explícito (23/set/2026) -- nunca inclui token_verificacao_portaria:
+        // essa coluna é secreta (autoriza confirmar entrada na portaria sem checar
+        // foto) e não pode viajar numa busca que qualquer membro da bateria dispara.
+        // Quem precisa do token de verdade usa obter_ou_gerar_token_portaria() (RPC),
+        // que confere editar_eventos antes de entregar.
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&order=data.desc&select=id,bateria_id,evento_tipo_id,nome,data,criado_por,criado_em,temporada_id,perfis_diretoria_inclusos,inclui_extras,iniciado,finalizado,controle_portaria`, { headers: authHeaders });
         eventosBateriaCache = res.ok ? await res.json() : [];
     }
     function nomeTipoEvento(id) {
@@ -5352,15 +5357,16 @@
     async function abrirLinkVerificacaoEvento() {
         const evento = presencaEventoAtual;
         if (!evento) return;
-        let token = evento.token_verificacao_portaria;
-        if (!token) {
-            token = crypto.randomUUID();
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${evento.id}`, {
-                method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ token_verificacao_portaria: token })
-            });
-            if (!res.ok) { mostrarToast('Não foi possível gerar o link.', 'erro'); return; }
-            evento.token_verificacao_portaria = token;
-        }
+        // 23/set/2026 -- token nunca mais viaja na busca geral de eventos
+        // (achado de segurança: qualquer ritmista conseguia ler essa coluna
+        // sozinho e confirmar entrada de qualquer um sem checar foto nenhuma).
+        // obter_ou_gerar_token_portaria() confere editar_eventos no banco antes
+        // de devolver ou criar o token -- é a ÚNICA porta pra esse valor agora.
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/obter_ou_gerar_token_portaria`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ p_evento_id: evento.id })
+        });
+        if (!res.ok) { mostrarToast('Não foi possível gerar o link.', 'erro'); return; }
+        const token = await res.json();
         const url = `${window.location.origin}/qr?v=${token}`;
         document.getElementById('portaria-link-evento').textContent = evento.nome;
         document.getElementById('portaria-link-input').value = url;

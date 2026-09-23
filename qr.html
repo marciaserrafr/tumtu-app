@@ -161,6 +161,7 @@
             background: transparent; border: 1.5px solid rgba(255,255,255,0.3); color: #fff;
             border-radius: 20px; padding: 8px 18px; cursor: pointer; font-family: inherit;
             font-size: 13px; font-weight: 600;
+            min-height: 44px; display: inline-flex; align-items: center;
         }
         #scannerVideoWrap { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         #scannerVideo { width: 100%; height: 100%; object-fit: cover; }
@@ -311,25 +312,46 @@
     // tentando entrar. Quem confere é a pessoa que segura ESTE
     // aparelho, olhando ESTA tela.
     // ══════════════════════════════════════════════════════════════
+    // 23/set/2026 -- distingue "sem conexão" de "QR não reconhecido": antes
+    // as duas caíam na mesma mensagem ("QR não reconhecido pra esse
+    // evento"), o que podia negar entrada de um ritmista de verdade só por
+    // sinal fraco (comum em porta de evento grande), ou acostumar o fiscal
+    // a ignorar o aviso achando que é sempre problema de rede.
     async function buscarPessoaPortaria(qrToken, portariaToken) {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/consultar_qr_portaria`, {
-            method: 'POST', headers: RPC_HEADERS, body: JSON.stringify({ p_qr_token: qrToken, p_evento_token: portariaToken }),
-        });
-        const dados = res.ok ? await res.json() : [];
-        return dados.length ? dados[0] : null;
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/consultar_qr_portaria`, {
+                method: 'POST', headers: RPC_HEADERS, body: JSON.stringify({ p_qr_token: qrToken, p_evento_token: portariaToken }),
+            });
+            if (!res.ok) return { erroRede: true };
+            const dados = await res.json();
+            return dados.length ? dados[0] : null;
+        } catch (e) {
+            return { erroRede: true };
+        }
     }
     async function confirmarEntradaPortaria(vinculoId, portariaToken) {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/confirmar_entrada_portaria`, {
-            method: 'POST', headers: RPC_HEADERS, body: JSON.stringify({ p_vinculo_id: vinculoId, p_evento_token: portariaToken }),
-        });
-        const dados = res.ok ? await res.json() : [];
-        return dados.length ? dados[0] : null;
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/confirmar_entrada_portaria`, {
+                method: 'POST', headers: RPC_HEADERS, body: JSON.stringify({ p_vinculo_id: vinculoId, p_evento_token: portariaToken }),
+            });
+            const dados = res.ok ? await res.json() : [];
+            return dados.length ? dados[0] : null;
+        } catch (e) {
+            return null;
+        }
     }
 
     // Tela cheia (sem params, ?t= aberto por fora, ou "Continuar
     // escaneando") -- usada tanto na tela principal quanto dentro do
     // scanner embutido, por isso recebe o container como parâmetro.
     function renderizarResultadoPortaria(container, pessoa, portariaToken, dentroDoScanner) {
+        if (pessoa && pessoa.erroRede) {
+            container.innerHTML = dentroDoScanner
+                ? '<span class="erro-inline">Sem conexão -- aponta de novo pro QR.</span>'
+                : '<div class="erro">Sem conexão. Confira a internet e tenta de novo.</div>'
+                    + `<button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Tentar de novo</button>`;
+            return;
+        }
         if (!pessoa) {
             container.innerHTML = dentroDoScanner
                 ? '<span class="erro-inline">QR não reconhecido pra esse evento.</span>'
@@ -374,7 +396,7 @@
     // QR sem precisar sair pra outro app (jsQR, mesmo padrão já usado
     // no scanner de Presença da Diretoria em admin-logic-1.js).
     // ══════════════════════════════════════════════════════════════
-    let scannerStream = null, scannerAnimId = null, scannerUltimoToken = null, scannerUltimoTs = 0;
+    let scannerStream = null, scannerAnimId = null, scannerTimeoutId = null, scannerUltimoToken = null, scannerUltimoTs = 0;
 
     async function abrirScannerEmbutido(portariaToken) {
         if (typeof jsQR !== 'function') { alert('O leitor de QR ainda não carregou -- tenta de novo em alguns segundos.'); return; }
@@ -398,8 +420,16 @@
         document.getElementById('scannerOverlay').style.display = 'none';
         if (scannerAnimId) cancelAnimationFrame(scannerAnimId);
         scannerAnimId = null;
+        if (scannerTimeoutId) clearTimeout(scannerTimeoutId);
+        scannerTimeoutId = null;
         if (scannerStream) { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
     }
+    // 23/set/2026 -- decodifica ~8x/segundo (setTimeout) em vez de todo frame
+    // de vídeo (rAF, 30-60x/segundo): mais que suficiente pra um QR parado ou
+    // se aproximando devagar, e reduz bastante o aquecimento/consumo de
+    // bateria de um celular emprestado escaneando centenas de carteirinhas
+    // seguidas num turno longo.
+    const SCANNER_INTERVALO_MS = 120;
     function loopScanner(portariaToken) {
         const video = document.getElementById('scannerVideo');
         if (!video || document.getElementById('scannerOverlay').style.display === 'none') return;
@@ -415,7 +445,7 @@
         const imagem = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const codigo = jsQR(imagem.data, imagem.width, imagem.height);
         if (codigo && codigo.data) processarLeituraScanner(codigo.data, portariaToken);
-        scannerAnimId = requestAnimationFrame(() => loopScanner(portariaToken));
+        scannerTimeoutId = setTimeout(() => { scannerAnimId = requestAnimationFrame(() => loopScanner(portariaToken)); }, SCANNER_INTERVALO_MS);
     }
     function extrairQrTokenDeTexto(texto) {
         try { const url = new URL(texto); const t = url.searchParams.get('t'); if (t) return t; } catch (e) { /* token puro abaixo */ }
