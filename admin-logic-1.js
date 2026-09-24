@@ -2685,11 +2685,13 @@
             // (renderizarEsqueletoDashboard(), peça 1b do documento) --
             // preenchido ANTES de mostrarShellSA() revelar o painel, pra
             // "Dashboard"/"BATERIAS" nunca aparecerem sozinhos (achado ao
-            // vivo: sem isso, era exatamente o que acontecia). Escolas/
-            // Configurações/Privacidade/Logs ainda não têm esqueleto próprio
-            // -- fora do escopo de hoje (só 1a Visão Geral + 1b Dashboard) --
-            // continuam com o overlay antigo só nesses casos específicos.
+            // vivo: sem isso, era exatamente o que acontecia). Escolas
+            // ganhou o dela também agora (Polimento Camada 0, sessão
+            // seguinte) -- Configurações/Privacidade/Logs ainda não têm
+            // esqueleto próprio, continuam com o overlay antigo só nesses
+            // casos específicos.
             renderizarEsqueletoDashboard();
+            renderizarEsqueletoListaEscolas();
             mostrarShellSA();
             // Volta pro mesmo lugar de antes de atualizar a página -- achado
             // da Márcia, 20/ago/2026: "sempre que eu atualizo a página, ela
@@ -2704,6 +2706,8 @@
                     mostrarShellSA();
                     await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
                 }
+            } else if (estadoSalvo && estadoSalvo.contexto === 'sa-shell' && estadoSalvo.aba === 'escolas') {
+                await trocarSaAba('escolas', document.querySelector('.sa-sidebar-item[data-sa="escolas"]'));
             } else if (estadoSalvo && estadoSalvo.contexto === 'sa-shell' && estadoSalvo.aba && estadoSalvo.aba !== 'dashboard') {
                 mostrarOverlayCarregando();
                 await trocarSaAba(estadoSalvo.aba, document.querySelector(`.sa-sidebar-item[data-sa="${estadoSalvo.aba}"]`));
@@ -7014,6 +7018,27 @@
     // ══════════════════════════════════════════════════════════════════
     // ESCOLAS — LISTAGEM + NOVA ESCOLA
     // ══════════════════════════════════════════════════════════════════
+    // Esqueleto da lista de Escolas (25/set/2026, continuação do esqueleto
+    // completo -- mesmo método já aprovado: "3 fantasmas, opacidade
+    // 1/.6/.3" pra quantidade desconhecida, mesma forma real do card
+    // (.item-card), só com .bloco no lugar do dado). Só usado no caminho
+    // de entrada fria direto nesta aba (a troca normal de aba já busca o
+    // dado ANTES de revelar o painel, sem flash nenhum -- ver trocarSaAba).
+    function renderizarEsqueletoListaEscolas() {
+        const div = document.getElementById('lista-escolas');
+        if (!div) return;
+        div.innerHTML = [1, .6, .3].map(op => `
+            <div class="item-card" style="opacity:${op};">
+                <div class="item-card-esquerda">
+                    <div class="escola-logo-circulo" style="background:var(--bloco-1);box-shadow:none;"></div>
+                    <div class="item-info">
+                        <div class="item-nome"><span class="bloco" style="width:150px;height:13px;"></span></div>
+                        <div class="item-detalhe" style="margin-top:4px;"><span class="bloco secundario" style="width:220px;height:11px;"></span></div>
+                    </div>
+                </div>
+                <div class="item-acoes"><span class="bloco" style="width:40px;height:20px;border-radius:10px;"></span></div>
+            </div>`).join('');
+    }
     async function carregarEscolas() {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/escolas?order=nome`, { headers: authHeaders });
         escolasCache = res.ok ? await res.json() : [];
