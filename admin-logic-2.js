@@ -607,6 +607,7 @@
         else if (aba === 'presenca') await iniciarPresencaTab();
         else if (aba === 'historico') await carregarHistoricoEscolaSA();
         else if (aba === 'extras') await iniciarConvidadosAba();
+        else if (aba === 'grade-tamanhos') await iniciarGradeTamanhosTab();
         // Achado dela, 11/set/2026: marcar presença/entrega em outra aba e
         // voltar pra Visão Geral mostrava os cartões de resumo desatualizados
         // -- carregarResumoEntregaFigurino()/carregarResumoEventosAtivos() só
@@ -649,4 +650,251 @@
         } finally {
             esconderBarraProgresso();
         }
+    }
+
+    // ── GRADE DE TAMANHOS (23/set/2026) ─────────────────────────────────────────
+    // Quantidade por tamanho de cada Medida ativa na bateria, separado por
+    // Ritmistas/Diretoria/Convidados (pedido dela: um pedido de verdade é
+    // sempre por grupo -- Calça de Ritmista e "Calça (Diretoria)" já são
+    // tamanhos diferentes no banco, não faz sentido somar). Cada card lê
+    // bateria_medida_tipos.publico (quem preenche) e .inclui_nao_desfila
+    // (se ritmista/convidado marcado "Não Desfila" entra na conta) -- nunca
+    // fixo em código, ver achado de risco de 23/set/2026 em linhasExportacao.
+    let gradeTamanhosAbaAtual = 'ritmistas';
+    let gradeTamanhosPessoas = []; // linhas cruas: {id, perfil, eh_convidado, nao_desfila, medidas:{tipoId:valor}}
+
+    const GRADE_TAMANHOS_ABAS = [
+        { chave: 'ritmistas', label: 'Ritmistas' },
+        { chave: 'diretoria', label: 'Diretoria' },
+        { chave: 'convidados', label: 'Convidados' },
+    ];
+
+    async function carregarGradeTamanhosPessoas() {
+        const bateriaId = bateriaIdContexto();
+        if (!bateriaId) { gradeTamanhosPessoas = []; return; }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?bateria_id=eq.${bateriaId}&status=eq.aprovado&select=id,perfil,eh_convidado,nao_desfila`, { headers: authHeaders });
+        const linhas = res.ok ? await res.json() : [];
+        const valores = linhas.length > 0 ? await carregarValoresMedidaExport(linhas.map(l => l.id)) : {};
+        linhas.forEach(l => { l.medidas = valores[l.id] || {}; });
+        gradeTamanhosPessoas = linhas;
+    }
+
+    async function iniciarGradeTamanhosTab() {
+        await Promise.all([
+            bibliotecaMedidaTipos.length === 0 ? carregarBibliotecaMedidaTipos() : Promise.resolve(),
+            bibliotecaMedidas.length === 0 ? carregarBibliotecaMedidas() : Promise.resolve(),
+            carregarBateriaMedidaTipos(),
+            carregarBateriaMedidas(),
+            carregarGradeTamanhosPessoas(),
+        ]);
+        renderizarGradeTamanhosAbas();
+        renderizarGradeTamanhosCards();
+    }
+
+    function renderizarGradeTamanhosAbas() {
+        const container = document.getElementById('grade-tamanhos-abas');
+        if (!container) return;
+        container.innerHTML = GRADE_TAMANHOS_ABAS.map(a => `
+            <button type="button" onclick="trocarGradeTamanhosAba('${a.chave}')"
+                style="border-radius:20px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+                       border:${gradeTamanhosAbaAtual === a.chave ? '2px solid #D4AF37' : '1.5px solid #d8d5e6'};
+                       background:${gradeTamanhosAbaAtual === a.chave ? '#fdf8ea' : '#fff'};
+                       color:${gradeTamanhosAbaAtual === a.chave ? '#8a6a00' : '#1a1730'};">
+                ${a.label}
+            </button>`).join('');
+    }
+
+    function trocarGradeTamanhosAba(chave) {
+        gradeTamanhosAbaAtual = chave;
+        renderizarGradeTamanhosAbas();
+        renderizarGradeTamanhosCards();
+    }
+
+    // Qual perfil "pertence" à aba, pra filtrar os cards que fazem sentido
+    // mostrar juntos -- a CONTAGEM de cada card, porém, sempre respeita o
+    // publico REAL daquela Medida (linha abaixo), nunca esse mapa -- uma
+    // Medida com publico=['diretor'] (sem 'apoio') não conta Apoio, mesmo
+    // dentro da aba Diretoria.
+    const GRADE_TAMANHOS_PERFIS_DA_ABA = {
+        ritmistas: ['ritmista'],
+        diretoria: ['mestre', 'diretor', 'apoio'],
+        convidados: ['extra'], // 'extra' é a chave de "Convidados" em publico (ver PERFIS_PUBLICO_MEDIDA)
+    };
+
+    function pessoaEstaNoPublico(pessoa, publico) {
+        if (pessoa.eh_convidado) return publico.includes('extra');
+        return publico.includes(pessoa.perfil);
+    }
+
+    function renderizarGradeTamanhosCards() {
+        const container = document.getElementById('grade-tamanhos-cards');
+        if (!container) return;
+        const perfisDaAba = GRADE_TAMANHOS_PERFIS_DA_ABA[gradeTamanhosAbaAtual] || [];
+        const tiposDaAba = bateriaMedidaTiposCache
+            .filter(bmt => bmt.ativo)
+            .map(bmt => ({ bmt, tipo: bibliotecaMedidaTipos.find(t => t.id === bmt.tipo_id) }))
+            .filter(x => x.tipo && publicoMedidaTipo(x.bmt).some(p => perfisDaAba.includes(p)));
+
+        if (tiposDaAba.length === 0) {
+            container.innerHTML = '<div class="estado-vazio"><div class="estado-vazio-icone">📐</div>Nenhuma Medida configurada pra este grupo ainda -- confira Configurações → Medidas.</div>';
+            return;
+        }
+
+        container.innerHTML = tiposDaAba.map(({ bmt, tipo }) => {
+            const publico = publicoMedidaTipo(bmt);
+            const incluiNaoDesfila = bmt.inclui_nao_desfila !== false;
+            // Achado dela ao vivo, 23/set/2026: Camisa vale pra Ritmista +
+            // Diretoria + Convidados ao mesmo tempo (publico da Medida) --
+            // sem cruzar com o público DESSA ABA, o card de Camisa dentro de
+            // "Ritmistas" contava todo mundo junto (222 ritmistas + 19 de
+            // Diretoria + 2 Convidados = 243, em vez de só os ritmistas).
+            const elegiveis = gradeTamanhosPessoas.filter(p => {
+                if (!pessoaEstaNoPublico(p, publico)) return false;
+                if (!pessoaEstaNoPublico(p, perfisDaAba)) return false;
+                if (p.nao_desfila && !incluiNaoDesfila) return false;
+                return true;
+            });
+            const contagem = {};
+            let semTamanho = 0;
+            elegiveis.forEach(p => {
+                const valor = p.medidas[tipo.id];
+                if (!valor) { semTamanho++; return; }
+                contagem[valor] = (contagem[valor] || 0) + 1;
+            });
+            // Só os tamanhos que ESSA bateria ativou (bateria_medidas.ativo) --
+            // achado dela ao vivo, 23/set/2026: a biblioteca mestre de
+            // tamanhos (bibliotecaMedidas) é GLOBAL, compartilhada por todas
+            // as baterias; mostrar ela inteira aqui despejava tamanho de
+            // outra escola (ex: PP/Especial/EXG/EEXG) que a Imperatriz nunca
+            // configurou, tudo com 0 -- mesmo filtro que Configurações →
+            // Medidas já usa (renderizarLinhaMedida).
+            const tamanhosMestre = bibliotecaMedidas
+                .filter(t => t.tipo_id === tipo.id)
+                .filter(t => bateriaMedidasCache.some(bm => bm.tamanho_id === t.id && bm.ativo))
+                .sort((a, b) => a.ordem - b.ordem)
+                .map(t => t.nome);
+            const tamanhosExtras = Object.keys(contagem).filter(t => !tamanhosMestre.includes(t));
+            const ordem = [...tamanhosMestre, ...tamanhosExtras];
+            const total = elegiveis.length;
+            const cardId = `grade-card-${tipo.id}`;
+            return `
+                <div class="vg-card" id="${cardId}" style="margin-bottom:16px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+                        <div class="grade-card-titulo" style="font-size:15px;font-weight:800;color:#1a1730;">${esc(tipo.nome)}</div>
+                        <div class="oculta-impressao" style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button type="button" onclick="gradeTamanhosExportar('${gradeTamanhosAbaAtual}')" style="border:1.5px solid #d8d5e6;border-radius:16px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:#1a1730;">⬇ Exportar</button>
+                            <button type="button" onclick="gradeTamanhosImprimir(${tipo.id})" style="border:1.5px solid #d8d5e6;border-radius:16px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:#1a1730;">🖨️ Imprimir</button>
+                            <button type="button" onclick="gradeTamanhosEnviarImagem('${cardId}', '${esc(tipo.nome)}')" style="border:1.5px solid #d8d5e6;border-radius:16px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:#1a1730;">📤 Enviar como imagem</button>
+                        </div>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        ${ordem.map(tam => `
+                            <tr style="border-top:1px solid #eee;">
+                                <td style="padding:6px 4px;color:#1a1730;">${esc(tam)}</td>
+                                <td style="padding:6px 4px;text-align:right;font-weight:700;color:#1a1730;">${contagem[tam] || 0}</td>
+                            </tr>`).join('')}
+                        ${semTamanho > 0 ? `<tr style="border-top:1px solid #eee;">
+                                <td style="padding:6px 4px;color:#b00020;font-style:italic;">Sem tamanho cadastrado</td>
+                                <td style="padding:6px 4px;text-align:right;font-weight:700;color:#b00020;">${semTamanho}</td>
+                            </tr>` : ''}
+                        <tr style="border-top:2px solid #1a1730;">
+                            <td style="padding:8px 4px;font-weight:800;color:#1a1730;">Total</td>
+                            <td style="padding:8px 4px;text-align:right;font-weight:800;color:#1a1730;">${total}</td>
+                        </tr>
+                    </table>
+                </div>`;
+        }).join('');
+    }
+
+    // "Exportar" leva pro modal de exportação já existente (Ritmistas,
+    // Diretoria ou Convidados) -- ela escolhe os campos por lá, mesmo fluxo
+    // de sempre, sem duplicar essa mecânica aqui.
+    async function gradeTamanhosExportar(aba) {
+        const mapa = { ritmistas: ['ritmistas', 'ritmistas'], diretoria: ['diretoria', 'diretoria'], convidados: ['extras', 'convidado_especial'] };
+        const [abaDestino, tipoExport] = mapa[aba] || [];
+        if (!abaDestino) return;
+        await trocarAba(abaDestino);
+        await abrirModalExportar(tipoExport, 'grade-tamanhos');
+    }
+
+    // Janela nova mínima, mesmo padrão já usado por imprimirQrEmJanela --
+    // tentativa antiga de imprimir a página inteira do admin.html foi
+    // abandonada (03/set/2026, ver comentário perto de @media print): CSS
+    // demais competindo, sem sucesso depois de 3 tentativas.
+    function gradeTamanhosImprimir(tipoId) {
+        const cardId = `grade-card-${tipoId}`;
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        const titulo = card.querySelector('.grade-card-titulo').textContent.trim();
+        const linhasHtml = card.querySelector('table').innerHTML;
+        // Janela maior (23/set/2026) -- achado dela ao vivo, print real: o
+        // painel de impressão do Chrome (pré-visualização + configurações
+        // lado a lado) fica espremido numa janela de 420px, a
+        // pré-visualização quase some. width/height maiores dão espaço pro
+        // Chrome desenhar os dois painéis direito -- o CONTEÚDO impresso
+        // continua compacto (max-width no body), só a JANELA cresce.
+        const win = window.open('', '_blank', 'width=760,height=760');
+        if (!win) { mostrarToast('O navegador bloqueou a janela de impressão -- permite pop-ups pro TumTu e tenta de novo.', 'erro'); return; }
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(titulo)}</title>
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body { font-family: Arial, sans-serif; padding:32px 24px; max-width:480px; margin:0 auto; }
+                h1 { font-size:18px; margin-bottom:20px; color:#12101a; }
+                table { width:100%; border-collapse:collapse; font-size:14px; }
+                td { padding:8px 4px; }
+            </style></head>
+            <body><h1>${esc(titulo)}</h1><table>${linhasHtml}</table></body></html>`);
+        win.document.close();
+        win.onload = () => { setTimeout(() => { win.focus(); win.print(); }, 250); };
+    }
+
+    // "Enviar como imagem" (23/set/2026) -- html2canvas transforma o card em
+    // PNG; no celular, a Web Share API abre direto o menu de compartilhar
+    // (mesmo que manda foto pro WhatsApp); sem suporte (desktop), baixa o
+    // arquivo. html2canvas carregado por CDN só quando usado pela 1ª vez,
+    // mesmo padrão de carregarSheetJS (biblioteca pesada, sem motivo pra
+    // baixar em toda visita à tela).
+    let html2canvasCarregado = false;
+    function carregarHtml2Canvas() {
+        return new Promise((resolve, reject) => {
+            if (html2canvasCarregado || window.html2canvas) { html2canvasCarregado = true; resolve(); return; }
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+            script.onload = () => { html2canvasCarregado = true; resolve(); };
+            script.onerror = () => reject(new Error('Não foi possível carregar a geração de imagem.'));
+            document.head.appendChild(script);
+        });
+    }
+    async function gradeTamanhosEnviarImagem(cardId, nomeTipo) {
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        try {
+            await carregarHtml2Canvas();
+        } catch (e) {
+            mostrarToast('Não foi possível gerar a imagem -- verifique sua conexão e tente de novo.', 'erro');
+            return;
+        }
+        const botoes = card.querySelectorAll('.oculta-impressao');
+        botoes.forEach(b => b.style.visibility = 'hidden');
+        let canvas;
+        try {
+            canvas = await window.html2canvas(card, { backgroundColor: '#ffffff', scale: 2 });
+        } finally {
+            botoes.forEach(b => b.style.visibility = '');
+        }
+        const nomeArquivo = `grade-tamanhos-${nomeTipo.toLowerCase().replace(/\s+/g, '-')}.png`;
+        canvas.toBlob(async (blob) => {
+            if (!blob) { mostrarToast('Não foi possível gerar a imagem.', 'erro'); return; }
+            const arquivo = new File([blob], nomeArquivo, { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+                try { await navigator.share({ files: [arquivo], title: nomeTipo }); return; } catch (e) { /* cancelou -- não faz nada */ return; }
+            }
+            // Sem suporte a compartilhar arquivo (a maioria dos desktops):
+            // baixa a imagem direto, mesmo padrão já esperado nesse caso.
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = nomeArquivo;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 'image/png');
     }

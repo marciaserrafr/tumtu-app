@@ -905,10 +905,21 @@
     // reconstruir os arrays inteiros.
     const grupoMedidasExportRitmistas = { grupo: 'Medidas', campos: [] };
     const grupoMedidasExportDiretoria = { grupo: 'Medidas', campos: [] };
+    // Achado dela ao vivo, 23/set/2026: essa lista vinha da biblioteca
+    // MESTRE de Medidas inteira (global, todas as baterias -- "Vestido",
+    // "Boné", "Bucket" de outra escola apareciam pra exportar na
+    // Imperatriz, que nunca cadastrou esses itens). Corrigido cruzando com
+    // bateria_medida_tipos.ativo dessa bateria, mesmo filtro que
+    // Configurações → Medidas e a Grade de Tamanhos já usam.
     async function carregarGruposMedidaExport() {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders });
-        const tipos = res.ok ? await res.json() : [];
-        const campos = tipos.map(t => ({ chave: `medida_${t.id}`, label: `Tamanho: ${t.nome}` }));
+        const bateriaId = bateriaIdContexto();
+        const [resTipos, resBateria] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?ativo=eq.true&order=ordem`, { headers: authHeaders }),
+            bateriaId ? fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?bateria_id=eq.${bateriaId}&ativo=eq.true&select=tipo_id`, { headers: authHeaders }) : Promise.resolve(null),
+        ]);
+        const tipos = resTipos.ok ? await resTipos.json() : [];
+        const ativosNaBateria = resBateria && resBateria.ok ? new Set((await resBateria.json()).map(x => x.tipo_id)) : new Set();
+        const campos = tipos.filter(t => ativosNaBateria.has(t.id)).map(t => ({ chave: `medida_${t.id}`, label: `Tamanho: ${t.nome}` }));
         grupoMedidasExportRitmistas.campos = campos;
         grupoMedidasExportDiretoria.campos = campos;
     }
@@ -1087,13 +1098,24 @@
     // Igualado ao formato de Ritmistas, 22/ago/2026 -- Diretoria ganha os
     // mesmos filtros ("Quem exportar") e a mesma opção de separar por
     // grupo (por cargo, no lugar de por instrumento).
-    async function abrirModalExportar(tipo) {
+    // voltarPara (23/set/2026): quando o botão Exportar é aberto a partir de
+    // outra tela (ex: Grade de Tamanhos), que precisa mandar pra Ritmistas/
+    // Diretoria só pra carregar os dados -- sem isso, ela ficava "presa" na
+    // tela de Ritmistas depois de fechar a exportação, achado dela ao vivo.
+    let exportModalVoltarPara = null;
+    async function abrirModalExportar(tipo, voltarPara = null) {
+        exportModalVoltarPara = voltarPara;
         tipoExportacaoAtual = tipo;
         const ehRitmistas = tipo === 'ritmistas';
         const campos = ehRitmistas ? CAMPOS_EXPORTAVEIS : CAMPOS_EXPORTAVEIS_DIRETORIA;
 
         document.getElementById('exportTituloCustom').value = '';
         await carregarGruposMedidaExport();
+        // Garante bateriaMedidaTiposCache fresco antes de exportar (23/set/2026)
+        // -- linhasExportacao() depende de inclui_nao_desfila pra saber quem
+        // sai de Fantasia/Sapato; sem isso, exportar sem nunca ter visitado
+        // Configurações deixava o cache vazio e a exclusão não acontecia.
+        await carregarBateriaMedidaTipos();
 
         document.getElementById('exportFiltrosContainer').style.display = 'block';
         popularFiltrosExportacao();
@@ -1144,16 +1166,24 @@
                 const campo = todosCampos.find(c => c.chave === chave);
                 let valor;
                 if (chave.startsWith('medida_')) {
-                    // "Não Desfila" (28/ago/2026, Sapato incluído 23/set/2026):
-                    // sai do pedido de Fantasia E Sapato -- quem não desfila
-                    // não usa a fantasia nem o sapato de desfile, mas
-                    // continua aparecendo normal em Camisa/Calça/qualquer
-                    // outra medida. Só some do RELATÓRIO (exportação) -- o
-                    // valor continua salvo no perfil da pessoa normalmente.
-                    if (r.nao_desfila && (campo.label.toLowerCase().includes('fantasia') || campo.label.toLowerCase().includes('sapato'))) {
+                    const tipoId = Number(chave.slice('medida_'.length));
+                    // "Inclui quem 'Não Desfila'?" (23/set/2026) -- virou
+                    // configuração por Medida (Configurações → Medidas,
+                    // bateria_medida_tipos.inclui_nao_desfila), não mais
+                    // regra fixa aqui. Antes só existia pra Fantasia, via
+                    // texto do rótulo (campo.label.includes('fantasia')) --
+                    // achado de risco real: escondido, difícil de saber que
+                    // existia, e não cobria Sapato até ela pedir na sessão
+                    // (esse pedido tinha virado um remendo hardcoded, 23/set,
+                    // enquanto esta configuração de verdade era construída
+                    // em paralelo numa branch separada -- reconciliado
+                    // 25/set: o backfill já cobre Fantasia/Sapato=false em
+                    // todas as baterias reais, mesmo comportamento de antes).
+                    const configTipo = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipoId);
+                    const incluiNaoDesfila = configTipo ? configTipo.inclui_nao_desfila !== false : true;
+                    if (r.nao_desfila && !incluiNaoDesfila) {
                         valor = '';
                     } else {
-                        const tipoId = Number(chave.slice('medida_'.length));
                         const doVinculo = valoresMedidaPorVinculo[r.id];
                         valor = (doVinculo && doVinculo[tipoId]) || '';
                     }
@@ -1272,7 +1302,7 @@
             ? tituloCustom.normalize('NFD').replace(removerAcentos, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '')
             : tipoExportacaoAtual;
         XLSX.writeFile(livro, `${nomeArquivoBase}-${dataHoje}.xlsx`);
-        fecharModal('modalExportarExcel');
+        fecharModalExportar();
     }
 
     // MODAIS
@@ -1309,6 +1339,18 @@
     async function fecharModal(id) {
         if (typeof fpPodeDescartar === 'function' && !(await fpPodeDescartar())) return;
         document.getElementById(id).classList.remove('aberto');
+    }
+
+    // Fecha a modal de exportação e, se ela foi aberta a partir de outra
+    // tela (ex: Grade de Tamanhos), volta pra lá -- ver abrirModalExportar.
+    async function fecharModalExportar() {
+        await fecharModal('modalExportarExcel');
+        if (document.getElementById('modalExportarExcel').classList.contains('aberto')) return; // não fechou de verdade
+        if (exportModalVoltarPara) {
+            const voltarPara = exportModalVoltarPara;
+            exportModalVoltarPara = null;
+            trocarAba(voltarPara);
+        }
     }
 
     let fichaAtualId = null;
@@ -3482,6 +3524,30 @@
         const tipoAtivo = !!(tipoExistente && tipoExistente.ativo); // sem linha = desligado, mesmo padrão de Instrumentos
         const aberto = medidaTiposAbertos.has(tipo.id);
         const publico = publicoMedidaTipo(tipoExistente);
+        // "Inclui quem não desfila?" (23/set/2026) -- antes era regra fixa em
+        // JS só pra Fantasia/Sapato (achado arriscado, invisível pra ela).
+        // Vira configuração normal, mesmo padrão de "Quem preenche esta
+        // categoria" acima -- só faz sentido pra Medida que inclui Ritmista
+        // no público (Não Desfila é um atributo de ritmista/convidado-
+        // ritmista, não existe pra Mestre/Diretor/Apoio puros).
+        const incluiNaoDesfila = tipoExistente ? tipoExistente.inclui_nao_desfila !== false : true;
+        // "Aparece no cadastro?" e "Obrigatório no cadastro?" (23/set/2026)
+        // -- só fazem sentido pra Categoria "Especial": "Tradicional"
+        // (Camisa/Fantasia/Calça/Sapato) é sempre obrigatória e sempre
+        // aparece, regra fixa desde 24/ago/2026, sem interruptor -- ela foi
+        // explícita: essas duas perguntas são só pra Especial. Item-
+        // surpresa (ex: Boné) usa "Aparece" desligado; item como Vestido
+        // pode aparecer E ser obrigatório, os dois interruptores são
+        // independentes entre si.
+        const apareceNoCadastro = tipoExistente ? tipoExistente.aparece_no_cadastro !== false : true;
+        const obrigatorioNoCadastro = tipoExistente ? !!tipoExistente.obrigatorio_no_cadastro : false;
+        // Achado dela ao vivo, 25/set/2026: ativar o tipo (e até ligar
+        // "Aparece no cadastro") não bastava -- se nenhum tamanho dele
+        // estivesse marcado como ativo aqui embaixo, o item simplesmente
+        // não aparecia em lugar nenhum, sem nenhum aviso. Aviso não-
+        // bloqueante (mesmo padrão visual de #config-resumo-prontidao) pra
+        // ela perceber na hora, em vez de descobrir só testando o cadastro.
+        const temTamanhoAtivo = itens.some(t => bateriaMedidasCache.some(bm => bm.tamanho_id === t.id && bm.ativo));
         return `
             <div class="item-card config-medida-card">
                 <div class="config-medida-header" onclick="toggleMedidaTipoAberto(${tipo.id})">
@@ -3492,6 +3558,7 @@
                     <span class="config-medida-seta ${aberto ? 'aberta' : ''}">›</span>
                 </div>
                 ${aberto ? `<div class="config-medida-tamanhos">
+                    ${tipoAtivo && !temTamanhoAtivo ? `<div class="aviso-dados-proprios" style="margin:8px 0 12px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:default;">⚠️ Nenhum tamanho ativo -- este item não vai aparecer pra ninguém. Ative pelo menos 1 tamanho abaixo.</div>` : ''}
                     <div class="config-medida-publico">
                         <div class="config-medida-publico-label">Quem preenche esta categoria</div>
                         <div class="config-medida-publico-itens">
@@ -3502,6 +3569,26 @@
                                 </label>`).join('')}
                         </div>
                     </div>
+                    ${publico.includes('ritmista') ? `<div class="config-medida-publico">
+                        <div class="config-medida-publico-itens">
+                            <label class="config-instrumento-check">
+                                <input type="checkbox" ${incluiNaoDesfila ? 'checked' : ''} ${tipoAtivo ? '' : 'disabled'} onchange="salvarMedidaTipoIncluiNaoDesfila(${tipo.id}, this.checked)">
+                                <span>Inclui quem "Não Desfila"</span>
+                            </label>
+                        </div>
+                    </div>` : ''}
+                    ${tipo.grupo === 'especial' ? `<div class="config-medida-publico">
+                        <div class="config-medida-publico-itens">
+                            <label class="config-instrumento-check">
+                                <input type="checkbox" ${apareceNoCadastro ? 'checked' : ''} ${tipoAtivo ? '' : 'disabled'} onchange="salvarMedidaTipoApareceNoCadastro(${tipo.id}, this.checked)">
+                                <span>Aparece no cadastro (a própria pessoa preenche)</span>
+                            </label>
+                            <label class="config-instrumento-check">
+                                <input type="checkbox" ${obrigatorioNoCadastro ? 'checked' : ''} ${tipoAtivo && apareceNoCadastro ? '' : 'disabled'} onchange="salvarMedidaTipoObrigatorioNoCadastro(${tipo.id}, this.checked)">
+                                <span>Obrigatório preencher</span>
+                            </label>
+                        </div>
+                    </div>` : ''}
                     ${itens.map(t => renderizarLinhaMedida(t)).join('')}
                 </div>` : ''}
             </div>`;
@@ -3564,6 +3651,45 @@
             body: JSON.stringify({ publico: novo })
         });
         if (await falhouAoSalvar('salvarMedidaTipoPublico', res)) return;
+        await carregarBateriaMedidaTipos();
+        renderizarConfigMedidas();
+    }
+
+    async function salvarMedidaTipoIncluiNaoDesfila(tipoId, checked) {
+        const existente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipoId);
+        if (!existente) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ inclui_nao_desfila: checked })
+        });
+        if (await falhouAoSalvar('salvarMedidaTipoIncluiNaoDesfila', res)) return;
+        await carregarBateriaMedidaTipos();
+        renderizarConfigMedidas();
+    }
+
+    async function salvarMedidaTipoApareceNoCadastro(tipoId, checked) {
+        const existente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipoId);
+        if (!existente) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ aparece_no_cadastro: checked })
+        });
+        if (await falhouAoSalvar('salvarMedidaTipoApareceNoCadastro', res)) return;
+        await carregarBateriaMedidaTipos();
+        renderizarConfigMedidas();
+    }
+
+    async function salvarMedidaTipoObrigatorioNoCadastro(tipoId, checked) {
+        const existente = bateriaMedidaTiposCache.find(bmt => bmt.tipo_id === tipoId);
+        if (!existente) return;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/bateria_medida_tipos?id=eq.${existente.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ obrigatorio_no_cadastro: checked })
+        });
+        if (await falhouAoSalvar('salvarMedidaTipoObrigatorioNoCadastro', res)) return;
         await carregarBateriaMedidaTipos();
         renderizarConfigMedidas();
     }
@@ -5656,6 +5782,7 @@
         'historico': 'ver_historico',
         'figurino': 'ver_figurino',
         'presenca': 'ver_eventos',
+        'grade-tamanhos': 'ver_grade_tamanhos',
         'manual-instrucoes': 'ver_manual_instrucoes',
     };
 
@@ -5680,7 +5807,7 @@
     // pedido da Márcia pra enxugar o menu no celular) -- a aba em si não
     // tem uma capacidade própria, aparece se a pessoa tiver QUALQUER uma
     // das capacidades dos itens que ela agrupa.
-    const ABAS_ADMINISTRATIVO = ['comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'permissoes', 'historico', 'manual-instrucoes'];
+    const ABAS_ADMINISTRATIVO = ['comercial', 'configuracoes', 'figurino', 'extras', 'presenca', 'grade-tamanhos', 'permissoes', 'historico', 'manual-instrucoes'];
 
     // Mostra/esconde cada aba de acordo com minhasCapacidades, e troca pra
     // primeira aba visível se a que estava ativa sumiu. Super Admin nunca
@@ -5780,6 +5907,7 @@
         { aba: 'extras', label: 'Convidados', grupo: 'Cadastros' },
         { aba: 'figurino', label: 'Entrega de Figurino', grupo: 'Operação' },
         { aba: 'presenca', label: 'Registro de Presença', grupo: 'Operação' },
+        { aba: 'grade-tamanhos', label: 'Grade de Tamanhos', grupo: 'Operação' },
         { aba: 'permissoes', label: 'Permissões', grupo: 'Ajustes' },
         { aba: 'historico', label: 'Histórico', grupo: 'Operação' },
         // Não abre painel nenhum aqui dentro -- clicar leva pra
@@ -7309,6 +7437,11 @@
             { semFuncionalidade: true, nota: 'Usa a mesma capacidade do menu "Permissões" (mais abaixo na lista) — sem interruptor próprio aqui ainda', subgrupo: 'Permissões' },
         ] },
         { grupo: 'Figurino', itens: [{ chave: 'ver_figurino', label: 'Visualizar entrega de figurinos' }, { chave: 'editar_figurino', label: 'Marcar entrega de figurinos', dependeDe: 'ver_figurino' }] },
+        // Grade de Tamanhos (23/set/2026) -- só visualização, sem "editar"
+        // própria: os números vêm direto de Medidas (já tem sua própria
+        // permissão de quem preenche) e Não Desfila (idem); não tem dado
+        // que se edita dentro dessa tela.
+        { grupo: 'Grade de Tamanhos', itens: [{ chave: 'ver_grade_tamanhos', label: 'Visualizar Grade de Tamanhos' }] },
         // Bug real, 01/set/2026: dependia de "ver_eventos", que é a
         // permissão de CONFIGURAÇÕES (catálogo de tipos de evento) -- nada
         // a ver com marcar presença de verdade. Travava o checkbox pra

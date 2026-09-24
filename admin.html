@@ -72,7 +72,7 @@
     <!-- defer (06/set/2026) -- nenhuma das duas executa nada sozinha ao
          carregar, só define função pra usar depois (conferido no código
          das duas), então não corre risco nenhum de rodar antes da hora. -->
-    <script src="ficha-perfil.js?v=77" defer></script>
+    <script src="ficha-perfil.js?v=78" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
         /* Desligada de novo (06/set/2026, mesma sessão -- teste de
@@ -3264,6 +3264,20 @@
     </div>
 </div>
 
+<!-- Grade de Tamanhos (23/set/2026) -- quantidade por tamanho de cada
+     Medida (Camisa/Calça/Fantasia/Sapato...), separado por Ritmistas/
+     Diretoria/Convidados (pedido dela: um pedido de verdade é sempre por
+     grupo -- Fantasia+Sapato de Ritmistas não é a mesma encomenda que
+     Camisa de Diretoria). Cada card lê ao vivo bateria_medida_tipos
+     (publico + inclui_nao_desfila) -- nunca fixo no código, ver
+     renderizarGradeTamanhos() em admin-logic-2.js. -->
+<div class="painel" id="painel-grade-tamanhos">
+    <div class="painel-titulo">Grade de Tamanhos</div>
+    <p class="config-sub-desc" style="margin:0 0 14px;">Quantidade de cada Medida por tamanho — pra fechar pedido com fornecedor ou costureira.</p>
+    <div id="grade-tamanhos-abas" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;"></div>
+    <div id="grade-tamanhos-cards"></div>
+</div>
+
 <!-- Leitor de QR (29/ago/2026) -- tela cheia, por cima de tudo, própria
      (fora de qualquer painel) já que precisa cobrir a tela inteira
      independente de onde a pessoa estava navegando. Só existe Ritmista/
@@ -3796,7 +3810,7 @@
             <div id="exportCamposContainer" class="exp-campos"></div>
         </div>
         <div class="modal-acoes">
-            <button class="btn-modal-cancelar" onclick="fecharModal('modalExportarExcel')">Cancelar</button>
+            <button class="btn-modal-cancelar" onclick="fecharModalExportar()">Cancelar</button>
             <button class="btn-modal-confirmar verde" onclick="confirmarExportarExcel()">Exportar</button>
         </div>
     </div>
@@ -3860,7 +3874,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=56" defer></script>
+<script src="admin-logic-1.js?v=57" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">
@@ -3871,6 +3885,6 @@
     </div>
 </div>
 
-<script src="admin-logic-2.js?v=7" defer></script>
+<script src="admin-logic-2.js?v=11" defer></script>
 </body>
 </html>
