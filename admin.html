@@ -436,6 +436,28 @@
         .total-label {
             font-size: 12px; color: #888; font-weight: 500; margin-top: 4px;
         }
+        /* Esqueleto da Visão Geral (25/set/2026) -- "a tela se formando",
+           não um spinner: os 2 cards de Ritmistas (Ativos/Pendentes) são a
+           única parte GARANTIDA de aparecer pra qualquer Mestre/Diretor,
+           então só eles ganham forma própria enquanto o número real não
+           chegou -- o resto da tela (Diretoria/Convidados/Aniversariantes/
+           etc., condicionais por permissão/configuração) continua revelado
+           de uma vez só, como já era. Mesmo brilho (es-brilho) já usado no
+           esqueleto da carteirinha (13/set/2026), mas em tom claro -- esta
+           tela é clara, a da carteirinha é escura. */
+        @keyframes vg-brilho { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .total-numero.vg-esqueleto {
+            color: transparent; background: #e8e6f0; border-radius: 5px;
+            width: 38px; height: 24px; position: relative; overflow: hidden;
+        }
+        .total-numero.vg-esqueleto::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
+            animation: vg-brilho 1.4s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .total-numero.vg-esqueleto::after { animation: none; }
+        }
         /* Grade dos "demais status" (Suspensos/Desligados/Rejeitados/Não
            Desfila, e Convidados) -- pedido da Márcia, 28/ago/2026: "os
            demais [status] merecem... peso menor", mas SEM esconder atrás
@@ -3393,11 +3415,11 @@
     <div class="vg-grupo-titulo">Ritmistas</div>
     <div class="totalizadores">
         <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
-            <div class="total-numero ativo" id="totalAtivos">—</div>
+            <div class="total-numero ativo vg-esqueleto" id="totalAtivos">—</div>
             <div class="total-label">Ritmistas ativos</div>
         </div>
         <div class="total-card total-card--clicavel" onclick="trocarAba('ritmistas', document.querySelector('.aba-btn[data-aba=ritmistas]'))">
-            <div class="total-numero" id="totalPendentes">—</div>
+            <div class="total-numero vg-esqueleto" id="totalPendentes">—</div>
             <div class="total-label">Ritmistas pendentes</div>
         </div>
     </div>
@@ -3874,7 +3896,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=57" defer></script>
+<script src="admin-logic-1.js?v=58" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

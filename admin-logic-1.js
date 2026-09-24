@@ -255,10 +255,13 @@
         // mas não conta como Ritmista ativo pra ela -- excluído daqui.
         const ativos = todosRitmistas.filter(r => r.status === 'aprovado' && !r.nao_desfila).length;
         const pendentes = todosRitmistas.filter(r => r.status === 'pendente').length;
-        document.getElementById('totalAtivos').textContent = ativos;
+        const elAtivos = document.getElementById('totalAtivos');
+        elAtivos.textContent = ativos;
+        elAtivos.classList.remove('vg-esqueleto');
         const elPendentes = document.getElementById('totalPendentes');
         elPendentes.textContent = pendentes;
         elPendentes.classList.toggle('atencao', pendentes > 0);
+        elPendentes.classList.remove('vg-esqueleto');
 
         // "Retrato completo" dos demais status (28/ago/2026, sessão
         // seguinte) -- ela pediu que Suspensos/Desligados/Rejeitados/Não
@@ -2615,6 +2618,22 @@
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'flex';
         ajustarAlturaNavMobile();
+
+        // Esqueleto da Visão Geral (25/set/2026): revela a tela AQUI, antes
+        // dos números de Ritmistas chegarem, quando ela vai mesmo ficar na
+        // Visão Geral -- header/nav/gating já estão prontos, só falta o
+        // número real (os 2 cards de Ativos/Pendentes nascem em forma de
+        // esqueleto, ver .vg-esqueleto, e viram número assim que
+        // atualizarTotalizadores() rodar). Se o estado salvo manda pra OUTRA
+        // aba (Ritmistas/Diretoria/...), mantém o comportamento de sempre
+        // (espera tudo, troca de aba, só então revela) -- essas abas não
+        // têm fetch próprio, dependem dos dados globais já carregados
+        // (área de risco documentada dentro de trocarAba), então revelar
+        // cedo demais mostraria uma lista vazia por um instante.
+        const estadoSalvoPreCarga = lerEstadoNavegacaoSalvo();
+        const vaiFicarNaVisao = !(estadoSalvoPreCarga && estadoSalvoPreCarga.contexto === 'mestre-diretor' && estadoSalvoPreCarga.aba && estadoSalvoPreCarga.aba !== 'visao');
+        if (vaiFicarNaVisao) esconderOverlayCarregando();
+
         // Espera a primeira leva de cada card terminar (ritmistas/diretoria
         // sem foto, extras, convidados) antes de tirar o spinner -- achado
         // da Márcia, 01/set/2026: a tela "montava em tempo real", cada card
@@ -2648,14 +2667,15 @@
 
         // Volta pra mesma aba de antes de atualizar a página (mesmo achado
         // da Márcia, 20/ago/2026, aplicado aqui também) -- "visao" já é o
-        // padrão de fábrica da tela, só troca se salvou outra coisa.
-        const estadoSalvoMD = lerEstadoNavegacaoSalvo();
-        if (estadoSalvoMD && estadoSalvoMD.contexto === 'mestre-diretor' && estadoSalvoMD.aba && estadoSalvoMD.aba !== 'visao') {
-            trocarAba(estadoSalvoMD.aba, document.querySelector(`.aba-btn[data-aba="${estadoSalvoMD.aba}"]`));
+        // padrão de fábrica da tela, só troca se salvou outra coisa. Reusa
+        // estadoSalvoPreCarga (lido antes do esqueleto, acima) em vez de ler
+        // de novo -- não muda entre o início e o fim desta função.
+        if (!vaiFicarNaVisao) {
+            trocarAba(estadoSalvoPreCarga.aba, document.querySelector(`.aba-btn[data-aba="${estadoSalvoPreCarga.aba}"]`));
         }
 
         if (typeof fpRenderizarAvisoDadosProprios === 'function') fpRenderizarAvisoDadosProprios(usuario, 'avisoDadosProprios');
-        esconderOverlayCarregando();
+        if (!vaiFicarNaVisao) esconderOverlayCarregando();
     }
 
     // Preenche configEscola.nomeEscola/nomeBateria com dado real -- antes desse
@@ -6440,6 +6460,16 @@
         escolaSelecionadaId = escolaId;
         dentroDeEscolaSA = true;
 
+        // Esqueleto da Visão Geral (25/set/2026): se ela já esteve numa
+        // outra escola antes, os 2 cards de Ritmistas podem estar com o
+        // número REAL da escola anterior -- volta pro estado de esqueleto
+        // agora, antes de qualquer coisa aparecer, pra nunca mostrar (nem
+        // por um instante) o número de quem não é mais o contexto atual.
+        const elAtivosSkel = document.getElementById('totalAtivos');
+        const elPendentesSkel = document.getElementById('totalPendentes');
+        if (elAtivosSkel) elAtivosSkel.classList.add('vg-esqueleto');
+        if (elPendentesSkel) elPendentesSkel.classList.add('vg-esqueleto');
+
         // Spinner dourado cobre a tela enquanto busca a cor/logo real da
         // escola -- sem isso, o cabeçalho nascia preto/TumTu por um instante
         // e só depois de vários pedidos ao banco virava a cor da escola
@@ -6558,22 +6588,30 @@
         renderizarComercialTab();
 
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
+        // Esqueleto da Visão Geral (25/set/2026): revela a tela AQUI --
+        // Super Admin entrando numa escola sempre pousa na Visão Geral
+        // (trocarAba acima, sem exceção, diferente do Mestre/Diretor que
+        // pode ter salvo outra aba), então não existe o mesmo risco de
+        // revelar uma lista vazia de outra aba. Header/nav/tema já estão
+        // prontos; só falta o número real dos 2 cards de Ritmistas, que
+        // nasceram de volta em forma de esqueleto (.vg-esqueleto, resetado
+        // no início desta função) e viram número assim que
+        // atualizarTotalizadores() rodar dentro de carregarRitmistas.
+        esconderOverlayCarregando();
         // Espera a primeira leva de cada card terminar (ritmistas/diretoria
-        // sem foto, extras, convidados) antes de tirar o spinner -- achado
-        // da Márcia, 01/set/2026: a tela "montava em tempo real", cada card
-        // estalando na hora que a própria busca terminava, dando impressão
-        // de sistema amador. As fotos continuam chegando em segundo plano
-        // depois, sem bloquear nada -- mesma otimização de sempre
-        // (carregarRitmistasComFotos/carregarDiretoriaComFotos), só que
-        // agora dá pra esperar só a primeira passada de cada uma.
+        // sem foto, extras, convidados) -- achado da Márcia, 01/set/2026: a
+        // tela "montava em tempo real", cada card estalando na hora que a
+        // própria busca terminava, dando impressão de sistema amador. As
+        // fotos continuam chegando em segundo plano depois, sem bloquear
+        // nada -- mesma otimização de sempre (carregarRitmistasComFotos/
+        // carregarDiretoriaComFotos), só que agora dá pra esperar só a
+        // primeira passada de cada uma.
         await Promise.all([
             carregarRitmistas(true),
             carregarDiretoria(true), // Super Admin sempre vê o card "Diretoria ativa"
             carregarConvidadosEspeciais(true), // idem, card "Convidados" (achado 01/set/2026, mesmo bug do card acima)
         ]);
         iniciarAutoRefreshRitmistas();
-
-        esconderOverlayCarregando();
         // Fotos completas chegam depois, em segundo plano, sem travar a tela
         // nem os cliques (achado real, 05/set/2026 -- ver
         // preencherFotosRitmistasEmSegundoPlano acima).
