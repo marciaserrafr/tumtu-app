@@ -2607,13 +2607,20 @@
             renderizarAvatarHeader({ nome: usuario.nome || 'Super Admin', foto_url: usuario.foto_url });
             document.getElementById('headerAvatarWrap').onclick = abrirMeuPerfilSA;
             ajustarAlturaHeaderAdmin();
-            // Mesmo spinner das outras transições de tela hoje -- sem isso,
-            // o Dashboard nascia com o título "Baterias" sozinho na tela
-            // (é texto fixo no HTML, os números/lista vêm depois, via
-            // rede) antes de preencher de verdade. Achado da Márcia,
-            // 19/ago/2026: "aparece Bateria escrito e depois é que muda
-            // pro dashboard".
-            mostrarOverlayCarregando();
+            // Sem overlay/spinner aqui (25/set/2026, pedido dela: "o segundo
+            // spinner sai pra iniciar o esqueleto, só teremos o spinner do
+            // login") -- mesmo raciocínio já aplicado no ramo Mestre/Diretor
+            // logo abaixo. Achado ao vivo: esse ramo (login como Super
+            // Admin) ainda tinha o overlay antigo envolvendo TUDO --
+            // inclusive quando a navegação salva já aponta pra dentro de
+            // uma escola (entrarContextoEscolaSA(), que por si só já não
+            // mostra mais overlay nenhum) -- então o esqueleto novo nunca
+            // aparecia nesse caminho, só o spinner "TumTu" preso até o fim.
+            // O Dashboard (peça 1b do documento, esqueleto próprio ainda não
+            // implementado) volta a nascer com o título antes dos números --
+            // mesma limitação que já existia antes de 01/set (regra "tela
+            // sempre completa"), aceita de propósito até a fase 2.
+            esconderOverlayImediato();
             mostrarShellSA();
             // Volta pro mesmo lugar de antes de atualizar a página -- achado
             // da Márcia, 20/ago/2026: "sempre que eu atualizo a página, ela
@@ -2633,7 +2640,6 @@
             } else {
                 await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
             }
-            esconderOverlayCarregando();
             return;
         }
 
