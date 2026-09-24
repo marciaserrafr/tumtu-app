@@ -2160,12 +2160,23 @@
     Promise.all([ttPaintConfirmado, ttFontePronta]).then(() => {
         document.querySelectorAll('#overlayCarregandoEscola .tumtu-marca').forEach(el => { el.style.visibility = 'visible'; });
         document.querySelectorAll('#overlayCarregandoEscola .tumtu-marca .silaba-1, #overlayCarregandoEscola .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'running'; });
+        // Varredura 25/set/2026: a marca "TumTu" também aparece parada (sem
+        // piscar) no cabeçalho (#headerMarca) e no rodapé da barra lateral
+        // (.marca-sidebar-assinatura) -- essas nunca tinham essa proteção,
+        // só a marca do spinner de abertura. Como hoje o esqueleto revela a
+        // tela de verdade muito mais cedo/mais vezes (menos tempo escondida
+        // atrás do spinner), essas duas ficaram bem mais expostas ao mesmo
+        // problema de sempre (fonte errada piscando e trocando na frente da
+        // pessoa) -- corrigido escondendo as duas até aqui também, junto com
+        // a marca do spinner.
+        document.getElementById('headerMarca')?.style.setProperty('visibility', 'visible');
+        document.querySelectorAll('.marca-sidebar-assinatura').forEach(el => { el.style.visibility = 'visible'; });
     });
 </script>
 
 <div class="header" id="pageHeader">
     <div class="header-esquerda">
-        <div class="header-marca tt-logo" id="headerMarca"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
+        <div class="header-marca tt-logo" id="headerMarca" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
         <div class="header-badge" id="headerBateria"><div id="headerEscolaNome" class="hb-escola"></div><div id="headerBateriaNome" class="hb-bateria"></div></div>
     </div>
     <div class="header-acoes">
@@ -2202,7 +2213,7 @@
     <button type="button" class="sa-sidebar-item sa-item-ajustes-desktop" data-sa="privacidade" onclick="trocarSaAba('privacidade',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span>Privacidade</span></button>
     <button type="button" class="sa-sidebar-item sa-item-ajustes-desktop" data-sa="logs" onclick="trocarSaAba('logs',this)"><span class="sa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></span><span>Logs</span></button>
     <div class="sidebar-assinatura">
-        <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
+        <span class="tt-logo marca-sidebar-assinatura" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
         <span class="sidebar-assinatura-tagline">Sistema de gestão de bateria</span>
     </div>
 </div>
@@ -2469,7 +2480,7 @@
          mesma regra CSS de .nav-abas-voltar (sem CSS novo nenhum). -->
     <button id="btnTrocarBateriaNav" type="button" class="nav-abas-voltar" onclick="trocarBateriaAdmin()" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span><span>Trocar de Bateria</span></button>
     <div class="sidebar-assinatura">
-        <span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
+        <span class="tt-logo marca-sidebar-assinatura" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
         <span class="sidebar-assinatura-tagline">Sistema de gestão de bateria</span>
     </div>
 </nav>

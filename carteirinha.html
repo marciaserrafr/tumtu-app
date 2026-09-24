@@ -332,12 +332,18 @@
     Promise.all([ttPaintConfirmado, ttFontePronta]).then(() => {
         document.querySelectorAll('#carregandoCarteirinha .tumtu-marca').forEach(el => { el.style.visibility = 'visible'; });
         document.querySelectorAll('#carregandoCarteirinha .tumtu-marca .silaba-1, #carregandoCarteirinha .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'running'; });
+        // Varredura 25/set/2026: a marca do TOPO da carteirinha (.topo-nome,
+        // fora da cena de abertura -- fica visível o tempo todo, inclusive
+        // durante a abertura) nunca tinha essa proteção, só a marca do
+        // spinner. Mesmo achado recorrente dela ("fonte diferente piscando")
+        // -- corrigida junto.
+        document.getElementById('topoNomeMarca')?.style.setProperty('visibility', 'visible');
     });
 </script>
 
 <div class="topo">
     <div class="topo-conteudo">
-        <span class="topo-nome tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
+        <span class="topo-nome tt-logo" id="topoNomeMarca" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
         <div class="topo-acoes">
             <button class="btn-sair" id="btnSairTopo" onclick="sair()">Sair</button>
         </div>

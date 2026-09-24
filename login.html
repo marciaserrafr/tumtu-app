@@ -227,13 +227,21 @@
     Promise.all([ttPaintConfirmado, ttFontePronta]).then(() => {
         document.querySelectorAll('#containerCarregando .tumtu-marca').forEach(el => { el.style.visibility = 'visible'; });
         document.querySelectorAll('#containerCarregando .tumtu-marca .silaba-1, #containerCarregando .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'running'; });
+        // Varredura 25/set/2026: as marcas dos formulários (Login/Face ID/
+        // Escolher Bateria/Recuperação -- todas atrás de display:none até a
+        // checagem de sessão decidir qual mostrar) nunca tinham essa
+        // proteção. Se a checagem for rápida o bastante, o formulário podia
+        // aparecer ANTES da fonte terminar de trocar por baixo -- mesmo
+        // achado recorrente dela ("fonte diferente piscando"). Corrigidas
+        // junto, mesmo gatilho (fonte + 1º paint confirmados).
+        document.querySelectorAll('.marca-tela-login').forEach(el => { el.style.visibility = 'visible'; });
     });
 </script>
 
 <div class="auth-container" id="containerLogin" style="display:none;">
     <div class="logo">
         <div class="simbolo-marca"><div class="big"></div><div class="small"></div></div>
-        <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
+        <h1><span class="tt-logo marca-tela-login" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
     </div>
 
     <div id="mensagem" class="mensagem"></div>
@@ -276,7 +284,7 @@
 <div class="auth-container" id="containerFaceId" style="display:none;">
     <div class="logo">
         <div class="simbolo-marca"><div class="big"></div><div class="small"></div></div>
-        <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
+        <h1><span class="tt-logo marca-tela-login" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
     </div>
     <p style="text-align:center;color:#a39fc0;font-size:14px;margin:8px 0 24px;">Toque abaixo pra desbloquear com Face ID ou digital.</p>
     <button type="button" id="btnDesbloquearFaceId" class="btn-entrar btn-primario" onclick="tentarDesbloquearFaceId()">Desbloquear</button>
@@ -289,7 +297,7 @@
 <div class="auth-container" id="containerEscolherBateria" style="display:none;">
     <div class="logo">
         <div class="simbolo-marca"><div class="big"></div><div class="small"></div></div>
-        <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
+        <h1><span class="tt-logo marca-tela-login" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
         <p>Qual bateria você quer ver?</p>
     </div>
     <div id="listaBaterias"></div>
@@ -305,7 +313,7 @@
 <div class="auth-container" id="containerRecuperacao" style="display:none;">
     <div class="logo">
         <div class="simbolo-marca"><div class="big"></div><div class="small"></div></div>
-        <h1><span class="tt-logo"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
+        <h1><span class="tt-logo marca-tela-login" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span></h1>
         <p>Recuperar senha</p>
     </div>
 
