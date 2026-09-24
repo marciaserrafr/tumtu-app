@@ -2121,7 +2121,7 @@
 
 <div id="overlayCarregandoEscola">
     <div class="cartao">
-        <span class="tumtu-marca">
+        <span class="tumtu-marca" style="visibility:hidden;">
             <span class="silaba-1"><span class="t">T</span><span class="u">u</span><span class="m">m</span></span><span class="silaba-2"><span class="t">T</span><span class="u">u</span></span>
         </span>
     </div>
@@ -2140,10 +2140,27 @@
             els.forEach(el => { el.style.animation = ''; });
         }));
     }
+    // Marca só fica visível depois que a fonte Plus Jakarta Sans termina de
+    // carregar -- ver comentário completo em login.html (mesmo achado
+    // recorrente dela: "aparece com uma fonte diferente e rapidamente volta
+    // ao normal", sobretudo depois de muito tempo parada).
     document.querySelectorAll('#overlayCarregandoEscola .tumtu-marca .silaba-1, #overlayCarregandoEscola .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'paused'; });
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    const ttPaintConfirmado = new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    // document.fonts.check() (não .ready) de propósito -- ver comentário
+    // completo em login.html (mesmo raciocínio, .ready pode resolver cedo
+    // demais aqui).
+    const ttFontePronta = new Promise(resolve => {
+        if (!(window.document && document.fonts && document.fonts.check)) { resolve(); return; }
+        const limite = performance.now() + 500;
+        (function checar() {
+            if (document.fonts.check('800 1em "Plus Jakarta Sans"') || performance.now() > limite) { resolve(); return; }
+            requestAnimationFrame(checar);
+        })();
+    });
+    Promise.all([ttPaintConfirmado, ttFontePronta]).then(() => {
+        document.querySelectorAll('#overlayCarregandoEscola .tumtu-marca').forEach(el => { el.style.visibility = 'visible'; });
         document.querySelectorAll('#overlayCarregandoEscola .tumtu-marca .silaba-1, #overlayCarregandoEscola .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'running'; });
-    }));
+    });
 </script>
 
 <div class="header" id="pageHeader">

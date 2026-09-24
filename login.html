@@ -169,7 +169,7 @@
      Disney+/Netflix, símbolo universal de espera). -->
 <div class="auth-container" id="containerCarregando">
     <div class="cartao">
-        <span class="tumtu-marca">
+        <span class="tumtu-marca" style="visibility:hidden;">
             <span class="silaba-1"><span class="t">T</span><span class="u">u</span><span class="m">m</span></span><span class="silaba-2"><span class="t">T</span><span class="u">u</span></span>
         </span>
     </div>
@@ -196,10 +196,38 @@
             els.forEach(el => { el.style.animation = ''; });
         }));
     }
+    // Marca só fica visível depois que a fonte Plus Jakarta Sans termina de
+    // carregar (23/set/2026, recorrência de um pedido antigo dela: "aparece
+    // com uma fonte diferente e rapidamente volta ao normal", sobretudo
+    // depois de a tela ficar muito tempo parada -- a fonte sai do cache do
+    // navegador e precisa ser baixada nesse recarregamento). O link da fonte
+    // continua deliberadamente NÃO bloqueando a 1ª pintura (isso resolveu a
+    // lentidão de abertura, 13/set/2026) -- em vez de bloquear tudo, só a
+    // MARCA fica escondida (visibility:hidden, sem tirar o espaço) até a
+    // troca de fonte já ter acontecido por baixo dos panos, pra nunca
+    // aparecer com a fonte errada e trocar na frente da pessoa. Trava de
+    // segurança de 500ms -- se a fonte falhar ou demorar demais, mostra
+    // assim mesmo (nunca trava a tela em branco por causa de fonte).
     document.querySelectorAll('#containerCarregando .tumtu-marca .silaba-1, #containerCarregando .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'paused'; });
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    const ttPaintConfirmado = new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    // document.fonts.check() (não .ready) de propósito -- .ready pode
+    // resolver cedo demais aqui, antes do link da fonte (carregado via
+    // preload+troca de rel, pra não bloquear a 1ª pintura) sequer ter virado
+    // uma <style> de verdade que o navegador reconheça. .check() confere o
+    // estado real (a fonte já está disponível pra usar agora?) a cada
+    // quadro, sem depender de quando a promise foi lida.
+    const ttFontePronta = new Promise(resolve => {
+        if (!(window.document && document.fonts && document.fonts.check)) { resolve(); return; }
+        const limite = performance.now() + 500;
+        (function checar() {
+            if (document.fonts.check('800 1em "Plus Jakarta Sans"') || performance.now() > limite) { resolve(); return; }
+            requestAnimationFrame(checar);
+        })();
+    });
+    Promise.all([ttPaintConfirmado, ttFontePronta]).then(() => {
+        document.querySelectorAll('#containerCarregando .tumtu-marca').forEach(el => { el.style.visibility = 'visible'; });
         document.querySelectorAll('#containerCarregando .tumtu-marca .silaba-1, #containerCarregando .tumtu-marca .silaba-2').forEach(el => { el.style.animationPlayState = 'running'; });
-    }));
+    });
 </script>
 
 <div class="auth-container" id="containerLogin" style="display:none;">
