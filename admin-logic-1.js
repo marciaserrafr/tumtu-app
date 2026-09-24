@@ -272,6 +272,8 @@
         if (!el) return;
         if (valor === undefined) { el.classList.add('bloco'); return; }
         el.classList.remove('bloco');
+        el.style.width = '';
+        el.style.height = '';
         el.textContent = valor;
     }
     // Liga/desliga o brilho ÚNICO da área de conteúdo (nunca 1 por bloco,
