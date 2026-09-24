@@ -292,6 +292,19 @@
     // já está lá é da escola nova ou sobrou da antiga). Volta tudo pro
     // estado de esqueleto ANTES de disparar qualquer busca nova.
     function resetarEsqueletoVisaoGeral() {
+        // Invalida o cache do modo "leve" (25/set/2026, achado testando a
+        // reentrada do Super Admin na mesma escola): sem isso, entrar de
+        // novo numa escola já visitada -- com o mesmo dado de antes -- fazia
+        // carregarRitmistas(true)/carregarDiretoria(true) baterem no atalho
+        // de "nada mudou" e nunca chamar renderizarVisaoGeral()/
+        // renderizarContagemInstrumentos(), deixando Aniversariantes e
+        // Ritmistas por Instrumento presos no esqueleto pra sempre. O modo
+        // "leve" existe pra pular redesenho caro na atualização automática
+        // de 30s -- nunca deve pular a primeira renderização de um
+        // contexto novo, mesmo que o dado seja idêntico ao da visita
+        // anterior.
+        _ultimoRawLeveRitmistas = null;
+        _ultimoRawLeveDiretoria = null;
         ['totalAtivos', 'totalPendentes', 'totalDiretoriaAtivos', 'totalDiretoriaPendentes'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('bloco');
