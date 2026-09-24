@@ -1884,6 +1884,40 @@
             #overlayCarregandoEscola .tumtu-marca .silaba-2 { animation: none; opacity: 1; }
         }
 
+        /* Esqueleto "só caixas" (25/set/2026, refeito do zero copiando a
+           técnica da carteirinha -- ver .carteirinha-esqueleto em
+           carteirinha.html) depois de 3 tentativas falhas tentando dar
+           esqueleto aos elementos REAIS da tela (números com classe indo e
+           voltando, amarrado a permissão/cache -- foi isso que quebrou 3
+           vezes ao vivo). Esta peça é 100% decorativa, dentro do MESMO
+           overlay que já existe -- não sabe nem precisa saber se a bateria
+           tem Diretoria, quantos ritmistas tem, nada. Só ocupa o lugar dos
+           2 cards de totalizador até o dado estar 100% pronto, e SOME
+           inteira de uma vez (esconderOverlayCarregando, sem mudança de
+           timing nenhuma) -- exatamente o "tudo de uma vez, sem meio
+           termo" que já funciona na carteirinha. Cor translúcida sobre o
+           MESMO fundo escuro do overlay (não o branco da Visão Geral de
+           verdade) -- mudar o overlay pra claro reabriria o bug antigo da
+           faixa do notch (ver "Passaporte escuro", 06/set/2026). */
+        #overlayCarregandoEscola .overlay-caixas {
+            display: none; align-items: stretch; gap: 12px;
+            width: 100%; max-width: 320px; padding: 0 28px;
+        }
+        #overlayCarregandoEscola.modo-caixas .tumtu-marca { display: none; }
+        #overlayCarregandoEscola.modo-caixas .overlay-caixas { display: flex; }
+        #overlayCarregandoEscola .overlay-caixa {
+            flex: 1; height: 68px; border-radius: 12px;
+            background: rgba(255,255,255,.06); position: relative; overflow: hidden;
+        }
+        #overlayCarregandoEscola .overlay-caixa::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+            animation: vg-brilho 1.4s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #overlayCarregandoEscola .overlay-caixa::after { animation: none; }
+        }
+
         /* Versão pequena do mesmo spinner, pros "Carregando..." de dentro de
            uma tela já visível (lista, card) -- antes cada painel usava um
            emoji diferente (🏫🔒🥁🎟️📋) ali, pedido da Márcia, 19/ago/2026,
@@ -2146,6 +2180,10 @@
         <span class="tumtu-marca" style="visibility:hidden;">
             <span class="silaba-1"><span class="t">T</span><span class="u">u</span><span class="m">m</span></span><span class="silaba-2"><span class="t">T</span><span class="u">u</span></span>
         </span>
+        <div class="overlay-caixas">
+            <div class="overlay-caixa"></div>
+            <div class="overlay-caixa"></div>
+        </div>
     </div>
 </div>
 <script>
@@ -3896,7 +3934,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=60" defer></script>
+<script src="admin-logic-1.js?v=61" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

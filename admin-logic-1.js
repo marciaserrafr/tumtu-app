@@ -114,6 +114,22 @@
         document.getElementById('overlayCarregandoEscola').classList.remove('escondida');
         if (typeof reiniciarPulsoMarca === 'function') reiniciarPulsoMarca();
     }
+    // Esqueleto "só caixas" (25/set/2026, refeito do zero depois de 3
+    // tentativas falhas tentando esqueletizar os elementos REAIS da Visão
+    // Geral -- ver histórico em project_esqueleto_carregamento_dados).
+    // Igual mostrarOverlayCarregando(), só que troca a marca piscando por 2
+    // caixas decorativas (.overlay-caixas em admin.html) -- ZERO lógica de
+    // permissão/dado envolvida, só ocupa o lugar até esconderOverlayCarregando()
+    // rodar, exatamente no mesmo timing de sempre (nenhuma mudança na hora
+    // de esconder -- só no que é mostrado enquanto isso). Usar no lugar de
+    // mostrarOverlayCarregando() só nos 2 caminhos que entram na Visão
+    // Geral (iniciarUsuario/Mestre-Diretor e entrarContextoEscolaSA/Super
+    // Admin) -- login.html e o Dashboard do Super Admin continuam com a
+    // marca normal.
+    function mostrarOverlayComCaixas() {
+        mostrarOverlayCarregando();
+        document.getElementById('overlayCarregandoEscola').classList.add('modo-caixas');
+    }
     function esconderOverlayCarregando() {
         // Sem esmaecer (06/set/2026, achado dela com vídeo real, quadro a
         // quadro): o esmaecer de 250ms deixava o spinner semitransparente
@@ -126,7 +142,9 @@
         const decorrido = performance.now() - overlayCarregandoMostradoEm;
         const espera = Math.max(0, 600 - decorrido);
         setTimeout(() => {
-            document.getElementById('overlayCarregandoEscola').classList.add('escondida');
+            const el = document.getElementById('overlayCarregandoEscola');
+            el.classList.add('escondida');
+            el.classList.remove('modo-caixas'); // volta ao padrão (marca) pra próxima vez
         }, espera);
     }
 
@@ -2557,8 +2575,9 @@
         // durante toda a busca de instrumentos/bateria/escola e só virava a
         // cor da escola no final -- achado da Márcia, 19/ago/2026, "isso é
         // perceptível sim". Quando o cache já existe (caso comum), o
-        // overlay só pisca rápido, sem custo perceptível.
-        mostrarOverlayCarregando();
+        // overlay só pisca rápido, sem custo perceptível. Caixas (não a
+        // marca) porque o destino é sempre a Visão Geral.
+        mostrarOverlayComCaixas();
 
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
         renderizarAvatarHeader({ nome: usuario.nome || 'Admin', foto_url: usuario.foto_url });
@@ -6490,7 +6509,9 @@
         // e só depois de vários pedidos ao banco virava a cor da escola
         // (achado da Márcia, 19/ago/2026). Só sai da tela quando o tema já
         // está aplicado, igual ao login.html/carteirinha.html já fazem.
-        mostrarOverlayCarregando();
+        // Caixas (não a marca) -- Super Admin entrando numa escola sempre
+        // pousa na Visão Geral.
+        mostrarOverlayComCaixas();
 
         // Achado dela, 11/set/2026: se qualquer busca aqui dentro falhar
         // (rede instável, aba muito tempo parada em segundo plano etc.),
