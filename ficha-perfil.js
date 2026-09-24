@@ -76,7 +76,7 @@ let fpFotoPosY = 50;
 // ainda dispara um "click" no soltar -- sem essa trava, todo arrasto
 // reabriria o seletor de arquivo por engano logo em seguida.
 let fpArrastoRecente = false;
-let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: null, autoedicao: false, editaveis: new Set(), aoSalvar: null, travaEdicaoBloqueada: false };
+let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: null, autoedicao: false, editaveis: new Set(), aoSalvar: null, travaEdicaoBloqueada: false, travaEdicaoPendente: false };
 
 // Cada coluna editável mora em "pessoas" (dado da pessoa, não muda entre baterias)
 // ou "vinculos" (dado do vínculo com uma bateria específica) — usado por fpSalvar()
@@ -566,7 +566,7 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     opcoes = opcoes || {};
     const autoedicao = alvo.pessoa_id === minhaPessoaId;
     const editaveis = fpCamposEditaveis(meuPerfil, autoedicao, alvo.perfil, alvo.eh_convidado === true);
-    fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, medidasRestritoAoVazio: false, aoSalvar: opcoes.aoSalvar || null, sujo: false, travaEdicaoBloqueada: false };
+    fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, medidasRestritoAoVazio: false, aoSalvar: opcoes.aoSalvar || null, sujo: false, travaEdicaoBloqueada: false, travaEdicaoPendente: false };
     fpFotoBase64 = null;
     fpFotoPosX = alvo.foto_pos_x ?? 50;
     fpFotoPosY = alvo.foto_pos_y ?? 50;
@@ -843,18 +843,23 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     mensagem.style.display = 'none';
     mensagem.className = 'fp-mensagem';
 
-    // Bug 9 (23/set/2026, achado dela testando Perfis Bloqueados ao vivo):
-    // o botão nascia clicável e só ficava escondido depois que
-    // fpAplicarTravaEdicao terminasse de checar (2 buscas em sequência) --
-    // "se a pessoa for muito ágil, consegue clicar no botão" antes disso.
-    // Enquanto existe a chance de a Trava de Edição se aplicar (tem
-    // bateria_id e quem está olhando não é Super Admin -- mesmo guard de
-    // fpAplicarTravaEdicao), o botão já nasce DESABILITADO em vez de
-    // clicável -- só fpAplicarTravaEdicao libera (ou mantém escondido, se
-    // a trava estiver mesmo ativa e a pessoa não for isenta).
+    // Bug 9 (23/set/2026, achado dela testando Perfis Bloqueados ao vivo --
+    // 1ª correção só desabilitava o clique, mas o botão continuava
+    // aparecendo e sumindo visualmente, "o problema permanece"). Enquanto
+    // existe a chance de a Trava de Edição se aplicar (tem bateria_id e
+    // quem está olhando não é Super Admin -- mesmo guard de
+    // fpAplicarTravaEdicao), o botão nem aparece -- fica escondido de
+    // verdade (display:none, não só desabilitado) até fpAplicarTravaEdicao
+    // terminar de checar (2 buscas em sequência) e ou revelar, ou manter
+    // escondido pra sempre (trava realmente ativa e pessoa não isenta).
+    // fpEstado.travaEdicaoPendente também blinda as outras funções que
+    // poderiam revelar o botão nesse meio-tempo (fpAplicarPermissaoRitmista
+    // Medidas/Convidado/RepiqueBossa) -- nenhuma delas mostra "Editar"
+    // enquanto a checagem não terminar.
+    fpEstado.travaEdicaoPendente = !!alvo.bateria_id && meuPerfil !== 'super_admin';
     const btnEditar = fpEl('fp-btn-editar');
-    btnEditar.style.display = editaveis.size > 0 ? 'inline-flex' : 'none';
-    btnEditar.disabled = editaveis.size > 0 && !!alvo.bateria_id && meuPerfil !== 'super_admin';
+    btnEditar.style.display = (editaveis.size > 0 && !fpEstado.travaEdicaoPendente) ? 'inline-flex' : 'none';
+    btnEditar.disabled = false;
     fpEl('fp-btn-salvar').style.display = 'none';
     fpEl('fp-btn-cancelar').style.display = 'none';
 
@@ -1165,7 +1170,7 @@ async function fpAplicarPermissaoRitmistaMedidas(alvo) {
     if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
     fpEstado.editaveis.add('medidas');
     fpEstado.medidasRestritoAoVazio = true;
-    if (!fpEstado.travaEdicaoBloqueada && fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
+    if (!fpEstado.travaEdicaoBloqueada && !fpEstado.travaEdicaoPendente && fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
 }
 
 // Convidado (01/set/2026, corrigido -- antes era capacidade por pessoa,
@@ -1183,7 +1188,7 @@ async function fpAplicarPermissaoConvidadoMedidas(alvo) {
     if (!(bateriaRows[0] && bateriaRows[0].convidado_pode_editar_medida)) return;
     if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
     fpEstado.editaveis.add('medidas');
-    if (!fpEstado.travaEdicaoBloqueada && fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
+    if (!fpEstado.travaEdicaoBloqueada && !fpEstado.travaEdicaoPendente && fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
 }
 
 // Trava de Edição (22/set/2026) -- pedido dela depois da suspeita de fraude
@@ -1210,19 +1215,25 @@ async function fpAplicarTravaEdicao(alvo) {
     if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
     fpEstado.editaveis = new Set();
     fpEstado.travaEdicaoBloqueada = true;
+    fpEstado.travaEdicaoPendente = false;
     if (fpEl('fp-btn-salvar').style.display === 'inline-flex') fpCancelarEdicao();
     fpEl('fp-btn-editar').style.display = 'none';
 }
-// Some com o estado "desabilitado, checando" que o botão Editar nasce com
-// (ver fpIniciar) assim que confirmamos que a Trava de Edição não se aplica
-// -- nunca reabilita se a trava JÁ tiver escondido o botão antes (ver
-// fpEstado.travaEdicaoBloqueada, checado também em
-// fpAplicarPermissaoRitmistaMedidas/fpAplicarPermissaoConvidadoMedidas, que
-// senão poderiam reexibir "Editar" por cima da trava se terminassem depois).
+// Some com o estado "escondido, checando" que o botão Editar nasce com (ver
+// fpIniciar) assim que confirmamos que a Trava de Edição não se aplica --
+// nunca revela se a trava JÁ tiver bloqueado antes (fpEstado.
+// travaEdicaoBloqueada) nem se ainda não sobrou nenhum campo editável
+// (fpEstado.editaveis, que pode ter mudado desde o snapshot inicial --
+// fpAplicarPermissaoRitmistaMedidas/Convidado/RepiqueBossa rodam em
+// paralelo e só ADICIONAM capacidade, nunca tiram). Essas mesmas funções
+// checam fpEstado.travaEdicaoPendente antes de revelar "Editar" -- senão
+// poderiam reexibir o botão no meio da checagem da trava, antes dela
+// terminar de decidir.
 function fpLiberarBtnEditarDaTrava(alvo) {
     if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
+    fpEstado.travaEdicaoPendente = false;
     if (fpEstado.travaEdicaoBloqueada) return;
-    fpEl('fp-btn-editar').disabled = false;
+    if (fpEstado.editaveis.size > 0) fpEl('fp-btn-editar').style.display = 'inline-flex';
 }
 
 // Repique de Bossa (26/ago/2026) -- campo delicado, pedido dela: "impacta
@@ -1262,7 +1273,7 @@ async function fpAplicarPermissaoRepiqueBossa(alvo) {
     fpEl('fp-repique-bossa').textContent = alvo.repique_bossa ? 'Sim' : 'Não';
     if (podeMarcar) {
         fpEstado.editaveis.add('repique_bossa');
-        if (fpEstado.autoedicao && !fpEstado.travaEdicaoBloqueada && fpEl('fp-btn-salvar').style.display !== 'inline-flex') {
+        if (fpEstado.autoedicao && !fpEstado.travaEdicaoBloqueada && !fpEstado.travaEdicaoPendente && fpEl('fp-btn-salvar').style.display !== 'inline-flex') {
             fpEl('fp-btn-editar').style.display = 'inline-flex';
         }
     }
