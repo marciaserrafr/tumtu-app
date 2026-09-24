@@ -155,6 +155,18 @@
             flex-shrink: 0;
             z-index: 100;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            /* Suaviza a troca de cor do cabeçalho (escuro padrão -> cor da
+               escola), achado dela ao vivo (25/set/2026, testando o
+               esqueleto novo): "a mudança do header do preto pro verde tá
+               brusca... eu pensei que isso tb fosse ser suave" -- o
+               cabeçalho sempre aparece na hora (nunca vira esqueleto, regra
+               do documento), então quando a cor da escola chega alguns
+               instantes depois (aplicarConfigEscola), a troca acontecia
+               instantânea. Nunca tinha transition nenhuma nesta regra.
+               0.25s ease -- mesma escala das transições curtas já usadas
+               no resto do app (0.15-0.2s), um pouco mais longa por ser uma
+               área maior/mais chamativa. */
+            transition: background-color 0.25s ease;
         }
         .header-esquerda { display: flex; flex-direction: column; gap: 2px; }
         /* Quando o tema da escola tem logo, o cabeçalho vira logo GRANDE ao
@@ -170,7 +182,7 @@
            Reserva o mesmo espaço nos dois casos, com ou sem logo. */
         .header-esquerda.com-logo-escola { flex-direction: row; align-items: center; gap: 14px; min-height: 52px; }
         .header-esquerda.com-logo-escola .header-badge { margin-top: 0; }
-        .header-marca { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+        .header-marca { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; transition: color 0.25s ease, text-shadow 0.25s ease; }
         /* Redonda, com anel na cor real da escola -- mesma identidade e
            mesma lógica de cor da logo na carteirinha (.v-logo/
            escolherCorBordaLogo), pedido da Márcia, 18/ago/2026. Cor do
@@ -183,7 +195,7 @@
             overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
         .header-marca-logo { width: 100%; height: 100%; object-fit: contain; }
-        .header-badge { color: rgba(212,175,55,0.7); margin-top: 7px; }
+        .header-badge { color: rgba(212,175,55,0.7); margin-top: 7px; transition: color 0.25s ease, text-shadow 0.25s ease; }
         /* Escola em cima, bateria em caixa alta embaixo -- pedido explícito
            da Márcia, 23/ago/2026, depois de comparar prévias reais (opção
            "G"): tamanho e peso praticamente iguais nas duas linhas (só 1px
