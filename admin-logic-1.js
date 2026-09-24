@@ -2607,20 +2607,20 @@
             renderizarAvatarHeader({ nome: usuario.nome || 'Super Admin', foto_url: usuario.foto_url });
             document.getElementById('headerAvatarWrap').onclick = abrirMeuPerfilSA;
             ajustarAlturaHeaderAdmin();
-            // Sem overlay/spinner aqui (25/set/2026, pedido dela: "o segundo
-            // spinner sai pra iniciar o esqueleto, só teremos o spinner do
-            // login") -- mesmo raciocínio já aplicado no ramo Mestre/Diretor
-            // logo abaixo. Achado ao vivo: esse ramo (login como Super
-            // Admin) ainda tinha o overlay antigo envolvendo TUDO --
-            // inclusive quando a navegação salva já aponta pra dentro de
-            // uma escola (entrarContextoEscolaSA(), que por si só já não
-            // mostra mais overlay nenhum) -- então o esqueleto novo nunca
-            // aparecia nesse caminho, só o spinner "TumTu" preso até o fim.
-            // O Dashboard (peça 1b do documento, esqueleto próprio ainda não
-            // implementado) volta a nascer com o título antes dos números --
-            // mesma limitação que já existia antes de 01/set (regra "tela
-            // sempre completa"), aceita de propósito até a fase 2.
-            esconderOverlayImediato();
+            // Entrar numa escola (entrarContextoEscolaSA) nunca mais passa
+            // pelo overlay -- tem esqueleto próprio (25/set/2026, ver
+            // resetarEsqueletoVisaoGeral()/prepararSecoesVisaoGeral() dentro
+            // dela). Mas as telas do Super Admin em si (Dashboard/Escolas/
+            // Configurações/...) ainda NÃO têm esqueleto (peça 1b do
+            // documento, ainda não implementada) -- header/título fixo
+            // ("Dashboard"/"BATERIAS") são texto puro no HTML, então sem
+            // overlay eles aparecem sozinhos antes do conteúdo de verdade,
+            // quebrando a regra "tela sempre completa". Achado ao vivo
+            // (25/set/2026): tirei o overlay de tudo numa 1ª correção e ela
+            // viu exatamente isso ("só aparece escrito Baterias e mais
+            // nada") -- então o overlay volta, mas só em volta de
+            // trocarSaAba() (as abas do Super Admin), nunca em volta de
+            // entrarContextoEscolaSA().
             mostrarShellSA();
             // Volta pro mesmo lugar de antes de atualizar a página -- achado
             // da Márcia, 20/ago/2026: "sempre que eu atualizo a página, ela
@@ -2633,12 +2633,18 @@
                     trocarAba(estadoSalvo.aba || 'visao', document.querySelector(`.aba-btn[data-aba="${estadoSalvo.aba || 'visao'}"]`));
                 } else {
                     mostrarShellSA();
+                    mostrarOverlayCarregando();
                     await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
+                    esconderOverlayCarregando();
                 }
             } else if (estadoSalvo && estadoSalvo.contexto === 'sa-shell' && estadoSalvo.aba) {
+                mostrarOverlayCarregando();
                 await trocarSaAba(estadoSalvo.aba, document.querySelector(`.sa-sidebar-item[data-sa="${estadoSalvo.aba}"]`));
+                esconderOverlayCarregando();
             } else {
+                mostrarOverlayCarregando();
                 await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
+                esconderOverlayCarregando();
             }
             return;
         }
