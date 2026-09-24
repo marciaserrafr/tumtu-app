@@ -4702,8 +4702,13 @@
         const bateriaId = bateriaIdContexto();
         if (!bateriaId) { eventosBateriaCache = []; souMestreOuAdminBateria = false; return; }
         const u = JSON.parse(localStorage.getItem('ritmista') || 'null');
+        // select= explícito (23/set/2026) -- nunca inclui token_verificacao_portaria:
+        // essa coluna é secreta (autoriza confirmar entrada na portaria sem checar
+        // foto) e não pode viajar numa busca que qualquer membro da bateria dispara.
+        // Quem precisa do token de verdade usa obter_ou_gerar_token_portaria() (RPC),
+        // que confere editar_eventos antes de entregar.
         const [resEventos, resVinculo] = await Promise.all([
-            fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&order=data.desc`, { headers: authHeaders }),
+            fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${bateriaId}&order=data.desc&select=id,bateria_id,evento_tipo_id,nome,data,criado_por,criado_em,temporada_id,perfis_diretoria_inclusos,inclui_extras,iniciado,finalizado,controle_portaria,trava_edicao`, { headers: authHeaders }),
             (souSuperAdmin || !u || !u.pessoa_id)
                 ? Promise.resolve(null)
                 : fetch(`${SUPABASE_URL}/rest/v1/vinculos?pessoa_id=eq.${u.pessoa_id}&bateria_id=eq.${bateriaId}&status=eq.aprovado&select=perfil,eh_admin_bateria`, { headers: authHeaders }),
@@ -5397,15 +5402,16 @@
     async function abrirLinkVerificacaoEvento() {
         const evento = presencaEventoAtual;
         if (!evento) return;
-        let token = evento.token_verificacao_portaria;
-        if (!token) {
-            token = crypto.randomUUID();
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/eventos?id=eq.${evento.id}`, {
-                method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ token_verificacao_portaria: token })
-            });
-            if (!res.ok) { mostrarToast('Não foi possível gerar o link.', 'erro'); return; }
-            evento.token_verificacao_portaria = token;
-        }
+        // 23/set/2026 -- token nunca mais viaja na busca geral de eventos
+        // (achado de segurança: qualquer ritmista conseguia ler essa coluna
+        // sozinho e confirmar entrada de qualquer um sem checar foto nenhuma).
+        // obter_ou_gerar_token_portaria() confere editar_eventos no banco antes
+        // de devolver ou criar o token -- é a ÚNICA porta pra esse valor agora.
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/obter_ou_gerar_token_portaria`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, body: JSON.stringify({ p_evento_id: evento.id })
+        });
+        if (!res.ok) { mostrarToast('Não foi possível gerar o link.', 'erro'); return; }
+        const token = await res.json();
         const url = `${window.location.origin}/verificacao-portaria?v=${token}`;
         document.getElementById('portaria-link-evento').textContent = evento.nome;
         document.getElementById('portaria-link-input').value = url;
@@ -8275,6 +8281,11 @@
             else mostrarToast(categoriaEditando.id ? 'Categoria atualizada!' : 'Categoria criada!');
             categoriaEditando = null;
             await carregarCategorias();
+            // Mesmo achado de salvarEventoTipoSA (23/set/2026) -- cache
+            // separado que a tela de Instrumentos, dentro de uma bateria,
+            // usa (bibliotecaInstrumentos) nunca era avisado ao salvar
+            // Categoria/Nomenclatura aqui.
+            bibliotecaInstrumentos = [];
             renderizarEditorCategoria();
             renderizarCategoriasLista();
         } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
@@ -8284,7 +8295,7 @@
         if (!(await tumtuConfirmar('Excluir esta categoria? Isso remove também suas nomenclaturas. Se alguma bateria já usa esse instrumento, prefira marcar como "Inativa".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/instrumento_categorias?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
-        mostrarToast('Categoria excluída.'); categoriaEditando = null; await carregarCategorias(); renderizarEditorCategoria(); renderizarCategoriasLista();
+        mostrarToast('Categoria excluída.'); categoriaEditando = null; await carregarCategorias(); bibliotecaInstrumentos = []; renderizarEditorCategoria(); renderizarCategoriasLista();
     }
 
     // ── Configurações globais → Medidas (biblioteca mestre) ──────────────
@@ -8439,6 +8450,12 @@
             else mostrarToast(medidaTipoEditando.id ? 'Categoria de figurino atualizada!' : 'Categoria de figurino criada!');
             medidaTipoEditando = null;
             await carregarMedidaTiposSA();
+            // Mesmo achado de salvarEventoTipoSA (23/set/2026) -- os dois
+            // caches que a tela de Medidas, dentro de uma bateria, usa
+            // (bibliotecaMedidaTipos + bibliotecaMedidas) nunca eram
+            // avisados ao salvar/editar uma Categoria de Figurino aqui.
+            bibliotecaMedidaTipos = [];
+            bibliotecaMedidas = [];
             renderizarEditorMedidaTipo();
             renderizarMedidaTiposListaSA();
         } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
@@ -8448,7 +8465,7 @@
         if (!(await tumtuConfirmar('Excluir esta categoria de figurino? Isso remove também sua escala de Medida. Se alguma bateria já usa, prefira marcar como "Inativo".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/medida_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
-        mostrarToast('Categoria de figurino excluída.'); medidaTipoEditando = null; await carregarMedidaTiposSA(); renderizarEditorMedidaTipo(); renderizarMedidaTiposListaSA();
+        mostrarToast('Categoria de figurino excluída.'); medidaTipoEditando = null; await carregarMedidaTiposSA(); bibliotecaMedidaTipos = []; bibliotecaMedidas = []; renderizarEditorMedidaTipo(); renderizarMedidaTiposListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -8546,6 +8563,10 @@
             mostrarToast(figurinoMestreEditando.id ? 'Figurino atualizado!' : 'Figurino criado!');
             figurinoMestreEditando = null;
             await carregarFigurinoMestreSA();
+            // Mesmo achado de salvarEventoTipoSA (23/set/2026) -- cache
+            // separado que a tela de Figurino, dentro de uma bateria, usa
+            // (bibliotecaFigurino) nunca era avisado.
+            bibliotecaFigurino = [];
             renderizarEditorFigurinoMestre();
             renderizarFigurinoMestreListaSA();
         } finally { salvandoFigurinoMestre = false; }
@@ -8557,6 +8578,7 @@
         mostrarToast('Figurino excluído.');
         figurinoMestreEditando = null;
         await carregarFigurinoMestreSA();
+        bibliotecaFigurino = [];
         renderizarEditorFigurinoMestre();
         renderizarFigurinoMestreListaSA();
     }
@@ -8640,6 +8662,14 @@
             mostrarToast(eventoTipoEditando.id ? 'Tipo de evento atualizado!' : 'Tipo de evento criado!');
             eventoTipoEditando = null;
             await carregarEventoTiposSA();
+            // Achado dela ao vivo, 23/set/2026: criar/editar Tipo de Evento
+            // aqui (Super Admin) nunca avisava o cache SEPARADO que "Novo
+            // Evento" (dentro de uma bateria) usa -- bibliotecaEventoTipos
+            // só carrega 1x por sessão (.length===0), então quem já tinha
+            // aberto Eventos numa bateria antes de ela criar o tipo novo
+            // não via ele, mesmo atualizando a lista aqui. Zerando o cache,
+            // a próxima vez que alguém abrir "Novo Evento" busca de novo.
+            bibliotecaEventoTipos = [];
             renderizarEditorEventoTipo();
             renderizarEventoTiposListaSA();
         } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
@@ -8649,7 +8679,7 @@
         if (!(await tumtuConfirmar('Excluir este tipo de evento? Se alguma bateria já tem Eventos criados com ele, prefira marcar como "Inativo".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/evento_tipos?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativo".', 'erro'); return; }
-        mostrarToast('Tipo de evento excluído.'); eventoTipoEditando = null; await carregarEventoTiposSA(); renderizarEditorEventoTipo(); renderizarEventoTiposListaSA();
+        mostrarToast('Tipo de evento excluído.'); eventoTipoEditando = null; await carregarEventoTiposSA(); bibliotecaEventoTipos = []; renderizarEditorEventoTipo(); renderizarEventoTiposListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -8730,6 +8760,9 @@
             mostrarToast(temporadaEditando.id ? 'Temporada atualizada!' : 'Temporada criada!');
             temporadaEditando = null;
             await carregarTemporadasSA();
+            // Mesmo achado de salvarEventoTipoSA -- cache separado que
+            // "Novo Evento" usa (bibliotecaTemporadas) nunca era avisado.
+            bibliotecaTemporadas = [];
             renderizarEditorTemporada();
             renderizarTemporadasListaSA();
         } catch (e) { mostrarToast('Não foi possível salvar. Verifique sua conexão e tente de novo.', 'erro'); }
@@ -8739,7 +8772,7 @@
         if (!(await tumtuConfirmar('Excluir esta temporada? Se algum evento já usa ela, prefira marcar como "Inativa".', { textoConfirmar: 'Excluir' }))) return;
         const res = await fetch(`${SUPABASE_URL}/rest/v1/temporadas?id=eq.${id}`, { method: 'DELETE', headers: authHeaders });
         if (!res.ok) { mostrarToast('Não foi possível excluir — provavelmente já está em uso. Marque como "Inativa".', 'erro'); return; }
-        mostrarToast('Temporada excluída.'); temporadaEditando = null; await carregarTemporadasSA(); renderizarEditorTemporada(); renderizarTemporadasListaSA();
+        mostrarToast('Temporada excluída.'); temporadaEditando = null; await carregarTemporadasSA(); bibliotecaTemporadas = []; renderizarEditorTemporada(); renderizarTemporadasListaSA();
     }
 
     // ══════════════════════════════════════════════════════════════════
