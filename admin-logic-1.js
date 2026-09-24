@@ -6603,16 +6603,6 @@
         renderizarComercialTab();
 
         trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
-        // Esqueleto da Visão Geral (25/set/2026): revela a tela AQUI --
-        // Super Admin entrando numa escola sempre pousa na Visão Geral
-        // (trocarAba acima, sem exceção, diferente do Mestre/Diretor que
-        // pode ter salvo outra aba), então não existe o mesmo risco de
-        // revelar uma lista vazia de outra aba. Header/nav/tema já estão
-        // prontos; só falta o número real dos 2 cards de Ritmistas, que
-        // nasceram de volta em forma de esqueleto (.vg-esqueleto, resetado
-        // no início desta função) e viram número assim que
-        // atualizarTotalizadores() rodar dentro de carregarRitmistas.
-        esconderOverlayCarregando();
         // Espera a primeira leva de cada card terminar (ritmistas/diretoria
         // sem foto, extras, convidados) -- achado da Márcia, 01/set/2026: a
         // tela "montava em tempo real", cada card estalando na hora que a
@@ -6627,12 +6617,30 @@
             carregarConvidadosEspeciais(true), // idem, card "Convidados" (achado 01/set/2026, mesmo bug do card acima)
         ]);
         iniciarAutoRefreshRitmistas();
+        // Esqueleto da Visão Geral: revertido de volta pro timing original
+        // (25/set/2026, mesmo dia) -- a tentativa de revelar mais cedo
+        // (logo depois do trocarAba acima, antes do Promise.all) causou um
+        // bug real que ela reportou ao vivo mesmo depois da correção do
+        // atalho "leve" (ver carregarRitmistas): "vc não acertou o super
+        // admin". Sem ferramenta de navegador disponível pra investigar a
+        // causa exata da corrida (trocarAba('visao') acima não é esperado
+        // com await -- o painel só é marcado 'ativo' de vez quando o
+        // próprio trocarAba termina seu trabalho assíncrono, que pode
+        // ainda estar rodando no instante em que o overlay é escondido),
+        // mais seguro voltar ao comportamento de sempre aqui (só revela no
+        // final, depois de tudo pronto) do que insistir sem conseguir
+        // reproduzir/depurar ao vivo. O card ainda nasce em forma de
+        // esqueleto (classe .vg-esqueleto, resetada no início desta
+        // função) -- só não fica mais visível ANTES do dado chegar neste
+        // caminho específico (Super Admin). Mestre/Diretor (iniciarUsuario)
+        // não foi tocado, continua com a revelação antecipada.
         // Fotos completas chegam depois, em segundo plano, sem travar a tela
         // nem os cliques (achado real, 05/set/2026 -- ver
         // preencherFotosRitmistasEmSegundoPlano acima).
         preencherFotosRitmistasEmSegundoPlano();
         preencherFotosDiretoriaEmSegundoPlano();
         convidadosEspeciaisCarregados = false; carregarConvidadosEspeciais();
+        esconderOverlayCarregando();
         } catch (err) {
             console.error('entrarContextoEscolaSA falhou:', err);
             logErroCliente('entrarContextoEscolaSA', err);
