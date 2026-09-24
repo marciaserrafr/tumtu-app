@@ -537,7 +537,22 @@
         // recebido e continua atualizando a tela normalmente.
         if (leve) {
             const rawAtual = JSON.stringify(novos);
-            if (_ultimoRawLeveRitmistas && _ultimoRawLeveRitmistas.bateriaId === bateriaId && _ultimoRawLeveRitmistas.raw === rawAtual) return;
+            if (_ultimoRawLeveRitmistas && _ultimoRawLeveRitmistas.bateriaId === bateriaId && _ultimoRawLeveRitmistas.raw === rawAtual) {
+                // Bug real, 25/set/2026 (achado dela ao vivo: "tudo entra
+                // menos os quadros de ritmistas"): esse atalho pulava
+                // atualizarTotalizadores() inteiro quando o dado já era
+                // igual ao da última vez (ex: Super Admin voltando pra uma
+                // escola que já tinha visitado, sem ninguém editar nada no
+                // meio) -- os 2 cards ficavam PRESOS no esqueleto pra
+                // sempre, porque só atualizarTotalizadores() tira a classe
+                // .vg-esqueleto. atualizarTotalizadores() é barato (só
+                // recalcula 2 números a partir de todosRitmistas, que já
+                // está correto aqui) -- roda mesmo nesse atalho, só a parte
+                // cara (aplicarFiltros(), redesenhar a lista inteira) que
+                // continua pulada.
+                atualizarTotalizadores();
+                return;
+            }
             _ultimoRawLeveRitmistas = { bateriaId, raw: rawAtual };
         }
         todosRitmistas = reaproveitarFotosCache(novos, todosRitmistas);
