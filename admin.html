@@ -1884,37 +1884,90 @@
             #overlayCarregandoEscola .tumtu-marca .silaba-2 { animation: none; opacity: 1; }
         }
 
-        /* Esqueleto "só caixas" (25/set/2026, refeito do zero copiando a
-           técnica da carteirinha -- ver .carteirinha-esqueleto em
-           carteirinha.html) depois de 3 tentativas falhas tentando dar
-           esqueleto aos elementos REAIS da tela (números com classe indo e
-           voltando, amarrado a permissão/cache -- foi isso que quebrou 3
-           vezes ao vivo). Esta peça é 100% decorativa, dentro do MESMO
-           overlay que já existe -- não sabe nem precisa saber se a bateria
-           tem Diretoria, quantos ritmistas tem, nada. Só ocupa o lugar dos
-           2 cards de totalizador até o dado estar 100% pronto, e SOME
-           inteira de uma vez (esconderOverlayCarregando, sem mudança de
-           timing nenhuma) -- exatamente o "tudo de uma vez, sem meio
-           termo" que já funciona na carteirinha. Cor translúcida sobre o
-           MESMO fundo escuro do overlay (não o branco da Visão Geral de
-           verdade) -- mudar o overlay pra claro reabriria o bug antigo da
-           faixa do notch (ver "Passaporte escuro", 06/set/2026). */
-        #overlayCarregandoEscola .overlay-caixas {
-            display: none; align-items: stretch; gap: 12px;
-            width: 100%; max-width: 320px; padding: 0 28px;
+        /* Esqueleto "a tela se formando" (25/set/2026, 3ª versão -- réplica
+           direta do quadro "esqueleto" do documento da Design, "A abertura,
+           quadro a quadro": cabeçalho colorido no topo (T + risco de texto)
+           e, embaixo, a área clara da tela de verdade com fileiras
+           esqueleto (círculo + 2 linhas). As duas tentativas anteriores
+           (caixas soltas no escuro, depois um cartão pequeno flutuando)
+           foram rejeitadas ao vivo -- "não foi isso que pedi", "vc tem que
+           fazer um esqueleto da tela". Esta versão cobre a tela INTEIRA
+           (igual o overlay já fazia), só que agora clara feito a Visão
+           Geral de verdade, não mais escura. Isso muda a resposta pro bug
+           antigo do notch ("Passaporte escuro", 06/set): antes, a solução
+           era o overlay bater com a cor escura do <html> o tempo todo. Aqui
+           o <html> continua escuro (nada mudou nele), mas o RETÂNGULO
+           inteiro do overlay (de ponta a ponta, sem moldura, sem borda de
+           cor diferente) passa a ser claro nesse modo -- é uma cor só,
+           uniforme, de novo sem nenhum descompasso pra revelar no corte do
+           notch (o bug original era MISTURAR duas cores numa borda, não
+           "claro é proibido"). Decorativo, não sabe nada sobre a bateria --
+           some de uma vez com o resto (esconderOverlayCarregando, timing
+           intocado). */
+        #overlayCarregandoEscola.modo-caixas,
+        #overlayCarregandoEscola.modo-caixas .cartao {
+            background: #f7f6fb;
+        }
+        #overlayCarregandoEscola.modo-caixas .cartao {
+            align-items: stretch; justify-content: flex-start;
         }
         #overlayCarregandoEscola.modo-caixas .tumtu-marca { display: none; }
-        #overlayCarregandoEscola.modo-caixas .overlay-caixas { display: flex; }
-        #overlayCarregandoEscola .overlay-caixa {
-            flex: 1; height: 68px; border-radius: 12px;
-            background: rgba(255,255,255,.06); position: relative; overflow: hidden;
+        #overlayCarregandoEscola .overlay-caixas {
+            display: none; flex-direction: column; flex: 1;
         }
+        #overlayCarregandoEscola.modo-caixas .overlay-caixas { display: flex; }
+        #overlayCarregandoEscola .overlay-caixas-header {
+            flex-shrink: 0; height: 64px; background: #12101a;
+            display: flex; align-items: center; gap: 12px; padding: 0 20px;
+        }
+        #overlayCarregandoEscola .overlay-caixas-header .t {
+            color: #D4AF37; font-size: 20px; font-weight: 800; line-height: 1;
+        }
+        #overlayCarregandoEscola .overlay-caixas-header .risco {
+            width: 1px; align-self: stretch; margin: 14px 0; background: rgba(255,255,255,.2);
+        }
+        #overlayCarregandoEscola .overlay-caixas-header .linha {
+            height: 9px; width: 130px; border-radius: 4px; background: rgba(255,255,255,.28);
+        }
+        #overlayCarregandoEscola .overlay-caixas-corpo {
+            flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 10px;
+        }
+        /* Formato EXATO do que vem -- não fileiras de lista genéricas (isso
+           era a réplica literal do exemplo do documento, rejeitada: "esse
+           exemplo só que para a visão geral"). A Visão Geral de verdade
+           abre com um rótulo de grupo ("RITMISTAS", .vg-grupo-titulo) e 2
+           cards de totalizador lado a lado (.total-card) -- é essa forma
+           exata que o esqueleto replica aqui, mesmas proporções. */
+        #overlayCarregandoEscola .overlay-caixa-rotulo {
+            height: 11px; width: 90px; border-radius: 4px; background: #dedae8;
+            margin-bottom: 2px;
+        }
+        #overlayCarregandoEscola .overlay-caixa-linha { display: flex; gap: 12px; }
+        #overlayCarregandoEscola .overlay-caixa {
+            flex: 1; height: 76px; border-radius: 12px;
+            background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,.07);
+            display: flex; flex-direction: column; justify-content: center; gap: 8px;
+            padding: 0 18px; position: relative; overflow: hidden;
+        }
+        #overlayCarregandoEscola .overlay-caixa span {
+            display: block; border-radius: 4px; background: #e8e6f0;
+        }
+        #overlayCarregandoEscola .overlay-caixa span:first-child { width: 34px; height: 20px; }
+        #overlayCarregandoEscola .overlay-caixa span:last-child { width: 72%; height: 8px; background: #efedf4; }
+        #overlayCarregandoEscola .overlay-caixas-header .linha::after,
         #overlayCarregandoEscola .overlay-caixa::after {
             content: ''; position: absolute; inset: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
             animation: vg-brilho 1.4s ease-in-out infinite;
         }
+        #overlayCarregandoEscola .overlay-caixas-header .linha { position: relative; overflow: hidden; }
+        #overlayCarregandoEscola .overlay-caixas-header .linha::after {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+        }
+        #overlayCarregandoEscola .overlay-caixa::after {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+        }
         @media (prefers-reduced-motion: reduce) {
+            #overlayCarregandoEscola .overlay-caixas-header .linha::after,
             #overlayCarregandoEscola .overlay-caixa::after { animation: none; }
         }
 
@@ -2181,8 +2234,18 @@
             <span class="silaba-1"><span class="t">T</span><span class="u">u</span><span class="m">m</span></span><span class="silaba-2"><span class="t">T</span><span class="u">u</span></span>
         </span>
         <div class="overlay-caixas">
-            <div class="overlay-caixa"></div>
-            <div class="overlay-caixa"></div>
+            <div class="overlay-caixas-header">
+                <span class="t">T</span>
+                <span class="risco"></span>
+                <span class="linha"></span>
+            </div>
+            <div class="overlay-caixas-corpo">
+                <div class="overlay-caixa-rotulo"></div>
+                <div class="overlay-caixa-linha">
+                    <div class="overlay-caixa"><span></span><span></span></div>
+                    <div class="overlay-caixa"><span></span><span></span></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -3934,7 +3997,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=61" defer></script>
+<script src="admin-logic-1.js?v=62" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

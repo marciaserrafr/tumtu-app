@@ -126,9 +126,18 @@
     // Geral (iniciarUsuario/Mestre-Diretor e entrarContextoEscolaSA/Super
     // Admin) -- login.html e o Dashboard do Super Admin continuam com a
     // marca normal.
-    function mostrarOverlayComCaixas() {
+    function mostrarOverlayComCaixas(corConhecida) {
         mostrarOverlayCarregando();
-        document.getElementById('overlayCarregandoEscola').classList.add('modo-caixas');
+        const el = document.getElementById('overlayCarregandoEscola');
+        el.classList.add('modo-caixas');
+        // "O header aparece com a cor da escola -- agora ela já é
+        // conhecida" (documento da Design, 25/set/2026). Quando o cache já
+        // tem a cor (aplicarCacheConfigEscolaAntecipado, caso comum --
+        // celular já usado antes), usa a cor de verdade no cabeçalho do
+        // esqueleto. Sem cache ainda (celular novo), fica no cinza escuro
+        // padrão -- nunca trava nem espera por isso.
+        const header = el.querySelector('.overlay-caixas-header');
+        if (header) header.style.background = corConhecida || '';
     }
     function esconderOverlayCarregando() {
         // Sem esmaecer (06/set/2026, achado dela com vídeo real, quadro a
@@ -2568,18 +2577,19 @@
         // (aba Permissões) só vê a própria carteirinha, mesmo digitando a URL direto.
         if (usuario.modo_carteirinha_individual) { window.location.href = 'carteirinha'; return; }
 
-        // Mesmo spinner/overlay do Super Admin entrando numa escola (ver
-        // entrarContextoEscolaSA) -- rede de segurança pro caso raro do
-        // cache (aplicarCacheConfigEscolaAntecipado) ainda não existir
-        // (celular novo, cache limpo): sem isso, o cabeçalho ficava preto
-        // durante toda a busca de instrumentos/bateria/escola e só virava a
-        // cor da escola no final -- achado da Márcia, 19/ago/2026, "isso é
-        // perceptível sim". Quando o cache já existe (caso comum), o
-        // overlay só pisca rápido, sem custo perceptível. Caixas (não a
-        // marca) porque o destino é sempre a Visão Geral.
-        mostrarOverlayComCaixas();
-
+        // Cache lido ANTES de mostrar o overlay (25/set/2026) -- assim o
+        // cabeçalho do esqueleto já nasce com a cor de verdade da escola
+        // quando ela já é conhecida (documento da Design: "o header aparece
+        // com a cor da escola -- agora ela já é conhecida"), em vez de
+        // aplicar por cima depois. Mesma rede de segurança de sempre pro
+        // caso raro do cache ainda não existir (celular novo, cache limpo):
+        // sem isso, o cabeçalho ficava preto durante toda a busca de
+        // instrumentos/bateria/escola e só virava a cor da escola no final
+        // -- achado da Márcia, 19/ago/2026, "isso é perceptível sim".
+        // Quando o cache já existe (caso comum), nem dá tempo de perceber.
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
+        // Caixas (não a marca) porque o destino é sempre a Visão Geral.
+        mostrarOverlayComCaixas(configEscola.temaPersonalizadoAtivo ? configEscola.corPrimariaEscola : null);
         renderizarAvatarHeader({ nome: usuario.nome || 'Admin', foto_url: usuario.foto_url });
         document.getElementById('headerAvatarWrap').onclick = () => trocarAba('meu-perfil', null);
         // "Trocar de Bateria" só aparece pra quem tem 2+ vínculos (mesmo
