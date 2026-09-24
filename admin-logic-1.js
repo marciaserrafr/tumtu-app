@@ -412,6 +412,7 @@
     // ficha de Diretoria; checar só um dos dois deixava o outro sem pausa
     // nenhuma), então os dois precisam ser checados.
     let ritmistasAutoRefreshInterval = null;
+    let presencaAutoRefreshInterval = null;
     function iniciarAutoRefreshRitmistas() {
         if (ritmistasAutoRefreshInterval) clearInterval(ritmistasAutoRefreshInterval);
         ritmistasAutoRefreshInterval = setInterval(() => {
@@ -424,21 +425,26 @@
                 diretoriaCarregada = false;
                 carregarDiretoria(true);
             }
+        }, 30000);
 
-            // Presença (31/ago/2026) -- se a tela de marcar presença de um
-            // evento está aberta, atualiza a lista sozinha também, mesmo
-            // padrão/intervalo de Ritmistas/Diretoria acima. Achado real da
-            // Márcia testando ao vivo: ela escaneava o QR pela carteirinha
-            // (outra sessão) e a tela de gestão não mostrava a mudança até
-            // recarregar a página inteira -- o que também jogava ela de
-            // volta pra tela anterior, perdendo o evento aberto. Pausa
-            // enquanto tem alguma confirmação manual pendente na lista, pra
-            // não sumir o "Confirma?/Sim/Cancelar" no meio do toque dela.
+        // Presença (31/ago/2026, intervalo reduzido 23/set/2026) -- se a
+        // tela de marcar presença de um evento está aberta, atualiza a
+        // lista sozinha também. Achado real da Márcia testando ao vivo: ela
+        // escaneava o QR pela carteirinha (outra sessão) e a tela de gestão
+        // não mostrava a mudança até recarregar a página inteira -- o que
+        // também jogava ela de volta pra tela anterior, perdendo o evento
+        // aberto. Pausa enquanto tem alguma confirmação manual pendente na
+        // lista, pra não sumir o "Confirma?/Sim/Cancelar" no meio do toque
+        // dela. Intervalo próprio (5s, mais rápido que os 30s de
+        // Ritmistas/Diretoria) porque aqui o atraso é visto ao vivo, numa
+        // fila de gente entrando -- ela pediu pra diminuir a espera de ~30s.
+        if (presencaAutoRefreshInterval) clearInterval(presencaAutoRefreshInterval);
+        presencaAutoRefreshInterval = setInterval(() => {
             const telaPresenca = document.getElementById('presenca-tela-marcar');
             if (telaPresenca && telaPresenca.style.display === 'block' && presencaEventoAtual && Object.keys(presencaConfirmando).length === 0) {
                 carregarPresencaPessoas();
             }
-        }, 30000);
+        }, 5000);
     }
 
     // Colunas da view sem foto_url -- foto de cada pessoa fica guardada como
@@ -4743,7 +4749,7 @@
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-nome">${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '🙋 Eventos'}${ev.trava_edicao ? ' · 🔒 Perfis Bloqueados' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${ev.inclui_extras ? ' · Convidados' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
+                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '✋ Presença'}${ev.trava_edicao ? ' · 🔒 Perfis Bloqueados' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}${(ev.perfis_diretoria_inclusos || []).length > 0 ? ' · Inclui ' + ev.perfis_diretoria_inclusos.map(p => esc(LABEL_PERFIL_DIRETORIA_EVENTO[p] || p)).join(', ') : ''}${ev.inclui_extras ? ' · Convidados' : ''}${nomeTemporada(ev.temporada_id) ? ' · ' + esc(nomeTemporada(ev.temporada_id)) : ''}</div>
                 </div>
                 ${podeEditar ? `<div class="item-acoes"><button class="btn-ficha" onclick="abrirEditarEvento(${ev.id})">Editar</button></div>` : ''}
             </div>`).join('');
@@ -4924,7 +4930,7 @@
             <div class="item-card item-card-simples" onclick="abrirPresencaEvento(${ev.id})" style="cursor:pointer;">
                 <div class="item-info">
                     <div class="item-nome">${esc(ev.nome)}</div>
-                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '🙋 Eventos'}${ev.trava_edicao ? ' · 🔒 Perfis Bloqueados' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
+                    <div class="item-detalhe">${ev.controle_portaria ? '🎫 Controle de Acesso' : '✋ Presença'}${ev.trava_edicao ? ' · 🔒 Perfis Bloqueados' : ''} · ${formatarDataBR(ev.data)} — ${esc(nomeTipoEvento(ev.evento_tipo_id))}</div>
                 </div>
                 <span class="config-item-seta">›</span>
             </div>`).join('');
@@ -5400,7 +5406,7 @@
             if (!res.ok) { mostrarToast('Não foi possível gerar o link.', 'erro'); return; }
             evento.token_verificacao_portaria = token;
         }
-        const url = `${window.location.origin}/qr?v=${token}`;
+        const url = `${window.location.origin}/verificacao-portaria?v=${token}`;
         document.getElementById('portaria-link-evento').textContent = evento.nome;
         document.getElementById('portaria-link-input').value = url;
         document.getElementById('portaria-link-overlay').style.display = 'flex';
@@ -5724,7 +5730,7 @@
         { aba: 'dados-bateria', label: 'Dados da Bateria', grupo: 'Cadastros' },
         { aba: 'extras', label: 'Convidados', grupo: 'Cadastros' },
         { aba: 'figurino', label: 'Entrega de Figurino', grupo: 'Operação' },
-        { aba: 'presenca', label: 'Eventos', grupo: 'Operação' },
+        { aba: 'presenca', label: 'Registrar Presença', grupo: 'Operação' },
         { aba: 'permissoes', label: 'Permissões', grupo: 'Ajustes' },
         { aba: 'historico', label: 'Histórico', grupo: 'Operação' },
         // Não abre painel nenhum aqui dentro -- clicar leva pra
@@ -7260,7 +7266,7 @@
         // qualquer Diretor que não tivesse acesso a Configurações, mesmo
         // sendo exatamente quem deveria poder marcar presença. Capacidade
         // solta, sem depender de nada -- mesmo padrão de ver_carteirinha_outros.
-        { grupo: 'Eventos', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
+        { grupo: 'Registrar Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
         // Convidados (25/ago/2026, reorganizado 31/ago/2026, modelo Simples
         // removido de vez em 16/set/2026 -- desde a unificação de 04/set,
         // toda bateria usa sempre o modelo Especial, então só existe 1 grupo

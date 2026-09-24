@@ -162,6 +162,10 @@
 .btn-ficha-reativar:hover  { background: #f0f0f0; }
 .btn-ficha-editar    { background: var(--cor-destaque); border-color: var(--cor-destaque); color: var(--cor-texto-destaque); }
 .btn-ficha-editar:hover { background: var(--cor-destaque-hover); }
+/* Estado "checando Trava de Edição" (23/set/2026, Bug 9) -- nasce assim,
+   nunca clicável, até fpAplicarTravaEdicao confirmar que pode liberar.
+   Mesmo tratamento visual já usado em .mp-btn-salvar:disabled. */
+.btn-ficha-editar:disabled { background: var(--cor-borda); border-color: var(--cor-borda); color: var(--cor-texto-muted); cursor: not-allowed; }
 .btn-ficha-salvar    { background: var(--cor-destaque); border-color: var(--cor-destaque); color: var(--cor-texto-destaque); }
 .btn-ficha-salvar:hover { background: var(--cor-destaque-hover); }
 /* Já existia só dentro do <style> de admin.html (telas de exclusão do Super

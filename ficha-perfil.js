@@ -76,7 +76,7 @@ let fpFotoPosY = 50;
 // ainda dispara um "click" no soltar -- sem essa trava, todo arrasto
 // reabriria o seletor de arquivo por engano logo em seguida.
 let fpArrastoRecente = false;
-let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: null, autoedicao: false, editaveis: new Set(), aoSalvar: null };
+let fpEstado = { container: null, alvo: null, meuPerfil: null, minhaPessoaId: null, autoedicao: false, editaveis: new Set(), aoSalvar: null, travaEdicaoBloqueada: false };
 
 // Cada coluna editável mora em "pessoas" (dado da pessoa, não muda entre baterias)
 // ou "vinculos" (dado do vínculo com uma bateria específica) — usado por fpSalvar()
@@ -566,7 +566,7 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     opcoes = opcoes || {};
     const autoedicao = alvo.pessoa_id === minhaPessoaId;
     const editaveis = fpCamposEditaveis(meuPerfil, autoedicao, alvo.perfil, alvo.eh_convidado === true);
-    fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, medidasRestritoAoVazio: false, aoSalvar: opcoes.aoSalvar || null, sujo: false };
+    fpEstado = { container: fpEstado.container, alvo, meuPerfil, minhaPessoaId, autoedicao, editaveis, medidasRestritoAoVazio: false, aoSalvar: opcoes.aoSalvar || null, sujo: false, travaEdicaoBloqueada: false };
     fpFotoBase64 = null;
     fpFotoPosX = alvo.foto_pos_x ?? 50;
     fpFotoPosY = alvo.foto_pos_y ?? 50;
@@ -843,7 +843,18 @@ function fpIniciar(alvo, meuPerfil, minhaPessoaId, opcoes) {
     mensagem.style.display = 'none';
     mensagem.className = 'fp-mensagem';
 
-    fpEl('fp-btn-editar').style.display = editaveis.size > 0 ? 'inline-flex' : 'none';
+    // Bug 9 (23/set/2026, achado dela testando Perfis Bloqueados ao vivo):
+    // o botão nascia clicável e só ficava escondido depois que
+    // fpAplicarTravaEdicao terminasse de checar (2 buscas em sequência) --
+    // "se a pessoa for muito ágil, consegue clicar no botão" antes disso.
+    // Enquanto existe a chance de a Trava de Edição se aplicar (tem
+    // bateria_id e quem está olhando não é Super Admin -- mesmo guard de
+    // fpAplicarTravaEdicao), o botão já nasce DESABILITADO em vez de
+    // clicável -- só fpAplicarTravaEdicao libera (ou mantém escondido, se
+    // a trava estiver mesmo ativa e a pessoa não for isenta).
+    const btnEditar = fpEl('fp-btn-editar');
+    btnEditar.style.display = editaveis.size > 0 ? 'inline-flex' : 'none';
+    btnEditar.disabled = editaveis.size > 0 && !!alvo.bateria_id && meuPerfil !== 'super_admin';
     fpEl('fp-btn-salvar').style.display = 'none';
     fpEl('fp-btn-cancelar').style.display = 'none';
 
@@ -1154,7 +1165,7 @@ async function fpAplicarPermissaoRitmistaMedidas(alvo) {
     if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
     fpEstado.editaveis.add('medidas');
     fpEstado.medidasRestritoAoVazio = true;
-    if (fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
+    if (!fpEstado.travaEdicaoBloqueada && fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
 }
 
 // Convidado (01/set/2026, corrigido -- antes era capacidade por pessoa,
@@ -1172,7 +1183,7 @@ async function fpAplicarPermissaoConvidadoMedidas(alvo) {
     if (!(bateriaRows[0] && bateriaRows[0].convidado_pode_editar_medida)) return;
     if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
     fpEstado.editaveis.add('medidas');
-    if (fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
+    if (!fpEstado.travaEdicaoBloqueada && fpEl('fp-btn-salvar').style.display !== 'inline-flex') fpEl('fp-btn-editar').style.display = 'inline-flex';
 }
 
 // Trava de Edição (22/set/2026) -- pedido dela depois da suspeita de fraude
@@ -1191,15 +1202,27 @@ async function fpAplicarTravaEdicao(alvo) {
     const authHeaders = await fpAuthHeaders();
     const resEvento = await fetch(`${SUPABASE_URL}/rest/v1/eventos?bateria_id=eq.${alvo.bateria_id}&iniciado=eq.true&finalizado=eq.false&trava_edicao=eq.true&select=id&limit=1`, { headers: authHeaders });
     const eventosTrava = resEvento.ok ? await resEvento.json() : [];
-    if (eventosTrava.length === 0) return;
+    if (eventosTrava.length === 0) { fpLiberarBtnEditarDaTrava(alvo); return; }
     const resVinculo = await fetch(`${SUPABASE_URL}/rest/v1/vinculos?pessoa_id=eq.${fpEstado.minhaPessoaId}&bateria_id=eq.${alvo.bateria_id}&status=eq.aprovado&select=perfil,eh_admin_bateria`, { headers: authHeaders });
     const meusVinculos = resVinculo.ok ? await resVinculo.json() : [];
     const isento = meusVinculos.some(v => v.perfil === 'mestre' || v.eh_admin_bateria === true);
-    if (isento) return;
+    if (isento) { fpLiberarBtnEditarDaTrava(alvo); return; }
     if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
     fpEstado.editaveis = new Set();
+    fpEstado.travaEdicaoBloqueada = true;
     if (fpEl('fp-btn-salvar').style.display === 'inline-flex') fpCancelarEdicao();
     fpEl('fp-btn-editar').style.display = 'none';
+}
+// Some com o estado "desabilitado, checando" que o botão Editar nasce com
+// (ver fpIniciar) assim que confirmamos que a Trava de Edição não se aplica
+// -- nunca reabilita se a trava JÁ tiver escondido o botão antes (ver
+// fpEstado.travaEdicaoBloqueada, checado também em
+// fpAplicarPermissaoRitmistaMedidas/fpAplicarPermissaoConvidadoMedidas, que
+// senão poderiam reexibir "Editar" por cima da trava se terminassem depois).
+function fpLiberarBtnEditarDaTrava(alvo) {
+    if (fpEstado.alvo !== alvo) return; // a pessoa já trocou de ficha antes disso terminar
+    if (fpEstado.travaEdicaoBloqueada) return;
+    fpEl('fp-btn-editar').disabled = false;
 }
 
 // Repique de Bossa (26/ago/2026) -- campo delicado, pedido dela: "impacta
@@ -1239,7 +1262,7 @@ async function fpAplicarPermissaoRepiqueBossa(alvo) {
     fpEl('fp-repique-bossa').textContent = alvo.repique_bossa ? 'Sim' : 'Não';
     if (podeMarcar) {
         fpEstado.editaveis.add('repique_bossa');
-        if (fpEstado.autoedicao && fpEl('fp-btn-salvar').style.display !== 'inline-flex') {
+        if (fpEstado.autoedicao && !fpEstado.travaEdicaoBloqueada && fpEl('fp-btn-salvar').style.display !== 'inline-flex') {
             fpEl('fp-btn-editar').style.display = 'inline-flex';
         }
     }

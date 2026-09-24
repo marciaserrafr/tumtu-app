@@ -49,7 +49,7 @@
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="styles/tokens.css?v=4">
-    <link rel="stylesheet" href="styles/components.css?v=32">
+    <link rel="stylesheet" href="styles/components.css?v=33">
     <!-- defer (06/set/2026, achado real dela com vídeo gravado quadro a
          quadro) -- sem isso, o navegador PARAVA de desenhar a tela pra
          esperar essa biblioteca baixar de um servidor externo antes de
@@ -72,7 +72,7 @@
     <!-- defer (06/set/2026) -- nenhuma das duas executa nada sozinha ao
          carregar, só define função pra usar depois (conferido no código
          das duas), então não corre risco nenhum de rodar antes da hora. -->
-    <script src="ficha-perfil.js?v=75" defer></script>
+    <script src="ficha-perfil.js?v=76" defer></script>
     <script src="faceid.js?v=2" defer></script>
     <style>
         /* Desligada de novo (06/set/2026, mesma sessão -- teste de
@@ -3134,14 +3134,14 @@
 <div class="painel" id="painel-presenca">
     <div id="presenca-lista">
         <button type="button" class="btn-voltar-config" onclick="trocarAba('administrativo', document.querySelector('.aba-btn[data-aba=administrativo]'))">← Mais</button>
-        <div class="painel-titulo">Eventos</div>
+        <div class="painel-titulo">Registrar Presença</div>
         <p class="config-sub-desc">Marque presença por evento. Pra cadastrar um evento novo, use Configurações → Cadastro de Eventos.</p>
         <div id="presenca-eventos-lista" class="lista-cards"></div>
     </div>
 
     <div id="presenca-tela-marcar" class="config-subtela" style="display:none;">
-        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Eventos</button>
-        <div class="painel-titulo" id="presenca-evento-titulo">Eventos</div>
+        <button class="btn-voltar-config" onclick="voltarPresencaLista()">← Registrar Presença</button>
+        <div class="painel-titulo" id="presenca-evento-titulo">Registrar Presença</div>
         <!-- Cartão único: números + Iniciado/Finalizado (interruptor) +
              botões de QR, tudo junto num só .vg-card (30/ago/2026 -- antes
              eram 2 caixas separadas, "cheio de quadrado" na avaliação
@@ -3804,7 +3804,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=51" defer></script>
+<script src="admin-logic-1.js?v=52" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">
