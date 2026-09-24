@@ -5412,7 +5412,7 @@
         });
         if (!res.ok) { mostrarToast('Não foi possível gerar o link.', 'erro'); return; }
         const token = await res.json();
-        const url = `${window.location.origin}/verificacao-portaria?v=${token}`;
+        const url = `${window.location.origin}/checkin?v=${token}`;
         document.getElementById('portaria-link-evento').textContent = evento.nome;
         document.getElementById('portaria-link-input').value = url;
         document.getElementById('portaria-link-overlay').style.display = 'flex';
@@ -5736,7 +5736,7 @@
         { aba: 'dados-bateria', label: 'Dados da Bateria', grupo: 'Cadastros' },
         { aba: 'extras', label: 'Convidados', grupo: 'Cadastros' },
         { aba: 'figurino', label: 'Entrega de Figurino', grupo: 'Operação' },
-        { aba: 'presenca', label: 'Registrar Presença', grupo: 'Operação' },
+        { aba: 'presenca', label: 'Registro de Presença', grupo: 'Operação' },
         { aba: 'permissoes', label: 'Permissões', grupo: 'Ajustes' },
         { aba: 'historico', label: 'Histórico', grupo: 'Operação' },
         // Não abre painel nenhum aqui dentro -- clicar leva pra
@@ -7272,7 +7272,7 @@
         // qualquer Diretor que não tivesse acesso a Configurações, mesmo
         // sendo exatamente quem deveria poder marcar presença. Capacidade
         // solta, sem depender de nada -- mesmo padrão de ver_carteirinha_outros.
-        { grupo: 'Registrar Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
+        { grupo: 'Registro de Presença', itens: [{ chave: 'marcar_presenca', label: 'Marcar presença dos eventos' }] },
         // Convidados (25/ago/2026, reorganizado 31/ago/2026, modelo Simples
         // removido de vez em 16/set/2026 -- desde a unificação de 04/set,
         // toda bateria usa sempre o modelo Especial, então só existe 1 grupo

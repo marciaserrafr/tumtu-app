@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <!--
-    Cópia de qr.html feita só pro link de Verificação de Entrada (23/set/2026)
-    -- achado dela testando ao vivo: mandar o link `/qr?v=...` por WhatsApp
-    mostrava "TumTu — Contato de Emergência" na prévia (o WhatsApp lê só o
-    <title> estático da página, não executa nada de JS, então não dá pra
-    variar o título por parâmetro na mesma URL). Ter um arquivo próprio,
-    só com o título trocado, resolve sem mexer em nada do qr.html de
-    produção (a carteirinha física de cada ritmista continua apontando pra
-    lá, sem tocar nesse arquivo). Todo o resto do código abaixo é idêntico
-    de propósito -- ver qr.html se precisar comparar.
+    Cópia de qr.html feita só pro link de Check-in (23/set/2026, arquivo
+    renomeado de verificacao-portaria.html pra checkin.html no mesmo dia --
+    "portaria" tinha sobrado do nome antigo, antes de "Controle de Acesso
+    (Check-in)") -- achado dela testando ao vivo: mandar o link `/qr?v=...`
+    por WhatsApp mostrava "TumTu — Contato de Emergência" na prévia (o
+    WhatsApp lê só o <title> estático da página, não executa nada de JS,
+    então não dá pra variar o título por parâmetro na mesma URL). Ter um
+    arquivo próprio, só com o título trocado, resolve sem mexer em nada do
+    qr.html de produção (a carteirinha física de cada ritmista continua
+    apontando pra lá, sem tocar nesse arquivo). Todo o resto do código
+    abaixo é idêntico de propósito -- ver qr.html se precisar comparar.
 -->
 <html lang="pt-BR" data-tema="tumtu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TumTu — Verificação de Entrada</title>
+    <title>TumTu — Check-in</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#12101a">
     <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
@@ -239,7 +241,7 @@
     function desativarVerificacaoNesteAparelho() {
         localStorage.removeItem(LS_TOKEN);
         localStorage.removeItem(LS_NOME);
-        window.location.href = '/verificacao-portaria';
+        window.location.href = '/checkin';
     }
     function fotoPortariaHtml(pessoa) {
         const inicial = escHtml((pessoa.apelido || pessoa.nome || '?').trim().charAt(0).toUpperCase());
@@ -303,7 +305,7 @@
         });
         const dados = res.ok ? await res.json() : [];
         if (!dados.length) {
-            div.innerHTML = '<div class="erro">Esse link não é válido ou o evento não está mais ativo. Peça um link novo pra Diretoria.</div>';
+            div.innerHTML = '<div class="erro">Esse link não é válido ou o evento não está ativo. Peça um link novo para a Diretoria da Bateria.</div>';
             return;
         }
         localStorage.setItem(LS_TOKEN, token);

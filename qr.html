@@ -293,7 +293,7 @@
         });
         const dados = res.ok ? await res.json() : [];
         if (!dados.length) {
-            div.innerHTML = '<div class="erro">Esse link não é válido ou o evento não está mais ativo. Peça um link novo pra Diretoria.</div>';
+            div.innerHTML = '<div class="erro">Esse link não é válido ou o evento não está ativo. Peça um link novo para a Diretoria da Bateria.</div>';
             return;
         }
         localStorage.setItem(LS_TOKEN, token);
