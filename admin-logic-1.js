@@ -129,66 +129,6 @@
             document.getElementById('overlayCarregandoEscola').classList.add('escondida');
         }, espera);
     }
-    // Esqueleto da Visão Geral (25/set/2026) -- diferente de
-    // esconderOverlayCarregando() acima, sem espera mínima nenhuma: a marca
-    // piscando em sílabas (Variante A, 13/set/2026) foi desenhada de
-    // propósito pra cortar em qualquer instante sem nunca parecer quebrada
-    // (ao contrário do spinner antigo, que precisava dos 600ms pra não
-    // "piscar" cortado no meio). Usada nos 2 caminhos que entram na Visão
-    // Geral, no instante em que o painel já pode ser revelado (header/nav/
-    // gating prontos) -- os números chegam depois, direto nos cards que já
-    // nasceram em forma de esqueleto (prepararEsqueletoVisaoGeral, abaixo).
-    function revelarComEsqueletoAgora() {
-        document.getElementById('overlayCarregandoEscola').classList.add('escondida');
-    }
-    // Coloca os cards da Visão Geral em forma de esqueleto e decide AGORA
-    // se Diretoria/Convidados aparecem -- a existência dos dois já é sabida
-    // por permissão (capacidades carregadas antes de chamar isso), não
-    // depende do dado em si, diferente de Aniversariantes/Figurino/Presença/
-    // etc (que só existem SE o dado disser que existem, ficam de fora do
-    // esqueleto de propósito). vejoAcessos/vejoConvidados: Super Admin
-    // sempre true; Mestre/Diretor, o resultado de tenhoCapacidade().
-    function prepararEsqueletoVisaoGeral(vejoAcessos, vejoConvidados) {
-        ['totalAtivos', 'totalPendentes'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('vg-esqueleto');
-        });
-        const elOutrosRitmistas = document.getElementById('totalOutrosRitmistas');
-        if (elOutrosRitmistas) elOutrosRitmistas.classList.add('vg-esqueleto-mini');
-
-        const cardDiretoria = document.getElementById('totalizadoresDiretoria');
-        const tituloDiretoria = document.getElementById('vgTituloDiretoria');
-        const linhaToggleDiretoria = document.getElementById('linhaToggleDiretoria');
-        if (vejoAcessos) {
-            if (cardDiretoria) cardDiretoria.style.display = 'flex';
-            if (tituloDiretoria) tituloDiretoria.style.display = 'block';
-            if (linhaToggleDiretoria) linhaToggleDiretoria.style.display = 'flex';
-            ['totalDiretoriaAtivos', 'totalDiretoriaPendentes'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.classList.add('vg-esqueleto');
-            });
-            const elOutrosDiretoria = document.getElementById('totalOutrosDiretoria');
-            if (elOutrosDiretoria) elOutrosDiretoria.classList.add('vg-esqueleto-mini');
-        } else {
-            if (cardDiretoria) cardDiretoria.style.display = 'none';
-            if (tituloDiretoria) tituloDiretoria.style.display = 'none';
-            if (linhaToggleDiretoria) linhaToggleDiretoria.style.display = 'none';
-        }
-
-        const cardConvidados = document.getElementById('totalizadoresConvidadosEspeciais');
-        const tituloConvidados = document.getElementById('vgTituloConvidadosEspeciais');
-        if (vejoConvidados) {
-            if (cardConvidados) cardConvidados.style.display = 'grid';
-            if (tituloConvidados) tituloConvidados.style.display = 'block';
-            ['totalConvidadosEspeciaisAtivos', 'totalConvidadosEspeciaisPendentes'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.classList.add('vg-esqueleto-mini');
-            });
-        } else {
-            if (cardConvidados) cardConvidados.style.display = 'none';
-            if (tituloConvidados) tituloConvidados.style.display = 'none';
-        }
-    }
 
     const authHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
     async function iniciarSessaoAuth() {
@@ -335,9 +275,7 @@
         document.getElementById('totalDesligados').textContent = desRit;
         document.getElementById('totalRejeitados').textContent = rejRit;
         document.getElementById('totalNaoDesfilaStatus').textContent = ndRit;
-        const elOutrosRitmistas = document.getElementById('totalOutrosRitmistas');
-        elOutrosRitmistas.textContent = '+' + (susRit + desRit + rejRit + ndRit);
-        elOutrosRitmistas.classList.remove('vg-esqueleto-mini');
+        document.getElementById('totalOutrosRitmistas').textContent = '+' + (susRit + desRit + rejRit + ndRit);
     }
 
     // Card à parte na Visão Geral, com a mesma contagem de Mestres/
@@ -359,13 +297,10 @@
         }
         const ativos = (listaDiretoriaAtual || []).filter(a => a.status === 'aprovado').length;
         const pendentes = (listaDiretoriaAtual || []).filter(a => a.status === 'pendente').length;
-        const elAtivosDiretoria = document.getElementById('totalDiretoriaAtivos');
-        elAtivosDiretoria.textContent = ativos;
-        elAtivosDiretoria.classList.remove('vg-esqueleto');
+        document.getElementById('totalDiretoriaAtivos').textContent = ativos;
         const elPendentesDiretoria = document.getElementById('totalDiretoriaPendentes');
         elPendentesDiretoria.textContent = pendentes;
         elPendentesDiretoria.classList.toggle('atencao', pendentes > 0);
-        elPendentesDiretoria.classList.remove('vg-esqueleto');
         card.style.display = 'flex';
         if (titulo) titulo.style.display = 'block';
         if (linhaToggle) linhaToggle.style.display = 'flex';
@@ -381,9 +316,7 @@
             document.getElementById('totalDiretoriaSuspensos').textContent = susDir;
             document.getElementById('totalDiretoriaDesligados').textContent = desDir;
             document.getElementById('totalDiretoriaRejeitados').textContent = rejDir;
-            const elOutrosDiretoria = document.getElementById('totalOutrosDiretoria');
-            elOutrosDiretoria.textContent = '+' + (susDir + desDir + rejDir);
-            elOutrosDiretoria.classList.remove('vg-esqueleto-mini');
+            document.getElementById('totalOutrosDiretoria').textContent = '+' + (susDir + desDir + rejDir);
         }
     }
 
@@ -408,12 +341,8 @@
         if (!card) return;
         if (!souSuperAdmin && !tenhoCapacidade('ver_convidados_especiais')) { card.style.display = 'none'; if (titulo) titulo.style.display = 'none'; return; }
         const lista = convidadosEspeciaisCache || [];
-        const elAtivosConv = document.getElementById('totalConvidadosEspeciaisAtivos');
-        elAtivosConv.textContent = lista.filter(r => r.status === 'aprovado').length;
-        elAtivosConv.classList.remove('vg-esqueleto-mini');
-        const elPendentesConv = document.getElementById('totalConvidadosEspeciaisPendentes');
-        elPendentesConv.textContent = lista.filter(r => r.status === 'pendente').length;
-        elPendentesConv.classList.remove('vg-esqueleto-mini');
+        document.getElementById('totalConvidadosEspeciaisAtivos').textContent = lista.filter(r => r.status === 'aprovado').length;
+        document.getElementById('totalConvidadosEspeciaisPendentes').textContent = lista.filter(r => r.status === 'pendente').length;
         card.style.display = 'grid';
         if (titulo) titulo.style.display = 'block';
     }
@@ -2705,37 +2634,20 @@
         document.getElementById('mainEscola').style.display = 'flex';
         ajustarAlturaNavMobile();
 
-        // Card "Diretoria ativa" na Visão Geral (novo, 21/ago/2026) --
-        // reaproveita a mesma carregarDiretoria() da aba Diretoria (fica em
-        // cache pra quando ela clicar lá, sem buscar de novo). Só dispara
-        // pra quem tem ver_acessos -- sem a capacidade, RLS devolveria vazio
-        // e o card mostraria "0" de forma enganosa em vez de ficar escondido.
-        // Calculado ANTES da revelação (25/set/2026) -- capacidades já
-        // vieram no primeiro Promise.all lá em cima, então já dá pra saber
-        // se o card de Diretoria/Convidados EXISTE antes mesmo do dado
-        // chegar, e nascer em forma de esqueleto junto com Ritmistas.
-        const vejoAcessosMD = souSuperAdmin || tenhoCapacidade('ver_acessos');
-        // Card "Convidados" na Visão Geral, mesmo padrão do card de Diretoria
-        // acima -- achado dela, 01/set/2026: card ficava vazio até visitar a
-        // aba Convidados de verdade (carregarConvidadosEspeciais() só rodava
-        // lá dentro, nunca no carregamento inicial da tela).
-        const vejoConvidadosMD = souSuperAdmin || tenhoCapacidade('ver_convidados_especiais');
-
-        // Esqueleto da Visão Geral (25/set/2026, estendido no mesmo dia):
-        // revela a tela AQUI, antes dos números chegarem, quando ela vai
-        // mesmo ficar na Visão Geral -- header/nav/gating já estão prontos,
-        // só falta o dado. Se o estado salvo manda pra OUTRA aba (Ritmistas/
-        // Diretoria/...), mantém o comportamento de sempre (espera tudo,
-        // troca de aba, só então revela) -- essas abas não têm fetch
-        // próprio, dependem dos dados globais já carregados (área de risco
-        // documentada dentro de trocarAba), então revelar cedo demais
-        // mostraria uma lista vazia por um instante.
+        // Esqueleto da Visão Geral (25/set/2026): revela a tela AQUI, antes
+        // dos números de Ritmistas chegarem, quando ela vai mesmo ficar na
+        // Visão Geral -- header/nav/gating já estão prontos, só falta o
+        // número real (os 2 cards de Ativos/Pendentes nascem em forma de
+        // esqueleto, ver .vg-esqueleto, e viram número assim que
+        // atualizarTotalizadores() rodar). Se o estado salvo manda pra OUTRA
+        // aba (Ritmistas/Diretoria/...), mantém o comportamento de sempre
+        // (espera tudo, troca de aba, só então revela) -- essas abas não
+        // têm fetch próprio, dependem dos dados globais já carregados
+        // (área de risco documentada dentro de trocarAba), então revelar
+        // cedo demais mostraria uma lista vazia por um instante.
         const estadoSalvoPreCarga = lerEstadoNavegacaoSalvo();
         const vaiFicarNaVisao = !(estadoSalvoPreCarga && estadoSalvoPreCarga.contexto === 'mestre-diretor' && estadoSalvoPreCarga.aba && estadoSalvoPreCarga.aba !== 'visao');
-        if (vaiFicarNaVisao) {
-            prepararEsqueletoVisaoGeral(vejoAcessosMD, vejoConvidadosMD);
-            revelarComEsqueletoAgora();
-        }
+        if (vaiFicarNaVisao) esconderOverlayCarregando();
 
         // Espera a primeira leva de cada card terminar (ritmistas/diretoria
         // sem foto, extras, convidados) antes de tirar o spinner -- achado
@@ -2746,7 +2658,18 @@
         // (carregarRitmistasComFotos/carregarDiretoriaComFotos), só que
         // agora dá pra esperar só a primeira passada de cada uma.
         const cargaInicialMD = [carregarRitmistas(true)];
+        // Card "Diretoria ativa" na Visão Geral (novo, 21/ago/2026) --
+        // reaproveita a mesma carregarDiretoria() da aba Diretoria (fica em
+        // cache pra quando ela clicar lá, sem buscar de novo). Só dispara
+        // pra quem tem ver_acessos -- sem a capacidade, RLS devolveria vazio
+        // e o card mostraria "0" de forma enganosa em vez de ficar escondido.
+        const vejoAcessosMD = souSuperAdmin || tenhoCapacidade('ver_acessos');
         if (vejoAcessosMD) cargaInicialMD.push(carregarDiretoria(true));
+        // Card "Convidados" na Visão Geral, mesmo padrão do card de Diretoria
+        // acima -- achado dela, 01/set/2026: card ficava vazio até visitar a
+        // aba Convidados de verdade (carregarConvidadosEspeciais() só rodava
+        // lá dentro, nunca no carregamento inicial da tela).
+        const vejoConvidadosMD = souSuperAdmin || tenhoCapacidade('ver_convidados_especiais');
         if (vejoConvidadosMD) cargaInicialMD.push(carregarConvidadosEspeciais(true));
         await Promise.all(cargaInicialMD);
         iniciarAutoRefreshRitmistas();
@@ -6553,13 +6476,14 @@
         dentroDeEscolaSA = true;
 
         // Esqueleto da Visão Geral (25/set/2026): se ela já esteve numa
-        // outra escola antes, os cards podem estar com o número REAL da
-        // escola anterior -- volta tudo pro estado de esqueleto agora,
-        // antes de qualquer coisa aparecer, pra nunca mostrar (nem por um
-        // instante) o número de quem não é mais o contexto atual. Super
-        // Admin sempre vê Diretoria e Convidados (souSuperAdmin bypassa
-        // capacidade), então os dois argumentos são sempre true aqui.
-        prepararEsqueletoVisaoGeral(true, true);
+        // outra escola antes, os 2 cards de Ritmistas podem estar com o
+        // número REAL da escola anterior -- volta pro estado de esqueleto
+        // agora, antes de qualquer coisa aparecer, pra nunca mostrar (nem
+        // por um instante) o número de quem não é mais o contexto atual.
+        const elAtivosSkel = document.getElementById('totalAtivos');
+        const elPendentesSkel = document.getElementById('totalPendentes');
+        if (elAtivosSkel) elAtivosSkel.classList.add('vg-esqueleto');
+        if (elPendentesSkel) elPendentesSkel.classList.add('vg-esqueleto');
 
         // Spinner dourado cobre a tela enquanto busca a cor/logo real da
         // escola -- sem isso, o cabeçalho nascia preto/TumTu por um instante
@@ -6678,25 +6602,7 @@
         renderizarDadosBateriaTab();
         renderizarComercialTab();
 
-        // Esperado com await, diferente de antes (25/set/2026) -- só marca
-        // #painel-visao como 'ativo' de vez quando o próprio trocarAba
-        // termina seu trabalho assíncrono (inclui um fetch próprio da aba
-        // 'visao'). Revelar antes disso era a corrida que fazia a tela
-        // parecer "não mudou nada" na 1ª tentativa desta funcionalidade.
-        await trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
-        // Esqueleto da Visão Geral: revela AQUI, imediatamente -- não usa
-        // esconderOverlayCarregando() (tem uma espera mínima de 600ms,
-        // criada pro spinner ANTIGO não "piscar" cortado no meio -- a marca
-        // piscando em sílabas, Variante A, 13/set/2026, foi desenhada de
-        // propósito pra cortar em qualquer instante sem nunca parecer
-        // quebrada, não precisa dessa espera). Causa real do "vc não
-        // acertou o super admin" (25/set/2026): numa conexão rápida, o
-        // dado de Ritmistas/Diretoria/Convidados chegava DENTRO dos 600ms,
-        // e o overlay só saía quando os números já estavam prontos -- o
-        // esqueleto nunca ficava visível de verdade, parecia que nada
-        // tinha mudado. revelarComEsqueletoAgora() tira o overlay na hora,
-        // sem essa espera.
-        revelarComEsqueletoAgora();
+        trocarAba('visao', document.querySelector('.aba-btn[data-aba="visao"]'));
         // Espera a primeira leva de cada card terminar (ritmistas/diretoria
         // sem foto, extras, convidados) -- achado da Márcia, 01/set/2026: a
         // tela "montava em tempo real", cada card estalando na hora que a
@@ -6711,6 +6617,23 @@
             carregarConvidadosEspeciais(true), // idem, card "Convidados" (achado 01/set/2026, mesmo bug do card acima)
         ]);
         iniciarAutoRefreshRitmistas();
+        // Esqueleto da Visão Geral: revertido de volta pro timing original
+        // (25/set/2026, mesmo dia) -- a tentativa de revelar mais cedo
+        // (logo depois do trocarAba acima, antes do Promise.all) causou um
+        // bug real que ela reportou ao vivo mesmo depois da correção do
+        // atalho "leve" (ver carregarRitmistas): "vc não acertou o super
+        // admin". Sem ferramenta de navegador disponível pra investigar a
+        // causa exata da corrida (trocarAba('visao') acima não é esperado
+        // com await -- o painel só é marcado 'ativo' de vez quando o
+        // próprio trocarAba termina seu trabalho assíncrono, que pode
+        // ainda estar rodando no instante em que o overlay é escondido),
+        // mais seguro voltar ao comportamento de sempre aqui (só revela no
+        // final, depois de tudo pronto) do que insistir sem conseguir
+        // reproduzir/depurar ao vivo. O card ainda nasce em forma de
+        // esqueleto (classe .vg-esqueleto, resetada no início desta
+        // função) -- só não fica mais visível ANTES do dado chegar neste
+        // caminho específico (Super Admin). Mestre/Diretor (iniciarUsuario)
+        // não foi tocado, continua com a revelação antecipada.
         // Fotos completas chegam depois, em segundo plano, sem travar a tela
         // nem os cliques (achado real, 05/set/2026 -- ver
         // preencherFotosRitmistasEmSegundoPlano acima).

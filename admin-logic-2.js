@@ -169,16 +169,7 @@
         // última vez, nada mudou, não redesenha nada.
         if (leve) {
             const rawAtual = JSON.stringify(novosAdmins);
-            if (_ultimoRawLeveDiretoria && _ultimoRawLeveDiretoria.bateriaId === bateriaId && _ultimoRawLeveDiretoria.raw === rawAtual) {
-                // Mesmo bug real de carregarRitmistas() (25/set/2026, ver
-                // ali) -- esse atalho pulava atualizarTotalizadoresDiretoria()
-                // por inteiro, deixando o card de Diretoria preso no
-                // esqueleto pra sempre quando o dado já era igual ao da
-                // última vez. Roda mesmo nesse atalho -- é barato.
-                diretoriaCarregada = true;
-                atualizarTotalizadoresDiretoria();
-                return;
-            }
+            if (_ultimoRawLeveDiretoria && _ultimoRawLeveDiretoria.bateriaId === bateriaId && _ultimoRawLeveDiretoria.raw === rawAtual) { diretoriaCarregada = true; return; }
             _ultimoRawLeveDiretoria = { bateriaId, raw: rawAtual };
         }
         listaDiretoriaAtual = reaproveitarFotosCache(novosAdmins, listaDiretoriaAtual);
