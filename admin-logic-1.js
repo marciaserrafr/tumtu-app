@@ -2685,11 +2685,11 @@
             // (renderizarEsqueletoDashboard(), peça 1b do documento) --
             // preenchido ANTES de mostrarShellSA() revelar o painel, pra
             // "Dashboard"/"BATERIAS" nunca aparecerem sozinhos (achado ao
-            // vivo: sem isso, era exatamente o que acontecia). Escolas
-            // ganhou o dela também agora (Polimento Camada 0, sessão
-            // seguinte) -- Configurações/Privacidade/Logs ainda não têm
-            // esqueleto próprio, continuam com o overlay antigo só nesses
-            // casos específicos.
+            // vivo: sem isso, era exatamente o que acontecia). Escolas/
+            // Privacidade/Logs ganharam o deles também agora (Polimento
+            // Camada 0, sessão seguinte, ver branch abaixo) -- só
+            // Configurações (e sub-telas raras tipo Nova Escola) ainda não
+            // têm esqueleto próprio, continuam com o overlay antigo.
             renderizarEsqueletoDashboard();
             renderizarEsqueletoListaEscolas();
             mostrarShellSA();
@@ -2706,9 +2706,24 @@
                     mostrarShellSA();
                     await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
                 }
-            } else if (estadoSalvo && estadoSalvo.contexto === 'sa-shell' && estadoSalvo.aba === 'escolas') {
-                await trocarSaAba('escolas', document.querySelector('.sa-sidebar-item[data-sa="escolas"]'));
+            } else if (estadoSalvo && estadoSalvo.contexto === 'sa-shell' && ['escolas', 'privacidade', 'logs'].includes(estadoSalvo.aba)) {
+                // Mesmo método (Polimento Camada 0, 25/set/2026): preenche o
+                // esqueleto ANTES de trocarSaAba() buscar o dado de verdade
+                // -- essas 3 abas já têm forma de lista conhecida (Escolas:
+                // renderizarEsqueletoListaEscolas; Privacidade/Logs: listas
+                // de log, mesma forma real, renderizarEsqueletoListaLog).
+                if (estadoSalvo.aba === 'escolas') renderizarEsqueletoListaEscolas();
+                if (estadoSalvo.aba === 'privacidade') renderizarEsqueletoListaLog('priv-lista-log');
+                if (estadoSalvo.aba === 'logs') {
+                    renderizarEsqueletoListaLog('logs-edicoes-pessoais-lista');
+                    renderizarEsqueletoListaLog('logs-alteracoes-lista');
+                    renderizarEsqueletoListaLog('logs-acoes-lista');
+                }
+                await trocarSaAba(estadoSalvo.aba, document.querySelector(`.sa-sidebar-item[data-sa="${estadoSalvo.aba}"]`));
             } else if (estadoSalvo && estadoSalvo.contexto === 'sa-shell' && estadoSalvo.aba && estadoSalvo.aba !== 'dashboard') {
+                // Configurações (e qualquer outra sub-tela salva, ex:
+                // Nova Escola) ainda não tem esqueleto próprio -- continua
+                // com o overlay antigo só nesses casos.
                 mostrarOverlayCarregando();
                 await trocarSaAba(estadoSalvo.aba, document.querySelector(`.sa-sidebar-item[data-sa="${estadoSalvo.aba}"]`));
                 esconderOverlayCarregando();
@@ -7037,6 +7052,23 @@
                     </div>
                 </div>
                 <div class="item-acoes"><span class="bloco" style="width:40px;height:20px;border-radius:10px;"></span></div>
+            </div>`).join('');
+    }
+    // Esqueleto genérico pra listas de log/histórico (Privacidade e Logs,
+    // 25/set/2026, continuação do Polimento Camada 0) -- mesmas 4 listas
+    // (priv-lista-log, logs-edicoes-pessoais-lista, logs-alteracoes-lista,
+    // logs-acoes-lista) compartilham a mesma forma real (.item-card com
+    // duas linhas de texto, sem logo/avatar) -- "3 fantasmas, opacidade
+    // 1/.6/.3" de novo, mesmo método.
+    function renderizarEsqueletoListaLog(idContainer) {
+        const div = document.getElementById(idContainer);
+        if (!div) return;
+        div.innerHTML = [1, .6, .3].map(op => `
+            <div class="item-card" style="opacity:${op};">
+                <div class="item-info">
+                    <div class="item-nome"><span class="bloco" style="width:170px;height:13px;"></span></div>
+                    <div class="item-detalhe" style="margin-top:5px;"><span class="bloco secundario" style="width:260px;height:11px;"></span></div>
+                </div>
             </div>`).join('');
     }
     async function carregarEscolas() {
