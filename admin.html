@@ -209,9 +209,16 @@
            clara, aceito conscientemente). Caixa alta na bateria repete o
            padrão já usado na carteirinha (.cf-bateria). */
         .header-badge .hb-escola { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; line-height: 1.3; }
-        .header-badge .hb-bateria { font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; line-height: 1.3; margin-top: 1px; color: var(--cor-destaque); }
+        .header-badge .hb-bateria { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; line-height: 1.3; margin-top: 1px; color: var(--cor-destaque); }
         .header-esquerda.com-logo-escola .header-badge .hb-escola { font-size: 15px; letter-spacing: -0.1px; }
         .header-esquerda.com-logo-escola .header-badge .hb-bateria { font-size: 14px; margin-top: 2px; }
+        /* Setinha "Trocar de contexto" (Peça 4 da navegação mobile,
+           25/set/2026) -- substitui o balão flutuante "Trocar de Bateria"/
+           "Super Admin" de vez. Só aparece pra quem tem o que trocar (ver
+           aplicarConfigEscola em admin-logic-1.js). Padding maior que o
+           tamanho visual do "⌄" -- alvo de toque generoso mesmo o símbolo
+           sendo pequeno. */
+        .header-chevron-contexto { font-size: 13px; font-weight: 800; cursor: pointer; padding: 4px 6px; margin: -4px -6px; line-height: 1; }
         .header-acoes { display: flex; gap: 12px; align-items: center; }
         /* Bolinha de conta no cabeçalho -- substitui nome+cargo em texto,
            pedido da Márcia, 21/ago/2026: "no lugar do nome do usuário...
@@ -376,19 +383,6 @@
             0%   { left: -40%; }
             100% { left: 100%; }
         }
-        /* "‹ Escolas" (Super Admin, dentro de uma escola) -- mesma
-           aparência de .aba-btn (pedido dela: fica como se fosse mais um
-           item da lista, "abaixo do Mais"), classe própria só pra ficar
-           fora da checagem de capacidade que .aba-btn leva em
-           aplicarGatingAbas(). */
-        .nav-abas-voltar {
-            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
-            background: none; border: none; cursor: pointer; font-family: inherit; width: 100%;
-            font-size: 13.5px; font-weight: 600; text-align: left; color: rgba(255,255,255,0.7);
-            transition: color 0.15s, background 0.15s; white-space: nowrap;
-        }
-        .nav-abas-voltar .aba-ic { font-size: 15px; width: 18px; flex-shrink: 0; text-align: center; }
-        .nav-abas-voltar:hover { color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.06); }
         .painel { display: none; }
         .painel.ativo { display: block; }
 
@@ -1937,27 +1931,37 @@
             color: #12101a; font-size: 14px; font-weight: 600; cursor: pointer;
         }
         .folha-item-seta { color: #8b88a0; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+        /* Item "rico" (25/set/2026, folha "Trocar de contexto" -- ver
+           abrirFolhaContexto) -- mesmo .folha-item de sempre, com
+           avatar/subtítulo/selo "Atual" opcionais. .folha-item-texto sempre
+           existe (mesmo nos itens simples) só como wrapper -- herda cor/
+           tamanho/peso do .folha-item pai normalmente. */
+        .folha-item-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+        .folha-item-sem-clique { cursor: default; }
+        .folha-item-avatar { width: 34px; height: 34px; border-radius: 50%; background: #e8e6f0; flex-shrink: 0; }
+        .folha-item-subtitulo { color: #5a5770; font-size: 11.5px; font-weight: 500; }
+        .folha-item-atual { color: #0a7a3f; background: #e8f5e8; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; flex-shrink: 0; }
 
         @media (max-width: 560px) {
             .sa-sidebar {
                 flex-direction: row; padding: 6px 4px;
-                /* Faixa "fumê" flutuante (06/set/2026) -- ver comentário
-                   completo na regra equivalente de .nav-abas, mais abaixo.
-                   top:auto AQUI é essencial -- achado dela ao vivo, com
-                   print: sem isso, o `top: var(--altura-header-admin)` da
-                   regra de computador (linha ~1406, nunca sobrescrita aqui)
-                   continuava valendo JUNTO com o `bottom` novo, esticando
-                   a barra do topo até quase o fim da tela inteira. */
-                /* 20px (era 10px), pedido dela 06/set/2026: "os botões estão
-                   muito baixos... eu esbarro ali" -- perto demais da faixa de
-                   gesto do sistema (embaixo da tela) pra quem usa o celular
-                   normalmente. Mesma folga que a moldura do spinner já usa
-                   embaixo, nada inventado. */
-                position: fixed; top: auto; bottom: max(20px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
-                border-radius: 26px; backdrop-filter: blur(6px);
-                background: rgba(18,16,26,0.92); /* 06/set/2026: sem degrade, cor mais escura solida (com transparencia), a pedido dela */
-                box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-                justify-content: space-around; z-index: 200;
+                /* Barra "docked" (colada, reta, largura total) -- Turno 3 da
+                   navegação mobile, 25/set/2026 (docs/Navegacao Mobile -
+                   Proposta.dc.html, "Decidido 13/set"), substitui a pílula
+                   flutuante de 06/set. Motivo da troca: a pílula perdia
+                   ~32px de margem (rótulos cortavam), tinha "faixa morta"
+                   embaixo dela que parecia clicável e não era, e precisava
+                   calcular sozinha o inset do notch -- a colada só precisa
+                   de padding-bottom com env(safe-area-inset-bottom), nunca
+                   mais viewport-fit=cover (já quebrou a barra 3 vezes).
+                   top:auto continua essencial -- sem isso, o `top: var(
+                   --altura-header-admin)` da regra de computador (nunca
+                   sobrescrita aqui) continuava valendo JUNTO com o `bottom`
+                   novo, esticando a barra até quase o fim da tela. */
+                position: fixed; top: auto; bottom: 0; left: 0; right: 0; width: auto;
+                padding-bottom: calc(6px + env(safe-area-inset-bottom));
+                border-radius: 0; background: var(--cor-fundo-escuro); box-shadow: none;
+                justify-content: space-around; z-index: 200; min-height: 54px; box-sizing: border-box;
             }
             .sa-sidebar-item { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .sa-sidebar-item .sa-ic { font-size: 18px; width: auto; }
@@ -1971,7 +1975,10 @@
                No computador continuam exatamente onde estavam. */
             .sa-item-ajustes-desktop { display: none; }
             #btnSaMais { display: flex; }
-            .sa-main { margin-left: 0; width: 100%; padding: 16px 12px 82px; }
+            /* Reserva a altura real da barra docked (54px + notch) --
+               antes era 82px chutado pra caber a pílula flutuante + a
+               folga de 20px que ela tinha embaixo (Turno 3, 25/set/2026). */
+            .sa-main { margin-left: 0; width: 100%; padding: 16px 12px calc(54px + env(safe-area-inset-bottom)); }
             /* Sem espaço pra assinatura no rodapé-em-fileira-de-ícones do
                celular -- o cabeçalho já mostra "TumTu" no topo, cobre a
                mesma necessidade sem disputar espaço com os ícones. */
@@ -1992,58 +1999,21 @@
             .item-acoes { width: 100%; justify-content: flex-end; }
 
             /* NAV ABAS -- mesmo comportamento de .sa-sidebar aqui em cima:
-               vira barra fixa embaixo, ícone em cima do texto. */
-            /* Faixa "fumê" flutuante (06/set/2026) -- pedido dela: ícones
-               soltos (sem caixa dura colada na borda, mesmo padrão já
-               aprovado na carteirinha) precisavam de algum contraste atrás,
-               porque dourado/cinza claro não aparece bem em cima do fundo
-               branco do conteúdo (--cor-fundo-claro). Faixa com degradê
-               escuro translúcido + desfoque, pontas bem arredondadas,
-               flutuando com respiro de 10px das bordas -- a folga em si é
-               o desenho, não sobra de bug: nunca mais precisa encostar
-               milimetricamente na borda física da tela (o problema que
-               quebrou as tentativas anteriores de hoje, ver histórico). */
+               vira barra fixa embaixo, ícone em cima do texto. Barra
+               "docked" (colada, reta, largura total) -- ver comentário
+               completo na regra equivalente de .sa-sidebar, mais acima
+               (Turno 3, 25/set/2026). `overflow:visible` continua aqui por
+               segurança (histórico: um botão que morava dentro deste <nav>
+               já vazou de um jeito estranho no Safari por causa do
+               `overflow-y:auto` herdado da regra de computador -- não
+               custa nada manter, mesmo sem aquele botão mais). */
             .nav-abas {
                 flex-direction: row; padding: 6px 4px;
-                /* Causa real do botão "Super Admin"/"Trocar de Bateria"
-                   sumido no celular (06/set/2026, achada com foto real do
-                   aparelho dela depois do diagnóstico apontar que o botão
-                   "existia, visível, no lugar certo" segundo o próprio
-                   navegador -- ele só não estava sendo DESENHADO). Causa:
-                   #btnVoltarEscolasNav/#btnTrocarBateriaNav (.nav-abas-
-                   voltar) moram DENTRO deste <nav>, que herda `overflow-y:
-                   auto` da regra de computador (usada lá pra rolar uma
-                   lista vertical longa). No celular, esses botões viram
-                   position:fixed com uma posição PRÓPRIA fora da caixa
-                   deste rodapé (bottom:100px, acima da barra) -- bug
-                   conhecido do Safari: um elemento fixed "escapa" de um
-                   ancestral com overflow, mas o WebKit às vezes corta ele
-                   mesmo assim quando o ancestral também é fixed. Aqui no
-                   celular a barra é só uma fileira de 4 ícones, nunca
-                   precisa rolar -- `visible` sozinho já evita o bug, sem
-                   precisar mover nada de lugar no código. */
                 overflow: visible;
-                /* top:auto AQUI é a causa raiz real do "rodapé ocupa a tela
-                   toda" (achado dela ao vivo, com print, 06/set/2026): a
-                   regra de computador (linha ~213) tem `top: var(--altura-
-                   header-admin)`, e sem resetar isso aqui, ele continuava
-                   valendo JUNTO com o `bottom` novo -- um elemento fixed
-                   com top E bottom definidos estica pra preencher o espaço
-                   entre os dois, cobrindo quase a tela inteira com o
-                   degradê + desfoque. Mesma causa nas duas tentativas de
-                   hoje (barra sólida E faixa fumê) -- só nunca aparecia no
-                   teste do computador porque a media query só ativa em
-                   tela estreita de verdade. */
-                /* 20px (era 10px), pedido dela 06/set/2026: "os botões estão
-                   muito baixos... eu esbarro ali" -- perto demais da faixa de
-                   gesto do sistema (embaixo da tela) pra quem usa o celular
-                   normalmente. Mesma folga que a moldura do spinner já usa
-                   embaixo, nada inventado. */
-                position: fixed; top: auto; bottom: max(20px, env(safe-area-inset-bottom)); left: 10px; right: 10px; width: auto;
-                border-radius: 26px; backdrop-filter: blur(6px);
-                background: rgba(18,16,26,0.92); /* 06/set/2026: sem degrade, cor mais escura solida (com transparencia), a pedido dela */
-                box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-                justify-content: space-around; z-index: 200;
+                position: fixed; top: auto; bottom: 0; left: 0; right: 0; width: auto;
+                padding-bottom: calc(6px + env(safe-area-inset-bottom));
+                border-radius: 0; background: var(--cor-fundo-escuro); box-shadow: none;
+                justify-content: space-around; z-index: 200; min-height: 54px; box-sizing: border-box;
             }
             .aba-btn { flex: 1; flex-direction: column; gap: 3px; padding: 6px 2px; font-size: 10px; text-align: center; }
             .aba-btn .aba-ic { font-size: 18px; width: auto; }
@@ -2055,42 +2025,13 @@
                invisível (achado da Márcia, 24/ago/2026: "o nome desaparece
                quando o menu é selecionado"). Ícone+texto dourados aqui. */
             .aba-btn.ativa { background: none; color: var(--cor-destaque); }
-            .main { margin-left: 0; width: 100%; padding: 16px 12px 82px; }
+            .main { margin-left: 0; width: 100%; padding: 16px 12px calc(54px + env(safe-area-inset-bottom)); }
             /* No celular a barra lateral vira rodapé -- a barra de progresso
                ocupa a largura toda (não sobra "sidebar" pra descontar). */
             .barra-progresso-transicao { left: 0; }
             /* "Mais" continua indo pra tela própria no celular -- o
                acordeão (só computador) não cabe verticalmente no rodapé. */
             .aba-mais-seta, .aba-mais-submenu { display: none !important; }
-            /* "‹ Escolas" não entra no rodapé (ficaria apertado como 6º
-               item). Primeira tentativa foi no topo, perto do cabeçalho --
-               achado da Márcia, 20/ago/2026, testando de verdade: ficou
-               "no alto por cima de um monte da tela", cabeçalho + pílula
-               empilhados pesando demais logo de cara. Volta pro
-               bottom-left -- mesmo lugar/estilo já aprovado antes desse
-               menu novo existir. Segunda tentativa "chutou" 64px de
-               distância do rodapé -- também errou, sobrepôs o ícone de
-               Visão Geral em aparelho real. --altura-nav-mobile é medida
-               de verdade (ajustarAlturaNavMobile()), não mais chute. */
-            .nav-abas-voltar {
-                /* Valor FIXO (era calc(var(--altura-nav-mobile) + 30px)) --
-                   06/set/2026, urgente: ela reporta esse botão sumido no
-                   celular de verdade, mesmo com a lógica de mostrar/esconder
-                   certa no código. Em vez de continuar dependendo de uma
-                   variável calculada por JS (ajustarAlturaNavMobile, que
-                   pode não ter rodado ainda ou ter atrasado nesse momento),
-                   valor fixo. Causa real depois confirmada e corrigida
-                   (overflow:visible no <nav> pai) -- o botão voltou a
-                   aparecer, e ela testou no celular de verdade: "ficou mto
-                   alto". Baixado de 100px pra 80px (mesma sessão) --
-                   ajuste fino a olho, ela quem confirma se ficou bom. */
-                position: fixed; top: auto; bottom: 80px; left: 12px; z-index: 250;
-                width: auto; background: rgba(18,16,26,0.85); color: #fff;
-                padding: 7px 14px; border-radius: 999px; font-size: 12px;
-                backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0,0,0,0.35);
-            }
-            .nav-abas-voltar .aba-ic { font-size: 13px; width: auto; }
-            .nav-abas-voltar:hover { background: rgba(18,16,26,0.95); }
         }
     </style>
 </head>
@@ -2189,7 +2130,7 @@
 <div class="header" id="pageHeader">
     <div class="header-esquerda">
         <div class="header-marca tt-logo" id="headerMarca" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
-        <div class="header-badge" id="headerBateria"><div id="headerEscolaNome" class="hb-escola"></div><div id="headerBateriaNome" class="hb-bateria"></div></div>
+        <div class="header-badge" id="headerBateria"><div id="headerEscolaNome" class="hb-escola"></div><div id="headerBateriaNome" class="hb-bateria"><span id="headerBateriaNomeTexto"></span><span id="headerChevronContexto" class="header-chevron-contexto" onclick="abrirFolhaContexto()" style="display:none;">⌄</span></div></div>
     </div>
     <div class="header-acoes">
         <div id="headerAvatarWrap" class="header-avatar" title="Meu Perfil"></div>
@@ -2473,24 +2414,11 @@
          baixo"). No celular continua indo pra tela própria (sem espaço
          vertical no rodapé pra abrir inline) -- ver onClickMais(). -->
     <div class="aba-mais-submenu" id="abaMaisSubmenu"></div>
-    <!-- Só pro Super Admin, dentro de uma escola -- "voltar pra Escolas".
-         Classe própria (não .aba-btn) de propósito: fica fora da
-         checagem de capacidade de aplicarGatingAbas(), já que Mestre/
-         Diretor nunca tem esse conceito. No computador vira o último
-         item da lista, abaixo de "Mais" (pedido dela). No celular sairia
-         apertado como 6º item no rodapé -- vira um link no topo, perto
-         do cabeçalho (avaliação minha, 20/ago/2026). -->
-    <button id="btnVoltarEscolasNav" type="button" class="nav-abas-voltar" onclick="voltarParaEscolasSA()" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg></span><span>Super Admin</span></button>
-    <!-- Só pra quem (Mestre/Diretor/Apoio) tem vínculo em mais de uma
-         bateria -- achado urgente da Márcia, 25/ago/2026: não existia
-         NENHUM caminho de volta pra escolher a outra bateria dentro do
-         painel. Mesmo padrão de "‹ Escolas" logo acima (pedido dela: "assim
-         ficaria o mesmo comportamento já existente no sistema") -- os dois
-         nunca aparecem juntos (um é só Super Admin, o outro só Mestre/
-         Diretor/Apoio), por isso reaproveita a mesma posição/estilo sem
-         risco de sobrepor. No celular vira flutuante automaticamente, é a
-         mesma regra CSS de .nav-abas-voltar (sem CSS novo nenhum). -->
-    <button id="btnTrocarBateriaNav" type="button" class="nav-abas-voltar" onclick="trocarBateriaAdmin()" style="display:none"><span class="aba-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span><span>Trocar de Bateria</span></button>
+    <!-- Balão flutuante "Super Admin"/"Trocar de Bateria" removido de vez
+         (Peça 4 da navegação mobile, 25/set/2026, ver docs/Navegacao Mobile
+         - Proposta.dc.html) -- as duas ações moram agora na folha "Trocar
+         de contexto" (abrirFolhaContexto em admin-logic-1.js), aberta pela
+         setinha ao lado do nome da bateria no cabeçalho. -->
     <div class="sidebar-assinatura">
         <span class="tt-logo marca-sidebar-assinatura" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</span>
         <span class="sidebar-assinatura-tagline">Sistema de gestão de bateria</span>
@@ -3897,7 +3825,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=72" defer></script>
+<script src="admin-logic-1.js?v=73" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

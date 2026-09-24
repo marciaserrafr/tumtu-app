@@ -2382,14 +2382,11 @@
     // Reaproveita a sessão já aberta (sem pedir senha de novo) -- mesmo
     // caminho já usado pelo Ritmista em carteirinha.html.
     function trocarBateriaAdmin() {
-        // Mesmo feedback imediato de voltarParaEscolasSA() logo acima --
-        // esse botão navega pra login.html de verdade (refaz login e
-        // escolhe a outra bateria), o que numa conexão mais lenta demora
-        // visivelmente mais que uma simples troca de aba. Sem nenhuma
-        // resposta visual no clique, parecia travado -- achado dela,
-        // 06/set/2026, mesmo sintoma do botão "Super Admin".
-        const btn = document.getElementById('btnTrocarBateriaNav');
-        if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+        // Navega pra login.html de verdade (refaz login e escolhe a outra
+        // bateria) -- o fechar da folha (Peça 4, 25/set/2026, ver
+        // abrirFolhaContexto) já é a resposta visual imediata do clique,
+        // antes desta navegação (que numa conexão mais lenta demora mais
+        // que uma simples troca de aba).
         window.location.href = 'login?trocar=1';
     }
 
@@ -2508,13 +2505,22 @@
         // manter guardado pra um uso futuro ainda não definido.
         const escolaEl = document.getElementById('headerEscolaNome');
         const bateriaEl = document.getElementById('headerBateriaNome');
+        const bateriaTextoEl = document.getElementById('headerBateriaNomeTexto');
         if (bateriaEl) {
             const nomeEscolaExibido = cfg.nomeEscola || '';
             escolaEl.textContent = nomeEscolaExibido;
             escolaEl.style.display = nomeEscolaExibido ? '' : 'none';
-            bateriaEl.textContent = cfg.nomeBateria || '';
+            if (bateriaTextoEl) bateriaTextoEl.textContent = cfg.nomeBateria || '';
             bateriaEl.style.display = '';
         }
+        // Setinha de "Trocar de contexto" (Peça 4, 25/set/2026) -- só faz
+        // sentido do lado do nome da bateria (nunca aparece no cabeçalho do
+        // Super Admin fora de uma escola, que não tem essa linha). Aparece
+        // pra Super Admin sempre (tem "Voltar ao Super Admin" pra
+        // oferecer) ou Mestre/Diretor com 2+ vínculos. Quem tem uma bateria
+        // só e não é Super Admin não vê nada aqui -- mesmo espaço de hoje.
+        const chevronEl = document.getElementById('headerChevronContexto');
+        if (chevronEl) chevronEl.style.display = (souSuperAdmin || totalVinculosGlobal > 1) ? '' : 'none';
 
         // Cor do botão Ativar (usa corDestaque da escola ou dourado TumTu)
         const cor = cfg.corDestaque || '#D4AF37';
@@ -2754,16 +2760,14 @@
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
         renderizarAvatarHeader({ nome: usuario.nome || 'Admin', foto_url: usuario.foto_url });
         document.getElementById('headerAvatarWrap').onclick = () => trocarAba('meu-perfil', null);
-        // "Trocar de Bateria" só aparece pra quem tem 2+ vínculos (mesmo
-        // padrão do rodapé do Ritmista em carteirinha.html) -- achado urgente
-        // da Márcia, 25/ago/2026: Mestre/Diretor com vínculo em mais de uma
+        // "Trocar de contexto" (setinha no cabeçalho, Peça 4 da navegação
+        // mobile) só aparece pra quem tem 2+ vínculos -- achado urgente da
+        // Márcia, 25/ago/2026: Mestre/Diretor com vínculo em mais de uma
         // bateria (ex: Mestre da Rocinha + Diretor da Imperatriz) ficava sem
         // NENHUM caminho de volta pra escolher a outra, exceto deslogar e
-        // logar de novo -- o botão nunca tinha sido criado aqui, só em
-        // carteirinha.html (Ritmista).
-        if (usuario.totalVinculos > 1) {
-            document.getElementById('btnTrocarBateriaNav').style.display = 'flex';
-        }
+        // logar de novo. Guardado aqui pra aplicarConfigEscola() decidir a
+        // visibilidade da setinha toda vez que o cabeçalho é montado.
+        totalVinculosGlobal = usuario.totalVinculos || 0;
         // Paraleliza os pedidos ao banco que não dependem um do outro --
         // mesmo padrão já usado em entrarContextoEscolaSA (Super Admin,
         // 25/ago/2026), só que esse caminho aqui (Mestre/Diretor comum)
@@ -5957,6 +5961,12 @@
     let souSuperAdmin = false;
     let dentroDeEscolaSA = false;
     let saAbaAtual = 'dashboard';
+    // Quantos vínculos (baterias) a pessoa logada tem -- usado só pra
+    // decidir se a setinha de "Trocar de contexto" aparece no cabeçalho
+    // (Peça 4 da navegação mobile, 25/set/2026). Só é relevante pra
+    // Mestre/Diretor; Super Admin sempre vê a setinha (tem "Voltar ao
+    // Super Admin" pra oferecer, independente de vínculo próprio).
+    let totalVinculosGlobal = 0;
     let escolaSelecionadaId = null;
     let escolaAtualData = null;
 
@@ -6190,20 +6200,31 @@
         if (!overlay || !folha) return;
         document.getElementById('folhaTitulo').textContent = titulo;
         const conteudo = document.getElementById('folhaConteudo');
+        // Item "rico" (avatar + subtítulo + selo "Atual", 25/set/2026,
+        // folha "Trocar de contexto" -- ver abrirFolhaContexto) é o mesmo
+        // .folha-item de sempre, só com campos opcionais a mais -- nenhum
+        // outro chamador precisa mudar nada.
         conteudo.innerHTML = secoes.map((sec, si) => `
             <div class="folha-secao">
                 <span class="folha-secao-titulo">${sec.titulo}</span>
                 ${sec.itens.map((it, ii) => `
-                    <div class="folha-item" data-secao="${si}" data-item="${ii}">
-                        <span>${it.label}${it.badge ? `<span class="config-item-badge">${it.badge}</span>` : ''}</span>
-                        <span class="folha-item-seta">›</span>
+                    <div class="folha-item${it.avatar ? ' folha-item-rica' : ''}${it.onClick ? '' : ' folha-item-sem-clique'}" data-secao="${si}" data-item="${ii}">
+                        ${it.avatar ? '<span class="folha-item-avatar"></span>' : ''}
+                        <span class="folha-item-texto">
+                            <span class="folha-item-label">${it.label}${it.badge ? `<span class="config-item-badge">${it.badge}</span>` : ''}</span>
+                            ${it.subtitulo ? `<span class="folha-item-subtitulo">${it.subtitulo}</span>` : ''}
+                        </span>
+                        ${it.atual ? '<span class="folha-item-atual">Atual</span>' : '<span class="folha-item-seta">›</span>'}
                     </div>
                 `).join('')}
             </div>
         `).join('');
         conteudo.querySelectorAll('.folha-item').forEach(el => {
             const si = +el.dataset.secao, ii = +el.dataset.item;
-            el.addEventListener('click', () => { fecharFolha(); secoes[si].itens[ii].onClick(); });
+            const item = secoes[si].itens[ii];
+            if (typeof item.onClick === 'function') {
+                el.addEventListener('click', () => { fecharFolha(); item.onClick(); });
+            }
         });
         overlay.classList.add('aberta');
         folha.classList.add('aberta');
@@ -6279,6 +6300,59 @@
             el.addEventListener('pointercancel', fim);
         });
     })();
+
+    // Setinha "Trocar de contexto" no cabeçalho (Peça 4 da navegação
+    // mobile, 25/set/2026) -- substitui de vez o balão flutuante "Trocar de
+    // Bateria"/"Super Admin" (ver docs/Navegacao Mobile - Proposta.dc.html,
+    // "Decidido · 13/set/2026"). Reaproveita a folha compartilhada
+    // (abrirFolha) com o item "rico" novo (avatar/subtítulo/selo Atual).
+    // "Suas baterias" só busca dado quando faz sentido mostrar (Mestre/
+    // Diretor com 2+ vínculos) -- Super Admin nunca tem vínculo próprio
+    // aqui, só a opção de voltar.
+    async function abrirFolhaContexto() {
+        const secoes = [];
+        if (!souSuperAdmin && totalVinculosGlobal > 1) {
+            const usuario = JSON.parse(localStorage.getItem('ritmista') || 'null');
+            const pessoaId = usuario ? usuario.pessoa_id : null;
+            const bateriaAtualId = usuario ? usuario.bateria_id : null;
+            let vinculos = [];
+            if (pessoaId) {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/ritmistas_com_instrumento?pessoa_id=eq.${pessoaId}&select=*`, { headers: authHeaders });
+                if (res.ok) vinculos = (await res.json()).filter(v => v.status !== 'desligado' && v.status !== 'rejeitado');
+            }
+            if (vinculos.length) {
+                const idsBaterias = [...new Set(vinculos.map(v => v.bateria_id))];
+                const resB = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=in.(${idsBaterias.join(',')})&select=id,nome`, { headers: authHeaders });
+                const nomesPorBateria = resB.ok ? Object.fromEntries((await resB.json()).map(b => [b.id, b.nome])) : {};
+                // Mesmo rótulo abreviado já usado em login.html (achado dela,
+                // 25/ago/2026: nome de bateria + cargo comprido quebra o card feio).
+                const cargoLabel = v => v.perfil === 'mestre' ? (v.genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria')
+                    : v.perfil === 'diretor' ? (v.genero === 'feminino' ? 'Dir.ª Bateria' : 'Dir. Bateria')
+                    : v.perfil === 'apoio' ? (v.genero === 'feminino' ? 'Diretora (Apoio)' : 'Diretor (Apoio)') : 'Ritmista';
+                const rotuloStatus = { pendente: ' · Pendente', suspenso: ' · Suspenso' };
+                secoes.push({
+                    titulo: 'Suas baterias',
+                    itens: vinculos.map(v => {
+                        const atual = v.bateria_id === bateriaAtualId;
+                        return {
+                            label: esc(nomesPorBateria[v.bateria_id] || 'Bateria'),
+                            subtitulo: esc(cargoLabel(v)) + (atual ? ' · aqui agora' : (rotuloStatus[v.status] || '')),
+                            avatar: true,
+                            atual,
+                            onClick: atual ? null : trocarBateriaAdmin,
+                        };
+                    }),
+                });
+            }
+        }
+        if (souSuperAdmin) {
+            secoes.push({ titulo: 'Administração', itens: [
+                { label: 'Voltar ao Super Admin', onClick: voltarParaEscolasSA },
+            ] });
+        }
+        if (!secoes.length) return; // setinha só aparece quando tem algo pra mostrar (ver aplicarConfigEscola)
+        abrirFolha('Trocar de contexto', secoes);
+    }
 
     // Rodapé do Super Admin no celular (Camada 0, item 0.5, 14/set/2026) --
     // "Mais" abre a folha com o que não coube nos 3 slots fixos
@@ -6381,7 +6455,6 @@
     // sobrepondo o ícone de Visão Geral em telas reais. Medir de verdade
     // em vez de estimar evita esse tipo de erro em qualquer aparelho.
     let _diagnosticoRodapeEnviado = false;
-    let _diagnosticoBtnVoltarEnviado = false;
     function ajustarAlturaNavMobile() {
         // Mede qualquer uma das duas barras fixas de baixo que estiver
         // visível no momento (Mestre/Diretor usa #navAbasEscola, Super
@@ -6528,7 +6601,6 @@
         document.getElementById('saMain').style.display = 'flex';
         document.getElementById('navAbasEscola').style.display = 'none';
         document.getElementById('mainEscola').style.display = 'none';
-        document.getElementById('btnVoltarEscolasNav').style.display = 'none';
         document.getElementById('headerEscolaNome').textContent = 'Super Admin';
         document.getElementById('headerEscolaNome').style.display = '';
         // De volta a display:none (17/set/2026, 3ª correção do dia) -- as
@@ -6541,8 +6613,11 @@
         // admin.html) -- essa linha aqui não precisa mais fingir ter altura,
         // só esconder de vez, e o badge (só 1 linha real) fica centralizado
         // certinho dentro do espaço de 52px reservado pela linha inteira.
-        document.getElementById('headerBateriaNome').textContent = '';
+        const bateriaTextoElSA = document.getElementById('headerBateriaNomeTexto');
+        if (bateriaTextoElSA) bateriaTextoElSA.textContent = '';
         document.getElementById('headerBateriaNome').style.display = 'none';
+        const chevronElSA = document.getElementById('headerChevronContexto');
+        if (chevronElSA) chevronElSA.style.display = 'none';
         // Remede o cabeçalho DEPOIS de trocar o conteúdo dele de volta pro
         // padrão (16/set/2026) -- achado dela, print real: saindo de dentro
         // de uma escola pelo botão flutuante "Super Admin" (voltarParaEscolasSA,
@@ -6707,39 +6782,14 @@
         document.getElementById('saMain').style.display = 'none';
         document.getElementById('navAbasEscola').style.display = 'flex';
         document.getElementById('mainEscola').style.display = 'flex';
-        document.getElementById('btnVoltarEscolasNav').style.display = 'flex';
         document.querySelectorAll('.aba-btn-sa').forEach(el => el.style.display = '');
-        // Diagnóstico real (06/set/2026) -- ela reportou o botão "Super
-        // Admin" (voltar de dentro de uma bateria) sumido no celular; não
-        // achei nenhuma regra/JS escondendo ele de propósito, e este
-        // ambiente não simula largura de celular de verdade pra reproduzir.
-        // Mesmo padrão já usado em ajustarAlturaNavMobile(): manda a
-        // geometria REAL do elemento pro banco, uma vez, pra investigar com
-        // dado real em vez de mais palpite.
-        if (!_diagnosticoBtnVoltarEnviado) {
-            _diagnosticoBtnVoltarEnviado = true;
-            setTimeout(() => {
-                const el = document.getElementById('btnVoltarEscolasNav');
-                if (!el) return;
-                const r = el.getBoundingClientRect();
-                const cs = getComputedStyle(el);
-                logErroCliente('diagnostico_btn_voltar_sa', {
-                    message: JSON.stringify({
-                        innerWidth: window.innerWidth,
-                        innerHeight: window.innerHeight,
-                        mediaQueryBateu: window.matchMedia('(max-width: 560px)').matches,
-                        rect: { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width, height: r.height },
-                        display: cs.display,
-                        position: cs.position,
-                        bottom: cs.bottom,
-                        zIndex: cs.zIndex,
-                        alturaNavMobileVar: getComputedStyle(document.documentElement).getPropertyValue('--altura-nav-mobile'),
-                        visibility: cs.visibility,
-                        opacity: cs.opacity,
-                    }),
-                });
-            }, 800);
-        }
+        // Botão flutuante "Super Admin" removido de vez (Peça 4 da
+        // navegação mobile, 25/set/2026) -- o diagnóstico de geometria que
+        // existia aqui (06/set/2026) não faz mais sentido, o elemento nem
+        // existe mais. Voltar ao Super Admin agora mora na folha "Trocar de
+        // contexto" (ver abrirFolhaContexto), aberta pela setinha do
+        // cabeçalho -- visibilidade decidida em aplicarConfigEscola(),
+        // chamada logo abaixo via carregarNomeEscolaBateria().
 
         await Promise.all([
             carregarBateriaInstrumentos(),
@@ -6814,14 +6864,10 @@
     }
 
     async function voltarParaEscolasSA() {
-        // Feedback imediato no próprio botão clicado -- mesma ideia já
-        // aplicada nas abas (038cde3, 05/set/2026: "acende o botão na hora
-        // do clique, antes de buscar dados"), só que esse botão flutuante
-        // nunca tinha ganhado esse tratamento. Sem isso, o botão ficava
-        // sem nenhuma resposta visual até o Dashboard terminar de carregar
-        // -- achado dela, 06/set/2026: "clica várias vezes e ele não vai".
-        const btn = document.getElementById('btnVoltarEscolasNav');
-        if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+        // Chamada agora a partir do item "Voltar ao Super Admin" na folha
+        // "Trocar de contexto" (Peça 4, 25/set/2026) -- fechar a folha já é
+        // a resposta visual imediata do clique (mesmo raciocínio de
+        // trocarBateriaAdmin() acima).
         window.scrollTo(0, 0);
         escolaSelecionadaId = null; escolaAtualData = null; bateriaAtualData = null;
         // Busca os dados do Dashboard ANTES de revelar a casca do Super
