@@ -322,6 +322,70 @@
         if (totalInstr) totalInstr.innerHTML = '<span class="bloco" style="width:20px;height:13px;"></span><span class="bloco" style="width:16px;height:13px;margin-left:10px;"></span>';
         atualizarAreaEsqueleto('painel-visao');
     }
+    // Esqueleto do Dashboard do Super Admin (peça 1b do documento,
+    // 25/set/2026) -- mesmo método da Visão Geral: título/rótulo ficam
+    // texto real (já conhecidos antes do banco responder), só o dado em si
+    // vira .bloco. KPIs são quantidade fixa (5, sempre existem) -- igual o
+    // princípio "quantidade de cards: fixa" de prepararSecoesVisaoGeral().
+    // Aniversariantes/Baterias têm quantidade desconhecida -- "3 fantasmas,
+    // opacidade 1/.6/.3" (regra literal do documento), removidos quando o
+    // dado de verdade chega com menos itens (o innerHTML de
+    // carregarDashboard() já substitui tudo, nunca soma).
+    function renderizarEsqueletoDashboard() {
+        const kpisEl = document.getElementById('dashboard-kpis');
+        if (kpisEl) {
+            const kpiBloco = () => '<span class="bloco" style="width:26px;height:16px;"></span>';
+            kpisEl.innerHTML = `
+                <div class="kpi"><div class="n">${kpiBloco()}</div><div class="l">Escolas</div></div>
+                <div class="kpi"><div class="n">${kpiBloco()}</div><div class="l">Baterias</div></div>
+                <div class="kpi ok"><div class="n">${kpiBloco()}</div><div class="l">Pessoas ativas</div></div>
+                <div class="kpi"><div class="n">${kpiBloco()}</div><div class="l">Total no cadastro</div></div>
+                <div class="kpi"><div class="n">${kpiBloco()}</div><div class="l">Pendências</div></div>`;
+        }
+        const atencaoEl = document.getElementById('dashboard-atencao');
+        if (atencaoEl) atencaoEl.innerHTML = '';
+        const anivEl = document.getElementById('dashboard-aniversariantes');
+        if (anivEl) {
+            anivEl.innerHTML = `
+                <div class="dash-secao-titulo">🎂 Aniversariantes de hoje e amanhã</div>
+                <div class="aniv-grid">
+                    ${[1, .6, .3].map(op => `
+                        <div class="aniv-card" style="opacity:${op};">
+                            <span class="bloco secundario" style="width:34px;height:14px;border-radius:8px;"></span>
+                            <div class="aniv-nome"><span class="bloco" style="width:120px;height:12px;"></span></div>
+                            <div class="aniv-meta"><span class="bloco secundario" style="width:90px;height:10px;"></span></div>
+                            <div class="aniv-bateria"><span class="bloco secundario" style="width:70px;height:10px;"></span></div>
+                        </div>`).join('')}
+                </div>`;
+        }
+        const container = document.getElementById('dashboard-lista-baterias');
+        if (container) {
+            container.innerHTML = [1, .6, .3].map(op => `
+                <div class="bateria-card" style="opacity:${op};">
+                    <div class="bc-topo">
+                        <div class="escola-logo-circulo" style="background:var(--bloco-1);box-shadow:none;"></div>
+                        <div>
+                            <div class="bc-nome"><span class="bloco" style="width:110px;height:12px;"></span></div>
+                            <div class="bc-escola" style="display:block;margin-top:4px;"><span class="bloco secundario" style="width:160px;height:10px;"></span></div>
+                        </div>
+                    </div>
+                    <div class="bc-stats">
+                        <div class="bc-stat"><div class="n"><span class="bloco" style="width:24px;height:16px;"></span></div><div class="l">Ativos</div></div>
+                        <div class="bc-stat"><div class="n"><span class="bloco" style="width:18px;height:16px;"></span></div><div class="l">Pendentes</div></div>
+                    </div>
+                    <div class="bc-divisor"></div>
+                    <div class="bc-subgrid">
+                        <div class="bc-substat"><div class="n"><span class="bloco" style="width:20px;height:13px;"></span></div><div class="l">Ritmistas</div></div>
+                        <div class="bc-substat"><div class="n"><span class="bloco" style="width:16px;height:13px;"></span></div><div class="l">Diretoria</div></div>
+                        <div class="bc-substat"><div class="n"><span class="bloco" style="width:14px;height:13px;"></span></div><div class="l">Convidados</div></div>
+                    </div>
+                </div>`).join('');
+        }
+        const demoEl = document.getElementById('dashboard-escolas-demo');
+        if (demoEl) demoEl.innerHTML = '';
+        const ativEl = document.getElementById('dashboard-atividade');
+        if (ativEl) ativEl.innerHTML = '';
+    }
     // "Quantidade de cards: fixa... o esqueleto desenha exatamente as
     // mesmas [seções], nada de fantasmas a mais" (documento, 25/set/2026).
     // Diferente de Aniversariantes/Instrumentos (sempre existem), Diretoria
@@ -2607,20 +2671,18 @@
             renderizarAvatarHeader({ nome: usuario.nome || 'Super Admin', foto_url: usuario.foto_url });
             document.getElementById('headerAvatarWrap').onclick = abrirMeuPerfilSA;
             ajustarAlturaHeaderAdmin();
-            // Entrar numa escola (entrarContextoEscolaSA) nunca mais passa
-            // pelo overlay -- tem esqueleto próprio (25/set/2026, ver
-            // resetarEsqueletoVisaoGeral()/prepararSecoesVisaoGeral() dentro
-            // dela). Mas as telas do Super Admin em si (Dashboard/Escolas/
-            // Configurações/...) ainda NÃO têm esqueleto (peça 1b do
-            // documento, ainda não implementada) -- header/título fixo
-            // ("Dashboard"/"BATERIAS") são texto puro no HTML, então sem
-            // overlay eles aparecem sozinhos antes do conteúdo de verdade,
-            // quebrando a regra "tela sempre completa". Achado ao vivo
-            // (25/set/2026): tirei o overlay de tudo numa 1ª correção e ela
-            // viu exatamente isso ("só aparece escrito Baterias e mais
-            // nada") -- então o overlay volta, mas só em volta de
-            // trocarSaAba() (as abas do Super Admin), nunca em volta de
-            // entrarContextoEscolaSA().
+            // Sem overlay/spinner em NENHUM caminho do login do Super Admin
+            // (25/set/2026, pedido dela, repetido várias vezes: "só o
+            // spinner do login, mais nada"). entrarContextoEscolaSA() já
+            // tinha esqueleto próprio; o Dashboard ganhou o dele agora
+            // (renderizarEsqueletoDashboard(), peça 1b do documento) --
+            // preenchido ANTES de mostrarShellSA() revelar o painel, pra
+            // "Dashboard"/"BATERIAS" nunca aparecerem sozinhos (achado ao
+            // vivo: sem isso, era exatamente o que acontecia). Escolas/
+            // Configurações/Privacidade/Logs ainda não têm esqueleto próprio
+            // -- fora do escopo de hoje (só 1a Visão Geral + 1b Dashboard) --
+            // continuam com o overlay antigo só nesses casos específicos.
+            renderizarEsqueletoDashboard();
             mostrarShellSA();
             // Volta pro mesmo lugar de antes de atualizar a página -- achado
             // da Márcia, 20/ago/2026: "sempre que eu atualizo a página, ela
@@ -2633,18 +2695,14 @@
                     trocarAba(estadoSalvo.aba || 'visao', document.querySelector(`.aba-btn[data-aba="${estadoSalvo.aba || 'visao'}"]`));
                 } else {
                     mostrarShellSA();
-                    mostrarOverlayCarregando();
                     await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
-                    esconderOverlayCarregando();
                 }
-            } else if (estadoSalvo && estadoSalvo.contexto === 'sa-shell' && estadoSalvo.aba) {
+            } else if (estadoSalvo && estadoSalvo.contexto === 'sa-shell' && estadoSalvo.aba && estadoSalvo.aba !== 'dashboard') {
                 mostrarOverlayCarregando();
                 await trocarSaAba(estadoSalvo.aba, document.querySelector(`.sa-sidebar-item[data-sa="${estadoSalvo.aba}"]`));
                 esconderOverlayCarregando();
             } else {
-                mostrarOverlayCarregando();
                 await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
-                esconderOverlayCarregando();
             }
             return;
         }
