@@ -1200,6 +1200,28 @@
             display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700;
             color: #12101a; white-space: nowrap; cursor: pointer; font-family: inherit;
         }
+        /* Botão de destaque real (23/set/2026, achado dela: os 3 botões de
+           Registro de Presença tinham o mesmo peso visual, mas "Escanear" é
+           tocado a noite inteira e os outros 2 só uma vez, no início --
+           mesma regra de hierarquia já documentada no guia de design, "fundo
+           sólido dourado pra ação principal"). Só Escanear usa essa classe;
+           Mostrar QR/Link de Verificação continuam .btn-contorno normal. */
+        .btn-contorno-primario {
+            background: #D4AF37; border: 1.5px solid #D4AF37; border-radius: 20px; padding: 8px 14px;
+            display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700;
+            color: #12101a; white-space: nowrap; cursor: pointer; font-family: inherit;
+        }
+        .btn-contorno-primario:hover { background: var(--cor-destaque-hover); border-color: var(--cor-destaque-hover); }
+        /* Rótulo pequeno agrupando os interruptores por natureza (23/set/2026,
+           achado dela: "Evento Iniciado/Finalizado" é status do dia a dia,
+           "Perfis Bloqueados" é uma decisão de segurança -- coisas
+           diferentes, mas misturadas na mesma linha sem nenhuma pista
+           visual). Some sozinho quando não tem rótulo (Figurino não usa). */
+        .pres-trilhos-microrrotulo {
+            font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px;
+            color: #a9a6ba; margin-bottom: 8px;
+        }
+        .pres-trilhos-grupo { display: flex; flex-direction: column; }
         /* Interruptor (trilho/bolinha) -- mesmo visual do Desfile
            (ficha-perfil.js, "ela adorava o visual"), antes só inline-style;
            aqui vira classe reaproveitável pra Iniciado/Finalizado. */
@@ -3151,14 +3173,19 @@
                 <div id="presenca-totalizador"></div>
                 <div class="pres-divisor-v" id="pres-divisor-1" style="display:none;"></div>
                 <div class="pres-trilhos" id="pres-trilhos-wrap" style="display:none;">
-                    <label class="trilho" onclick="toggleEventoIniciado()">
-                        <span class="trilho-trecho off" id="pres-trilho-iniciado"><span class="trilho-bolinha"></span></span>
-                        <span class="trilho-label off" id="pres-trilho-iniciado-label">Evento Iniciado</span>
-                    </label>
-                    <label class="trilho" onclick="toggleEventoFinalizado()">
-                        <span class="trilho-trecho off" id="pres-trilho-finalizado"><span class="trilho-bolinha"></span></span>
-                        <span class="trilho-label off" id="pres-trilho-finalizado-label">Evento Finalizado</span>
-                    </label>
+                    <div class="pres-trilhos-grupo">
+                        <div class="pres-trilhos-microrrotulo">Status do evento</div>
+                        <div style="display:flex;gap:18px;flex-wrap:wrap;">
+                            <label class="trilho" onclick="toggleEventoIniciado()">
+                                <span class="trilho-trecho off" id="pres-trilho-iniciado"><span class="trilho-bolinha"></span></span>
+                                <span class="trilho-label off" id="pres-trilho-iniciado-label">Evento Iniciado</span>
+                            </label>
+                            <label class="trilho" onclick="toggleEventoFinalizado()">
+                                <span class="trilho-trecho off" id="pres-trilho-finalizado"><span class="trilho-bolinha"></span></span>
+                                <span class="trilho-label off" id="pres-trilho-finalizado-label">Evento Finalizado</span>
+                            </label>
+                        </div>
+                    </div>
                     <!-- Trava de Edição (nome interno da coluna/função; nome
                          visível confirmado 23/set/2026: "Perfis Bloqueados" --
                          único candidato que segue o mesmo padrão de "Evento
@@ -3168,11 +3195,16 @@
                          não dentro do formulário de Cadastro de Eventos. Só
                          Mestre/Admin da Bateria/Super Admin veem e mexem
                          (souMestreOuAdminBateria, mais restrito que
-                         editar_eventos). -->
-                    <label class="trilho" id="pres-trilho-trava-wrap" style="display:none;" onclick="toggleTravaEdicao()">
-                        <span class="trilho-trecho off" id="pres-trilho-trava"><span class="trilho-bolinha"></span></span>
-                        <span class="trilho-label off" id="pres-trilho-trava-label">Perfis Bloqueados</span>
-                    </label>
+                         editar_eventos). Grupo inteiro (rótulo + interruptor)
+                         escondido/mostrado junto -- ver pres-trilho-trava-grupo
+                         em abrirPresencaEvento(). -->
+                    <div class="pres-trilhos-grupo" id="pres-trilho-trava-grupo" style="display:none;">
+                        <div class="pres-trilhos-microrrotulo">🔒 Segurança</div>
+                        <label class="trilho" onclick="toggleTravaEdicao()">
+                            <span class="trilho-trecho off" id="pres-trilho-trava"><span class="trilho-bolinha"></span></span>
+                            <span class="trilho-label off" id="pres-trilho-trava-label">Perfis Bloqueados</span>
+                        </label>
+                    </div>
                 </div>
                 <div class="pres-divisor-v" id="pres-divisor-2" style="display:none;"></div>
                 <div class="pres-qr-btns" id="pres-qr-btns" style="display:none;">
@@ -3181,7 +3213,7 @@
                          foi liberado pro Controle de Acesso, que combina mais
                          com a ideia real (catraca/entrada de show). -->
                     <button type="button" id="presenca-btn-mostrar-qr" class="btn-contorno" onclick="abrirQrEvento()"><svg width="13" height="13" viewBox="0 0 21 21" fill="none"><rect x="0" y="0" width="7" height="7" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="2" width="3" height="3" fill="currentColor"/><rect x="14" y="0" width="7" height="7" stroke="currentColor" stroke-width="1.5"/><rect x="16" y="2" width="3" height="3" fill="currentColor"/><rect x="0" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="16" width="3" height="3" fill="currentColor"/><rect x="14" y="14" width="3" height="3" fill="currentColor"/><rect x="14" y="18" width="3" height="3" fill="currentColor"/><rect x="18" y="14" width="3" height="3" fill="currentColor"/></svg>Mostrar QR do Evento</button>
-                    <button type="button" id="presenca-btn-escanear" class="btn-contorno" onclick="abrirScannerPresenca()">📷 Escanear</button>
+                    <button type="button" id="presenca-btn-escanear" class="btn-contorno-primario" onclick="abrirScannerPresenca()">📷 Escanear</button>
                     <button type="button" id="presenca-btn-link-portaria" class="btn-contorno" style="display:none;" onclick="abrirLinkVerificacaoEvento()">🔗 Link de Verificação de Entrada</button>
                 </div>
             </div>
@@ -3811,7 +3843,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=55" defer></script>
+<script src="admin-logic-1.js?v=56" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">

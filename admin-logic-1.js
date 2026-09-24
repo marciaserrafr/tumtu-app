@@ -1577,7 +1577,11 @@
     function totalGradeHtml(grupos, idPrefix) {
         const totalGeral = grupos.reduce((s, g) => s + g.total, 0);
         const feitoGeral = grupos.reduce((s, g) => s + g.feito, 0);
-        if (grupos.length <= 1) return { hero: totalDuploHtml(totalGeral, totalGeral - feitoGeral), detalhe: '' };
+        // "Ver por grupo" (23/set/2026) -- antes só existia com 2+ grupos;
+        // ela apontou que com 1 grupo só (ex: evento com só Ritmistas
+        // incluídos) a tela nunca dizia QUAL categoria estava sendo contada
+        // -- "em nenhum momento informa que é ritmista". Agora sempre monta
+        // o detalhe por grupo, mesmo com 1 só, pra nomear a categoria.
         const faltamGeral = totalGeral - feitoGeral;
         const aberto = totalizadorDetalheEstaAberto(idPrefix);
         // Cada grupo = 1 linha (30/ago/2026, pedido dela: "igual Ritmistas
@@ -1617,16 +1621,18 @@
     // 1 grupo só (23/set/2026: antes só aparecia com 2+ grupos em Figurino,
     // e Presença nem tinha essa versão -- achado dela testando ao vivo,
     // "não tem os presentes", justamente num evento de 1 grupo só). O
-    // toggle "Ver por grupo" só faz sentido pra comparar, então continua só
-    // aparecendo com 2+ grupos -- usar junto com totalGradeHtml(grupos,
-    // idPrefix).detalhe pro conteúdo desse toggle.
-    function heroTresNumerosHtml(totalGeral, feitoGeral, rotuloFeito, idPrefix, temMaisDeUmGrupo) {
+    // toggle "Ver por grupo" também sempre aparece agora (mesma sessão,
+    // achado seguinte dela: com 1 grupo só a tela nunca dizia QUAL
+    // categoria estava sendo contada -- "em nenhum momento informa que é
+    // ritmista") -- usar junto com totalGradeHtml(grupos, idPrefix).detalhe,
+    // que agora também sempre monta a linha por grupo.
+    function heroTresNumerosHtml(totalGeral, feitoGeral, rotuloFeito, idPrefix) {
         const faltamGeral = totalGeral - feitoGeral;
-        const toggleHtml = temMaisDeUmGrupo ? `
+        const toggleHtml = `
             <button type="button" onclick="toggleTotalizadorDetalhe('${idPrefix}')" style="background:none;border:none;padding:4px 0 2px;margin:0;font-family:inherit;font-size:11px;font-weight:700;color:var(--cor-texto-muted);cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
                 <span id="totalizador-toggle-rotulo-${idPrefix}">${totalizadorDetalheEstaAberto(idPrefix) ? 'Ver menos' : 'Ver por grupo'}</span>
                 <span class="vg-secao-seta ${totalizadorDetalheEstaAberto(idPrefix) ? 'aberta' : ''}" id="totalizador-toggle-seta-${idPrefix}" style="font-size:12px;">›</span>
-            </button>` : '';
+            </button>`;
         return `<div class="pres-hero-bloco">
             <div class="pres-hero-numeros">
                 <div class="celula-hero"><div class="total-duplo-numero total">${totalGeral}</div><div class="total-duplo-rotulo">Total</div></div>
@@ -4232,7 +4238,7 @@
                 // para isso"; estendido pra sempre aparecer -- mesmo com 1
                 // grupo só -- em 23/set/2026, junto com o mesmo número em
                 // Presença -- ver heroTresNumerosHtml).
-                const hero = heroTresNumerosHtml(totalOficial, feitoOficial, 'Entregues', 'figurino', grupos.length > 1);
+                const hero = heroTresNumerosHtml(totalOficial, feitoOficial, 'Entregues', 'figurino');
                 totalizador.innerHTML = hero + comExtraHtml;
                 if (detalheEl) detalheEl.innerHTML = grade.detalhe;
                 travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
@@ -4830,7 +4836,7 @@
                     <p style="font-size:12px;color:var(--cor-texto-muted);margin:0;">Pra eventos com verificação de entrada por alguém na porta (ex: uma final) — desliga a confirmação de presença pelo próprio ritmista nesse evento (fica só com quem faz a verificação) e libera o botão "Link de Verificação de Entrada" na tela de Presença. Deixe desmarcado pra ensaio comum, onde o ritmista confirma a própria presença normalmente.</p>
                 </div>
                 <!-- Trava de Edição (22/set/2026, movida 23/set/2026 pra
-                     dentro do evento ao vivo -- ver pres-trilho-trava-wrap em
+                     dentro do evento ao vivo -- ver pres-trilho-trava-grupo em
                      admin.html): ela liga/desliga durante o evento, junto de
                      Iniciado/Finalizado, não aqui no cadastro. Aqui no
                      cadastro fica só o que é decidido ANTES do evento
@@ -5051,9 +5057,12 @@
         if (trilhosWrap) trilhosWrap.style.display = podeEditarEvento ? 'flex' : 'none';
         // Trava de Edição é mais restrita que Iniciado/Finalizado -- só
         // Mestre/Admin da Bateria/Super Admin (souMestreOuAdminBateria),
-        // nunca qualquer um com editar_eventos.
-        const trilhoTrava = document.getElementById('pres-trilho-trava-wrap');
-        if (trilhoTrava) trilhoTrava.style.display = souMestreOuAdminBateria ? 'inline-flex' : 'none';
+        // nunca qualquer um com editar_eventos. Esconde/mostra o GRUPO
+        // inteiro (rótulo "🔒 Segurança" + interruptor, 23/set/2026) -- não
+        // só o interruptor sozinho, senão o rótulo ficava órfão pra quem
+        // não tem acesso.
+        const trilhoTrava = document.getElementById('pres-trilho-trava-grupo');
+        if (trilhoTrava) trilhoTrava.style.display = souMestreOuAdminBateria ? 'flex' : 'none';
         const qrBtns = document.getElementById('pres-qr-btns');
         if (qrBtns) qrBtns.style.display = podeMarcarPresenca ? 'flex' : 'none';
         renderizarBotaoVerificacaoPortaria();
@@ -5209,7 +5218,7 @@
         const grade = totalGradeHtml(grupos, 'presenca');
         const totalGeral = grupos.reduce((s, g) => s + g.total, 0);
         const feitoGeral = grupos.reduce((s, g) => s + g.feito, 0);
-        el.innerHTML = heroTresNumerosHtml(totalGeral, feitoGeral, 'Presentes', 'presenca', grupos.length > 1);
+        el.innerHTML = heroTresNumerosHtml(totalGeral, feitoGeral, 'Presentes', 'presenca');
         const detalheEl = document.getElementById('presenca-grupos-detalhe');
         if (detalheEl) detalheEl.innerHTML = grade.detalhe;
         travarLarguraTotalizador('presenca-totalizador', 'presenca');
