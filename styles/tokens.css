@@ -34,6 +34,13 @@
   --cor-aviso:             #856404;
   --cor-aviso-fundo:       #fff3cd;
 
+  /* Esqueleto de carregamento (25/set/2026, docs/Esqueleto - Visao Geral
+     e Dashboard.dc.html) -- bloco cinza no lugar de um dado que ainda não
+     chegou. --bloco-1 = valor principal (número, nome); --bloco-2 =
+     legenda/linha secundária, mais claro. */
+  --bloco-1:               #e8e6f0;
+  --bloco-2:               #efedf5;
+
   --fonte-principal: 'Plus Jakarta Sans', sans-serif;
 }
 

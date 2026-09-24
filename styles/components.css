@@ -611,21 +611,38 @@ body.tela-auth-escura .link-secundario { color: #b3aecb !important; font-weight:
    de tela cheia continuam do jeito que estão).
    ══════════════════════════════════════════════════════════════════════ */
 
-/* Esqueleto — bloco cinza com "brilho" passando, no formato exato do que
-   vai aparecer no lugar dele (regra do plano: nunca um espaço vazio ou
-   sinal solto, sempre a FORMA do conteúdo que está vindo). Combinar
-   .skeleton-linha (uma linha de texto) e .skeleton-bloco (foto, ícone,
-   card inteiro) com largura/altura definida onde for usado. */
-.skeleton-linha, .skeleton-bloco {
-    background: linear-gradient(90deg, #eceaf3 25%, #f5f4f9 37%, #eceaf3 63%);
-    background-size: 400% 100%;
-    animation: skeletonBrilho 1.4s ease infinite;
-    border-radius: 8px;
+/* Esqueleto (25/set/2026, réplica literal de
+   "docs/Esqueleto - Visao Geral e Dashboard.dc.html") -- substitui o
+   scaffold anterior (07/set, nunca chegou a ser usado em tela nenhuma).
+   Princípio do documento: "o esqueleto não é um desenho novo, é a mesma
+   tela, sem os números" -- .bloco entra no lugar do VALOR (número, nome,
+   logo) dentro do HTML real de cada tela; título/rótulo/legenda continuam
+   texto normal, nunca viram bloco. Sem animação própria por bloco --
+   "brilho: um só por área de conteúdo, não um por bloco" (ver
+   .area-esqueleto logo abaixo). */
+.bloco {
+    display: inline-block; border-radius: 4px; vertical-align: middle;
+    background: var(--bloco-1);
 }
-.skeleton-linha { height: 12px; }
-@keyframes skeletonBrilho {
-    0%   { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+.bloco.secundario { background: var(--bloco-2); }
+/* Envolve a ÁREA DE CONTEÚDO inteira (nunca header/sidebar, regra dura do
+   plano) enquanto pelo menos 1 .bloco dentro dela ainda existe -- 1 brilho
+   dourado varrendo tudo de uma vez, não 1 por bloco. Classe alternada via
+   JS (verificarAreaEsqueleto, admin-logic-1.js) sempre que um bloco vira
+   dado de verdade. */
+.area-esqueleto { position: relative; }
+.area-esqueleto::after {
+    content: ''; position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,.10), transparent);
+    background-size: 60% 100%; background-repeat: no-repeat;
+    animation: areaEsqueletoBrilho 1.4s ease-in-out infinite;
+}
+@keyframes areaEsqueletoBrilho {
+    0%   { background-position: -60% 0; }
+    100% { background-position: 160% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .area-esqueleto::after { animation: none; }
 }
 
 /* Giro no botão — ação da pessoa (ex: "Salvar", "Ativar"): o texto do
