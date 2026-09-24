@@ -129,6 +129,17 @@
             document.getElementById('overlayCarregandoEscola').classList.add('escondida');
         }, espera);
     }
+    // Esconde na hora, sem o piso de 600ms (25/set/2026, docs/Esqueleto -
+    // Visao Geral e Dashboard.dc.html: "só teremos o spinner do login") --
+    // achado real ao testar: a marca fica visível desde o HTML puro (linha
+    // acima), então nos 2 caminhos que entram na Visão Geral (Mestre/
+    // Diretor e Super Admin entrando numa escola) ela precisa sumir
+    // IMEDIATAMENTE assim que o JS começa a rodar, não esperar dado nenhum
+    // -- é o esqueleto que assume a partir daqui, não mais um "momento de
+    // marca" que precise de tempo mínimo pra não parecer cortado.
+    function esconderOverlayImediato() {
+        document.getElementById('overlayCarregandoEscola').classList.add('escondida');
+    }
 
     const authHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
     async function iniciarSessaoAuth() {
@@ -2625,6 +2636,10 @@
         // Header/nav aparecem assim que prontos (cache resolve a cor na
         // hora, no caso comum); o conteúdo entra em esqueleto (.bloco nos
         // números, ver HTML de #painel-visao) até o dado de verdade chegar.
+        // A marca fica visível por padrão desde o HTML puro -- esconde na
+        // hora, achado ao testar (sem isso, ficava presa pra sempre, já
+        // que nada mais nesta função a escondia).
+        esconderOverlayImediato();
         aplicarCacheConfigEscolaAntecipado(usuario.bateria_id);
         renderizarAvatarHeader({ nome: usuario.nome || 'Admin', foto_url: usuario.foto_url });
         document.getElementById('headerAvatarWrap').onclick = () => trocarAba('meu-perfil', null);
@@ -6532,7 +6547,12 @@
         // login") -- ver docs/Esqueleto - Visao Geral e Dashboard.dc.html.
         // Os elementos da Visão Geral voltam pro estado de esqueleto AGORA
         // (função abaixo), antes de qualquer busca nova começar, pra nunca
-        // mostrar o número de quem não é mais o contexto atual.
+        // mostrar o número de quem não é mais o contexto atual. Esconde a
+        // marca também (idempotente -- no caso comum, clicando numa escola
+        // já dentro do app, ela já está escondida há tempo; no caso raro
+        // de restaurar uma escola salva direto no boot, ela ainda estaria
+        // visível por padrão sem isso).
+        esconderOverlayImediato();
         resetarEsqueletoVisaoGeral();
         prepararSecoesVisaoGeral(true, true); // Super Admin sempre vê Diretoria e Convidados
 
