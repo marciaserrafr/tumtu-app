@@ -2671,6 +2671,13 @@
             renderizarAvatarHeader({ nome: usuario.nome || 'Super Admin', foto_url: usuario.foto_url });
             document.getElementById('headerAvatarWrap').onclick = abrirMeuPerfilSA;
             ajustarAlturaHeaderAdmin();
+            // A marca fica visível por padrão desde o HTML puro -- esconde
+            // na hora (mesmo achado de sempre: sem isso, fica presa pra
+            // sempre, travando até clique nela por baixo). Regressão
+            // própria desta sessão: essa chamada tinha sumido numa reescrita
+            // anterior deste bloco, deixando a marca bloqueando cliques
+            // (achado testando com Playwright antes de mandar o link).
+            esconderOverlayImediato();
             // Sem overlay/spinner em NENHUM caminho do login do Super Admin
             // (25/set/2026, pedido dela, repetido várias vezes: "só o
             // spinner do login, mais nada"). entrarContextoEscolaSA() já
