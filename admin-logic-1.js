@@ -1612,6 +1612,31 @@
         return { hero, detalhe };
     }
 
+    // 3 números no totalizador (Total/Feito/Faltam) -- usado por Figurino
+    // ("Entregues") e Presença ("Presentes"). Sempre mostra os 3, mesmo com
+    // 1 grupo só (23/set/2026: antes só aparecia com 2+ grupos em Figurino,
+    // e Presença nem tinha essa versão -- achado dela testando ao vivo,
+    // "não tem os presentes", justamente num evento de 1 grupo só). O
+    // toggle "Ver por grupo" só faz sentido pra comparar, então continua só
+    // aparecendo com 2+ grupos -- usar junto com totalGradeHtml(grupos,
+    // idPrefix).detalhe pro conteúdo desse toggle.
+    function heroTresNumerosHtml(totalGeral, feitoGeral, rotuloFeito, idPrefix, temMaisDeUmGrupo) {
+        const faltamGeral = totalGeral - feitoGeral;
+        const toggleHtml = temMaisDeUmGrupo ? `
+            <button type="button" onclick="toggleTotalizadorDetalhe('${idPrefix}')" style="background:none;border:none;padding:4px 0 2px;margin:0;font-family:inherit;font-size:11px;font-weight:700;color:var(--cor-texto-muted);cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
+                <span id="totalizador-toggle-rotulo-${idPrefix}">${totalizadorDetalheEstaAberto(idPrefix) ? 'Ver menos' : 'Ver por grupo'}</span>
+                <span class="vg-secao-seta ${totalizadorDetalheEstaAberto(idPrefix) ? 'aberta' : ''}" id="totalizador-toggle-seta-${idPrefix}" style="font-size:12px;">›</span>
+            </button>` : '';
+        return `<div class="pres-hero-bloco">
+            <div class="pres-hero-numeros">
+                <div class="celula-hero"><div class="total-duplo-numero total">${totalGeral}</div><div class="total-duplo-rotulo">Total</div></div>
+                <div class="celula-hero"><div class="total-duplo-numero" style="color:var(--cor-sucesso);">${feitoGeral}</div><div class="total-duplo-rotulo">${rotuloFeito}</div></div>
+                <div class="celula-hero"><div class="total-duplo-numero faltam">${faltamGeral}</div><div class="total-duplo-rotulo">${faltamGeral === 1 ? 'Falta' : 'Faltam'}</div></div>
+            </div>
+            ${toggleHtml}
+        </div>`;
+    }
+
     // Card nasce sempre ABERTO (25/ago/2026, pedido dela) -- ao contrário
     // dos outros acordeões da Visão Geral, esse é o único que ela quer
     // já visível ao entrar na tela; a pessoa pode fechar pra ver o resto
@@ -4203,24 +4228,12 @@
                 const comExtraHtml = figurinoAvulsosCache.length > 0
                     ? `<div style="font-size:12px;color:var(--cor-texto-muted);margin-top:6px;">Com Extra: <b>${feitoOficial + figurinoAvulsosCache.length}</b> entregues · <b>${totalOficial - feitoOficial}</b> faltam</div>`
                     : '';
-                // 3º número "Pegaram" (12/set/2026, pedido dela: "tem espaço
-                // para isso") -- só aqui em Figurino (Presença continua com
-                // 2 números só, mesmo componente compartilhado). Reconstrói
-                // o hero em vez de usar grade.hero (que só tem Total/Faltam)
-                // -- mesmas classes/estrutura de totalGradeHtml, só com uma
-                // célula a mais no meio.
-                const heroComPegaram = grupos.length <= 1 ? grade.hero : `<div class="pres-hero-bloco">
-                    <div class="pres-hero-numeros">
-                        <div class="celula-hero"><div class="total-duplo-numero total">${totalOficial}</div><div class="total-duplo-rotulo">Total</div></div>
-                        <div class="celula-hero"><div class="total-duplo-numero" style="color:var(--cor-sucesso);">${feitoOficial}</div><div class="total-duplo-rotulo">Entregues</div></div>
-                        <div class="celula-hero"><div class="total-duplo-numero faltam">${totalOficial - feitoOficial}</div><div class="total-duplo-rotulo">${(totalOficial - feitoOficial) === 1 ? 'Falta' : 'Faltam'}</div></div>
-                    </div>
-                    <button type="button" onclick="toggleTotalizadorDetalhe('figurino')" style="background:none;border:none;padding:4px 0 2px;margin:0;font-family:inherit;font-size:11px;font-weight:700;color:var(--cor-texto-muted);cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;">
-                        <span id="totalizador-toggle-rotulo-figurino">${totalizadorDetalheEstaAberto('figurino') ? 'Ver menos' : 'Ver por grupo'}</span>
-                        <span class="vg-secao-seta ${totalizadorDetalheEstaAberto('figurino') ? 'aberta' : ''}" id="totalizador-toggle-seta-figurino" style="font-size:12px;">›</span>
-                    </button>
-                </div>`;
-                totalizador.innerHTML = heroComPegaram + comExtraHtml;
+                // 3º número "Entregues" (12/set/2026, pedido dela: "tem espaço
+                // para isso"; estendido pra sempre aparecer -- mesmo com 1
+                // grupo só -- em 23/set/2026, junto com o mesmo número em
+                // Presença -- ver heroTresNumerosHtml).
+                const hero = heroTresNumerosHtml(totalOficial, feitoOficial, 'Entregues', 'figurino', grupos.length > 1);
+                totalizador.innerHTML = hero + comExtraHtml;
                 if (detalheEl) detalheEl.innerHTML = grade.detalhe;
                 travarLarguraTotalizador('figurino-entregas-totalizador', 'figurino');
             }
@@ -5194,7 +5207,9 @@
             { label: 'Convidados', total: convidados.length, feito: convidados.filter(p => p.presente).length },
         ].filter(g => g.total > 0);
         const grade = totalGradeHtml(grupos, 'presenca');
-        el.innerHTML = grade.hero;
+        const totalGeral = grupos.reduce((s, g) => s + g.total, 0);
+        const feitoGeral = grupos.reduce((s, g) => s + g.feito, 0);
+        el.innerHTML = heroTresNumerosHtml(totalGeral, feitoGeral, 'Presentes', 'presenca', grupos.length > 1);
         const detalheEl = document.getElementById('presenca-grupos-detalhe');
         if (detalheEl) detalheEl.innerHTML = grade.detalhe;
         travarLarguraTotalizador('presenca-totalizador', 'presenca');
@@ -5357,7 +5372,7 @@
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { mostrarToast('Esse navegador não dá acesso à câmera. Marque a presença manualmente na lista.', 'erro'); return; }
         const overlay = document.getElementById('presenca-scanner-overlay');
         document.getElementById('presenca-scanner-evento').textContent = presencaEventoAtual.nome;
-        document.getElementById('presenca-scanner-feedback').innerHTML = '';
+        document.getElementById('presenca-scanner-feedback').innerHTML = 'Aponte a câmera pro QR da carteirinha.';
         presencaScannerUltimoToken = null;
         overlay.style.display = 'block';
         try {
@@ -5525,6 +5540,21 @@
         return (texto || '').trim();
     }
 
+    // Reset sozinho da mensagem (23/set/2026, mesmo achado/correção do
+    // scanner de Check-in em qr.html/checkin.html) -- sem isso, a mensagem
+    // de resultado ficava parada na tela sem nenhum sinal de que já dava
+    // pra escanear a próxima pessoa, mesmo a câmera continuando ligada e
+    // pronta o tempo todo. "Versão" evita a mensagem antiga sumir por cima
+    // de uma nova (outro QR lido) quando o tempo passa.
+    let presencaScannerFeedbackVersao = 0;
+    function agendarResetPresencaScannerFeedback() {
+        const minhaVersao = presencaScannerFeedbackVersao;
+        setTimeout(() => {
+            if (minhaVersao !== presencaScannerFeedbackVersao) return;
+            const feedback = document.getElementById('presenca-scanner-feedback');
+            if (feedback) feedback.innerHTML = 'Aponte a câmera pro QR da carteirinha.';
+        }, 2500);
+    }
     async function processarQrEscaneado(textoLido) {
         const token = extrairQrTokenDaLeitura(textoLido);
         const agora = Date.now();
@@ -5534,11 +5564,13 @@
         if (token === presencaScannerUltimoToken && (agora - presencaScannerUltimoTs) < 3000) return;
         presencaScannerUltimoToken = token;
         presencaScannerUltimoTs = agora;
+        presencaScannerFeedbackVersao++;
 
         const feedback = document.getElementById('presenca-scanner-feedback');
         const pessoa = presencaPessoasCache.find(p => p.tipo === 'vinculo' && p.qr_token === token);
         if (!pessoa) {
             feedback.innerHTML = `<div style="color:#e2986e;font-weight:700;">QR não reconhecido pra este evento.</div>`;
+            agendarResetPresencaScannerFeedback();
             return;
         }
         // Foto vem direto do banco, agora, na hora do escaneamento -- nunca
@@ -5551,11 +5583,13 @@
         const fotoHtml = fotoScannerPresencaHtml(pessoa);
         if (pessoa.presente) {
             feedback.innerHTML = `${fotoHtml}<div style="color:#D4AF37;font-weight:700;">já estava presente.</div>`;
+            agendarResetPresencaScannerFeedback();
             return;
         }
         feedback.innerHTML = `${fotoHtml}<div style="color:#8d88a3;">marcando presença...</div>`;
         await marcarPresenca('vinculo', pessoa.id);
         feedback.innerHTML = `${fotoHtml}<div style="color:#5cb85c;font-weight:700;font-size:16px;">✓ presença marcada!</div>`;
+        agendarResetPresencaScannerFeedback();
     }
     function fotoScannerPresencaHtml(pessoa) {
         const inicial = esc((pessoa.apelido || pessoa.nome || '?').trim().charAt(0).toUpperCase());

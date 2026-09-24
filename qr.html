@@ -341,6 +341,24 @@
         }
     }
 
+    // Reset sozinho da mensagem dentro do scanner embutido (23/set/2026,
+    // achado dela testando uma fila de verdade: a mensagem de resultado
+    // ficava parada na tela sem nenhum sinal de que já dava pra escanear a
+    // próxima pessoa -- a câmera já estava pronta o tempo todo, só não
+    // parecia). "Versão" evita a mensagem antiga sumir por cima de uma
+    // nova (outro QR lido, ou o clique em "Confirmar Check-in") -- só o
+    // agendamento mais recente tem efeito quando o tempo passa.
+    let scannerFeedbackVersao = 0;
+    function invalidarResetScannerFeedback() { scannerFeedbackVersao++; }
+    function agendarResetScannerFeedback() {
+        const minhaVersao = scannerFeedbackVersao;
+        setTimeout(() => {
+            if (minhaVersao !== scannerFeedbackVersao) return;
+            const feedback = document.getElementById('scannerFeedback');
+            if (feedback) feedback.innerHTML = 'Aponte a câmera pro QR da carteirinha.';
+        }, 2500);
+    }
+
     // Tela cheia (sem params, ?t= aberto por fora, ou "Continuar
     // escaneando") -- usada tanto na tela principal quanto dentro do
     // scanner embutido, por isso recebe o container como parâmetro.
@@ -350,38 +368,45 @@
                 ? '<span class="erro-inline">Sem conexão -- aponta de novo pro QR.</span>'
                 : '<div class="erro">Sem conexão. Confira a internet e tenta de novo.</div>'
                     + `<button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Tentar de novo</button>`;
+            if (dentroDoScanner) agendarResetScannerFeedback();
             return;
         }
         if (!pessoa) {
             container.innerHTML = dentroDoScanner
                 ? '<span class="erro-inline">QR não reconhecido pra esse evento.</span>'
                 : '<div class="erro">Ritmista não encontrado, ou a verificação não está mais ativa.</div>';
+            if (dentroDoScanner) agendarResetScannerFeedback();
             return;
         }
         if (pessoa.ja_confirmado) {
             const hora = horaFormatada(pessoa.presente_em);
             container.innerHTML = `${fotoPortariaHtml(pessoa)}<div class="aviso-ja-entrou">⚠️ Check-in já realizado${hora ? ' às ' + hora : ''}</div>`
                 + (dentroDoScanner ? '' : `<button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Continuar escaneando</button>`);
+            if (dentroDoScanner) agendarResetScannerFeedback();
             return;
         }
         container.innerHTML = `${fotoPortariaHtml(pessoa)}<button class="btn-confirmar-entrada" onclick="confirmarEEsconder(this, ${pessoa.vinculo_id}, '${portariaToken}', ${dentroDoScanner})">✓ Confirmar Check-in</button>`;
     }
     async function confirmarEEsconder(btn, vinculoId, portariaToken, dentroDoScanner) {
         const container = btn.closest('#conteudo, #scannerFeedback');
+        if (dentroDoScanner) invalidarResetScannerFeedback();
         container.innerHTML = '<div class="carregando" style="padding:0;">Confirmando...</div>';
         const r = await confirmarEntradaPortaria(vinculoId, portariaToken);
         if (!r || !r.ok) {
             container.innerHTML = '<span class="erro-inline">Não foi possível confirmar. Tenta de novo.</span>'
                 + (dentroDoScanner ? '' : `<button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Voltar a escanear</button>`);
+            if (dentroDoScanner) agendarResetScannerFeedback();
             return;
         }
         if (r.ja_confirmado) {
             container.innerHTML = `<div class="aviso-ja-entrou">⚠️ Check-in já realizado antes</div>`
                 + (dentroDoScanner ? '' : `<button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Continuar escaneando</button>`);
+            if (dentroDoScanner) agendarResetScannerFeedback();
             return;
         }
         container.innerHTML = `<div class="sucesso-entrada">✓ ${escHtml(r.nome)} — check-in confirmado!</div>`
             + (dentroDoScanner ? '' : `<button class="btn-ligar" onclick="abrirScannerEmbutido('${portariaToken}')">📷 Continuar escaneando</button>`);
+        if (dentroDoScanner) agendarResetScannerFeedback();
     }
 
     async function mostrarResultadoPortaria(qrToken, portariaToken) {
@@ -457,6 +482,7 @@
         if (token === scannerUltimoToken && (agora - scannerUltimoTs) < 3000) return;
         scannerUltimoToken = token;
         scannerUltimoTs = agora;
+        invalidarResetScannerFeedback();
         const feedback = document.getElementById('scannerFeedback');
         feedback.innerHTML = 'Verificando...';
         const pessoa = await buscarPessoaPortaria(token, portariaToken);
