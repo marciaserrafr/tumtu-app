@@ -3499,6 +3499,13 @@
         // independentes entre si.
         const apareceNoCadastro = tipoExistente ? tipoExistente.aparece_no_cadastro !== false : true;
         const obrigatorioNoCadastro = tipoExistente ? !!tipoExistente.obrigatorio_no_cadastro : false;
+        // Achado dela ao vivo, 25/set/2026: ativar o tipo (e até ligar
+        // "Aparece no cadastro") não bastava -- se nenhum tamanho dele
+        // estivesse marcado como ativo aqui embaixo, o item simplesmente
+        // não aparecia em lugar nenhum, sem nenhum aviso. Aviso não-
+        // bloqueante (mesmo padrão visual de #config-resumo-prontidao) pra
+        // ela perceber na hora, em vez de descobrir só testando o cadastro.
+        const temTamanhoAtivo = itens.some(t => bateriaMedidasCache.some(bm => bm.tamanho_id === t.id && bm.ativo));
         return `
             <div class="item-card config-medida-card">
                 <div class="config-medida-header" onclick="toggleMedidaTipoAberto(${tipo.id})">
@@ -3509,6 +3516,7 @@
                     <span class="config-medida-seta ${aberto ? 'aberta' : ''}">›</span>
                 </div>
                 ${aberto ? `<div class="config-medida-tamanhos">
+                    ${tipoAtivo && !temTamanhoAtivo ? `<div class="aviso-dados-proprios" style="margin:8px 0 12px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:default;">⚠️ Nenhum tamanho ativo -- este item não vai aparecer pra ninguém. Ative pelo menos 1 tamanho abaixo.</div>` : ''}
                     <div class="config-medida-publico">
                         <div class="config-medida-publico-label">Quem preenche esta categoria</div>
                         <div class="config-medida-publico-itens">
