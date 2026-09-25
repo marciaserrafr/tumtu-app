@@ -6351,7 +6351,15 @@
             ] });
         }
         if (!secoes.length) return; // setinha só aparece quando tem algo pra mostrar (ver aplicarConfigEscola)
-        abrirFolha('Trocar de contexto', secoes);
+        // "Meus acessos" (25/set/2026) -- nome final, depois dela achar
+        // "Trocar de contexto" (nome literal do documento da Design) ruim
+        // ("termo de programador, não de produto"). Pesquisa rápida de
+        // mercado (Slack/Google/bancos corporativos com múltiplas contas)
+        // não usa termo abstrato nenhum pra isso -- "acesso" já existe no
+        // vocabulário do próprio app (o Dashboard já teve uma aba
+        // "Acessos") e cobre os dois casos sem soar estranho pro Super
+        // Admin (que não teria "suas baterias" pra trocar, só "acessos").
+        abrirFolha('Meus acessos', secoes);
     }
 
     // Rodapé do Super Admin no celular (Camada 0, item 0.5, 14/set/2026) --
