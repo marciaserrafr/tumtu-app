@@ -6324,10 +6324,17 @@
                 const idsBaterias = [...new Set(vinculos.map(v => v.bateria_id))];
                 const resB = await fetch(`${SUPABASE_URL}/rest/v1/baterias?id=in.(${idsBaterias.join(',')})&select=id,nome`, { headers: authHeaders });
                 const nomesPorBateria = resB.ok ? Object.fromEntries((await resB.json()).map(b => [b.id, b.nome])) : {};
-                // Mesmo rótulo abreviado já usado em login.html (achado dela,
-                // 25/ago/2026: nome de bateria + cargo comprido quebra o card feio).
+                // Cargo continua aqui de propósito (25/set/2026) -- ela pediu
+                // pra tirar da tela de login ("Qual bateria você quer ver?",
+                // ver buscarEEscolherVinculos em login.html), mas quis manter
+                // em "Meus acessos" especificamente: "ali eu acho que vale".
+                // Por extenso aqui, sem abreviação (pedido dela, mesma
+                // rodada: "Dir. Bateria vai virar Diretor de Bateria") --
+                // diferente do rótulo abreviado que login.html ainda usava
+                // (agora removido de lá, então a abreviação não serve mais
+                // pra nada em nenhum dos dois lugares).
                 const cargoLabel = v => v.perfil === 'mestre' ? (v.genero === 'feminino' ? 'Mestra de Bateria' : 'Mestre de Bateria')
-                    : v.perfil === 'diretor' ? (v.genero === 'feminino' ? 'Dir.ª Bateria' : 'Dir. Bateria')
+                    : v.perfil === 'diretor' ? (v.genero === 'feminino' ? 'Diretora de Bateria' : 'Diretor de Bateria')
                     : v.perfil === 'apoio' ? (v.genero === 'feminino' ? 'Diretora (Apoio)' : 'Diretor (Apoio)') : 'Ritmista';
                 const rotuloStatus = { pendente: ' · Pendente', suspenso: ' · Suspenso' };
                 secoes.push({
