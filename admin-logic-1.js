@@ -2513,14 +2513,19 @@
             if (bateriaTextoEl) bateriaTextoEl.textContent = cfg.nomeBateria || '';
             bateriaEl.style.display = '';
         }
-        // Setinha de "Trocar de contexto" (Peça 4, 25/set/2026) -- só faz
-        // sentido do lado do nome da bateria (nunca aparece no cabeçalho do
-        // Super Admin fora de uma escola, que não tem essa linha). Aparece
-        // pra Super Admin sempre (tem "Voltar ao Super Admin" pra
-        // oferecer) ou Mestre/Diretor com 2+ vínculos. Quem tem uma bateria
-        // só e não é Super Admin não vê nada aqui -- mesmo espaço de hoje.
+        // Setinha "Meus acessos" (Peça 4, 25/set/2026) -- só faz sentido do
+        // lado do nome da bateria (nunca aparece no cabeçalho do Super
+        // Admin fora de uma escola, que não tem essa linha). Aparece pra
+        // Super Admin sempre (tem "Voltar ao Super Admin" pra oferecer) ou
+        // Mestre/Diretor com 2+ vínculos. Quem tem uma bateria só e não é
+        // Super Admin não vê nada aqui -- mesmo espaço de hoje. A classe
+        // .tem-chevron (25/set/2026, sugestão aceita: "a setinha tá muito
+        // pequena") liga o clique/cursor:pointer da LINHA INTEIRA, não só
+        // do símbolo -- alvo de toque maior, mesmo visual pequeno.
         const chevronEl = document.getElementById('headerChevronContexto');
-        if (chevronEl) chevronEl.style.display = (souSuperAdmin || totalVinculosGlobal > 1) ? '' : 'none';
+        const temChevron = souSuperAdmin || totalVinculosGlobal > 1;
+        if (chevronEl) chevronEl.style.display = temChevron ? '' : 'none';
+        if (bateriaEl) bateriaEl.classList.toggle('tem-chevron', temChevron);
 
         // Cor do botão Ativar (usa corDestaque da escola ou dourado TumTu)
         const cor = cfg.corDestaque || '#D4AF37';
@@ -6341,9 +6346,13 @@
                     titulo: 'Suas baterias',
                     itens: vinculos.map(v => {
                         const atual = v.bateria_id === bateriaAtualId;
+                        // Sem "· aqui agora" no texto (25/set/2026, achado
+                        // dela: "tem duas coisas idênticas... pq tem os
+                        // dois?") -- o selo "Atual" já diz isso sozinho,
+                        // não precisa repetir na legenda.
                         return {
                             label: esc(nomesPorBateria[v.bateria_id] || 'Bateria'),
-                            subtitulo: esc(cargoLabel(v)) + (atual ? ' · aqui agora' : (rotuloStatus[v.status] || '')),
+                            subtitulo: esc(cargoLabel(v)) + (atual ? '' : (rotuloStatus[v.status] || '')),
                             avatar: true,
                             atual,
                             onClick: atual ? null : trocarBateriaAdmin,
@@ -6630,7 +6639,9 @@
         // certinho dentro do espaço de 52px reservado pela linha inteira.
         const bateriaTextoElSA = document.getElementById('headerBateriaNomeTexto');
         if (bateriaTextoElSA) bateriaTextoElSA.textContent = '';
-        document.getElementById('headerBateriaNome').style.display = 'none';
+        const bateriaElSA = document.getElementById('headerBateriaNome');
+        bateriaElSA.style.display = 'none';
+        bateriaElSA.classList.remove('tem-chevron');
         const chevronElSA = document.getElementById('headerChevronContexto');
         if (chevronElSA) chevronElSA.style.display = 'none';
         // Remede o cabeçalho DEPOIS de trocar o conteúdo dele de volta pro

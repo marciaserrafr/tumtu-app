@@ -210,6 +210,13 @@
            padrão já usado na carteirinha (.cf-bateria). */
         .header-badge .hb-escola { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; line-height: 1.3; }
         .header-badge .hb-bateria { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; line-height: 1.3; margin-top: 1px; color: var(--cor-destaque); }
+        /* Área de toque da setinha "Meus acessos" (25/set/2026, sugestão
+           aceita por ela: "a setinha... tá muito pequena") -- o clique
+           passa a valer pra LINHA INTEIRA (nome da bateria + setinha), não
+           só o símbolo pequeno. .tem-chevron só é ligada via JS quando a
+           setinha de fato existe (aplicarConfigEscola/mostrarShellSA) --
+           sem ela, a linha não é clicável e não finge que é. */
+        .header-badge .hb-bateria.tem-chevron { cursor: pointer; }
         .header-esquerda.com-logo-escola .header-badge .hb-escola { font-size: 15px; letter-spacing: -0.1px; }
         .header-esquerda.com-logo-escola .header-badge .hb-bateria { font-size: 14px; margin-top: 2px; }
         /* Setinha "Trocar de contexto" (Peça 4 da navegação mobile,
@@ -2130,7 +2137,7 @@
 <div class="header" id="pageHeader">
     <div class="header-esquerda">
         <div class="header-marca tt-logo" id="headerMarca" style="visibility:hidden;"><span class="tt-t">T</span>u<span class="tt-m">m</span><span class="tt-t">T</span>u</div>
-        <div class="header-badge" id="headerBateria"><div id="headerEscolaNome" class="hb-escola"></div><div id="headerBateriaNome" class="hb-bateria"><span id="headerBateriaNomeTexto"></span><span id="headerChevronContexto" class="header-chevron-contexto" onclick="abrirFolhaContexto()" style="display:none;">⌄</span></div></div>
+        <div class="header-badge" id="headerBateria"><div id="headerEscolaNome" class="hb-escola"></div><div id="headerBateriaNome" class="hb-bateria" onclick="abrirFolhaContexto()"><span id="headerBateriaNomeTexto"></span><span id="headerChevronContexto" class="header-chevron-contexto" style="display:none;">⌄</span></div></div>
     </div>
     <div class="header-acoes">
         <div id="headerAvatarWrap" class="header-avatar" title="Meu Perfil"></div>
@@ -3825,7 +3832,7 @@
      admin-logic-1.js) continua garantida. -->
 <script src="config-escola.js?v=4" defer></script>
 <script src="config-suporte.js?v=1" defer></script>
-<script src="admin-logic-1.js?v=76" defer></script>
+<script src="admin-logic-1.js?v=77" defer></script>
 
 <!-- MODAL FICHA DO ADMIN (Diretoria) — mesmas informações do modal de Ritmista -->
 <div id="modalAdmin" style="display:none;">
