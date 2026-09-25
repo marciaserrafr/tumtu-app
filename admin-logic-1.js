@@ -6877,7 +6877,6 @@
         // só é chamado depois) -- então nada disso aparece até estar pronto.
         await trocarSaAba('dashboard', document.querySelector('.sa-sidebar-item[data-sa="dashboard"]'));
         mostrarShellSA();
-        if (btn) { btn.disabled = false; btn.style.opacity = ''; }
     }
 
     // Atalho do Dashboard: "X pendentes" de uma bateria já abre direto em Diretoria.
